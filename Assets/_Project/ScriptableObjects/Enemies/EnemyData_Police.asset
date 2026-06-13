@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 429f33fc55f6f440f894712573415325, type: 3}
+  m_Name: EnemyData_Police
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
+  _displayName: Police
+  _prefab: {fileID: 5896680904072327028, guid: 2d258be3b3b864c49b3b9a86b6b8671b, type: 3}
+  _maxHealth: 50
+  _damage: 10
+  _moveSpeed: 3
+  _attackRange: 2
+  _attackCooldown: 1
+  _spawnTier: 0
+  _scoreValue: 0

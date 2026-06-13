@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5268452ec2e7486f89a94ad975c9098, type: 3}
+  m_Name: Wave_Police
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.WaveData
+  _timeThreshold: 0
+  _enemyTypes:
+  - EnemyData: {fileID: 11400000, guid: 58bb1253e36e04bdd81ec5144eaf244a, type: 2}
+    SpawnWeight: 1
+  _spawnRate: 3
+  _maxActiveCount: 5
+  _waveName: Police
