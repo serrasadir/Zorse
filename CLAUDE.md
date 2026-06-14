@@ -209,17 +209,108 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 
 ## Yapılacaklar (Sıradaki Fazlar)
 
-### Phase 5 — Upgrade Sistemi
-- `UpgradeSystem.cs` — LevelUp event'inde 3 kart sun
-- `UpgradeEffect` subclass'ları (hız, hasar, regen, mıknatıs, vb.)
-- `UpgradePanel` UI (3 kart, seçince efekt uygula)
+Fazlar sırayla yapılacak. Her faz tamamlanınca burası güncellenmeli.
 
-### Phase 6 — HUD
-- Health bar, skor, survival timer, tier göstergesi
-- GameOver ekranı (skor, highscore, restart)
-- VirtualJoystick Canvas'a bağlanması
-- SafeAreaHandler (notch/çentik desteği)
+---
 
-### Phase 7 — Harita
-- Map bölgeleri (şehir merkezi, park, liman)
-- Sınır sistemi (blob haritadan çıkamasın)
+### ✅ Phase 1 — Core Altyapı (TAMAMLANDI)
+- GameManager, GameEvents, CameraController
+- Object Pool sistemi (ObjectPool + PoolManager)
+- ScoreSystem
+
+### ✅ Phase 2 — Blob (TAMAMLANDI)
+- BlobController (hareket)
+- BlobGrowth (smooth büyüme, tier sistemi)
+- BlobConsumption (yeme, trigger)
+- BlobHealth (hasar, ölüm, regen)
+
+### ✅ Phase 3 — Consumables (TAMAMLANDI)
+- IConsumable interface
+- ConsumableBase
+- ConsumableSpawner (pool'dan spawn, tier bazlı)
+- ConsumableData ScriptableObject
+
+### ✅ Phase 4 — Düşman Sistemi (TAMAMLANDI)
+- EnemyBase + NavMeshAgent
+- State machine: PatrolState → ChaseState → AttackState
+- EnemyData ScriptableObject
+- WaveData ScriptableObject + WaveController
+- EnemySpawner (NavMesh'te geçerli noktada spawn)
+
+---
+
+### 🔲 Phase 5 — Upgrade Sistemi (SIRADA)
+
+**Scriptler:**
+- `Assets/_Project/Scripts/Systems/Upgrade/UpgradeSystem.cs`
+  - `GameEvents.OnLevelUp` dinler
+  - 3 rastgele UpgradeData seçer (weight bazlı)
+  - `GameEvents.RaiseLevelUp()` → UI panel açılır
+  - Seçilen upgrade'i uygular
+- `Assets/_Project/Scripts/Systems/Upgrade/UpgradeEffect.cs` (abstract base)
+- Concrete efektler (her biri ayrı dosya):
+  - `SpeedBoostEffect.cs` — BlobController hızını artırır
+  - `DamageReductionEffect.cs` — BlobHealth armor'ını artırır
+  - `RegenBoostEffect.cs` — BlobHealth regen hızını artırır
+  - `MagnetEffect.cs` — Consumable'ları blob'a çeker (yeni bileşen)
+  - `ScoreMultiplierEffect.cs` — ScoreSystem multiplier'ını artırır
+  - `HealthBoostEffect.cs` — Max health artırır
+
+**Editor adımları:**
+- UpgradeData asset'leri oluştur (her upgrade için bir SO)
+- UpgradeSystem GameObject'e ekle, UpgradeData listesini bağla
+
+---
+
+### 🔲 Phase 6 — HUD & UI
+
+**Scriptler:**
+- `Assets/_Project/Scripts/UI/HUDController.cs`
+  - Health bar (GameEvents.OnHealthChanged dinler)
+  - Skor göstergesi (GameEvents.OnScoreChanged dinler)
+  - Survival timer
+  - Tier göstergesi (Tiny / Small / Medium / Large / Giant)
+- `Assets/_Project/Scripts/UI/UpgradePanel.cs`
+  - 3 upgrade kartı gösterir
+  - Kart seçilince UpgradeSystem'e bildirir, panel kapanır
+  - Oyun Paused state'e girer panel açıkken
+- `Assets/_Project/Scripts/UI/GameOverScreen.cs`
+  - Skor, highscore gösterir
+  - Restart butonu → GameManager.StartGame()
+- `Assets/_Project/Scripts/UI/SafeAreaHandler.cs`
+  - iPhone notch / Android çentik desteği
+  - Canvas RectTransform'u safe area'ya göre ayarlar
+
+**Editor adımları:**
+- Canvas oluştur (Screen Space - Overlay, UI Scale Mode: Scale With Screen Size 1080x1920)
+- VirtualJoystick prefab'ını Canvas'a bağla
+- HUD elemanlarını (Slider, Text, vb.) Canvas altına ekle
+
+---
+
+### 🔲 Phase 7 — Harita & Bölgeler
+
+**Amaç:** Oyun dünyasını bölgelere ayır, her bölgenin kendine özgü consumable ve düşman seti olsun.
+
+**Scriptler:**
+- `Assets/_Project/Scripts/Systems/Map/MapRegion.cs`
+  - Bölge tanımı: isim, sınırlar, consumable listesi, arka plan rengi
+- `Assets/_Project/Scripts/Systems/Map/MapManager.cs`
+  - Blob hangi bölgedeyse ona göre ConsumableSpawner'a filtre uygular
+- Sınır sistemi: blob haritadan çıkamasın (Rigidbody constraint veya invisible wall)
+
+**Planlanan bölgeler:**
+- Şehir Merkezi (başlangıç bölgesi)
+- Park
+- Liman
+- Endüstri Bölgesi
+
+---
+
+### 🔲 Phase 8 — Cila & Juice
+
+- Parçacık efektleri (yeme, ölüm, tier atlama)
+- Ses efektleri (AudioManager)
+- Ekran sarsıntısı (CameraShake)
+- Skor combo sistemi
+- Blob'un gözleri / yüz animasyonu
