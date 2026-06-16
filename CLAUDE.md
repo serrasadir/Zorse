@@ -42,8 +42,8 @@ FindObjectOfType<T>();
 ```
 BlobSurvivor.Core        → GameManager, GameEvents, CameraController
 BlobSurvivor.Entities    → Blob/*, Consumables/*, Enemies/*
-BlobSurvivor.Systems     → Pool/*, Score/*, Wave/*
-BlobSurvivor.UI          → (henüz yazılmadı)
+BlobSurvivor.Systems     → Pool/*, Score/*, Wave/*, Upgrade/*
+BlobSurvivor.UI          → HUDController, UpgradePanel, GameOverScreen, SafeAreaHandler
 BlobSurvivor.Data        → ScriptableObject'ler (ConsumableData, EnemyData, vb.)
 BlobSurvivor.Input       → InputManager, VirtualJoystick
 ```
@@ -90,6 +90,16 @@ float growthExponent = 0.4f;
 - Large: 60 mass
 - Giant: 100 mass
 
+**XP & Level sistemi (BlobGrowth içinde):** Mass kazanmak XP olarak da sayılır. Her level'da eşik büyür:
+
+```csharp
+// AddMass çağrıldıkça AddXP da çalışır
+xpThreshold = baseXPThreshold + currentLevel * xpGrowthPerLevel;
+// Varsayılan: baseXPThreshold=20, xpGrowthPerLevel=15
+```
+
+XP eşiği geçilince `GameEvents.RaiseLevelUp(level)` ateşlenir → `UpgradeSystem` 3 seçenek sunar.
+
 ---
 
 ## BlobTier Enum
@@ -122,14 +132,19 @@ pool.Return(enemy);
 `GameEvents.cs` static event bus. Tüm oyun geneli eventler burada:
 
 ```csharp
-GameEvents.OnBlobSizeChanged      // float mass
-GameEvents.OnBlobTierChanged      // BlobTier tier
-GameEvents.OnScoreChanged         // int score
-GameEvents.OnHealthChanged        // float current, float max
+GameEvents.OnBlobSizeChanged       // float mass
+GameEvents.OnBlobTierChanged       // BlobTier tier
+GameEvents.OnScoreChanged          // int score
+GameEvents.OnXPChanged             // int xp
+GameEvents.OnLevelUp               // int level — UpgradeSystem dinler
 GameEvents.OnGameOver
-GameEvents.OnGameStarted
-GameEvents.OnSurvivalTimeUpdated  // float seconds — WaveController dinler
-GameEvents.OnLevelUp
+GameEvents.OnGamePaused
+GameEvents.OnGameResumed
+GameEvents.OnUpgradeChoicesReady   // UpgradeData[] — UpgradePanel dinler
+GameEvents.OnUpgradeSelected       // UpgradeData — UpgradeSystem dinler, efekti uygular
+GameEvents.OnHealthChanged         // float current, float max
+GameEvents.OnSurvivalTimeUpdated   // float seconds — WaveController dinler
+GameEvents.OnConsumedCountChanged  // int count
 ```
 
 Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
@@ -186,6 +201,27 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 | `PoolManager.cs` | Singleton; tüm pool'ları yönetir |
 | `ScoreSystem.cs` | AddScore, multiplier, PlayerPrefs highscore, ResetScore |
 
+### Systems / Upgrade
+| Script | Açıklama |
+|--------|----------|
+| `UpgradeEffect.cs` | Abstract ScriptableObject; `Apply(blobRoot, data)` |
+| `UpgradeSystem.cs` | OnLevelUp dinler; weight bazlı 3 seçenek sunar; OnUpgradeSelected dinler, efekti uygular, oyunu resume eder |
+| `SpeedBoostEffect.cs` | BlobController.SetSpeedMultiplier artırır |
+| `DamageReductionEffect.cs` | BlobHealth armor multiplier düşürür (daha az hasar) |
+| `RegenBoostEffect.cs` | BlobHealth regen rate artırır |
+| `HealthBoostEffect.cs` | BlobHealth max health artırır |
+| `ScoreMultiplierEffect.cs` | ScoreSystem multiplier artırır |
+| `MagnetEffect.cs` | Blob'a MagnetComponent ekler/radius artırır |
+| `MagnetComponent.cs` (Entities/Blob) | OverlapSphere ile yakındaki IConsumable'ları bulur, transform'u blob'a doğru taşır (consumable'larda Rigidbody YOK, force çalışmaz — `Vector3.MoveTowards` kullanılır) |
+
+### UI
+| Script | Açıklama |
+|--------|----------|
+| `HUDController.cs` | Health/XP bar, skor, timer, tier, level text — GameEvents dinler |
+| `UpgradePanel.cs` | OnUpgradeChoicesReady'de 3 buton gösterir; tıklayınca OnUpgradeSelected raise eder |
+| `GameOverScreen.cs` | OnGameOver'da skor/highscore gösterir; restart → GameManager.StartGame() |
+| `SafeAreaHandler.cs` | RectTransform'u Screen.safeArea'ya göre ayarlar (notch desteği) |
+
 ### Input
 | Script | Açıklama |
 |--------|----------|
@@ -204,6 +240,8 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 - **Kamera uzaklaşıyordu:** Tier değişince zoom vardı. Kullanıcı istemedi, kaldırıldı.
 - **Smooth büyüme:** Başta tier atladıkça scale sıçrıyordu. `Pow` formülüyle smooth hale getirildi.
 - **NavMesh spawn hatası:** Enemyler Y=0'da spawn oluyordu, NavMesh'e uzak kalıyordu. `EnemySpawnY = 0.65f` + `NavMesh.SamplePosition` ile düzeltildi.
+- **Mıknatıs işe yaramıyordu:** `MagnetComponent` `Rigidbody.AddForce` kullanıyordu ama consumable prefab'larında Rigidbody yok (sadece trigger Collider). Düzeltme: `Transform.MoveTowards` ile direkt pozisyon taşıma.
+- **Polis oyunun başında spawn oluyordu:** `Wave_Police.asset`'te `TimeThreshold = 0` idi. Editor'dan 60'a çekildi (oyunun 60. saniyesinde başlıyor).
 
 ---
 
@@ -239,56 +277,22 @@ Fazlar sırayla yapılacak. Her faz tamamlanınca burası güncellenmeli.
 
 ---
 
-### 🔲 Phase 5 — Upgrade Sistemi (SIRADA)
+### ✅ Phase 5 — Upgrade Sistemi (TAMAMLANDI)
+- UpgradeEffect (abstract SO) + UpgradeSystem (weight bazlı 3 seçenek, OnLevelUp/OnUpgradeSelected)
+- 6 concrete efekt: Speed, DamageReduction, Regen, HealthBoost, ScoreMultiplier, Magnet
+- MagnetComponent (yeni Blob bileşeni, consumable'ları çeker)
+- BlobGrowth'a XP/Level sistemi eklendi (mass kazanmak = XP)
 
-**Scriptler:**
-- `Assets/_Project/Scripts/Systems/Upgrade/UpgradeSystem.cs`
-  - `GameEvents.OnLevelUp` dinler
-  - 3 rastgele UpgradeData seçer (weight bazlı)
-  - `GameEvents.RaiseLevelUp()` → UI panel açılır
-  - Seçilen upgrade'i uygular
-- `Assets/_Project/Scripts/Systems/Upgrade/UpgradeEffect.cs` (abstract base)
-- Concrete efektler (her biri ayrı dosya):
-  - `SpeedBoostEffect.cs` — BlobController hızını artırır
-  - `DamageReductionEffect.cs` — BlobHealth armor'ını artırır
-  - `RegenBoostEffect.cs` — BlobHealth regen hızını artırır
-  - `MagnetEffect.cs` — Consumable'ları blob'a çeker (yeni bileşen)
-  - `ScoreMultiplierEffect.cs` — ScoreSystem multiplier'ını artırır
-  - `HealthBoostEffect.cs` — Max health artırır
-
-**Editor adımları:**
-- UpgradeData asset'leri oluştur (her upgrade için bir SO)
-- UpgradeSystem GameObject'e ekle, UpgradeData listesini bağla
+### ✅ Phase 6 — HUD & UI (TAMAMLANDI)
+- HUDController (health/XP bar, skor, timer, tier, level)
+- UpgradePanel (3 buton, seçim → GameEvents.RaiseUpgradeSelected)
+- GameOverScreen (skor/highscore, restart)
+- SafeAreaHandler (notch desteği)
+- Canvas yapısı: `Canvas → SafeArea → HUD / UpgradePanel / GameOverScreen`
 
 ---
 
-### 🔲 Phase 6 — HUD & UI
-
-**Scriptler:**
-- `Assets/_Project/Scripts/UI/HUDController.cs`
-  - Health bar (GameEvents.OnHealthChanged dinler)
-  - Skor göstergesi (GameEvents.OnScoreChanged dinler)
-  - Survival timer
-  - Tier göstergesi (Tiny / Small / Medium / Large / Giant)
-- `Assets/_Project/Scripts/UI/UpgradePanel.cs`
-  - 3 upgrade kartı gösterir
-  - Kart seçilince UpgradeSystem'e bildirir, panel kapanır
-  - Oyun Paused state'e girer panel açıkken
-- `Assets/_Project/Scripts/UI/GameOverScreen.cs`
-  - Skor, highscore gösterir
-  - Restart butonu → GameManager.StartGame()
-- `Assets/_Project/Scripts/UI/SafeAreaHandler.cs`
-  - iPhone notch / Android çentik desteği
-  - Canvas RectTransform'u safe area'ya göre ayarlar
-
-**Editor adımları:**
-- Canvas oluştur (Screen Space - Overlay, UI Scale Mode: Scale With Screen Size 1080x1920)
-- VirtualJoystick prefab'ını Canvas'a bağla
-- HUD elemanlarını (Slider, Text, vb.) Canvas altına ekle
-
----
-
-### 🔲 Phase 7 — Harita & Bölgeler
+### 🔲 Phase 7 — Harita & Bölgeler (SIRADA)
 
 **Amaç:** Oyun dünyasını bölgelere ayır, her bölgenin kendine özgü consumable ve düşman seti olsun.
 
