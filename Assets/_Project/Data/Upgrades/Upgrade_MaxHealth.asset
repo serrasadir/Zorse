@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a39f692a12e49499b3cddabf07df41, type: 3}
+  m_Name: Upgrade_MaxHealth
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
+  _id: health_boost
+  _displayName: "Can Art\u0131\u015F\u0131"
+  _description: "Bu kadar yemeye can\u0131n\u0131n daha fazla olmas\u0131n\u0131
+    beklerdin de\u011Fil mi?"
+  _icon: {fileID: 0}
+  _category: 0
+  _weight: 10
+  _effectValue: 25
+  _effectDuration: 0
+  _cooldown: 0
+  _effect: {fileID: 11400000, guid: 84ee39ec89e8e495c958449ce3ee1ea3, type: 2}

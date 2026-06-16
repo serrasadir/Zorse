@@ -1,4 +1,5 @@
 using UnityEngine;
+using BlobSurvivor.Systems;
 
 namespace BlobSurvivor.Data
 {
@@ -22,6 +23,7 @@ namespace BlobSurvivor.Data
         [SerializeField] private float _effectValue;
         [SerializeField] private float _effectDuration;
         [SerializeField] private float _cooldown;
+        [SerializeField] private UpgradeEffect _effect;
 
         public string Id => _id;
         public string DisplayName => _displayName;
@@ -32,5 +34,6 @@ namespace BlobSurvivor.Data
         public float EffectValue => _effectValue;
         public float EffectDuration => _effectDuration;
         public float Cooldown => _cooldown;
+        public UpgradeEffect Effect => _effect;
     }
 }

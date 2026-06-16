@@ -56,7 +56,17 @@ namespace BlobSurvivor.Entities.Blob
             GameEvents.RaiseHealthChanged(CurrentHealth, _maxHealth);
         }
 
+        public float GetArmorMultiplier() => _armorMultiplier;
+        public float GetRegenRate() => _regenRate;
+
         public void SetArmorMultiplier(float multiplier) => _armorMultiplier = Mathf.Clamp01(multiplier);
+
+        public void IncreaseMaxHealth(float amount)
+        {
+            _maxHealth += amount;
+            CurrentHealth = Mathf.Min(CurrentHealth + amount, _maxHealth);
+            GameEvents.RaiseHealthChanged(CurrentHealth, _maxHealth);
+        }
 
         public void EnableRegen(float rate, float interval = 1f)
         {

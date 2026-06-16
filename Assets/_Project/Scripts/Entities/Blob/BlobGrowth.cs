@@ -28,12 +28,20 @@ namespace BlobSurvivor.Entities.Blob
         [SerializeField] private float _growthExponent = 0.4f;
         [SerializeField] private float _scaleSmoothing = 5f;
 
+        [Header("XP & Level")]
+        [SerializeField] private float _baseXPThreshold = 20f;
+        [SerializeField] private float _xpGrowthPerLevel = 15f;
+
         public float CurrentMass { get; private set; }
         public BlobTier CurrentTier { get; private set; } = BlobTier.Tiny;
+        public float CurrentXP { get; private set; }
+        public float XPThreshold { get; private set; }
+        public int CurrentLevel { get; private set; }
 
         private void Start()
         {
             transform.localScale = Vector3.one * _baseScale;
+            XPThreshold = _baseXPThreshold;
         }
 
         private void Update()
@@ -51,6 +59,21 @@ namespace BlobSurvivor.Entities.Blob
             CurrentMass += amount;
             RecalculateTier();
             GameEvents.RaiseBlobSizeChanged(CurrentMass);
+            AddXP(amount);
+        }
+
+        private void AddXP(float amount)
+        {
+            CurrentXP += amount;
+            GameEvents.RaiseXPChanged((int)CurrentXP);
+
+            while (CurrentXP >= XPThreshold)
+            {
+                CurrentXP -= XPThreshold;
+                CurrentLevel++;
+                XPThreshold = _baseXPThreshold + CurrentLevel * _xpGrowthPerLevel;
+                GameEvents.RaiseLevelUp(CurrentLevel);
+            }
         }
 
         public void RemoveMass(float amount)

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a39f692a12e49499b3cddabf07df41, type: 3}
+  m_Name: Upgrade_ScoreMult
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
+  _id: score_multiplier
+  _displayName: Skor x2
+  _description: "Her yeme\u011Fi 2 kere yemek mi? R\xFCya olmal\u0131."
+  _icon: {fileID: 0}
+  _category: 0
+  _weight: 6
+  _effectValue: 0.5
+  _effectDuration: 0
+  _cooldown: 0
+  _effect: {fileID: 11400000, guid: 7857c1782ba7b4acfa14a5f69fd2889b, type: 2}

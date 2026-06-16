@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5268452ec2e7486f89a94ad975c9098, type: 3}
   m_Name: Wave_Police
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.WaveData
-  _timeThreshold: 0
+  _timeThreshold: 60
   _enemyTypes:
   - EnemyData: {fileID: 11400000, guid: 58bb1253e36e04bdd81ec5144eaf244a, type: 2}
     SpawnWeight: 1
