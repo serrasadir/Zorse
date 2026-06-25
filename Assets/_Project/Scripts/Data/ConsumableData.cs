@@ -14,6 +14,7 @@ namespace BlobSurvivor.Data
         [SerializeField] private BlobTier _requiredTier;
         [SerializeField] private bool _isHazard;
         [SerializeField] private float _hazardAmount;
+        [SerializeField] private float _spawnYOffset = 0.15f;
 
         public string DisplayName => _displayName;
         public GameObject Prefab => _prefab;
@@ -23,5 +24,6 @@ namespace BlobSurvivor.Data
         public BlobTier RequiredTier => _requiredTier;
         public bool IsHazard => _isHazard;
         public float HazardAmount => _hazardAmount;
+        public float SpawnYOffset => _spawnYOffset;
     }
 }

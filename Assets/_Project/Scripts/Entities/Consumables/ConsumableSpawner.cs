@@ -80,7 +80,7 @@ namespace BlobSurvivor.Entities
             ConsumableData data = GetRandomDataForTier(maxTier);
             if (data == null || !_pools.ContainsKey(data)) return;
 
-            Vector3 spawnPos = GetRandomSpawnPosition();
+            Vector3 spawnPos = GetRandomSpawnPosition(data.SpawnYOffset);
             ConsumableBase instance = _pools[data].Get(spawnPos, Quaternion.identity);
             instance.SetData(data);
             _activeConsumables.Add(instance.gameObject);
@@ -97,11 +97,11 @@ namespace BlobSurvivor.Entities
             return valid[Random.Range(0, valid.Count)];
         }
 
-        private Vector3 GetRandomSpawnPosition()
+        private Vector3 GetRandomSpawnPosition(float yOffset = 0f)
         {
             Vector3 center = _blobTransform != null ? _blobTransform.position : Vector3.zero;
             Vector2 randomCircle = Random.insideUnitCircle.normalized * Random.Range(_minSpawnDistance, _spawnRadius);
-            return new Vector3(center.x + randomCircle.x, 0f, center.z + randomCircle.y);
+            return new Vector3(center.x + randomCircle.x, yOffset, center.z + randomCircle.y);
         }
 
         private void OnTierChanged(BlobTier newTier)
