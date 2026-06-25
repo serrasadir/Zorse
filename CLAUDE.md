@@ -19,6 +19,54 @@ Bu dosya, Claude Code'un projeyi sıfırdan anlayabilmesi için yazılmıştır.
 
 ---
 
+## Performans Kuralları (Mobil Hedef)
+
+Bu oyun mobilde de çalışacak. Her yeni özellik veya kullanıcı isteği için performans değerlendirmesi yapılmalı. Pahalı bir istek gelirse kullanıcıya söyle.
+
+### Kesinlikle Yapılmayacaklar
+- `FindAnyObjectByType<T>()` Update/FixedUpdate/OnCollision içinde → `Start()`/`Awake()`'te cache'le
+- Her frame physics sorgusu (OverlapSphere, Raycast) → throttle et (0.1–0.2s aralık)
+- Her frame string allocation (`text = value.ToString()`) → sadece değer değişince güncelle
+- `GetComponent<T>()` Update içinde → cache'le
+
+### Throttle Pattern (AI sorgular için standart)
+```csharp
+private float _updateTimer;
+private const float UpdateInterval = 0.15f;
+
+// Start'ta stagger ekle — tüm objeler aynı anda çalışmasın
+_updateTimer = Random.Range(0f, UpdateInterval);
+
+// Update'te
+_updateTimer -= Time.deltaTime;
+if (_updateTimer <= 0f)
+{
+    _updateTimer = UpdateInterval;
+    // pahalı sorgu buraya
+}
+```
+
+### Mesafe Karşılaştırması
+```csharp
+// YANLIŞ — sqrt hesabı pahalı
+float dist = Vector3.Distance(a, b);
+if (dist < radius) ...
+
+// DOĞRU — sqrMagnitude kullan
+if ((a - b).sqrMagnitude < radius * radius) ...
+```
+
+### NavMesh / AI Maliyeti
+- Her NavMeshAgent her frame pathfinding yapar → pahalı
+- Blob'a uzak düşmanlar için `navAgent.updateInterval` artır
+- Aynı anda max 8-10 aktif NavMeshAgent önerilir mobilde
+
+### Object Pool Zorunluluğu
+- Tüm spawn olan objeler (consumable, düşman, araba, yaya) pool'dan gelmeli
+- `Instantiate`/`Destroy` runtime'da yasak
+
+---
+
 ## Unity 6 API Notları
 
 Unity 6'da bazı API'ler değişti — eski versiyonlarla karıştırma:
