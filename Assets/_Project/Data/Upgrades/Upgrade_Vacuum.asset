@@ -12,15 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69a39f692a12e49499b3cddabf07df41, type: 3}
   m_Name: Upgrade_Vacuum
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
-  _id: 
-  _displayName: 
-  _description: 
+  _id: vacuum
+  _displayName: Vakum
+  _description: "Etraf\u0131ndaki yiyecekleri emmeye ba\u015Fla"
   _icon: {fileID: 0}
-  _category: 0
+  _category: 2
   _weight: 10
   _effectValue: 0
   _effectDuration: 0
   _cooldown: 0
-  _effect: {fileID: 0}
+  _effect: {fileID: 11400000, guid: 2bb2fe1b5b27949399df02cc785aa1c6, type: 2}
   _maxLevel: 8
-  _perLevelValue: 0
+  _perLevelValue: 0.5

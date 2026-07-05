@@ -23,3 +23,5 @@ MonoBehaviour:
   _effectDuration: 0
   _cooldown: 0
   _effect: {fileID: 11400000, guid: 84ee39ec89e8e495c958449ce3ee1ea3, type: 2}
+  _maxLevel: 8
+  _perLevelValue: 10
