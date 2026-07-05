@@ -45,7 +45,8 @@ namespace BlobSurvivor.Entities.Vehicles
         {
             if (_activeCarCount >= _maxActiveCars) return;
 
-            Vector3 spawnPos = _waypoints[0].position;
+            Vector3 wp = _waypoints[0].position;
+            Vector3 spawnPos = new Vector3(wp.x, _carData.SpawnYOffset, wp.z);
             CarController car = _pool.Get(spawnPos, Quaternion.identity);
             if (car == null) return;
 
