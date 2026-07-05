@@ -15,6 +15,16 @@ namespace BlobSurvivor.Systems
         private void Start()
         {
             _blobRoot = GameObject.FindWithTag("Blob");
+            ResetUpgradeLevels();
+        }
+
+        private void ResetUpgradeLevels()
+        {
+            if (_allUpgrades == null) return;
+            foreach (var u in _allUpgrades)
+            {
+                if (u != null) u.CurrentLevel = 0;
+            }
         }
 
         private void OnEnable()

@@ -25,6 +25,12 @@ namespace BlobSurvivor.Data
         [SerializeField] private float _cooldown;
         [SerializeField] private UpgradeEffect _effect;
 
+        [Header("Leveling")]
+        [SerializeField] private int _maxLevel = 8;
+        [SerializeField] private float _perLevelValue;
+
+        [System.NonSerialized] public int CurrentLevel;
+
         public string Id => _id;
         public string DisplayName => _displayName;
         public string Description => _description;
@@ -35,5 +41,7 @@ namespace BlobSurvivor.Data
         public float EffectDuration => _effectDuration;
         public float Cooldown => _cooldown;
         public UpgradeEffect Effect => _effect;
+        public int MaxLevel => _maxLevel;
+        public float PerLevelValue => _perLevelValue;
     }
 }
