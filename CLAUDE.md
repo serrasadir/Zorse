@@ -201,6 +201,7 @@ BlobSurvivor.Input       → InputManager, VirtualJoystick
 | Hazard | 15 | Zararlı objeler |
 | Environment | 16 | Çevre objeleri |
 | Ground | 17 | Zemin |
+| Projectile | 18 | Silah mermileri (WeaponBase/Projectile); Collision Matrix'te Enemy + ConsumableTier1-5 ile çarpışacak şekilde ayarlı |
 
 **ConsumableBase layer hesabı:** `8 + (int)_data.RequiredTier` → Tiny(1)→9, Small(2)→10, ...
 
@@ -282,6 +283,7 @@ GameEvents.OnUpgradeSelected       // UpgradeData — UpgradeSystem dinler, efek
 GameEvents.OnHealthChanged         // float current, float max
 GameEvents.OnSurvivalTimeUpdated   // float seconds — WaveController dinler
 GameEvents.OnConsumedCountChanged  // int count
+GameEvents.OnCharacterSelected     // CharacterData — GameManager.StartGame(data)'da ateşlenir
 ```
 
 Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
@@ -293,7 +295,7 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 ### Core
 | Script | Açıklama |
 |--------|----------|
-| `GameManager.cs` | Singleton; GameState (Menu/Playing/Paused/LevelUp/GameOver); `Start()`'ta direkt `StartGame()` çağırır (test için menu atlanır) |
+| `GameManager.cs` | Singleton; GameState (Menu/Playing/Paused/LevelUp/GameOver); `Start()` artık `StartGame()` çağırmaz — Lobby, karakter seçilene kadar açık kalır; `StartGame(CharacterData)` overload'ı pasifi uygular + başlangıç silahını spawnlar |
 | `GameEvents.cs` | Static event bus + BlobTier enum |
 | `CameraController.cs` | Blob'u smooth takip eder, sabit yükseklik (tier değişince zoom YOK — kullanıcı istemedi) |
 
@@ -304,6 +306,7 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 | `EnemyData.cs` | displayName, prefab, maxHealth, damage, moveSpeed, attackRange, attackCooldown, spawnTier, scoreValue |
 | `UpgradeData.cs` | id, displayName, description, icon, category, weight, effectValue, effectDuration, cooldown |
 | `WaveData.cs` | timeThreshold, enemyTypes (EnemySpawnEntry[]), spawnRate, maxActiveCount, waveName |
+| `CharacterData.cs` | displayName, icon, description, startingWeaponPrefab, passiveType (MoveSpeed/MagnetPull/ConsumableSplit), passiveValue |
 
 ### Entities / Blob
 | Script | Açıklama |
@@ -318,7 +321,7 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 |--------|----------|
 | `IConsumable.cs` | Interface: Data, RequiredTier, OnConsumed() |
 | `ConsumableBase.cs` | IConsumable impl; OnEnable'da layer set |
-| `ConsumableSpawner.cs` | Pool'dan spawn; başlangıçta 40, max 80; 2s'de bir refill; tier değişince bonus |
+| `ConsumableSpawner.cs` | Pool'dan spawn; başlangıçta 40, max 80; 2s'de bir refill; tier değişince bonus; Singleton (`Instance`); `ConsumeAndSplit()` — Pistol'ün büyük consumable'ı parçalaması için |
 
 ### Entities / Enemies
 | Script | Açıklama |
@@ -330,6 +333,15 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 | `ChaseState.cs` | Blob'a koş; attack range'e girince AttackState; göremezse PatrolState |
 | `AttackState.cs` | Dur, cooldown'da PerformAttack(); uzaklaşınca ChaseState |
 | `WaveController.cs` | OnSurvivalTimeUpdated dinler; en yüksek geçilen threshold'u aktif dalga yapar |
+
+### Entities / Weapons
+| Script | Açıklama |
+|--------|----------|
+| `WeaponBase.cs` | Abstract; `OverlapSphereNonAlloc` ile Enemy layer'da en yakın hedefi bulur (arama sadece fireRate cooldown'ında — throttle otomatik); pooled `Projectile` spawn eder; `IncreaseDamage()` — WeaponUpgradeEffect kullanır |
+| `Projectile.cs` | Pooled mermi; `OnTriggerEnter` → Enemy layer'da `EnemyBase.TakeDamage()`; `OnHitEnemy`/`OnHitOther` virtual hook'ları alt sınıflar için |
+| `CannonWeapon.cs` / `CannonProjectile.cs` (Topik) | Sinüs eğrili "arcing" mermi; çarpışınca küçük AoE (OverlapSphere → çevredeki düşmanlara da hasar) |
+| `MetalBallWeapon.cs` / `HomingProjectile.cs` (Mıknato) | Yavaş, `Vector3.Slerp` ile hedefe bükülen homing mermi |
+| `PistolWeapon.cs` / `PistolProjectile.cs` (Mermo) | Düz hızlı mermi; `RequiredTier > Small` olan consumable'a vurursa `ConsumableSpawner.ConsumeAndSplit()` ile parçalara ayırır |
 
 ### Systems
 | Script | Açıklama |
@@ -349,6 +361,7 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 | `HealthBoostEffect.cs` | BlobHealth max health artırır |
 | `ScoreMultiplierEffect.cs` | ScoreSystem multiplier artırır |
 | `MagnetEffect.cs` | Blob'a MagnetComponent ekler/radius artırır |
+| `WeaponUpgradeEffect.cs` | `blobRoot.GetComponentInChildren<WeaponBase>()` ile aktif silahı bulur, `IncreaseDamage(PerLevelValue)` çağırır — GDD'deki "Saldırı: Silah" kategorisi için (A1-A4/B1-B5 backlog'unda yoktu, sonradan eklendi). **İleride düşünülecek:** mermi hızı (`Projectile._speed`) ya da yön/mermi sayısı (multi-shot) artırma gibi ek boyutlar eklenebilir — şu an `UpgradeData`'da tek bir `PerLevelValue` alanı olduğu için sadece damage'a bağlandı; ikinci bir stat eklenecekse `UpgradeData`'ya yeni bir alan (örn. `_secondaryPerLevelValue`) gerekir |
 | `MagnetComponent.cs` (Entities/Blob) | OverlapSphere ile yakındaki IConsumable'ları bulur, transform'u blob'a doğru taşır (consumable'larda Rigidbody YOK, force çalışmaz — `Vector3.MoveTowards` kullanılır) |
 
 ### UI
@@ -357,6 +370,7 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 | `HUDController.cs` | Health/XP bar, skor, timer, tier, level text — GameEvents dinler |
 | `UpgradePanel.cs` | OnUpgradeChoicesReady'de 3 buton gösterir; tıklayınca OnUpgradeSelected raise eder |
 | `GameOverScreen.cs` | OnGameOver'da skor/highscore gösterir; restart → GameManager.StartGame() |
+| `LobbyPanel.cs` | Oyun başında görünür, HUD'u gizler (`_hud.SetActive(false)`); 3 karakter butonu (icon + isim); tıklayınca paneli kapatır, HUD'u açar, `GameManager.Instance.StartGame(data)` çağırır |
 | `SafeAreaHandler.cs` | RectTransform'u Screen.safeArea'ya göre ayarlar (notch desteği) |
 
 ### Input
@@ -367,13 +381,19 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 
 ---
 
+## Bilinen Eksikler / TODO
+
+- **Karakter iconları eksik:** `Char_Topik`, `Char_Miknato`, `Char_Mermo` (`Assets/_Project/Data/Characters/`) asset'lerinde `Icon` alanı boş — henüz görsel hazır değil. LobbyPanel'deki buton icon'ları bu yüzden şu an boş görünüyor. Icon'lar hazır olunca 3 asset'e de atanmalı.
+
+---
+
 ## Önemli Kararlar / Geçmiş Düzeltmeler
 
 - **ObjectPool MonoBehaviour sorunu:** Unity filename=classname zorunluluğu. ObjectPool generic class, PoolManager ayrı MonoBehaviour dosyası.
 - **GetInstanceID deprecated:** Dictionary key olarak prefab referansı kullanılıyor (`Dictionary<Object, object>`).
 - **Input System çakışması:** Proje New Input System kullanıyor. `UnityEngine.Input` class'ı kullanılamaz. InputManager `InputAction` ile yazıldı.
 - **ConsumableBase layer hatası:** `8 + ((int)tier - 1)` Tiny'yi layer 8'e (Blob layer!) koyuyordu. Düzeltme: `8 + (int)_data.RequiredTier`.
-- **WASD çalışmıyordu:** GameManager `Start()`'ta Menu state'te kalıyordu ve BlobController hareket ettirmiyordu. Düzeltme: `Start()` direkt `StartGame()` çağırır.
+- **WASD çalışmıyordu (eski çözüm, artık geçersiz):** GameManager `Start()`'ta Menu state'te kalıyordu ve BlobController hareket ettirmiyordu. O zamanki düzeltme `Start()`'ın direkt `StartGame()` çağırmasıydı — bu artık **Lobby akışı** ile değişti (bkz. A4, issue #5): `Start()` artık `StartGame()` çağırmıyor, oyun `Menu` state'inde kalıyor; `LobbyPanel` bir karakter seçilene kadar açık kalır, seçim `GameManager.StartGame(CharacterData)`'ı tetikler ve state `Playing`'e geçer.
 - **Kamera uzaklaşıyordu:** Tier değişince zoom vardı. Kullanıcı istemedi, kaldırıldı.
 - **Smooth büyüme:** Başta tier atladıkça scale sıçrıyordu. `Pow` formülüyle smooth hale getirildi.
 - **NavMesh spawn hatası:** Enemyler Y=0'da spawn oluyordu, NavMesh'e uzak kalıyordu. `EnemySpawnY = 0.65f` + `NavMesh.SamplePosition` ile düzeltildi.

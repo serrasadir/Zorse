@@ -1,4 +1,6 @@
 using UnityEngine;
+using BlobSurvivor.Data;
+using BlobSurvivor.Entities.Blob;
 
 namespace BlobSurvivor.Core
 {
@@ -14,6 +16,8 @@ namespace BlobSurvivor.Core
     public class GameManager : MonoBehaviour
     {
         public static GameManager Instance { get; private set; }
+
+        [SerializeField] private CharacterData _defaultCharacter;
 
         public GameState CurrentState { get; private set; }
         public float SurvivalTime { get; private set; }
@@ -33,7 +37,6 @@ namespace BlobSurvivor.Core
         private void Start()
         {
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
-            StartGame();
         }
 
         private void Update()
@@ -46,8 +49,45 @@ namespace BlobSurvivor.Core
 
         public void StartGame()
         {
+            StartGame(_defaultCharacter);
+        }
+
+        public void StartGame(CharacterData character)
+        {
             SurvivalTime = 0f;
             ChangeState(GameState.Playing);
+
+            if (character != null)
+                ApplyCharacter(character);
+        }
+
+        private void ApplyCharacter(CharacterData character)
+        {
+            GameObject blob = GameObject.FindWithTag("Blob");
+            if (blob == null) return;
+
+            switch (character.PassiveType)
+            {
+                case CharacterPassiveType.MoveSpeed:
+                    blob.GetComponent<BlobController>()?.SetSpeedMultiplier(1f + character.PassiveValue);
+                    break;
+                case CharacterPassiveType.MagnetPull:
+                    MagnetComponent magnet = blob.GetComponent<MagnetComponent>() ?? blob.AddComponent<MagnetComponent>();
+                    magnet.IncreaseRadius(character.PassiveValue);
+                    break;
+                case CharacterPassiveType.ConsumableSplit:
+                    // PistolWeapon zaten hedef tier'ı kontrol edip parçalıyor — ek kurulum gerekmiyor.
+                    break;
+            }
+
+            if (character.StartingWeaponPrefab != null)
+            {
+                GameObject weapon = Instantiate(character.StartingWeaponPrefab, blob.transform);
+                weapon.transform.localPosition = Vector3.zero;
+                weapon.transform.localRotation = Quaternion.identity;
+            }
+
+            GameEvents.RaiseCharacterSelected(character);
         }
 
         public void PauseGame()

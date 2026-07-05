@@ -8,6 +8,8 @@ namespace BlobSurvivor.Entities
 {
     public class ConsumableSpawner : MonoBehaviour
     {
+        public static ConsumableSpawner Instance { get; private set; }
+
         [SerializeField] private ConsumableData[] _consumablePool;
         [SerializeField] private int _maxActive = 80;
         [SerializeField] private float _spawnRadius = 30f;
@@ -19,6 +21,11 @@ namespace BlobSurvivor.Entities
         private readonly List<GameObject> _activeConsumables = new List<GameObject>();
         private readonly Dictionary<ConsumableData, ObjectPool<ConsumableBase>> _pools = new Dictionary<ConsumableData, ObjectPool<ConsumableBase>>();
         private float _refillTimer;
+
+        private void Awake()
+        {
+            Instance = this;
+        }
 
         private void Start()
         {
@@ -102,6 +109,32 @@ namespace BlobSurvivor.Entities
             Vector3 center = _blobTransform != null ? _blobTransform.position : Vector3.zero;
             Vector2 randomCircle = Random.insideUnitCircle.normalized * Random.Range(_minSpawnDistance, _spawnRadius);
             return new Vector3(center.x + randomCircle.x, yOffset, center.z + randomCircle.y);
+        }
+
+        public void ConsumeAndSplit(ConsumableBase target, int splitCount)
+        {
+            if (target == null) return;
+
+            BlobTier spawnTier = target.RequiredTier > BlobTier.Tiny ? target.RequiredTier - 1 : BlobTier.Tiny;
+            Vector3 position = target.transform.position;
+
+            if (_pools.TryGetValue(target.Data, out ObjectPool<ConsumableBase> pool))
+            {
+                _activeConsumables.Remove(target.gameObject);
+                pool.Return(target);
+            }
+
+            for (int i = 0; i < splitCount; i++)
+            {
+                ConsumableData data = GetRandomDataForTier(spawnTier);
+                if (data == null || !_pools.ContainsKey(data)) continue;
+
+                Vector2 scatter = Random.insideUnitCircle * 1.5f;
+                Vector3 spawnPos = new Vector3(position.x + scatter.x, data.SpawnYOffset, position.z + scatter.y);
+                ConsumableBase instance = _pools[data].Get(spawnPos, Quaternion.identity);
+                instance.SetData(data);
+                _activeConsumables.Add(instance.gameObject);
+            }
         }
 
         private void OnTierChanged(BlobTier newTier)

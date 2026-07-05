@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7327bc0f29c4e47d18cf0f07416aa5f5, type: 3}
+  m_Name: Char_Topik
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.CharacterData
+  _displayName: Topik
+  _icon: {fileID: 0}
+  _description: "Default h\u0131z \xF6zelli\u011Fi"
+  _startingWeaponPrefab: {fileID: 1195012648784995356, guid: 8dc57e157854348fd95c73a2d2e69c1d, type: 3}
+  _passiveType: 0
+  _passiveValue: 0.2
