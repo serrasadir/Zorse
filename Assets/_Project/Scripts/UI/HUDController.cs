@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using BlobSurvivor.Core;
+using BlobSurvivor.Data;
 
 namespace BlobSurvivor.UI
 {
@@ -19,6 +21,11 @@ namespace BlobSurvivor.UI
         [SerializeField] private Slider _xpBar;
         [SerializeField] private TMP_Text _levelText;
 
+        [Header("Skill Badges")]
+        [SerializeField] private Transform _skillBadgeContainer;
+        [SerializeField] private GameObject _skillBadgePrefab;
+
+        private readonly Dictionary<UpgradeData, GameObject> _badges = new Dictionary<UpgradeData, GameObject>();
         private float _survivalTime;
 
         private void OnEnable()
@@ -29,6 +36,8 @@ namespace BlobSurvivor.UI
             GameEvents.OnBlobTierChanged += OnTierChanged;
             GameEvents.OnXPChanged += OnXPChanged;
             GameEvents.OnLevelUp += OnLevelUp;
+            GameEvents.OnUpgradeSelected += OnUpgradeSelected;
+            GameEvents.OnGameOver += ClearBadges;
         }
 
         private void OnDisable()
@@ -39,6 +48,8 @@ namespace BlobSurvivor.UI
             GameEvents.OnBlobTierChanged -= OnTierChanged;
             GameEvents.OnXPChanged -= OnXPChanged;
             GameEvents.OnLevelUp -= OnLevelUp;
+            GameEvents.OnUpgradeSelected -= OnUpgradeSelected;
+            GameEvents.OnGameOver -= ClearBadges;
         }
 
         private void OnHealthChanged(float current, float max)
@@ -86,6 +97,32 @@ namespace BlobSurvivor.UI
         {
             if (_levelText != null)
                 _levelText.text = $"Lv.{level}";
+        }
+
+        private void OnUpgradeSelected(UpgradeData data)
+        {
+            if (data == null || _skillBadgeContainer == null || _skillBadgePrefab == null) return;
+
+            if (!_badges.TryGetValue(data, out GameObject badge))
+            {
+                badge = Instantiate(_skillBadgePrefab, _skillBadgeContainer);
+                _badges[data] = badge;
+
+                var iconImage = badge.GetComponentInChildren<Image>();
+                if (iconImage != null && data.Icon != null)
+                    iconImage.sprite = data.Icon;
+            }
+
+            var levelText = badge.GetComponentInChildren<TMP_Text>();
+            if (levelText != null)
+                levelText.text = data.CurrentLevel.ToString();
+        }
+
+        private void ClearBadges()
+        {
+            foreach (var kv in _badges)
+                if (kv.Value != null) Destroy(kv.Value);
+            _badges.Clear();
         }
     }
 }
