@@ -18,7 +18,7 @@ MonoBehaviour:
   _icon: {fileID: 0}
   _category: 0
   _weight: 8
-  _effectValue: 1
+  _effectValue: 2
   _effectDuration: 0
   _cooldown: 0
   _effect: {fileID: 11400000, guid: cdf0775403aca4256884f52a887d9ec9, type: 2}
