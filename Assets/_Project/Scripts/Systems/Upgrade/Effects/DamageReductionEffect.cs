@@ -11,7 +11,7 @@ namespace BlobSurvivor.Systems
         {
             var health = blobRoot.GetComponent<BlobHealth>();
             if (health == null) return;
-            float newArmor = Mathf.Clamp01(health.GetArmorMultiplier() - data.EffectValue);
+            float newArmor = Mathf.Clamp01(health.GetArmorMultiplier() - data.PerLevelValue);
             health.SetArmorMultiplier(newArmor);
         }
     }

@@ -11,7 +11,7 @@ namespace BlobSurvivor.Systems
         {
             var controller = blobRoot.GetComponent<BlobController>();
             if (controller == null) return;
-            controller.SetSpeedMultiplier(controller.GetSpeedMultiplier() + data.EffectValue);
+            controller.SetSpeedMultiplier(controller.GetSpeedMultiplier() + data.PerLevelValue);
         }
     }
 }

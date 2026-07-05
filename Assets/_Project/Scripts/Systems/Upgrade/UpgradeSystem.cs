@@ -44,21 +44,30 @@ namespace BlobSurvivor.Systems
             if (_allUpgrades == null || _allUpgrades.Length == 0) return;
 
             UpgradeData[] choices = SelectUpgrades();
+            if (choices == null || choices.Length == 0) return;
+
             GameEvents.RaiseUpgradeChoicesReady(choices);
             GameManager.Instance?.PauseGame();
         }
 
         private void OnUpgradeSelected(UpgradeData data)
         {
-            if (data?.Effect == null || _blobRoot == null) return;
-            data.Effect.Apply(_blobRoot, data);
+            if (data == null || _blobRoot == null) return;
+            data.CurrentLevel++;
+            if (data.Effect != null) data.Effect.Apply(_blobRoot, data);
             GameManager.Instance?.ResumeGame();
         }
 
         private UpgradeData[] SelectUpgrades()
         {
-            int count = Mathf.Min(_choiceCount, _allUpgrades.Length);
-            var pool = new List<UpgradeData>(_allUpgrades);
+            var pool = new List<UpgradeData>();
+            foreach (var u in _allUpgrades)
+            {
+                if (u != null && u.CurrentLevel < u.MaxLevel) pool.Add(u);
+            }
+            if (pool.Count == 0) return null;
+
+            int count = Mathf.Min(_choiceCount, pool.Count);
             var selected = new UpgradeData[count];
 
             for (int i = 0; i < count; i++)

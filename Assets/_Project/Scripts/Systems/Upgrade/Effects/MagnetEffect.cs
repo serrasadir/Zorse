@@ -13,7 +13,7 @@ namespace BlobSurvivor.Systems
             if (magnet == null)
                 magnet = blobRoot.AddComponent<MagnetComponent>();
 
-            magnet.IncreaseRadius(data.EffectValue);
+            magnet.IncreaseRadius(data.PerLevelValue);
         }
     }
 }

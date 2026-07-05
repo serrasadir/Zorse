@@ -11,7 +11,7 @@ namespace BlobSurvivor.Systems
         {
             var health = blobRoot.GetComponent<BlobHealth>();
             if (health == null) return;
-            health.IncreaseMaxHealth(data.EffectValue);
+            health.IncreaseMaxHealth(data.PerLevelValue);
         }
     }
 }

@@ -11,7 +11,7 @@ namespace BlobSurvivor.Systems
         {
             var health = blobRoot.GetComponent<BlobHealth>();
             if (health == null) return;
-            float newRate = health.GetRegenRate() + data.EffectValue;
+            float newRate = health.GetRegenRate() + data.PerLevelValue;
             health.EnableRegen(newRate);
         }
     }

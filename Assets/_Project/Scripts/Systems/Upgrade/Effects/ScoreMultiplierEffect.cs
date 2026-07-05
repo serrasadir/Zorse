@@ -10,7 +10,7 @@ namespace BlobSurvivor.Systems
         {
             var score = FindAnyObjectByType<ScoreSystem>();
             if (score == null) return;
-            score.SetMultiplier(score.ScoreMultiplier + data.EffectValue);
+            score.SetMultiplier(score.ScoreMultiplier + data.PerLevelValue);
         }
     }
 }
