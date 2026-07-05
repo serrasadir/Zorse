@@ -326,19 +326,19 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 ### Entities / Enemies
 | Script | Açıklama |
 |--------|----------|
-| `EnemyBase.cs` | NavMeshAgent; state machine; PerformAttack() → BlobHealth.TakeDamage() |
+| `EnemyBase.cs` | NavMeshAgent; state machine; PerformAttack() → BlobHealth.TakeDamage(); AI throttle (`AIUpdateInterval=0.15s`, randomize stagger) — `CanSeeBlob()` sqrMagnitude ile sadece throttle tick'te hesaplanıp cache'lenir, state'lere `aiTick` bool geçilir |
 | `EnemySpawner.cs` | NavMesh.SamplePosition ile Y=0.65f'te spawn; weighted random enemy seçimi |
 | `IEnemyState.cs` | Enter, Update, Exit |
 | `PatrolState.cs` | 3s'de bir random waypoint; blob görünce ChaseState |
-| `ChaseState.cs` | Blob'a koş; attack range'e girince AttackState; göremezse PatrolState |
-| `AttackState.cs` | Dur, cooldown'da PerformAttack(); uzaklaşınca ChaseState |
+| `ChaseState.cs` | Blob'a koş; `SetDestination()` (NavMesh pathfinding, pahalı) sadece `aiTick=true` iken çağrılır — her frame değil; attack range'e girince AttackState (sqrMagnitude); göremezse PatrolState |
+| `AttackState.cs` | Dur, cooldown'da PerformAttack(); uzaklaşınca ChaseState (sqrMagnitude) |
 | `WaveController.cs` | OnSurvivalTimeUpdated dinler; en yüksek geçilen threshold'u aktif dalga yapar |
 
 ### Entities / Weapons
 | Script | Açıklama |
 |--------|----------|
 | `WeaponBase.cs` | Abstract; `OverlapSphereNonAlloc` ile Enemy layer'da en yakın hedefi bulur (arama sadece fireRate cooldown'ında — throttle otomatik); pooled `Projectile` spawn eder; `IncreaseDamage()` — WeaponUpgradeEffect kullanır |
-| `Projectile.cs` | Pooled mermi; `OnTriggerEnter` → Enemy layer'da `EnemyBase.TakeDamage()`; `OnHitEnemy`/`OnHitOther` virtual hook'ları alt sınıflar için |
+| `Projectile.cs` | Pooled mermi; **Rigidbody/Collider YOK** — her frame `Physics.SphereCast` ile Enemy+ConsumableTier1-5 mask'inde manuel sweep hit-check (mobilde fizik motoruna bağımlı olmadan, tünelleme riski de düşük); hit olmazsa/`OnHitOther` false dönerse mermi kalan mesafeyi o frame tamamlar (pas geçer); `OnHitEnemy`/`OnHitOther` (bool döner: true=dur, false=geç) virtual hook'ları alt sınıflar için |
 | `CannonWeapon.cs` / `CannonProjectile.cs` (Topik) | Sinüs eğrili "arcing" mermi; çarpışınca küçük AoE (OverlapSphere → çevredeki düşmanlara da hasar) |
 | `MetalBallWeapon.cs` / `HomingProjectile.cs` (Mıknato) | Yavaş, `Vector3.Slerp` ile hedefe bükülen homing mermi |
 | `PistolWeapon.cs` / `PistolProjectile.cs` (Mermo) | Düz hızlı mermi; `RequiredTier > Small` olan consumable'a vurursa `ConsumableSpawner.ConsumeAndSplit()` ile parçalara ayırır |

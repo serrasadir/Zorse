@@ -12,7 +12,7 @@ namespace BlobSurvivor.Entities.Enemies
             _attackTimer = 0f;
         }
 
-        public void Update(EnemyBase enemy)
+        public void Update(EnemyBase enemy, bool aiTick)
         {
             if (enemy.BlobTransform == null || enemy.Data == null) return;
 
@@ -23,8 +23,9 @@ namespace BlobSurvivor.Entities.Enemies
                 enemy.PerformAttack();
             }
 
-            float dist = Vector3.Distance(enemy.transform.position, enemy.BlobTransform.position);
-            if (dist > enemy.Data.AttackRange * 1.2f)
+            float sqrDist = (enemy.transform.position - enemy.BlobTransform.position).sqrMagnitude;
+            float leaveRange = enemy.Data.AttackRange * 1.2f;
+            if (sqrDist > leaveRange * leaveRange)
                 enemy.ChangeState(new ChaseState());
         }
 

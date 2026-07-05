@@ -14,7 +14,7 @@ namespace BlobSurvivor.Entities.Enemies
             SetRandomDestination(enemy);
         }
 
-        public void Update(EnemyBase enemy)
+        public void Update(EnemyBase enemy, bool aiTick)
         {
             _waypointTimer += Time.deltaTime;
             if (_waypointTimer >= WaypointInterval)

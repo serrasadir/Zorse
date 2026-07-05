@@ -7,8 +7,11 @@ namespace BlobSurvivor.Entities.Weapons
     {
         [SerializeField] private float _speed = 12f;
         [SerializeField] private float _lifetime = 3f;
+        [SerializeField] private float _hitRadius = 0.3f;
 
         private const int EnemyLayer = 14;
+        // Enemy(14) + ConsumableTier1-5(9-13) — Rigidbody/Collider gerektirmez, doğrudan spatial sorgu
+        private const int HitMask = (1 << 14) | (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13);
 
         private WeaponBase _owner;
         private float _elapsed;
@@ -27,14 +30,29 @@ namespace BlobSurvivor.Entities.Weapons
 
         protected virtual void Update()
         {
-            transform.position += Direction * _speed * Time.deltaTime;
+            float travelDistance = _speed * Time.deltaTime;
+
+            if (Physics.SphereCast(transform.position, _hitRadius, Direction, out RaycastHit hit, travelDistance, HitMask))
+            {
+                transform.position = hit.point;
+                bool stopped = HandleHit(hit.collider);
+                if (stopped) return;
+
+                float remaining = travelDistance - hit.distance;
+                if (remaining > 0f)
+                    transform.position += Direction * remaining;
+            }
+            else
+            {
+                transform.position += Direction * travelDistance;
+            }
 
             _elapsed += Time.deltaTime;
             if (_elapsed >= _lifetime)
                 ReturnToPool();
         }
 
-        private void OnTriggerEnter(Collider other)
+        private bool HandleHit(Collider other)
         {
             if (other.gameObject.layer == EnemyLayer)
             {
@@ -44,16 +62,17 @@ namespace BlobSurvivor.Entities.Weapons
                     enemy.TakeDamage(Damage);
                     OnHitEnemy(enemy);
                     ReturnToPool();
-                    return;
+                    return true;
                 }
             }
 
-            OnHitOther(other);
+            return OnHitOther(other);
         }
 
         protected virtual void OnHitEnemy(EnemyBase enemy) { }
 
-        protected virtual void OnHitOther(Collider other) { }
+        // true → mermi durur/pool'a döner; false → mermiyi durdurmadan geçer (pas geçme)
+        protected virtual bool OnHitOther(Collider other) => false;
 
         protected void ReturnToPool() => _owner?.ReturnProjectile(this);
     }

@@ -6,14 +6,16 @@ namespace BlobSurvivor.Entities.Enemies
     {
         public void Enter(EnemyBase enemy) { }
 
-        public void Update(EnemyBase enemy)
+        public void Update(EnemyBase enemy, bool aiTick)
         {
             if (enemy.BlobTransform == null || enemy.Data == null) return;
 
-            enemy.SetDestination(enemy.BlobTransform.position);
+            // NavMesh pathfinding pahalı — her frame değil, throttle tick'te yeniden hedeflenir
+            if (aiTick)
+                enemy.SetDestination(enemy.BlobTransform.position);
 
-            float dist = Vector3.Distance(enemy.transform.position, enemy.BlobTransform.position);
-            if (dist <= enemy.Data.AttackRange)
+            float sqrDist = (enemy.transform.position - enemy.BlobTransform.position).sqrMagnitude;
+            if (sqrDist <= enemy.Data.AttackRange * enemy.Data.AttackRange)
                 enemy.ChangeState(new AttackState());
             else if (!enemy.CanSeeBlob())
                 enemy.ChangeState(new PatrolState());

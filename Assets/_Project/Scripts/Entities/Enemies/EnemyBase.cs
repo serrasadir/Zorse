@@ -10,6 +10,8 @@ namespace BlobSurvivor.Entities.Enemies
         [SerializeField] private EnemyData _data;
         [SerializeField] private float _detectionRange = 15f;
 
+        private const float AIUpdateInterval = 0.15f;
+
         public EnemyData Data => _data;
         public Transform BlobTransform { get; private set; }
 
@@ -17,6 +19,8 @@ namespace BlobSurvivor.Entities.Enemies
         private BlobHealth _blobHealth;
         private IEnemyState _currentState;
         private float _currentHealth;
+        private float _aiUpdateTimer;
+        private bool _canSeeBlobCached;
 
         private void Awake()
         {
@@ -26,6 +30,8 @@ namespace BlobSurvivor.Entities.Enemies
         private void OnEnable()
         {
             _currentHealth = _data != null ? _data.MaxHealth : 100f;
+            _aiUpdateTimer = Random.Range(0f, AIUpdateInterval); // stagger — hepsi aynı anda çalışmasın
+            _canSeeBlobCached = false;
 
             GameObject blob = GameObject.FindWithTag("Blob");
             if (blob != null)
@@ -42,7 +48,22 @@ namespace BlobSurvivor.Entities.Enemies
 
         private void Update()
         {
-            _currentState?.Update(this);
+            _aiUpdateTimer -= Time.deltaTime;
+            bool aiTick = _aiUpdateTimer <= 0f;
+            if (aiTick)
+            {
+                _aiUpdateTimer = AIUpdateInterval;
+                _canSeeBlobCached = ComputeCanSeeBlob();
+            }
+
+            _currentState?.Update(this, aiTick);
+        }
+
+        private bool ComputeCanSeeBlob()
+        {
+            if (BlobTransform == null) return false;
+            float sqrDist = (transform.position - BlobTransform.position).sqrMagnitude;
+            return sqrDist <= _detectionRange * _detectionRange;
         }
 
         public void SetData(EnemyData data)
@@ -70,11 +91,7 @@ namespace BlobSurvivor.Entities.Enemies
                 _agent.ResetPath();
         }
 
-        public bool CanSeeBlob()
-        {
-            if (BlobTransform == null) return false;
-            return Vector3.Distance(transform.position, BlobTransform.position) <= _detectionRange;
-        }
+        public bool CanSeeBlob() => _canSeeBlobCached;
 
         public void PerformAttack()
         {

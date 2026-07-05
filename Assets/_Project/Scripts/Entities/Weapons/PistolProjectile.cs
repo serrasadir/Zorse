@@ -9,13 +9,14 @@ namespace BlobSurvivor.Entities.Weapons
         [SerializeField] private BlobTier _splitAboveTier = BlobTier.Small;
         [SerializeField] private int _splitCount = 3;
 
-        protected override void OnHitOther(Collider other)
+        protected override bool OnHitOther(Collider other)
         {
             ConsumableBase consumable = other.GetComponent<ConsumableBase>();
-            if (consumable == null || consumable.RequiredTier <= _splitAboveTier) return;
+            if (consumable == null || consumable.RequiredTier <= _splitAboveTier) return false;
 
             ConsumableSpawner.Instance?.ConsumeAndSplit(consumable, _splitCount);
             ReturnToPool();
+            return true;
         }
     }
 }
