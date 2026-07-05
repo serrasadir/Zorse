@@ -1,15 +1,104 @@
-# Blob Survivor — CLAUDE.md
+# Blob.io (Zorse Studio) — CLAUDE.md
 
 Bu dosya, Claude Code'un projeyi sıfırdan anlayabilmesi için yazılmıştır. Her yeni sohbette otomatik okunur.
 
+**Slogan:** _"Hayatta kal. Seviyeleri atla. Karanlığı yut."_
+
 ## Proje Özeti
 
-**Blob Survivor** — top-down 2.5D Unity survival oyunu. Oyuncu bir blob'u kontrol eder, etraftaki objeleri yiyerek büyür, düşmanlardan kaçar/savaşır. Agar.io + Vampire Survivors karışımı.
+**Blob.io** — Zorse Studio tarafından geliştirilen, top-down 2.5D Unity **roguelite / bullet-heaven / survival** oyunu. Oyuncu bir blob'u kontrol eder, kendinden küçük consumable itemleri yiyerek büyür; belirli bir süreden sonra polis/düşman dalgalarıyla saldırıya uğrar. Karakter büyüdükçe XP toplar, yetenek kazanır ve tüketebileceği consumable boyutu artar. 5-10-20-30. dakikalarda güçlü bosslar (SWAT arabası, helikopter, drone) spawn olur.
 
-- GDD: `/Users/serrasadir/Desktop/unity_projects/CLAUDE_CODE_PROMPT.md`
+- **Referanslar:** Vampire Survivors + Katamari Damacy + Hole.io
+- **Hedef platform:** Mobil (iOS/Android) ana hedef, PC ikincil
+- **Oturum süresi:** 20–30 dakika
+- **İş modeli:** Mobil ücretsiz oyna + kozmetik mağaza + reklam; PC ücretli
+- GDD: `/Users/baharyavuz/Downloads/Zorse GDD v.1 (1).pdf` (v1.0, Haziran 2025)
 - Unity 6, URP (Universal Render Pipeline)
 - New Input System (`UnityEngine.InputSystem`)
 - AI Navigation paketi (NavMeshAgent)
+
+> **Not:** GDD'de motor olarak Godot 4.x geçiyor ama proje Unity 6'da geliştiriliyor. Tasarım hedeflerini takip et, teknik seçimleri Unity üzerinden yap.
+
+---
+
+## GDD Vizyonu (Özet)
+
+### Karakterler (Başlangıç)
+Her karakter bir "top" formunda; ellerinde silahları var.
+
+| Karakter | Pasif | Başlangıç Silahı | Kilit |
+|----------|-------|------------------|-------|
+| **Topik** | +20% hareket hızı | Top | Başlangıçta açık |
+| **Mıknato** | +10% çekim gücü | Metal bilye | Market'te 500 kredi |
+| **Mermo** | Büyük consumable'ları mermiyle parçalara ayırır | Pistol | 3 farklı haritada oturum tamamla |
+
+### Skill Seti (Oturum İçi Güçlenmeler)
+1'den 8'e kadar seviye alır. Kategoriler:
+- **Savunma:** Kalkan, Rejenerasyon (+0.5 HP/sn, seviye başına +0.5)
+- **Saldırı:** Silah (karaktere göre değişir — Top, Bilye, Pistol)
+- **Pasif:** Maksimum Can (base 100, seviye başına +10)
+- **Hareket:** Hızlanma (Bot)
+- **Destek:** Vakum (10 birim yarıçap, seviye başına +5%), Mıknatıs, Score Multiplier
+
+Seviye atlandığında oyun durur → 3 kart sunulur → 1 seç. Aynı skill tekrar seçilirse seviye yükselir. **Yeniden Çek** butonu: oturum başına 1 ücretsiz, sonrası 50 altın.
+
+### Düşman Sistemi
+| Tip | Davranış | XP |
+|-----|----------|-----|
+| Normal polis | Kalabalık koşar | 1–5 |
+| Elit polis | Yavaş, güçlü, özel saldırı deseni | 20–50 |
+| Minyatür boss | Her 5 dakikada bir | 100–200 |
+| Kıyamet Bossu | 25. dakikada; faz geçişleri | 500 |
+
+**Ölçekleme:** 0–5dk temel sürü → 5–10dk elit + hasar %20↑ → 10–15dk minyatür boss + 2x yoğunluk → 15–20dk çoklu elit + hız → 20–25dk hasar x3 → 25dk+ Kıyamet dalgası.
+
+**Ölüm ödülleri:** Düşmandan coin; **elit** düşmandan sandık (skill + yüksek coin).
+
+### Hava Durumu Efektleri (Runtime Modifier)
+- **Ay Tutulması:** XP +50%, vampirler +30% güçlü
+- **Kızıl Yağmur:** Market çarpanı x2, düşmanlar yavaşlar
+- **Sis:** Görüş daralır, düşmanlar görünmez spawn
+- **Şimşek Fırtınası:** Oyuncu aura hasarı, mekanik düşmanlar devre dışı
+
+### Meta Progression — "Market"
+Oturumlardan toplanan kredi kalıcı kaynak. Ölümde %50 korunur.
+
+| Harcama | Maliyet | Etki |
+|---------|---------|------|
+| Yeni Karakter | 500 | Kalıcı unlock |
+| Karakter Pasif +1 | 200–800 | Kademe kalıcı pasif |
+| Yeni Harita | 300–700 | Harita havuzuna ekle |
+| Başlangıç Silahı Kilidi | 400 | Oturuma o silahla başla |
+| XP Çarpanı +10% | 1000 | Tüm oturumlarda |
+
+**Grimoire (Kodeks):** Tüm düşman/silah/harita için stat + lore. %100 doluluk → kozmetik ödül.
+
+**NG+ zorluk:** Standart → Kızıl Ay → Kan Krizi → Apokalips.
+
+### Haritalar
+Sonsuz kaydırmalı (Vampire Survivors modeli). Toplanabilir: Coin, Kalp, Altın Kasa. Mağara/ahır gibi yapılar easter egg/rozet barındırabilir.
+- Modern Şehir (başlangıç)
+- Medieval
+- (Diğerleri sonra)
+
+### Sanat Yönü
+Referanslar: Vampire Survivors + Castlevania. Gotik palet.
+
+| Kullanım | Renk | Hex |
+|----------|------|-----|
+| Oyuncu | Kızıl | `#8B0000` |
+| UI | Kemik beyazı | `#F5F0E0` |
+| Arka plan | Gece mavisi | `#0D0D2B` |
+| Sürü düşman | Bataklık yeşili | `#3D5C3A` |
+| Elit düşman | Mor gecesi | `#4A0E6B` |
+| XP gem | Kehribar | `#FFC300` |
+
+**Erişilebilirlik:** Renk körü dostu — güçlenme kartları renk + sembol (yıldız/elmas/daire).
+
+### Performans Hedefleri
+- **Mobil:** 30 FPS @ 720p, 500 düşman aynı anda
+- **PC:** 60 FPS @ 1080p, 1000+ düşman
+- **Batarya:** 30 dk oturum → max %15 tüketim
 
 ## Workflow
 
@@ -359,10 +448,66 @@ Fazlar sırayla yapılacak. Her faz tamamlanınca burası güncellenmeli.
 
 ---
 
-### 🔲 Phase 8 — Cila & Juice
+### 🔲 Phase 8 — Karakter & Silah Sistemi
 
-- Parçacık efektleri (yeme, ölüm, tier atlama)
-- Ses efektleri (AudioManager)
-- Ekran sarsıntısı (CameraShake)
+**Amaç:** GDD'deki 3 başlangıç karakterini (Topik / Mıknato / Mermo) implement et. Her karakterin kendine özgü silahı ve pasifi olsun.
+
+- `CharacterData` ScriptableObject: pasif tanımı, başlangıç silahı, sprite/model
+- `WeaponBase` abstract + concrete silahlar (Top, MetalBilye, Pistol)
+- Otomatik saldırı (bullet-heaven mantığı — oyuncu ateşlemez, silah kendi cooldown'ında ateşler)
+- Karakter seçim ekranı (lobi)
+
+### 🔲 Phase 9 — Skill Sistemi Genişletme
+
+Mevcut Upgrade sistemi 1 seviye + tek efekt. GDD'ye göre 1–8 seviye + evrim gerekli.
+
+- `UpgradeData`'ya `maxLevel`, `currentLevel`, `levelValues[]` ekle
+- Vakum, Kalkan, Score Multiplier, Hızlanma efektlerini ekle (mevcut olmayanlar)
+- **Yeniden Çek** butonu (oturum başına 1 ücretsiz, sonrası 50 altın)
+- Skill kartlarında renk + sembol (renk körü desteği)
+
+### 🔲 Phase 10 — Boss Dalgaları
+
+- `BossData` ScriptableObject (faz sayısı, faz başına saldırı deseni)
+- 5–10–15–20. dakika minyatür bosslar (SWAT arabası, drone, helikopter)
+- 25. dakikada Kıyamet Bossu (faz geçişleri, combo saldırılar)
+- Boss health bar UI
+
+### 🔲 Phase 11 — Meta Progression (Market + Grimoire)
+
+- `MetaProgressionData` (PlayerPrefs veya JSON): kalıcı kredi, açılmış karakter/harita/silah, kalıcı pasif kademeleri
+- **Market ekranı:** Karakter/harita/silah/XP çarpanı satın alma
+- **Grimoire:** İlk karşılaşılan düşman/silah/harita loglanır; %100 doluluk → kozmetik ödül
+- Coin drop sistemi (düşman öldüğünde) + elit → sandık drop
+- **NG+ zorluk seviyeleri:** Standart, Kızıl Ay, Kan Krizi, Apokalips
+
+### 🔲 Phase 12 — Hava Durumu Sistemi
+
+- `WeatherData` ScriptableObject (efekt tipi, süre, görsel filtre)
+- Runtime modifier: XP çarpanı, düşman hızı, görüş mesafesi, aura hasarı
+- Rastgele/timeline bazlı tetiklenme
+
+### 🔲 Phase 13 — Harita & Bölgeler
+
+**Amaç:** Modern Şehir + Medieval haritaları. Sonsuz kaydırmalı world (Vampire Survivors modeli).
+
+- `MapRegion.cs`: sınır, consumable listesi, düşman havuzu, palet
+- `MapManager.cs`: aktif harita filtresi, spawn kuralları
+- Toplanabilirler: Coin, Kalp (can), Altın Kasa (bonus güçlenme)
+- Easter egg/rozet konumları (mağara, ahır vb.)
+
+### 🔲 Phase 14 — Cila & Juice
+
+- Parçacık efektleri (yeme, ölüm, tier atlama, kan sıçraması, ruh ışıkları)
+- `AudioManager` — synthwave + gotik orkestra; 20+ dk tempo artışı
+- `CameraShake`
 - Skor combo sistemi
-- Blob'un gözleri / yüz animasyonu
+- Blob gözleri / yüz animasyonu
+- Renk paletini uygula (`#8B0000`, `#0D0D2B`, vb.)
+
+### 🔲 Phase 15 — Monetizasyon & Kozmetik (Mobil)
+
+- Kozmetik mağaza: karakter renk paleti, silah kaplaması, UI teması
+- İsteğe bağlı reklam: reklam izle → Yeniden Çek hakkı veya bonus XP
+- IAP entegrasyonu (Unity IAP)
+- **Kural:** Hiçbir "pay-to-win" mekanik yok — sadece kozmetik.
