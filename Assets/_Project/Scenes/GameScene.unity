@@ -2000,6 +2000,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9a1a53f3539f54aa9a01b50dfc7fccc9, type: 2}
   - {fileID: 11400000, guid: eb557061fd4c6405fa6459f19e3005b4, type: 2}
   - {fileID: 11400000, guid: 7a60ab4d1e9804c11a6724b7a567bac7, type: 2}
+  - {fileID: 11400000, guid: a4a29c74656848f7a013837e448ea7b3, type: 2}
   _choiceCount: 3
 --- !u!4 &582339428
 Transform:
@@ -2072,6 +2073,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.UI.HUDController
   _healthBar: {fileID: 1034431328}
+  _shieldBar: {fileID: 0}
   _scoreText: {fileID: 2146220555}
   _timerText: {fileID: 63083488}
   _tierText: {fileID: 2099888169}
@@ -2079,6 +2081,18 @@ MonoBehaviour:
   _levelText: {fileID: 1263365441}
   _skillBadgeContainer: {fileID: 1619216244}
   _skillBadgePrefab: {fileID: 4382811280191361900, guid: 75fb581a2b1494d308da482982b9934f, type: 3}
+  _allUpgrades:
+  - {fileID: 11400000, guid: 0bca2b7b110d8493f9d8b759fa9ecf94, type: 2}
+  - {fileID: 11400000, guid: 8ebcaa7a7214e4d4793b4b99168e54b8, type: 2}
+  - {fileID: 11400000, guid: 5d7022e263ca744989d9ef07f8cd063f, type: 2}
+  - {fileID: 11400000, guid: 4364a766d570f459e9257b0a0df70913, type: 2}
+  - {fileID: 11400000, guid: 928b8595e5b5943f882931310c215e5c, type: 2}
+  - {fileID: 11400000, guid: 1c02eed465f3d411cb8c57a3242128c3, type: 2}
+  - {fileID: 11400000, guid: 9a1a53f3539f54aa9a01b50dfc7fccc9, type: 2}
+  - {fileID: 11400000, guid: eb557061fd4c6405fa6459f19e3005b4, type: 2}
+  - {fileID: 11400000, guid: 7a60ab4d1e9804c11a6724b7a567bac7, type: 2}
+  - {fileID: 11400000, guid: a4a29c74656848f7a013837e448ea7b3, type: 2}
+  _characterIcon: {fileID: 0}
 --- !u!1 &618807597
 GameObject:
   m_ObjectHideFlags: 0

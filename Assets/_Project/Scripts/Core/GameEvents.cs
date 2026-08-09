@@ -16,6 +16,7 @@ namespace BlobSurvivor.Core
         public static event Action<UpgradeData[]> OnUpgradeChoicesReady;
         public static event Action<UpgradeData> OnUpgradeSelected;
         public static event Action<float, float> OnHealthChanged;
+        public static event Action<float, float> OnShieldChanged;
         public static event Action<float> OnSurvivalTimeUpdated;
         public static event Action<int> OnConsumedCountChanged;
         public static event Action<CharacterData> OnCharacterSelected;
@@ -32,6 +33,7 @@ namespace BlobSurvivor.Core
         public static void RaiseUpgradeChoicesReady(UpgradeData[] choices) => OnUpgradeChoicesReady?.Invoke(choices);
         public static void RaiseUpgradeSelected(UpgradeData data) => OnUpgradeSelected?.Invoke(data);
         public static void RaiseHealthChanged(float current, float max) => OnHealthChanged?.Invoke(current, max);
+        public static void RaiseShieldChanged(float current, float max) => OnShieldChanged?.Invoke(current, max);
         public static void RaiseSurvivalTimeUpdated(float time) => OnSurvivalTimeUpdated?.Invoke(time);
         public static void RaiseConsumedCountChanged(int count) => OnConsumedCountChanged?.Invoke(count);
         public static void RaiseCharacterSelected(CharacterData data) => OnCharacterSelected?.Invoke(data);
