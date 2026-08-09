@@ -3,6 +3,7 @@ using UnityEngine.AI;
 using BlobSurvivor.Data;
 using BlobSurvivor.Entities.Blob;
 using BlobSurvivor.Entities.Coins;
+using BlobSurvivor.Entities.Loot;
 using BlobSurvivor.Systems;
 
 namespace BlobSurvivor.Entities.Enemies
@@ -121,6 +122,8 @@ namespace BlobSurvivor.Entities.Enemies
 
             int coinAmount = _data.IsElite ? Random.Range(5, 11) : 1;
             CoinSpawner.Instance?.SpawnCoin(transform.position, coinAmount);
+            if (_data.IsElite)
+                ChestSpawner.Instance?.SpawnChest(transform.position);
 
             gameObject.SetActive(false);
         }

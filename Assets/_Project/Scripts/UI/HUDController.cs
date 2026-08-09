@@ -16,6 +16,7 @@ namespace BlobSurvivor.UI
 
         [Header("Score & Timer")]
         [SerializeField] private TMP_Text _scoreText;
+        [SerializeField] private TMP_Text _coinText;
         [SerializeField] private TMP_Text _timerText;
         [SerializeField] private TMP_Text _tierText;
 
@@ -47,6 +48,7 @@ namespace BlobSurvivor.UI
             GameEvents.OnHealthChanged += OnHealthChanged;
             GameEvents.OnShieldChanged += OnShieldChanged;
             GameEvents.OnScoreChanged += OnScoreChanged;
+            GameEvents.OnCoinsChanged += OnCoinsChanged;
             GameEvents.OnSurvivalTimeUpdated += OnSurvivalTimeUpdated;
             GameEvents.OnBlobTierChanged += OnTierChanged;
             GameEvents.OnXPChanged += OnXPChanged;
@@ -63,6 +65,7 @@ namespace BlobSurvivor.UI
             GameEvents.OnHealthChanged -= OnHealthChanged;
             GameEvents.OnShieldChanged -= OnShieldChanged;
             GameEvents.OnScoreChanged -= OnScoreChanged;
+            GameEvents.OnCoinsChanged -= OnCoinsChanged;
             GameEvents.OnSurvivalTimeUpdated -= OnSurvivalTimeUpdated;
             GameEvents.OnBlobTierChanged -= OnTierChanged;
             GameEvents.OnXPChanged -= OnXPChanged;
@@ -99,6 +102,12 @@ namespace BlobSurvivor.UI
         {
             if (_scoreText != null)
                 _scoreText.text = score.ToString("N0");
+        }
+
+        private void OnCoinsChanged(int coins)
+        {
+            if (_coinText != null)
+                _coinText.text = $"Coins: {coins:N0}";
         }
 
         private void OnSurvivalTimeUpdated(float time)
@@ -252,6 +261,7 @@ namespace BlobSurvivor.UI
             if (overlay == null) return;
 
             ConfigureSkillBadgeContainer(overlay);
+            EnsureCoinText(overlay);
 
             if (_characterIcon == null)
             {
@@ -319,6 +329,27 @@ namespace BlobSurvivor.UI
             overlay.offsetMax = Vector2.zero;
             overlay.pivot = new Vector2(0.5f, 0.5f);
             return overlay;
+        }
+
+        private void EnsureCoinText(RectTransform overlay)
+        {
+            if (_coinText != null) return;
+
+            GameObject coinObject = new GameObject("CoinText", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+            coinObject.transform.SetParent(overlay, false);
+
+            _coinText = coinObject.GetComponent<TMP_Text>();
+            _coinText.text = "Coins: 0";
+            _coinText.fontSize = 18f;
+            _coinText.alignment = TextAlignmentOptions.TopRight;
+            _coinText.color = new Color(1f, 0.82f, 0.25f, 1f);
+
+            RectTransform rect = coinObject.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(1f, 1f);
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(1f, 1f);
+            rect.anchoredPosition = new Vector2(-16f, -96f);
+            rect.sizeDelta = new Vector2(180f, 30f);
         }
 
         private void ConfigureSkillBadgeContainer(RectTransform overlay)

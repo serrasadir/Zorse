@@ -1946,6 +1946,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Systems.WaveController
   _waves:
   - {fileID: 11400000, guid: ff117d1589b214a0ca25bda8e1550e77, type: 2}
+  - {fileID: 11400000, guid: a00df9df198c4ed19e6a2552f03da7c6, type: 2}
 --- !u!4 &511230089
 Transform:
   m_ObjectHideFlags: 0
@@ -3664,6 +3665,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1281716005}
   - component: {fileID: 1281716006}
+  - component: {fileID: 1281716007}
   m_Layer: 0
   m_Name: PoolManager
   m_TagString: Untagged
@@ -3698,6 +3700,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 120ae3bef1087418ba14a806c2bef988, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Systems.PoolManager
+--- !u!114 &1281716007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1281716004}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99ad71cbb25e4d7c963cdd0f6f38a12e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Loot.ChestSpawner
+  _chestPrefab: {fileID: 11400000, guid: b3d2a09a810f48f0875607b6fc1e15f1, type: 3}
+  _poolSize: 8
+  _spawnYOffset: 0.35
 --- !u!1 &1291285803
 GameObject:
   m_ObjectHideFlags: 0
