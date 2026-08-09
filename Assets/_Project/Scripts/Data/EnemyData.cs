@@ -16,6 +16,11 @@ namespace BlobSurvivor.Data
         [SerializeField] private BlobTier _spawnTier;
         [SerializeField] private int _scoreValue;
 
+        [Header("Elit Davranışı (A6)")]
+        [SerializeField] private bool _isElite;
+        [SerializeField] private int _attackHitCount = 1;
+        [SerializeField] private float _attackHitInterval = 0.3f;
+
         public string DisplayName => _displayName;
         public GameObject Prefab => _prefab;
         public float MaxHealth => _maxHealth;
@@ -25,5 +30,8 @@ namespace BlobSurvivor.Data
         public float AttackCooldown => _attackCooldown;
         public BlobTier SpawnTier => _spawnTier;
         public int ScoreValue => _scoreValue;
+        public bool IsElite => _isElite;
+        public int AttackHitCount => Mathf.Max(1, _attackHitCount);
+        public float AttackHitInterval => _attackHitInterval;
     }
 }

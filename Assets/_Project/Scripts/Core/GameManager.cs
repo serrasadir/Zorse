@@ -72,8 +72,8 @@ namespace BlobSurvivor.Core
                     blob.GetComponent<BlobController>()?.SetSpeedMultiplier(1f + character.PassiveValue);
                     break;
                 case CharacterPassiveType.MagnetPull:
-                    MagnetComponent magnet = blob.GetComponent<MagnetComponent>() ?? blob.AddComponent<MagnetComponent>();
-                    magnet.IncreaseRadius(character.PassiveValue);
+                    VacuumComponent vacuum = blob.GetComponent<VacuumComponent>() ?? blob.AddComponent<VacuumComponent>();
+                    vacuum.IncreaseRadius(character.PassiveValue);
                     break;
                 case CharacterPassiveType.ConsumableSplit:
                     // PistolWeapon zaten hedef tier'ı kontrol edip parçalıyor — ek kurulum gerekmiyor.

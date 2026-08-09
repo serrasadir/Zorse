@@ -23,9 +23,9 @@ namespace BlobSurvivor.UI
             for (int i = 0; i < _buttons.Length; i++)
             {
                 int index = i;
-                _buttons[i].onClick.AddListener(() => OnCharacterSelected(_characters[index]));
-
                 if (index >= _characters.Length || _characters[index] == null) continue;
+
+                _buttons[i].onClick.AddListener(() => OnCharacterSelected(_characters[index]));
 
                 if (_icons != null && index < _icons.Length && _icons[index] != null)
                     _icons[index].sprite = _characters[index].Icon;

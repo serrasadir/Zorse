@@ -10,6 +10,7 @@ namespace BlobSurvivor.Systems
         public int CurrentScore { get; private set; }
         public int HighScore { get; private set; }
         public float ScoreMultiplier { get; private set; } = 1f;
+        public int Coins { get; private set; }
 
         private void Awake()
         {
@@ -30,11 +31,20 @@ namespace BlobSurvivor.Systems
 
         public void SetMultiplier(float multiplier) => ScoreMultiplier = Mathf.Max(1f, multiplier);
 
+        public void AddCoin(int amount)
+        {
+            if (amount <= 0) return;
+            Coins += amount;
+            GameEvents.RaiseCoinsChanged(Coins);
+        }
+
         public void ResetScore()
         {
             CurrentScore = 0;
             ScoreMultiplier = 1f;
+            Coins = 0;
             GameEvents.RaiseScoreChanged(CurrentScore);
+            GameEvents.RaiseCoinsChanged(Coins);
         }
     }
 }

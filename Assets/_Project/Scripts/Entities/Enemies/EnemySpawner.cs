@@ -38,7 +38,7 @@ namespace BlobSurvivor.Entities.Enemies
 
             CleanupInactive();
 
-            if (_activeEnemies.Count >= _maxActiveEnemies) return;
+            if (_activeEnemies.Count >= GetEffectiveMaxActive()) return;
 
             _spawnTimer += Time.deltaTime;
             if (_spawnTimer >= _waveController.CurrentWave.SpawnRate)
@@ -64,8 +64,14 @@ namespace BlobSurvivor.Entities.Enemies
 
             Vector3 spawnPos = GetSpawnPosition();
             EnemyBase enemy = _pools[data].Get(spawnPos, Quaternion.identity);
-            enemy.SetData(data);
+            enemy.SetData(data, _waveController.DamageMultiplier, _waveController.SpeedMultiplier);
             _activeEnemies.Add(enemy.gameObject);
+        }
+
+        private int GetEffectiveMaxActive()
+        {
+            float densityMultiplier = _waveController != null ? _waveController.SpawnDensityMultiplier : 1f;
+            return Mathf.RoundToInt(_maxActiveEnemies * densityMultiplier);
         }
 
         private EnemyData SelectEnemyData(WaveData wave)
