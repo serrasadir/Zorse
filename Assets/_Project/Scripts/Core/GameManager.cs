@@ -54,6 +54,7 @@ namespace BlobSurvivor.Core
 
         public void StartGame(CharacterData character)
         {
+            FindAnyObjectByType<Systems.ScoreSystem>()?.ResetScore();
             SurvivalTime = 0f;
             ChangeState(GameState.Playing);
 

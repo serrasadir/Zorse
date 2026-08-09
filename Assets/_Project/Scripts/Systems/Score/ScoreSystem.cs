@@ -9,12 +9,15 @@ namespace BlobSurvivor.Systems
 
         public int CurrentScore { get; private set; }
         public int HighScore { get; private set; }
+        public int PreviousHighScore { get; private set; }
+        public bool HasNewHighScore { get; private set; }
         public float ScoreMultiplier { get; private set; } = 1f;
         public int Coins { get; private set; }
 
         private void Awake()
         {
             HighScore = PlayerPrefs.GetInt(HighScoreKey, 0);
+            PreviousHighScore = HighScore;
         }
 
         public void AddScore(int baseAmount)
@@ -24,6 +27,7 @@ namespace BlobSurvivor.Systems
 
             if (CurrentScore > HighScore)
             {
+                HasNewHighScore = true;
                 HighScore = CurrentScore;
                 PlayerPrefs.SetInt(HighScoreKey, HighScore);
             }
@@ -43,6 +47,8 @@ namespace BlobSurvivor.Systems
             CurrentScore = 0;
             ScoreMultiplier = 1f;
             Coins = 0;
+            PreviousHighScore = HighScore;
+            HasNewHighScore = false;
             GameEvents.RaiseScoreChanged(CurrentScore);
             GameEvents.RaiseCoinsChanged(Coins);
         }
