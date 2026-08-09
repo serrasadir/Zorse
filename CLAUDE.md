@@ -281,9 +281,11 @@ GameEvents.OnGameResumed
 GameEvents.OnUpgradeChoicesReady   // UpgradeData[] — UpgradePanel dinler
 GameEvents.OnUpgradeSelected       // UpgradeData — UpgradeSystem dinler, efekti uygular
 GameEvents.OnHealthChanged         // float current, float max
+GameEvents.OnShieldChanged         // float current, float max
 GameEvents.OnSurvivalTimeUpdated   // float seconds — WaveController dinler
 GameEvents.OnConsumedCountChanged  // int count
 GameEvents.OnCharacterSelected     // CharacterData — GameManager.StartGame(data)'da ateşlenir
+GameEvents.OnCoinsChanged          // int total — HUD/GameOver coin UI dinler
 ```
 
 Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
@@ -303,7 +305,7 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 | Script | Alanlar |
 |--------|---------|
 | `ConsumableData.cs` | displayName, prefab, scoreValue, massValue, objectSize, requiredTier, isHazard, hazardAmount |
-| `EnemyData.cs` | displayName, prefab, maxHealth, damage, moveSpeed, attackRange, attackCooldown, spawnTier, scoreValue |
+| `EnemyData.cs` | displayName, prefab, maxHealth, damage, moveSpeed, attackRange, attackCooldown, spawnTier, scoreValue; A6 için `IsElite`, elit attack hit count/interval |
 | `UpgradeData.cs` | id, displayName, description, icon, category, weight, effectValue, effectDuration, cooldown |
 | `WaveData.cs` | timeThreshold, enemyTypes (EnemySpawnEntry[]), spawnRate, maxActiveCount, waveName |
 | `CharacterData.cs` | displayName, icon, description, startingWeaponPrefab, passiveType (MoveSpeed/MagnetPull/ConsumableSplit), passiveValue |
@@ -314,7 +316,7 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 | `BlobController.cs` | Rigidbody hareketi; `linearDamping`/`angularDamping`; tier'a göre hız: `1f / Sqrt((float)tier)` |
 | `BlobGrowth.cs` | Smooth scale formülü; tier hesabı; `PunchScale()` yeme feedback'i |
 | `BlobConsumption.cs` | OnTriggerEnter → IConsumable check → tier karşılaştır → Consume(); mobil haptic |
-| `BlobHealth.cs` | TakeDamage(amount, DamageType); armor; regen; OnDeath → GameOver |
+| `BlobHealth.cs` | TakeDamage(amount, DamageType); armor; regen; shield (`CurrentShield`, `MaxShield`, `AddMaxShield`) — hasar önce shield'dan düşer; OnDeath → GameOver |
 
 ### Entities / Consumables
 | Script | Açıklama |
@@ -332,7 +334,19 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 | `PatrolState.cs` | 3s'de bir random waypoint; blob görünce ChaseState |
 | `ChaseState.cs` | Blob'a koş; `SetDestination()` (NavMesh pathfinding, pahalı) sadece `aiTick=true` iken çağrılır — her frame değil; attack range'e girince AttackState (sqrMagnitude); göremezse PatrolState |
 | `AttackState.cs` | Dur, cooldown'da PerformAttack(); uzaklaşınca ChaseState (sqrMagnitude) |
-| `WaveController.cs` | OnSurvivalTimeUpdated dinler; en yüksek geçilen threshold'u aktif dalga yapar |
+| `WaveController.cs` | OnSurvivalTimeUpdated dinler; en yüksek geçilen threshold'u aktif dalga yapar; A5 dakika bazlı zorluk çarpanlarını tutar (`DamageMultiplier`, `SpeedMultiplier`, `SpawnDensityMultiplier`) |
+
+### Entities / Coins
+| Script | Açıklama |
+|--------|----------|
+| `CoinPickup.cs` | Blob trigger'a girince `ScoreSystem.AddCoin(amount)` çağırır; collect sonrası spawner/pool'a dönüş event'i verir |
+| `CoinSpawner.cs` | Coin prefab pool'unu yönetir, düşman ölümünde coin'i pool'dan spawn eder |
+
+### Entities / Loot
+| Script | Açıklama |
+|--------|----------|
+| `ChestPickup.cs` | Elit sandık pickup'ı; blob dokununca coin verir ve `GameEvents.RaiseLevelUp(currentLevel)` ile skill seçim akışını tetikler; kendi etrafında döner |
+| `ChestSpawner.cs` | Chest prefab pool'unu yönetir; elit düşman ölümünde sandığı pool'dan spawn eder |
 
 ### Entities / Weapons
 | Script | Açıklama |
@@ -348,7 +362,7 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 |--------|----------|
 | `ObjectPool.cs` | Generic pool, Get/Return/CreateInstance |
 | `PoolManager.cs` | Singleton; tüm pool'ları yönetir |
-| `ScoreSystem.cs` | AddScore, multiplier, PlayerPrefs highscore, ResetScore |
+| `ScoreSystem.cs` | AddScore, multiplier, PlayerPrefs highscore, ResetScore; A7/B9 için session coin sayısı, `AddCoin(int)`, `OnCoinsChanged`, `PreviousHighScore`, `HasNewHighScore` |
 
 ### Systems / Upgrade
 | Script | Açıklama |
@@ -361,15 +375,18 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 | `HealthBoostEffect.cs` | BlobHealth max health artırır |
 | `ScoreMultiplierEffect.cs` | ScoreSystem multiplier artırır |
 | `MagnetEffect.cs` | Blob'a MagnetComponent ekler/radius artırır |
+| `VacuumEffect.cs` | Blob'a VacuumComponent ekler/radius artırır; sadece yenebilir tier consumable'ları çeken Vakum skill'i |
+| `ShieldEffect.cs` | BlobHealth'e max shield ekler; hasar önce shield'dan düşer |
 | `WeaponUpgradeEffect.cs` | `blobRoot.GetComponentInChildren<WeaponBase>()` ile aktif silahı bulur, `IncreaseDamage(PerLevelValue)` çağırır — GDD'deki "Saldırı: Silah" kategorisi için (A1-A4/B1-B5 backlog'unda yoktu, sonradan eklendi). **İleride düşünülecek:** mermi hızı (`Projectile._speed`) ya da yön/mermi sayısı (multi-shot) artırma gibi ek boyutlar eklenebilir — şu an `UpgradeData`'da tek bir `PerLevelValue` alanı olduğu için sadece damage'a bağlandı; ikinci bir stat eklenecekse `UpgradeData`'ya yeni bir alan (örn. `_secondaryPerLevelValue`) gerekir |
 | `MagnetComponent.cs` (Entities/Blob) | OverlapSphere ile yakındaki IConsumable'ları bulur, transform'u blob'a doğru taşır (consumable'larda Rigidbody YOK, force çalışmaz — `Vector3.MoveTowards` kullanılır) |
+| `VacuumComponent.cs` (Entities/Blob) | Daha geniş ama daha yavaş çekim alanı; `BlobGrowth.CurrentTier` altındaki/aynı tier consumable'ları çeker |
 
 ### UI
 | Script | Açıklama |
 |--------|----------|
-| `HUDController.cs` | Health/XP bar, skor, timer, tier, level text — GameEvents dinler |
+| `HUDController.cs` | Health/XP bar, shield bar, skor, coin, timer, tier, level text; aktif skill rozetleri ve karakter ikonu; GameEvents dinler |
 | `UpgradePanel.cs` | OnUpgradeChoicesReady'de 3 buton gösterir; tıklayınca OnUpgradeSelected raise eder |
-| `GameOverScreen.cs` | OnGameOver'da skor/highscore gösterir; restart → GameManager.StartGame() |
+| `GameOverScreen.cs` | OnGameOver'da skor/highscore, coin, süre, önceki rekor ve yeni rekor banner'ı gösterir; restart → GameManager.StartGame() |
 | `LobbyPanel.cs` | Oyun başında görünür, HUD'u gizler (`_hud.SetActive(false)`); 3 karakter butonu (icon + isim); tıklayınca paneli kapatır, HUD'u açar, `GameManager.Instance.StartGame(data)` çağırır |
 | `SafeAreaHandler.cs` | RectTransform'u Screen.safeArea'ya göre ayarlar (notch desteği) |
 
@@ -384,11 +401,18 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 ## Bilinen Eksikler / TODO
 
 - **Karakter iconları eksik:** `Char_Topik`, `Char_Miknato`, `Char_Mermo` (`Assets/_Project/Data/Characters/`) asset'lerinde `Icon` alanı boş — henüz görsel hazır değil. LobbyPanel'deki buton icon'ları bu yüzden şu an boş görünüyor. Icon'lar hazır olunca 3 asset'e de atanmalı.
+- **Dash skill eksik:** GitHub'da B6 (#15) kapalı görünebilir, ancak yerel repoda `DashComponent.cs`, `DashEffect.cs`, `Upgrade_Dash.asset` dosyaları yok. Tamamlanmış varsayma; implementasyon gerekiyorsa yeniden ele alınmalı.
+- **Skill Evolution eksik:** B7 (#16) için `SkillEvolutionData` / `EvolutionSystem` yerelde yok. Evrim sistemi hâlâ yapılacak iş.
 
 ---
 
 ## Önemli Kararlar / Geçmiş Düzeltmeler
 
+- **A5 Düşman ölçekleme tamamlandı:** `WaveController` süreye göre hasar, spawn yoğunluğu ve hız çarpanlarını tutuyor; `EnemySpawner/EnemyBase` spawn sırasında bu çarpanlarla çalışmalı.
+- **A6 Elit düşman tamamlandı:** `EnemyData` içinde `IsElite`, attack hit count/interval alanları var; `EnemyData_ElitePolis.asset`, `Enemy_ElitePolice.prefab`, `Mat_Enemy_Elite.mat`, `Wave_PoliceElite.asset` yerelde mevcut.
+- **A7 Coin drop tamamlandı:** `EnemyBase.Die()` normal düşmanda 1 coin, elit düşmanda 5-10 coin spawn ediyor; `CoinSpawner`/`CoinPickup` pool ve pickup akışını yönetiyor; `ScoreSystem.AddCoin` ve `GameEvents.OnCoinsChanged` eklendi.
+- **B8 Elit sandık drop tamamlandı:** Elit düşman ölünce `ChestSpawner` sandık spawn ediyor; `ChestPickup` blob temasında coin ekliyor ve level-up/skill seçim akışını tetikliyor.
+- **B9 Coin HUD + GameOver özet tamamlandı:** `HUDController` coin sayacını canlı güncelliyor; `GameOverScreen` coin, süre, önceki rekor ve yeni rekor banner'ı gösteriyor.
 - **ObjectPool MonoBehaviour sorunu:** Unity filename=classname zorunluluğu. ObjectPool generic class, PoolManager ayrı MonoBehaviour dosyası.
 - **GetInstanceID deprecated:** Dictionary key olarak prefab referansı kullanılıyor (`Dictionary<Object, object>`).
 - **Input System çakışması:** Proje New Input System kullanıyor. `UnityEngine.Input` class'ı kullanılamaz. InputManager `InputAction` ile yazıldı.
@@ -479,10 +503,13 @@ Fazlar sırayla yapılacak. Her faz tamamlanınca burası güncellenmeli.
 
 ### 🔲 Phase 9 — Skill Sistemi Genişletme
 
-Mevcut Upgrade sistemi 1 seviye + tek efekt. GDD'ye göre 1–8 seviye + evrim gerekli.
+Sprint 1 B1-B5 kapsamının çoğu tamamlandı: UpgradeData level alanları, level-aware UpgradeSystem, Vakum, Kalkan, HUD skill rozetleri, karakter ikonu ve shield bar mevcut. GDD'ye göre hâlâ evrim ve bazı ek skill davranışları gerekli.
 
-- `UpgradeData`'ya `maxLevel`, `currentLevel`, `levelValues[]` ekle
-- Vakum, Kalkan, Score Multiplier, Hızlanma efektlerini ekle (mevcut olmayanlar)
+- `UpgradeData` level sistemi mevcut: `MaxLevel`, `PerLevelValue`, runtime `CurrentLevel`
+- Vakum ve Kalkan skill'leri mevcut
+- HUD aktif skill rozeti, karakter ikonu ve shield bar mevcut
+- Hızlanma/Dash skill'i için yerelde henüz `DashComponent` / `DashEffect` yok
+- Skill Evrim sistemi hâlâ eksik (`SkillEvolutionData`, `EvolutionSystem`)
 - **Yeniden Çek** butonu (oturum başına 1 ücretsiz, sonrası 50 altın)
 - Skill kartlarında renk + sembol (renk körü desteği)
 
@@ -498,7 +525,9 @@ Mevcut Upgrade sistemi 1 seviye + tek efekt. GDD'ye göre 1–8 seviye + evrim g
 - `MetaProgressionData` (PlayerPrefs veya JSON): kalıcı kredi, açılmış karakter/harita/silah, kalıcı pasif kademeleri
 - **Market ekranı:** Karakter/harita/silah/XP çarpanı satın alma
 - **Grimoire:** İlk karşılaşılan düşman/silah/harita loglanır; %100 doluluk → kozmetik ödül
-- Coin drop sistemi (düşman öldüğünde) + elit → sandık drop
+- Coin drop sistemi oturum içi olarak mevcut: düşman ölünce coin spawn, blob toplayınca `ScoreSystem.Coins` artar
+- Elit sandık drop mevcut: elit ölünce chest spawn, pickup coin + level-up seçim akışını tetikler
+- Kalıcı/meta coin aktarımı hâlâ Sprint 3+ işi
 - **NG+ zorluk seviyeleri:** Standart, Kızıl Ay, Kan Krizi, Apokalips
 
 ### 🔲 Phase 12 — Hava Durumu Sistemi
