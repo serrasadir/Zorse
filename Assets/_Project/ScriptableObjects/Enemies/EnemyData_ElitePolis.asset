@@ -24,3 +24,4 @@ MonoBehaviour:
   _isElite: 1
   _attackHitCount: 3
   _attackHitInterval: 0.3
+  _massReward: 20

@@ -1,6 +1,7 @@
 using UnityEngine;
 using BlobSurvivor.Data;
 using BlobSurvivor.Entities.Blob;
+using BlobSurvivor.Entities.Weapons;
 
 namespace BlobSurvivor.Core
 {
@@ -18,6 +19,8 @@ namespace BlobSurvivor.Core
         public static GameManager Instance { get; private set; }
 
         [SerializeField] private CharacterData _defaultCharacter;
+
+        private CharacterData _lastCharacter;
 
         public GameState CurrentState { get; private set; }
         public float SurvivalTime { get; private set; }
@@ -49,7 +52,7 @@ namespace BlobSurvivor.Core
 
         public void StartGame()
         {
-            StartGame(_defaultCharacter);
+            StartGame(_lastCharacter != null ? _lastCharacter : _defaultCharacter);
         }
 
         public void StartGame(CharacterData character)
@@ -59,7 +62,10 @@ namespace BlobSurvivor.Core
             ChangeState(GameState.Playing);
 
             if (character != null)
+            {
+                _lastCharacter = character;
                 ApplyCharacter(character);
+            }
         }
 
         private void ApplyCharacter(CharacterData character)
@@ -67,13 +73,18 @@ namespace BlobSurvivor.Core
             GameObject blob = GameObject.FindWithTag("Blob");
             if (blob == null) return;
 
+            // Restart aynı blob instance'ını yeniden kullanır (sahne reload yok) — önceki run'dan
+            // kalan silah/pasif bileşenlerini temizlemeden ApplyCharacter tekrar çağrılırsa
+            // silah çiftlenir ve pasifler (örn. VacuumComponent.Radius) stack'lenir.
+            ClearPreviousRunState(blob);
+
             switch (character.PassiveType)
             {
                 case CharacterPassiveType.MoveSpeed:
                     blob.GetComponent<BlobController>()?.SetSpeedMultiplier(1f + character.PassiveValue);
                     break;
                 case CharacterPassiveType.MagnetPull:
-                    VacuumComponent vacuum = blob.GetComponent<VacuumComponent>() ?? blob.AddComponent<VacuumComponent>();
+                    VacuumComponent vacuum = blob.AddComponent<VacuumComponent>();
                     vacuum.IncreaseRadius(character.PassiveValue);
                     break;
                 case CharacterPassiveType.ConsumableSplit:
@@ -89,6 +100,15 @@ namespace BlobSurvivor.Core
             }
 
             GameEvents.RaiseCharacterSelected(character);
+        }
+
+        private void ClearPreviousRunState(GameObject blob)
+        {
+            VacuumComponent oldVacuum = blob.GetComponent<VacuumComponent>();
+            if (oldVacuum != null) Destroy(oldVacuum);
+
+            WeaponBase oldWeapon = blob.GetComponentInChildren<WeaponBase>();
+            if (oldWeapon != null) Destroy(oldWeapon.gameObject);
         }
 
         public void PauseGame()

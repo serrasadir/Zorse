@@ -64,8 +64,21 @@ namespace BlobSurvivor.Entities.Enemies
 
             Vector3 spawnPos = GetSpawnPosition();
             EnemyBase enemy = _pools[data].Get(spawnPos, Quaternion.identity);
+            enemy.WarpTo(spawnPos);
             enemy.SetData(data, _waveController.DamageMultiplier, _waveController.SpeedMultiplier);
+
+            enemy.OnDeath -= HandleEnemyDeath;
+            enemy.OnDeath += HandleEnemyDeath;
+
             _activeEnemies.Add(enemy.gameObject);
+        }
+
+        private void HandleEnemyDeath(EnemyBase enemy)
+        {
+            _activeEnemies.Remove(enemy.gameObject);
+
+            if (_pools.TryGetValue(enemy.Data, out ObjectPool<EnemyBase> pool))
+                pool.Return(enemy);
         }
 
         private int GetEffectiveMaxActive()

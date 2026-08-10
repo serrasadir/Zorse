@@ -21,3 +21,4 @@ MonoBehaviour:
   _attackCooldown: 1
   _spawnTier: 0
   _scoreValue: 3
+  _massReward: 3

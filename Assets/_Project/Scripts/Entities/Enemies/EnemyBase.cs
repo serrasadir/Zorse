@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
+using BlobSurvivor.Core;
 using BlobSurvivor.Data;
 using BlobSurvivor.Entities.Blob;
 using BlobSurvivor.Entities.Coins;
@@ -12,11 +13,19 @@ namespace BlobSurvivor.Entities.Enemies
     {
         [SerializeField] private EnemyData _data;
         [SerializeField] private float _detectionRange = 15f;
+        [SerializeField] private float _separationRadius = 1.5f;
+        [SerializeField] private float _separationWeight = 1.5f;
 
         private const float AIUpdateInterval = 0.15f;
 
+        public event System.Action<EnemyBase> OnDeath;
+
         public EnemyData Data => _data;
         public Transform BlobTransform { get; private set; }
+
+        // Karar 2 (GDD_v2.md §7): sürü düşmanları NavMeshAgent kullanmaz, basit steering kullanır.
+        // Elit/boss NavMeshAgent'ta kalmaya devam eder.
+        public bool UsesSteering => _data != null && !_data.IsElite;
 
         private NavMeshAgent _agent;
         private BlobHealth _blobHealth;
@@ -27,6 +36,9 @@ namespace BlobSurvivor.Entities.Enemies
         private bool _canSeeBlobCached;
         private float _damageMultiplier = 1f;
         private float _speedMultiplier = 1f;
+        private bool _isDead;
+        private Vector3 _steerTarget;
+        private bool _hasSteerTarget;
 
         private void Awake()
         {
@@ -41,6 +53,8 @@ namespace BlobSurvivor.Entities.Enemies
             _canSeeBlobCached = false;
             _damageMultiplier = 1f;
             _speedMultiplier = 1f;
+            _isDead = false;
+            _hasSteerTarget = false;
 
             GameObject blob = GameObject.FindWithTag("Blob");
             if (blob != null)
@@ -49,10 +63,23 @@ namespace BlobSurvivor.Entities.Enemies
                 _blobHealth = blob.GetComponent<BlobHealth>();
             }
 
-            if (_agent != null && _data != null)
-                _agent.speed = _data.MoveSpeed;
+            if (UsesSteering)
+            {
+                if (_agent != null) _agent.enabled = false;
+                SwarmSteering.Instance?.Register(this);
+            }
+            else
+            {
+                if (_agent != null) _agent.enabled = true;
+                if (_agent != null && _data != null) _agent.speed = _data.MoveSpeed;
+            }
 
             ChangeState(new PatrolState());
+        }
+
+        private void OnDisable()
+        {
+            SwarmSteering.Instance?.Unregister(this);
         }
 
         private void Update()
@@ -66,6 +93,28 @@ namespace BlobSurvivor.Entities.Enemies
             }
 
             _currentState?.Update(this, aiTick);
+
+            if (UsesSteering && _hasSteerTarget)
+                ApplySteeringMovement();
+        }
+
+        private void ApplySteeringMovement()
+        {
+            Vector3 toTarget = _steerTarget - transform.position;
+            toTarget.y = 0f;
+
+            Vector3 seek = toTarget.sqrMagnitude > 0.01f ? toTarget.normalized : Vector3.zero;
+            Vector3 separation = SwarmSteering.Instance != null
+                ? SwarmSteering.Instance.GetSeparationVector(this, _separationRadius)
+                : Vector3.zero;
+
+            Vector3 moveDir = seek + separation * _separationWeight;
+            if (moveDir.sqrMagnitude < 0.0001f) return;
+            moveDir.Normalize();
+
+            float speed = _data.MoveSpeed * _speedMultiplier;
+            transform.position += moveDir * speed * Time.deltaTime;
+            transform.rotation = Quaternion.LookRotation(moveDir);
         }
 
         private bool ComputeCanSeeBlob()
@@ -90,14 +139,35 @@ namespace BlobSurvivor.Entities.Enemies
             _currentState.Enter(this);
         }
 
+        public void WarpTo(Vector3 position)
+        {
+            if (_agent != null && _agent.isActiveAndEnabled)
+                _agent.Warp(position);
+            else
+                transform.position = position;
+        }
+
         public void SetDestination(Vector3 destination)
         {
+            if (UsesSteering)
+            {
+                _steerTarget = destination;
+                _hasSteerTarget = true;
+                return;
+            }
+
             if (_agent != null && _agent.isOnNavMesh)
                 _agent.SetDestination(destination);
         }
 
         public void StopMoving()
         {
+            if (UsesSteering)
+            {
+                _hasSteerTarget = false;
+                return;
+            }
+
             if (_agent != null && _agent.isOnNavMesh)
                 _agent.ResetPath();
         }
@@ -111,13 +181,33 @@ namespace BlobSurvivor.Entities.Enemies
 
         public void TakeDamage(float amount)
         {
+            if (_isDead) return;
+
             _currentHealth -= amount;
             if (_currentHealth <= 0f)
                 Die();
         }
 
+        // Karar 5 (GDD_v2.md §4 — yeme birincil): sürü düşmanı Tier3+'ta, elit Tier5'te temasla yutulabilir.
+        // Mass ödülü BlobGrowth.AddMass üzerinden verilmeli — mass=XP zaten birleşik (Karar 7).
+        public bool TryConsumeByBlob(BlobTier blobTier, out float massReward)
+        {
+            massReward = 0f;
+            if (_isDead || _data == null) return false;
+
+            BlobTier requiredTier = _data.IsElite ? BlobTier.Giant : BlobTier.Medium;
+            if (blobTier < requiredTier) return false;
+
+            massReward = _data.MassReward;
+            Die();
+            return true;
+        }
+
         private void Die()
         {
+            if (_isDead) return;
+            _isDead = true;
+
             _scoreSystem?.AddScore(_data.ScoreValue);
 
             int coinAmount = _data.IsElite ? Random.Range(5, 11) : 1;
@@ -125,7 +215,8 @@ namespace BlobSurvivor.Entities.Enemies
             if (_data.IsElite)
                 ChestSpawner.Instance?.SpawnChest(transform.position);
 
-            gameObject.SetActive(false);
+            // Pool'a dönüş çağıranın (EnemySpawner) sorumluluğunda — CoinSpawner/CoinPickup'taki pattern'in aynısı.
+            OnDeath?.Invoke(this);
         }
     }
 }
