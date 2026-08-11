@@ -376,6 +376,7 @@ Mühendislik kuralları (throttle, `sqrMagnitude`, object pool zorunluluğu, Lay
 - 🔲 **Score Multiplier:** run içi kart mı kalsın, Market meta upgrade'ine mi taşınsın? (Kurul metayı öneriyor; karar bilinçli olarak ertelendi.)
 - 🔲 **Nihai oyun adı:** Blob.io çalışma adı — store'da "io" eki algı riski taşır; global lansmandan önce kesinleşmeli.
 - 🔲 **Soft launch pazarları:** TR + hangi ikinci pazar?
+- 🔲 **Hızlanma (Dash) skill'i:** §5'te "Hareket" kategorisinde hem kalıcı **Hız** hem geçici **Hızlanma (Dash)** var — Serra bunun gerçekten gerekli mi yoksa Hız'la örtüşüyor mu (Magnet/Vacuum'daki gibi) diye karar verecek. Kod tarafı mevcut (`DashComponent.cs`, `DashEffect.cs`, `Upgrade_Dash.asset`, B15/#15). Karar netleşene kadar kod kalıyor, dokunulmuyor.
 
 ---
 

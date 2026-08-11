@@ -92,7 +92,7 @@ namespace BlobSurvivor.UI
                 _summaryText.fontSize = 18f;
                 _summaryText.alignment = TextAlignmentOptions.Center;
                 _summaryText.color = Color.white;
-                _summaryText.enableWordWrapping = false;
+                _summaryText.textWrappingMode = TextWrappingModes.NoWrap;
 
                 RectTransform rect = summaryObject.GetComponent<RectTransform>();
                 rect.anchorMin = new Vector2(0.5f, 0.5f);

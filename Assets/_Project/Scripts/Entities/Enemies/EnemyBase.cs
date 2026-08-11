@@ -15,8 +15,12 @@ namespace BlobSurvivor.Entities.Enemies
         [SerializeField] private float _detectionRange = 15f;
         [SerializeField] private float _separationRadius = 1.5f;
         [SerializeField] private float _separationWeight = 1.5f;
+        [SerializeField] private float _avoidanceLookahead = 1.2f;
+        [SerializeField] private float _avoidanceWeight = 2f;
+        [SerializeField] private float _rotationSpeed = 10f;
 
         private const float AIUpdateInterval = 0.15f;
+        private static int s_environmentMask = -1;
 
         public event System.Action<EnemyBase> OnDeath;
 
@@ -39,11 +43,16 @@ namespace BlobSurvivor.Entities.Enemies
         private bool _isDead;
         private Vector3 _steerTarget;
         private bool _hasSteerTarget;
+        private Vector3 _separationCached;
+        private Vector3 _avoidanceCached;
 
         private void Awake()
         {
             _agent = GetComponent<NavMeshAgent>();
             _scoreSystem = FindAnyObjectByType<ScoreSystem>();
+
+            if (s_environmentMask < 0)
+                s_environmentMask = LayerMask.GetMask("Environment");
         }
 
         private void OnEnable()
@@ -90,6 +99,17 @@ namespace BlobSurvivor.Entities.Enemies
             {
                 _aiUpdateTimer = AIUpdateInterval;
                 _canSeeBlobCached = ComputeCanSeeBlob();
+
+                // Ayrım (separation) ve engel kaçınma sorguları pahalı (komşu grid taraması / raycast) —
+                // her frame değil, throttle tick'te hesaplanıp cache'lenir. Seek her frame taze kalır
+                // (ucuz, sadece vektör çıkarma) — hareket akıcı görünür, ağır kısım throttle'lanır.
+                if (UsesSteering)
+                {
+                    _separationCached = SwarmSteering.Instance != null
+                        ? SwarmSteering.Instance.GetSeparationVector(this, _separationRadius)
+                        : Vector3.zero;
+                    _avoidanceCached = ComputeAvoidance();
+                }
             }
 
             _currentState?.Update(this, aiTick);
@@ -98,23 +118,39 @@ namespace BlobSurvivor.Entities.Enemies
                 ApplySteeringMovement();
         }
 
+        private Vector3 ComputeAvoidance()
+        {
+            if (s_environmentMask == 0) return Vector3.zero;
+
+            Vector3 forward = _hasSteerTarget ? _steerTarget - transform.position : transform.forward;
+            forward.y = 0f;
+            if (forward.sqrMagnitude < 0.01f) return Vector3.zero;
+            forward.Normalize();
+
+            if (!Physics.Raycast(transform.position, forward, out RaycastHit hit, _avoidanceLookahead, s_environmentMask))
+                return Vector3.zero;
+
+            // Duvara sıkışmayı önle: engelden uzaklaştıran, hareket yönüne dik bir sapma.
+            Vector3 away = Vector3.Cross(Vector3.up, hit.normal);
+            if (Vector3.Dot(away, forward) < 0f) away = -away;
+            return away;
+        }
+
         private void ApplySteeringMovement()
         {
             Vector3 toTarget = _steerTarget - transform.position;
             toTarget.y = 0f;
 
             Vector3 seek = toTarget.sqrMagnitude > 0.01f ? toTarget.normalized : Vector3.zero;
-            Vector3 separation = SwarmSteering.Instance != null
-                ? SwarmSteering.Instance.GetSeparationVector(this, _separationRadius)
-                : Vector3.zero;
-
-            Vector3 moveDir = seek + separation * _separationWeight;
+            Vector3 moveDir = seek + _separationCached * _separationWeight + _avoidanceCached * _avoidanceWeight;
             if (moveDir.sqrMagnitude < 0.0001f) return;
             moveDir.Normalize();
 
             float speed = _data.MoveSpeed * _speedMultiplier;
             transform.position += moveDir * speed * Time.deltaTime;
-            transform.rotation = Quaternion.LookRotation(moveDir);
+
+            // Ani yön sıçramalarını yumuşat (Slerp) — separation kaynaklı titreşimi görsel olarak azaltır.
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(moveDir), _rotationSpeed * Time.deltaTime);
         }
 
         private bool ComputeCanSeeBlob()

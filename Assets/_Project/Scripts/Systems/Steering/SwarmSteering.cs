@@ -10,6 +10,7 @@ namespace BlobSurvivor.Systems
 
         [SerializeField] private float _cellSize = 3f;
         [SerializeField] private float _rebuildInterval = 0.1f;
+        [SerializeField] private int _maxNeighborsPerQuery = 12;
 
         private readonly List<EnemyBase> _registered = new List<EnemyBase>();
         private readonly Dictionary<Vector2Int, List<EnemyBase>> _grid = new Dictionary<Vector2Int, List<EnemyBase>>();
@@ -65,11 +66,13 @@ namespace BlobSurvivor.Systems
         }
 
         // Yakın komşulardan uzaklaştıran normalize edilmemiş bir yön döner (sıfır vektör = yakın komşu yok).
+        // Çok yoğun kümelenmede (150-200 düşman aynı hücrede) maliyeti sınırlamak için komşu sayısına üst sınır var.
         public Vector3 GetSeparationVector(EnemyBase self, float radius)
         {
             Vector3 result = Vector3.zero;
             Vector2Int center = ToCell(self.transform.position);
             float sqrRadius = radius * radius;
+            int consideredNeighbors = 0;
 
             for (int dx = -1; dx <= 1; dx++)
             {
@@ -88,6 +91,10 @@ namespace BlobSurvivor.Systems
                         if (sqrDist > sqrRadius || sqrDist < 0.0001f) continue;
 
                         result += offset.normalized / Mathf.Sqrt(sqrDist);
+
+                        consideredNeighbors++;
+                        if (consideredNeighbors >= _maxNeighborsPerQuery)
+                            return result;
                     }
                 }
             }

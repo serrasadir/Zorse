@@ -11,10 +11,14 @@ namespace BlobSurvivor.Entities.Enemies
     {
         [SerializeField] private WaveController _waveController;
         [SerializeField] private float _spawnDistance = 20f;
-        [SerializeField] private int _maxActiveEnemies = 30;
+        [SerializeField] private int _maxActiveEnemies = 50;
+        // Elit/boss NavMeshAgent kullanır (pahalı) — GDD_v2.md §7 Mimari: "aynı anda ≤8-10 agent".
+        // Sürü tavanından ayrı tutulur, aksi halde weighted-random spawn elit sayısını da yükseltebilir.
+        [SerializeField] private int _maxActiveElites = 8;
 
         private Transform _blobTransform;
         private float _spawnTimer;
+        private int _activeEliteCount;
         private readonly List<GameObject> _activeEnemies = new List<GameObject>();
         private readonly Dictionary<EnemyData, ObjectPool<EnemyBase>> _pools = new Dictionary<EnemyData, ObjectPool<EnemyBase>>();
 
@@ -56,6 +60,10 @@ namespace BlobSurvivor.Entities.Enemies
             EnemyData data = SelectEnemyData(wave);
             if (data?.Prefab == null) return;
 
+            // Elit tavanı sürüden ayrı — NavMeshAgent pahalı, weighted-random spawn'ın
+            // elit sayısını kontrolsüz yükseltmesini engeller (GDD Karar 2).
+            if (data.IsElite && _activeEliteCount >= _maxActiveElites) return;
+
             EnemyBase prefabBase = data.Prefab.GetComponent<EnemyBase>();
             if (prefabBase == null) return;
 
@@ -71,11 +79,15 @@ namespace BlobSurvivor.Entities.Enemies
             enemy.OnDeath += HandleEnemyDeath;
 
             _activeEnemies.Add(enemy.gameObject);
+            if (data.IsElite) _activeEliteCount++;
         }
 
         private void HandleEnemyDeath(EnemyBase enemy)
         {
             _activeEnemies.Remove(enemy.gameObject);
+
+            if (enemy.Data != null && enemy.Data.IsElite)
+                _activeEliteCount = Mathf.Max(0, _activeEliteCount - 1);
 
             if (_pools.TryGetValue(enemy.Data, out ObjectPool<EnemyBase> pool))
                 pool.Return(enemy);
@@ -118,7 +130,10 @@ namespace BlobSurvivor.Entities.Enemies
 
         private void OnTierChanged(BlobTier tier)
         {
-            _maxActiveEnemies = Mathf.Min(5 * (int)tier + 5, 30);
+            // A14: sürü artık steering kullanıyor (NavMeshAgent değil), eski 30 tavanı NavMesh
+            // pathfinding maliyetine göre konmuştu ve artık geçerli değil. GDD Karar 2 hedefi:
+            // 150-200 eşzamanlı düşman @ mobil 30 FPS — tier'a göre kademeli artan yeni tavan.
+            _maxActiveEnemies = Mathf.Min(40 * (int)tier + 10, 200);
         }
 
         private void CleanupInactive()
