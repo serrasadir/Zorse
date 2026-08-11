@@ -64,7 +64,7 @@
 
 **Not — ertelenen açık kararlar:** GDD §16'daki "Score Multiplier kart mı/meta mı" ve "nihai oyun adı" kararları henüz verilmedi; bu yüzden Sprint 4'e implementasyon işi olarak alınmadı. Karar verildiğinde bir sonraki sprint'e eklenir.
 
-**Not — kod/doküman çelişkisi çözüldü (Ağustos 2026, GDD_v3.md §0 Karar 15):** GDD_v2.md §5 "Kalkan iptal edildi (Zırh ile aynı iş)" diyordu; GDD_v3 bu kararı geri aldı — Kalkan (görünür tükenen tampon) ve Zırh (görünmez % azaltma) farklı roller olarak korunuyor, kod zaten tam çalışır durumda (`ShieldEffect.cs`, `BlobHealth.CurrentShield`, HUD shield bar). Ek iş gerekmiyor.
+**Not — kod/doküman çelişkisi (aksiyon beklemiyor, takip için):** GDD_v2.md §5 "Kalkan iptal edildi (Zırh ile aynı iş)" diyor ama kod hâlâ çalışan bir Kalkan/Shield sistemi içeriyor (B4, `ShieldEffect.cs`, `BlobHealth.CurrentShield`). Kaldırmak canlı bir sistemi bozar; kullanıcı onayı olmadan dokunulmadı. İleride netleştirilmeli.
 
 ---
 
