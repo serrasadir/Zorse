@@ -13,7 +13,6 @@ namespace BlobSurvivor.UI
     {
         [Header("Health")]
         [SerializeField] private Slider _healthBar;
-        [SerializeField] private Slider _shieldBar;
 
         [Header("Score & Timer")]
         [SerializeField] private TMP_Text _scoreText;
@@ -39,7 +38,6 @@ namespace BlobSurvivor.UI
         private void Awake()
         {
             EnsureRuntimeHudElements();
-            OnShieldChanged(0f, 0f);
             if (_characterIcon != null)
                 _characterIcon.gameObject.SetActive(false);
         }
@@ -47,7 +45,6 @@ namespace BlobSurvivor.UI
         private void OnEnable()
         {
             GameEvents.OnHealthChanged += OnHealthChanged;
-            GameEvents.OnShieldChanged += OnShieldChanged;
             GameEvents.OnScoreChanged += OnScoreChanged;
             GameEvents.OnCoinsChanged += OnCoinsChanged;
             GameEvents.OnSurvivalTimeUpdated += OnSurvivalTimeUpdated;
@@ -58,13 +55,11 @@ namespace BlobSurvivor.UI
             GameEvents.OnCharacterSelected += OnCharacterSelected;
             GameEvents.OnGameOver += ClearBadges;
             GameEvents.OnGameOver += ClearCharacterIcon;
-            GameEvents.OnGameOver += ClearShieldBar;
         }
 
         private void OnDisable()
         {
             GameEvents.OnHealthChanged -= OnHealthChanged;
-            GameEvents.OnShieldChanged -= OnShieldChanged;
             GameEvents.OnScoreChanged -= OnScoreChanged;
             GameEvents.OnCoinsChanged -= OnCoinsChanged;
             GameEvents.OnSurvivalTimeUpdated -= OnSurvivalTimeUpdated;
@@ -75,7 +70,6 @@ namespace BlobSurvivor.UI
             GameEvents.OnCharacterSelected -= OnCharacterSelected;
             GameEvents.OnGameOver -= ClearBadges;
             GameEvents.OnGameOver -= ClearCharacterIcon;
-            GameEvents.OnGameOver -= ClearShieldBar;
         }
 
         private void OnHealthChanged(float current, float max)
@@ -85,18 +79,6 @@ namespace BlobSurvivor.UI
                 _healthBar.maxValue = max;
                 _healthBar.value = current;
             }
-        }
-
-        private void OnShieldChanged(float current, float max)
-        {
-            if (_shieldBar == null) return;
-
-            bool hasShield = max > 0f;
-            _shieldBar.gameObject.SetActive(hasShield);
-            if (!hasShield) return;
-
-            _shieldBar.maxValue = max;
-            _shieldBar.value = Mathf.Clamp(current, 0f, max);
         }
 
         private void OnScoreChanged(int score)
@@ -256,11 +238,6 @@ namespace BlobSurvivor.UI
             _characterIcon.gameObject.SetActive(false);
         }
 
-        private void ClearShieldBar()
-        {
-            OnShieldChanged(0f, 0f);
-        }
-
         private void EnsureRuntimeHudElements()
         {
             RectTransform overlay = GetRuntimeOverlay();
@@ -282,38 +259,6 @@ namespace BlobSurvivor.UI
                 iconRect.pivot = new Vector2(0f, 1f);
                 iconRect.anchoredPosition = new Vector2(16f, -16f);
                 iconRect.sizeDelta = new Vector2(42f, 42f);
-            }
-
-            if (_shieldBar == null)
-            {
-                GameObject shieldObject = new GameObject("ShieldBar", typeof(RectTransform), typeof(Slider));
-                Transform shieldParent = _healthBar != null ? _healthBar.transform.parent : overlay;
-                shieldObject.transform.SetParent(shieldParent, false);
-                _shieldBar = shieldObject.GetComponent<Slider>();
-                _shieldBar.interactable = false;
-                _shieldBar.transition = Selectable.Transition.None;
-
-                RectTransform shieldRect = shieldObject.GetComponent<RectTransform>();
-                if (_healthBar != null)
-                {
-                    RectTransform healthRect = _healthBar.GetComponent<RectTransform>();
-                    shieldRect.anchorMin = healthRect.anchorMin;
-                    shieldRect.anchorMax = healthRect.anchorMax;
-                    shieldRect.pivot = healthRect.pivot;
-                    shieldRect.anchoredPosition = healthRect.anchoredPosition + new Vector2(0f, 28f);
-                    shieldRect.sizeDelta = new Vector2(healthRect.sizeDelta.x, 10f);
-                }
-                else
-                {
-                    shieldRect.anchorMin = new Vector2(1f, 0f);
-                    shieldRect.anchorMax = new Vector2(1f, 0f);
-                    shieldRect.pivot = new Vector2(0.5f, 0.5f);
-                    shieldRect.anchoredPosition = new Vector2(-116f, 142f);
-                    shieldRect.sizeDelta = new Vector2(200f, 10f);
-                }
-
-                Image fill = CreateSliderFill(shieldObject.transform, new Color(0.18f, 0.65f, 1f, 0.85f));
-                _shieldBar.fillRect = fill.rectTransform;
             }
         }
 
@@ -425,23 +370,6 @@ namespace BlobSurvivor.UI
                 textRect.offsetMin = new Vector2(2f, 1f);
                 textRect.offsetMax = new Vector2(-2f, -1f);
             }
-        }
-
-        private static Image CreateSliderFill(Transform parent, Color color)
-        {
-            GameObject fillObject = new GameObject("Fill", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-            fillObject.transform.SetParent(parent, false);
-
-            Image fill = fillObject.GetComponent<Image>();
-            fill.color = color;
-
-            RectTransform rect = fill.rectTransform;
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-
-            return fill;
         }
     }
 }

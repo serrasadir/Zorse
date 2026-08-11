@@ -1947,6 +1947,14 @@ MonoBehaviour:
   _waves:
   - {fileID: 11400000, guid: ff117d1589b214a0ca25bda8e1550e77, type: 2}
   - {fileID: 11400000, guid: a00df9df198c4ed19e6a2552f03da7c6, type: 2}
+  _eliteDamageThreshold: 300
+  _eliteDamageMultiplier: 1.2
+  _densityThreshold: 600
+  _densityMultiplier: 2
+  _speedBonusThreshold: 900
+  _speedBonusMultiplier: 1.15
+  _finalDamageThreshold: 1200
+  _finalDamageMultiplier: 3
 --- !u!4 &511230089
 Transform:
   m_ObjectHideFlags: 0
@@ -1957,6 +1965,53 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 5.56933, y: 0, z: 1.76593}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &530250210
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 530250212}
+  - component: {fileID: 530250211}
+  m_Layer: 0
+  m_Name: CoinSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &530250211
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 530250210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b9a7cf06e2e74805aba24404ffb135a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Coins.CoinSpawner
+  _coinPrefab: {fileID: 4093432291583514433, guid: 2ff0df042a5049eab64b27ceaf1b3dfe, type: 3}
+  _poolSize: 40
+  _spawnYOffset: 0.15
+--- !u!4 &530250212
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 530250210}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 540, y: 960, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1993,15 +2048,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Systems.UpgradeSystem
   _allUpgrades:
   - {fileID: 11400000, guid: 0bca2b7b110d8493f9d8b759fa9ecf94, type: 2}
-  - {fileID: 11400000, guid: 8ebcaa7a7214e4d4793b4b99168e54b8, type: 2}
   - {fileID: 11400000, guid: 5d7022e263ca744989d9ef07f8cd063f, type: 2}
   - {fileID: 11400000, guid: 4364a766d570f459e9257b0a0df70913, type: 2}
   - {fileID: 11400000, guid: 928b8595e5b5943f882931310c215e5c, type: 2}
   - {fileID: 11400000, guid: 1c02eed465f3d411cb8c57a3242128c3, type: 2}
   - {fileID: 11400000, guid: 9a1a53f3539f54aa9a01b50dfc7fccc9, type: 2}
-  - {fileID: 11400000, guid: eb557061fd4c6405fa6459f19e3005b4, type: 2}
   - {fileID: 11400000, guid: 7a60ab4d1e9804c11a6724b7a567bac7, type: 2}
-  - {fileID: 11400000, guid: a4a29c74656848f7a013837e448ea7b3, type: 2}
   _choiceCount: 3
 --- !u!4 &582339428
 Transform:
@@ -2074,7 +2126,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.UI.HUDController
   _healthBar: {fileID: 1034431328}
-  _shieldBar: {fileID: 0}
   _scoreText: {fileID: 2146220555}
   _timerText: {fileID: 63083488}
   _tierText: {fileID: 2099888169}
@@ -2092,7 +2143,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9a1a53f3539f54aa9a01b50dfc7fccc9, type: 2}
   - {fileID: 11400000, guid: eb557061fd4c6405fa6459f19e3005b4, type: 2}
   - {fileID: 11400000, guid: 7a60ab4d1e9804c11a6724b7a567bac7, type: 2}
-  - {fileID: 11400000, guid: a4a29c74656848f7a013837e448ea7b3, type: 2}
   _characterIcon: {fileID: 0}
 --- !u!1 &618807597
 GameObject:
@@ -6217,3 +6267,4 @@ SceneRoots:
   - {fileID: 2135351339}
   - {fileID: 147373666}
   - {fileID: 1388529156}
+  - {fileID: 530250212}

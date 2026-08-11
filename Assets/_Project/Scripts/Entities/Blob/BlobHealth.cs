@@ -12,8 +12,6 @@ namespace BlobSurvivor.Entities.Blob
         [SerializeField] private float _regenInterval = 1f;
 
         public float CurrentHealth { get; private set; }
-        public float CurrentShield { get; private set; }
-        public float MaxShield { get; private set; }
         public float MaxHealth => _maxHealth;
         public bool IsAlive => CurrentHealth > 0f;
 
@@ -25,7 +23,6 @@ namespace BlobSurvivor.Entities.Blob
         {
             CurrentHealth = _maxHealth;
             GameEvents.RaiseHealthChanged(CurrentHealth, _maxHealth);
-            GameEvents.RaiseShieldChanged(CurrentShield, MaxShield);
         }
 
         private void Update()
@@ -44,16 +41,7 @@ namespace BlobSurvivor.Entities.Blob
         {
             if (!IsAlive) return;
 
-            float reduced = amount * _armorMultiplier;
-            float remainingDamage = reduced;
-
-            if (CurrentShield > 0f)
-            {
-                float absorbed = Mathf.Min(CurrentShield, remainingDamage);
-                CurrentShield -= absorbed;
-                remainingDamage -= absorbed;
-                GameEvents.RaiseShieldChanged(CurrentShield, MaxShield);
-            }
+            float remainingDamage = amount * _armorMultiplier;
 
             if (remainingDamage > 0f)
             {
@@ -76,15 +64,6 @@ namespace BlobSurvivor.Entities.Blob
         public float GetRegenRate() => _regenRate;
 
         public void SetArmorMultiplier(float multiplier) => _armorMultiplier = Mathf.Clamp01(multiplier);
-
-        public void AddMaxShield(float amount)
-        {
-            if (amount <= 0f) return;
-
-            MaxShield += amount;
-            CurrentShield = MaxShield;
-            GameEvents.RaiseShieldChanged(CurrentShield, MaxShield);
-        }
 
         public void IncreaseMaxHealth(float amount)
         {

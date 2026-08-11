@@ -143,15 +143,14 @@ Mass kazanmak = XP kazanmak (tek sistem, ayrı XP kaynağı yok — Karar 7'nin 
 - Kartlar renk + sembol taşır (renk körü desteği: yıldız/elmas/daire).
 - Max seviyeye ulaşan skill havuzdan çıkar.
 
-### Lansman skill havuzu (11 skill)
+### Lansman skill havuzu (10 skill)
 | Kategori | Skill | Etki (seviye başına) |
 |---|---|---|
 | Saldırı | **Silah Gücü** | Karakter silahının hasar/atış hızı ↑ |
 | Savunma | **Rejenerasyon** | +0.5 HP/sn |
 | Savunma | **Zırh** | Alınan hasar ↓ (Kalkan iptal — aynı iş) |
 | Pasif | **Maksimum Can** | Base 100, +10 |
-| Hareket | **Hız** | Kalıcı hareket hızı ↑ |
-| Hareket | **Hızlanma (Dash)** | Kısa hız patlaması; seviye → cooldown ↓, süre ↑ |
+| Hareket | **Hız** | Kalıcı hareket hızı ↑ (Hızlanma/Dash iptal — aynı iş, Karar 2026-08-11 §16) |
 | Destek | **Attract** | Çekim yarıçapı + çekim hızı ↑ (Magnet+Vakum birleşti — Karar 9) |
 | 🆕 Yeme | **Sindirim** | Yediklerinden mass kazancı +% |
 | 🆕 Yeme | **Yutuş** | Her yeme küçük miktar HP yeniler |
@@ -377,6 +376,7 @@ Mühendislik kuralları (throttle, `sqrMagnitude`, object pool zorunluluğu, Lay
 - 🔲 **Nihai oyun adı:** Blob.io çalışma adı — store'da "io" eki algı riski taşır; global lansmandan önce kesinleşmeli.
 - 🔲 **Soft launch pazarları:** TR + hangi ikinci pazar?
 - 🔲 **Hızlanma (Dash) skill'i:** §5'te "Hareket" kategorisinde hem kalıcı **Hız** hem geçici **Hızlanma (Dash)** var — Serra bunun gerçekten gerekli mi yoksa Hız'la örtüşüyor mu (Magnet/Vacuum'daki gibi) diye karar verecek. Kod tarafı mevcut (`DashComponent.cs`, `DashEffect.cs`, `Upgrade_Dash.asset`, B15/#15). Karar netleşene kadar kod kalıyor, dokunulmuyor.
+  - ✅ **Karar (2026-08-11):** Hız'la örtüşüyor, Dash iptal. `DashComponent.cs`/`DashEffect.cs`/`Upgrade_Dash.asset` silindi.
 
 ---
 

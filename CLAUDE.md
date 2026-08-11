@@ -281,7 +281,6 @@ GameEvents.OnGameResumed
 GameEvents.OnUpgradeChoicesReady   // UpgradeData[] — UpgradePanel dinler
 GameEvents.OnUpgradeSelected       // UpgradeData — UpgradeSystem dinler, efekti uygular
 GameEvents.OnHealthChanged         // float current, float max
-GameEvents.OnShieldChanged         // float current, float max
 GameEvents.OnSurvivalTimeUpdated   // float seconds — WaveController dinler
 GameEvents.OnConsumedCountChanged  // int count
 GameEvents.OnCharacterSelected     // CharacterData — GameManager.StartGame(data)'da ateşlenir
@@ -316,7 +315,7 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 | `BlobController.cs` | Rigidbody hareketi; `linearDamping`/`angularDamping`; tier'a göre hız: `1f / Sqrt((float)tier)` |
 | `BlobGrowth.cs` | Smooth scale formülü; tier hesabı; `PunchScale()` yeme feedback'i |
 | `BlobConsumption.cs` | OnTriggerEnter → IConsumable check → tier karşılaştır → Consume(); mobil haptic |
-| `BlobHealth.cs` | TakeDamage(amount, DamageType); armor; regen; shield (`CurrentShield`, `MaxShield`, `AddMaxShield`) — hasar önce shield'dan düşer; OnDeath → GameOver |
+| `BlobHealth.cs` | TakeDamage(amount, DamageType); armor; regen; OnDeath → GameOver |
 
 ### Entities / Consumables
 | Script | Açıklama |
@@ -376,7 +375,6 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 | `ScoreMultiplierEffect.cs` | ScoreSystem multiplier artırır |
 | `MagnetEffect.cs` | Blob'a MagnetComponent ekler/radius artırır |
 | `VacuumEffect.cs` | Blob'a VacuumComponent ekler/radius artırır; sadece yenebilir tier consumable'ları çeken Vakum skill'i |
-| `ShieldEffect.cs` | BlobHealth'e max shield ekler; hasar önce shield'dan düşer |
 | `WeaponUpgradeEffect.cs` | `blobRoot.GetComponentInChildren<WeaponBase>()` ile aktif silahı bulur, `IncreaseDamage(PerLevelValue)` çağırır — GDD'deki "Saldırı: Silah" kategorisi için (A1-A4/B1-B5 backlog'unda yoktu, sonradan eklendi). **İleride düşünülecek:** mermi hızı (`Projectile._speed`) ya da yön/mermi sayısı (multi-shot) artırma gibi ek boyutlar eklenebilir — şu an `UpgradeData`'da tek bir `PerLevelValue` alanı olduğu için sadece damage'a bağlandı; ikinci bir stat eklenecekse `UpgradeData`'ya yeni bir alan (örn. `_secondaryPerLevelValue`) gerekir |
 | `MagnetComponent.cs` (Entities/Blob) | OverlapSphere ile yakındaki IConsumable'ları bulur, transform'u blob'a doğru taşır (consumable'larda Rigidbody YOK, force çalışmaz — `Vector3.MoveTowards` kullanılır) |
 | `VacuumComponent.cs` (Entities/Blob) | Daha geniş ama daha yavaş çekim alanı; `BlobGrowth.CurrentTier` altındaki/aynı tier consumable'ları çeker |
@@ -384,7 +382,7 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 ### UI
 | Script | Açıklama |
 |--------|----------|
-| `HUDController.cs` | Health/XP bar, shield bar, skor, coin, timer, tier, level text; aktif skill rozetleri ve karakter ikonu; GameEvents dinler |
+| `HUDController.cs` | Health/XP bar, skor, coin, timer, tier, level text; aktif skill rozetleri ve karakter ikonu; GameEvents dinler |
 | `UpgradePanel.cs` | OnUpgradeChoicesReady'de 3 buton gösterir; tıklayınca OnUpgradeSelected raise eder |
 | `GameOverScreen.cs` | OnGameOver'da skor/highscore, coin, süre, önceki rekor ve yeni rekor banner'ı gösterir; restart → GameManager.StartGame() |
 | `LobbyPanel.cs` | Oyun başında görünür, HUD'u gizler (`_hud.SetActive(false)`); 3 karakter butonu (icon + isim); tıklayınca paneli kapatır, HUD'u açar, `GameManager.Instance.StartGame(data)` çağırır |
@@ -405,9 +403,7 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 - **A11/A14 sürü steering'in Editor kurulumu eksik:** Kod tarafı tamamlandı (`SwarmSteering.cs`) ama sahnede henüz `SwarmSteering` component'li bir GameObject yok. Eksikse sistem sessizce devre dışı kalır (sürü düşmanları sadece seek yapar, separation/engel kaçınma çalışmaz) — hata vermez. Kurulum: boş GameObject → isim `SwarmSteering` → `SwarmSteering.cs` ekle.
 - **A14 FPS/Profiler doğrulaması yapılmadı:** Kod tarafı (throttle, komşu sayısı sınırı, elit tavanı) tamamlandı ama 150-200 eşzamanlı düşman senaryosunda gerçek FPS ölçümü Unity Editor/cihaz gerektiriyor, buradan yapılamadı. Test için: Window → Analysis → Profiler (CPU), ya da Game view Stats overlay; hedef CLAUDE.md'deki "30 FPS @ 720p, 200 eşzamanlı düşman".
 - **B13 yeme mekaniği için Collision Matrix doğrulaması gerekiyor:** `BlobConsumption` artık Enemy layer'daki collider'lara `OnTriggerEnter` ile tepki veriyor (yutma). Bu daha önce hiç gerekmemişti (düşman hasarı mesafe bazlı, trigger'a bağlı değildi) — Project Settings → Physics → Collision Matrix'te Blob(8) × Enemy(14) kutucuğunun işaretli olduğu doğrulanmalı, yoksa yutma hiç tetiklenmez (sessizce, hata vermeden).
-- **B15 Dash'in Editor kurulumu eksik:** `Upgrade_Dash.asset` oluşturuldu ama sahnedeki `UpgradeSystem._allUpgrades` dizisine henüz eklenmedi — eklenmeden skill havuzunda görünmez.
-- **⏸️ Dash skill'inin kaderi açık karar (Serra karar verecek):** Oyunda hem kalıcı **Hız** hem geçici **Hızlanma (Dash)** var — GDD §5'te ikisi de listeli (Magnet/Vacuum'daki gibi bilinçli bir birleştirme kararı henüz yok). Şimdilik kod duruyor, dokunulmuyor. Karar netleşince: GDD_v2.md §16'daki madde ✅ olarak güncellenecek, ve karara göre ya kod kalacak ya da `DashComponent.cs`/`DashEffect.cs`/`Upgrade_Dash.asset` silinecek.
-- **Restart'ta run-scoped upgrade efektleri tam sıfırlanmıyor (A10'un bilinçli kapsam dışı bıraktığı):** A10 sadece `ApplyCharacter`'ın kendi kurduğu şeyleri (silah, karakter pasifi/`VacuumComponent`) temizliyor. Ama `BlobHealth` (Zırh/`DamageReductionEffect`, Rejenerasyon/`RegenBoostEffect`, Max Can/`HealthBoostEffect`, Kalkan/`ShieldEffect`), `WeaponBase.IncreaseDamage` (Silah Gücü), `DashComponent` ve `ScoreSystem`'in multiplier'ı gibi o run içinde skill seçimiyle kazanılan efektler restart'ta **hâlâ sıfırlanmıyor** — blob aynı instance olarak kalıyor (sahne reload yok), bu component'lerin state'i bir önceki run'dan sızabilir. Henüz issue açılmadı; bir sonraki restart-ilgili sprint'te ele alınmalı.
+- **Restart'ta run-scoped upgrade efektleri tam sıfırlanmıyor (A10'un bilinçli kapsam dışı bıraktığı):** A10 sadece `ApplyCharacter`'ın kendi kurduğu şeyleri (silah, karakter pasifi/`VacuumComponent`) temizliyor. Ama `BlobHealth` (Zırh/`DamageReductionEffect`, Rejenerasyon/`RegenBoostEffect`, Max Can/`HealthBoostEffect`), `WeaponBase.IncreaseDamage` (Silah Gücü) ve `ScoreSystem`'in multiplier'ı gibi o run içinde skill seçimiyle kazanılan efektler restart'ta **hâlâ sıfırlanmıyor** — blob aynı instance olarak kalıyor (sahne reload yok), bu component'lerin state'i bir önceki run'dan sızabilir. Henüz issue açılmadı; bir sonraki restart-ilgili sprint'te ele alınmalı.
 
 ---
 
@@ -421,7 +417,8 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 - **B13 Hazard fix + yeme entegrasyonu tamamlandı:** `BlobConsumption`'daki ters hazard mantığı düzeltildi (artık `IsHazard` ise `HazardAmount` hasarı veriyor, hardcoded `MassValue*0.5` kaldırıldı). Enemy layer'a `A12`'nin `TryConsumeByBlob` API'si bağlandı — Tier eşiği tutan düşmanlar artık gerçekten temasla yutulabiliyor.
 - **A14 Sürü steering prod hardening tamamlandı:** Separation + engel kaçınma sorguları artık `aiTick`'te (0.15s throttle) hesaplanıp cache'leniyor, her frame değil (önceden `GetSeparationVector` her frame çağrılıyordu — 150-200 düşmanda gereksiz maliyet). Rotasyon `Quaternion.Slerp` ile yumuşatıldı (separation kaynaklı titreşim azaltıldı). `SwarmSteering.GetSeparationVector`'a komşu sayısı üst sınırı eklendi (`_maxNeighborsPerQuery=12`, yoğun kümelenmede worst-case'i sınırlar). Basit engel kaçınma eklendi: throttle'lı `Physics.Raycast` (Environment layer, `_avoidanceLookahead=1.2f`) ile duvara sıkışma önlenir — haritada henüz Environment collider'ı olmayabilir, o durumda no-op (güvenli). `EnemySpawner`'ın tavanı NavMesh-pathfinding maliyetine göre konmuş eski `30`'dan GDD Karar 2 hedefine (`40*tier+10`, max `200`) yükseltildi; elit/boss için ayrı ve düşük bir eşzamanlılık tavanı (`_maxActiveElites=8`) eklendi çünkü onlar hâlâ NavMeshAgent kullanıyor. **FPS doğrulaması yapılmadı** (yukarıya bkz.).
 - **B14 Consumable pool return fix tamamlandı:** `ConsumableSpawner.ReturnToPool()` eklendi (`ConsumeAndSplit`'teki pattern genelleştirildi), `BlobConsumption.Consume()` artık `SetActive(false)` yerine bunu çağırıyor — normal yeme akışında da pool sızıntısı vardı (A9'un consumable karşılığı).
-- **B15 Dash (Hızlanma) yeniden implementasyonu tamamlandı:** GDD'de "Hızlanma (**Bot**)" olarak geçiyor — oyuncu tetiklemez, otomatik/periyodik hız patlaması (tek input kuralına uyar). `DashComponent.cs` (Entities/Blob) + `DashEffect.cs` (Systems/Upgrade/Effects) + `Upgrade_Dash.asset` eklendi. Script `.meta` dosyaları Unity açık olmadığı için elle üretildi (guid'ler standart format, Unity sonraki reimport'ta olduğu gibi kabul eder).
+- **B15 Dash (Hızlanma) yeniden implementasyonu tamamlandı (sonradan kaldırıldı — bkz. aşağıdaki 2026-08-11 kararı):** GDD'de "Hızlanma (**Bot**)" olarak geçiyor — oyuncu tetiklemez, otomatik/periyodik hız patlaması (tek input kuralına uyar). `DashComponent.cs` (Entities/Blob) + `DashEffect.cs` (Systems/Upgrade/Effects) + `Upgrade_Dash.asset` eklendi. Script `.meta` dosyaları Unity açık olmadığı için elle üretildi (guid'ler standart format, Unity sonraki reimport'ta olduğu gibi kabul eder).
+- **2026-08-11 — Dash ve Kalkan skill'leri kaldırıldı (Serra kararı):** Dash, kalıcı Hız skill'iyle; Kalkan, Zırh (`DamageReductionEffect`) ile fonksiyon olarak fazla örtüşüyordu. Silinenler: `DashComponent.cs`, `DashEffect.cs`, `Upgrade_Dash.asset`, `ShieldEffect.cs`, `Upgrade_Shield.asset`, `FX_Shield.asset`. `BlobHealth`'ten `CurrentShield`/`MaxShield`/`AddMaxShield` ve shield-absorbs-first hasar mantığı çıkarıldı; `GameEvents.OnShieldChanged`/`RaiseShieldChanged` kaldırıldı; `HUDController`'dan shield bar (ve artık kullanılmayan `CreateSliderFill` helper'ı) kaldırıldı. Sahnede `UpgradeSystem._allUpgrades` ve `HUDController._allUpgrades` dizilerinden Kalkan referansı çıkarıldı (Dash zaten hiç eklenmemişti). GDD_v2.md §16/§5'teki ilgili maddeler bir sonraki GDD güncellemesinde ✅/kaldırıldı olarak işaretlenmeli.
 - **A5 Düşman ölçekleme tamamlandı:** `WaveController` süreye göre hasar, spawn yoğunluğu ve hız çarpanlarını tutuyor; `EnemySpawner/EnemyBase` spawn sırasında bu çarpanlarla çalışmalı.
 - **A6 Elit düşman tamamlandı:** `EnemyData` içinde `IsElite`, attack hit count/interval alanları var; `EnemyData_ElitePolis.asset`, `Enemy_ElitePolice.prefab`, `Mat_Enemy_Elite.mat`, `Wave_PoliceElite.asset` yerelde mevcut.
 - **A7 Coin drop tamamlandı:** `EnemyBase.Die()` normal düşmanda 1 coin, elit düşmanda 5-10 coin spawn ediyor; `CoinSpawner`/`CoinPickup` pool ve pickup akışını yönetiyor; `ScoreSystem.AddCoin` ve `GameEvents.OnCoinsChanged` eklendi.
@@ -437,6 +434,7 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 - **NavMesh spawn hatası:** Enemyler Y=0'da spawn oluyordu, NavMesh'e uzak kalıyordu. `EnemySpawnY = 0.65f` + `NavMesh.SamplePosition` ile düzeltildi.
 - **Mıknatıs işe yaramıyordu:** `MagnetComponent` `Rigidbody.AddForce` kullanıyordu ama consumable prefab'larında Rigidbody yok (sadece trigger Collider). Düzeltme: `Transform.MoveTowards` ile direkt pozisyon taşıma.
 - **Polis oyunun başında spawn oluyordu:** `Wave_Police.asset`'te `TimeThreshold = 0` idi. Editor'dan 60'a çekildi (oyunun 60. saniyesinde başlıyor).
+- **2026-08-11 — Elit polis 1. dakikada normal polisin yerine geçiyordu (bug fix):** `Wave_Police` ve `Wave_PoliceElite`'in ikisinin de `TimeThreshold`'u 60'tı. `WaveController.CheckWaveProgression()` dizide en yüksek index'ten aşağı tarayıp eşiği geçen ilk dalgayı `CurrentWave` yapıp `break` ediyor (`WaveController.cs`) — sahnedeki `_waves` sırası `[Wave_Police, Wave_PoliceElite]` olduğu için 60. saniyede direkt `Wave_PoliceElite` aktif oluyor, `Wave_Police` hiç aktive olmuyordu (yalnızca `CurrentWave`'den spawn eden `EnemySpawner` yüzünden 1. dakikadan itibaren sadece elit polis spawn oluyordu, normal polis hiç çıkmıyordu). `Wave_PoliceElite.asset`'in `TimeThreshold`'u GDD'deki 5 dakikaya (`300`) çekildi.
 
 ---
 
@@ -517,12 +515,11 @@ Fazlar sırayla yapılacak. Her faz tamamlanınca burası güncellenmeli.
 
 ### 🔲 Phase 9 — Skill Sistemi Genişletme
 
-Sprint 1 B1-B5 kapsamının çoğu tamamlandı: UpgradeData level alanları, level-aware UpgradeSystem, Vakum, Kalkan, HUD skill rozetleri, karakter ikonu ve shield bar mevcut. GDD'ye göre hâlâ evrim ve bazı ek skill davranışları gerekli.
+Sprint 1 B1-B5 kapsamının çoğu tamamlandı: UpgradeData level alanları, level-aware UpgradeSystem, Vakum, HUD skill rozetleri ve karakter ikonu mevcut. GDD'ye göre hâlâ evrim ve bazı ek skill davranışları gerekli. **Not:** Dash ve Kalkan skill'leri 2026-08-11'de kaldırıldı (Hız/Zırh ile örtüştükleri için — bkz. Önemli Kararlar).
 
 - `UpgradeData` level sistemi mevcut: `MaxLevel`, `PerLevelValue`, runtime `CurrentLevel`
-- Vakum ve Kalkan skill'leri mevcut
-- HUD aktif skill rozeti, karakter ikonu ve shield bar mevcut
-- Hızlanma/Dash skill'i için yerelde henüz `DashComponent` / `DashEffect` yok
+- Vakum skill'i mevcut
+- HUD aktif skill rozeti ve karakter ikonu mevcut
 - Skill Evrim sistemi hâlâ eksik (`SkillEvolutionData`, `EvolutionSystem`)
 - **Yeniden Çek** butonu (oturum başına 1 ücretsiz, sonrası 50 altın)
 - Skill kartlarında renk + sembol (renk körü desteği)
