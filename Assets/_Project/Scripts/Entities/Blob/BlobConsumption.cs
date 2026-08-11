@@ -1,5 +1,6 @@
 using UnityEngine;
 using BlobSurvivor.Core;
+using BlobSurvivor.Entities.Enemies;
 using BlobSurvivor.Systems;
 
 namespace BlobSurvivor.Entities.Blob
@@ -19,12 +20,22 @@ namespace BlobSurvivor.Entities.Blob
         private void OnTriggerEnter(Collider other)
         {
             IConsumable consumable = other.GetComponent<IConsumable>();
-            if (consumable == null) return;
+            if (consumable != null)
+            {
+                if (consumable.RequiredTier <= _blobGrowth.CurrentTier)
+                    Consume(consumable, other.gameObject);
+                else if (consumable.Data.IsHazard)
+                    _blobHealth.TakeDamage(consumable.Data.HazardAmount);
+                return;
+            }
 
-            if (consumable.RequiredTier <= _blobGrowth.CurrentTier)
-                Consume(consumable, other.gameObject);
-            else if (!consumable.Data.IsHazard)
-                _blobHealth.TakeDamage(consumable.Data.MassValue * 0.5f);
+            // Karar 5 (yeme birincil): sürü Tier3+, elit Tier5'te temasla yutulabilir (A12 API'si).
+            EnemyBase enemy = other.GetComponent<EnemyBase>();
+            if (enemy != null && enemy.TryConsumeByBlob(_blobGrowth.CurrentTier, out float massReward))
+            {
+                _blobGrowth.AddMass(massReward);
+                _blobGrowth.PunchScale();
+            }
         }
 
         private void Consume(IConsumable consumable, GameObject obj)
@@ -40,7 +51,14 @@ namespace BlobSurvivor.Entities.Blob
             GameEvents.RaiseConsumedCountChanged(_consumedCount);
 
             consumable.OnConsumed();
-            obj.SetActive(false);
+
+            // B14: pool'a gerçek dönüş — önceden sadece SetActive(false) yapılıyordu, pool Queue'su
+            // hiç dolmuyordu (ConsumeAndSplit'teki doğru pattern'in normal yeme akışına taşınması).
+            ConsumableBase pooled = obj.GetComponent<ConsumableBase>();
+            if (pooled != null)
+                ConsumableSpawner.Instance?.ReturnToPool(pooled);
+            else
+                obj.SetActive(false);
 
 #if UNITY_IOS || UNITY_ANDROID
             Handheld.Vibrate();

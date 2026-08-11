@@ -7,24 +7,32 @@ namespace BlobSurvivor.Systems
 {
     public class UpgradeSystem : MonoBehaviour
     {
+        public static UpgradeSystem Instance { get; private set; }
+
         [SerializeField] private UpgradeData[] _allUpgrades;
         [SerializeField] private int _choiceCount = 3;
 
         private GameObject _blobRoot;
 
+        // A12/B12: seviye artık paylaşılan UpgradeData asset'inde değil, burada runtime'da tutulur —
+        // asset salt-okunur veri kalır, editor'da yanlışlıkla dirty/save riski ve run'lar arası
+        // sızıntı riski ortadan kalkar.
+        private readonly Dictionary<UpgradeData, int> _levels = new Dictionary<UpgradeData, int>();
+
+        private void Awake()
+        {
+            Instance = this;
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
+        }
+
         private void Start()
         {
             _blobRoot = GameObject.FindWithTag("Blob");
-            ResetUpgradeLevels();
-        }
-
-        private void ResetUpgradeLevels()
-        {
-            if (_allUpgrades == null) return;
-            foreach (var u in _allUpgrades)
-            {
-                if (u != null) u.CurrentLevel = 0;
-            }
+            _levels.Clear();
         }
 
         private void OnEnable()
@@ -37,6 +45,11 @@ namespace BlobSurvivor.Systems
         {
             GameEvents.OnLevelUp -= OnLevelUp;
             GameEvents.OnUpgradeSelected -= OnUpgradeSelected;
+        }
+
+        public int GetLevel(UpgradeData data)
+        {
+            return data != null && _levels.TryGetValue(data, out int level) ? level : 0;
         }
 
         private void OnLevelUp(int level)
@@ -52,9 +65,14 @@ namespace BlobSurvivor.Systems
 
         private void OnUpgradeSelected(UpgradeData data)
         {
-            if (data == null || _blobRoot == null) return;
-            data.CurrentLevel++;
-            if (data.Effect != null) data.Effect.Apply(_blobRoot, data);
+            if (data == null) return;
+
+            _levels[data] = GetLevel(data) + 1;
+
+            // _blobRoot bulunamasa bile oyunu duraklamış bırakma — soft-lock fix (B12).
+            if (_blobRoot != null && data.Effect != null)
+                data.Effect.Apply(_blobRoot, data);
+
             GameManager.Instance?.ResumeGame();
         }
 
@@ -63,7 +81,7 @@ namespace BlobSurvivor.Systems
             var pool = new List<UpgradeData>();
             foreach (var u in _allUpgrades)
             {
-                if (u != null && u.CurrentLevel < u.MaxLevel) pool.Add(u);
+                if (u != null && GetLevel(u) < u.MaxLevel) pool.Add(u);
             }
             if (pool.Count == 0) return null;
 

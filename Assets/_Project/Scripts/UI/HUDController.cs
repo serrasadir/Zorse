@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using TMPro;
 using BlobSurvivor.Core;
 using BlobSurvivor.Data;
+using BlobSurvivor.Systems;
 
 namespace BlobSurvivor.UI
 {
@@ -163,7 +164,7 @@ namespace BlobSurvivor.UI
                 bool renderedSelected = false;
                 foreach (var upgrade in _allUpgrades)
                 {
-                    if (upgrade != null && upgrade.CurrentLevel > 0)
+                    if (upgrade != null && GetUpgradeLevel(upgrade) > 0)
                     {
                         RenderSkillBadge(upgrade);
                         if (upgrade == selected)
@@ -176,15 +177,20 @@ namespace BlobSurvivor.UI
                 return;
             }
 
-            if (selected != null && selected.CurrentLevel > 0)
+            if (selected != null && GetUpgradeLevel(selected) > 0)
                 RenderSkillBadge(selected);
             else if (selected != null)
                 RenderSkillBadge(selected, 1);
         }
 
+        private static int GetUpgradeLevel(UpgradeData data)
+        {
+            return UpgradeSystem.Instance != null ? UpgradeSystem.Instance.GetLevel(data) : 0;
+        }
+
         private void RenderSkillBadge(UpgradeData data)
         {
-            RenderSkillBadge(data, data != null ? data.CurrentLevel : 0);
+            RenderSkillBadge(data, GetUpgradeLevel(data));
         }
 
         private void RenderSkillBadge(UpgradeData data, int level)
@@ -215,7 +221,7 @@ namespace BlobSurvivor.UI
             var inactive = new List<UpgradeData>();
             foreach (var kv in _badges)
             {
-                if (kv.Key == null || (kv.Key.CurrentLevel <= 0 && kv.Key != selected))
+                if (kv.Key == null || (GetUpgradeLevel(kv.Key) <= 0 && kv.Key != selected))
                     inactive.Add(kv.Key);
             }
 

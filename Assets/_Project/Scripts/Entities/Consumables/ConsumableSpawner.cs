@@ -111,6 +111,16 @@ namespace BlobSurvivor.Entities
             return new Vector3(center.x + randomCircle.x, yOffset, center.z + randomCircle.y);
         }
 
+        // B14: normal yeme akışı için pool return — ConsumeAndSplit'teki pattern'in genel hali.
+        public void ReturnToPool(ConsumableBase target)
+        {
+            if (target == null) return;
+
+            _activeConsumables.Remove(target.gameObject);
+            if (_pools.TryGetValue(target.Data, out ObjectPool<ConsumableBase> pool))
+                pool.Return(target);
+        }
+
         public void ConsumeAndSplit(ConsumableBase target, int splitCount)
         {
             if (target == null) return;
@@ -118,11 +128,7 @@ namespace BlobSurvivor.Entities
             BlobTier spawnTier = target.RequiredTier > BlobTier.Tiny ? target.RequiredTier - 1 : BlobTier.Tiny;
             Vector3 position = target.transform.position;
 
-            if (_pools.TryGetValue(target.Data, out ObjectPool<ConsumableBase> pool))
-            {
-                _activeConsumables.Remove(target.gameObject);
-                pool.Return(target);
-            }
+            ReturnToPool(target);
 
             for (int i = 0; i < splitCount; i++)
             {

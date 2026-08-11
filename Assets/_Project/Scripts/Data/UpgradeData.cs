@@ -29,8 +29,6 @@ namespace BlobSurvivor.Data
         [SerializeField] private int _maxLevel = 8;
         [SerializeField] private float _perLevelValue;
 
-        [System.NonSerialized] public int CurrentLevel;
-
         public string Id => _id;
         public string DisplayName => _displayName;
         public string Description => _description;
