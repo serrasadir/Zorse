@@ -285,6 +285,7 @@ GameEvents.OnSurvivalTimeUpdated   // float seconds — WaveController dinler
 GameEvents.OnConsumedCountChanged  // int count
 GameEvents.OnCharacterSelected     // CharacterData — GameManager.StartGame(data)'da ateşlenir
 GameEvents.OnCoinsChanged          // int total — HUD/GameOver coin UI dinler
+GameEvents.OnBossHealthChanged     // float current, float max — A15; max<=0 = aktif boss yok (B18 health bar bunu dinleyecek)
 ```
 
 Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
@@ -304,10 +305,11 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 | Script | Alanlar |
 |--------|---------|
 | `ConsumableData.cs` | displayName, prefab, scoreValue, massValue, objectSize, requiredTier, isHazard, hazardAmount |
-| `EnemyData.cs` | displayName, prefab, maxHealth, damage, moveSpeed, attackRange, attackCooldown, spawnTier, scoreValue; A6 için `IsElite`, elit attack hit count/interval |
+| `EnemyData.cs` | displayName, prefab, maxHealth, damage, moveSpeed, attackRange, attackCooldown, spawnTier, scoreValue; A6 için `IsElite`, elit attack hit count/interval; A15 için `PreventConsumption` (true ise `EnemyBase.TryConsumeByBlob` her tier'da `false` döner — miniboss/final boss yutulamaz) |
 | `UpgradeData.cs` | id, displayName, description, icon, category, weight, effectValue, effectDuration, cooldown |
 | `WaveData.cs` | timeThreshold, enemyTypes (EnemySpawnEntry[]), spawnRate, maxActiveCount, waveName |
 | `CharacterData.cs` | displayName, icon, description, startingWeaponPrefab, passiveType (MoveSpeed/MagnetPull/ConsumableSplit), passiveValue |
+| `BossData.cs` | A15: displayName, stages (`BossStage[]` — her biri `EnemyData` + `SpawnTime` saniye + `BonusCoinMin/Max`); "aynı tasarım artan stat" bu dizi üzerinden veri-odaklı sağlanır, ayrı bir boss davranış script'i yok |
 
 ### Entities / Blob
 | Script | Açıklama |
@@ -329,6 +331,7 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 |--------|----------|
 | `EnemyBase.cs` | NavMeshAgent; state machine; PerformAttack() → BlobHealth.TakeDamage(); AI throttle (`AIUpdateInterval=0.15s`, randomize stagger) — `CanSeeBlob()` sqrMagnitude ile sadece throttle tick'te hesaplanıp cache'lenir, state'lere `aiTick` bool geçilir |
 | `EnemySpawner.cs` | NavMesh.SamplePosition ile Y=0.65f'te spawn; weighted random enemy seçimi |
+| `BossSpawner.cs` | A15: `BossData.Stages`'i sırayla `GameEvents.OnSurvivalTimeUpdated`'a göre zamanlı spawnlar (EnemySpawner'ın ağırlıklı havuzundan bağımsız, tekil spawn); aynı anda tek boss; ölünce bonus coin (`CoinSpawner`) + `EnemyBase.CurrentHealth/MaxHealth` polling ile `GameEvents.OnBossHealthChanged` yayınlar; restart'ta `OnCharacterSelected` ile `_nextStageIndex` sıfırlanır |
 | `IEnemyState.cs` | Enter, Update, Exit |
 | `PatrolState.cs` | 3s'de bir random waypoint; blob görünce ChaseState |
 | `ChaseState.cs` | Blob'a koş; `SetDestination()` (NavMesh pathfinding, pahalı) sadece `aiTick=true` iken çağrılır — her frame değil; attack range'e girince AttackState (sqrMagnitude); göremezse PatrolState |
@@ -400,10 +403,12 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 
 - **Karakter iconları eksik:** `Char_Topik`, `Char_Miknato`, `Char_Mermo` (`Assets/_Project/Data/Characters/`) asset'lerinde `Icon` alanı boş — henüz görsel hazır değil. LobbyPanel'deki buton icon'ları bu yüzden şu an boş görünüyor. Icon'lar hazır olunca 3 asset'e de atanmalı.
 - **Skill Evolution eksik:** B7 (#16) için `SkillEvolutionData` / `EvolutionSystem` yerelde yok. Evrim sistemi hâlâ yapılacak iş.
-- **A11/A14 sürü steering'in Editor kurulumu eksik:** Kod tarafı tamamlandı (`SwarmSteering.cs`) ama sahnede henüz `SwarmSteering` component'li bir GameObject yok. Eksikse sistem sessizce devre dışı kalır (sürü düşmanları sadece seek yapar, separation/engel kaçınma çalışmaz) — hata vermez. Kurulum: boş GameObject → isim `SwarmSteering` → `SwarmSteering.cs` ekle.
+- ~~A11/A14 sürü steering'in Editor kurulumu eksik~~ **(2026-08-12 çözüldü):** A15 sırasında fark edildi — kod tarafı A14'te tamamlanmış görünüyordu ama sahnede gerçekten `SwarmSteering` component'li bir GameObject **hiç yoktu** (yani sürü düşmanları o ana kadar separation/engel kaçınma olmadan, sadece seek ile hareket ediyordu — sessiz bir eksiklik, hata vermiyordu). `GameScene.unity`'ye elle (Unity kapalıyken, text-serialized YAML üzerinden — bkz. A15 notu) `SwarmSteering` GameObject'i eklendi ve `SceneRoots.m_Roots`'a kaydedildi. **Unity'de açılıp Hierarchy'de doğrulandı (2026-08-12) — `SwarmSteering` doğru göründü.**
 - **A14 FPS/Profiler doğrulaması yapılmadı:** Kod tarafı (throttle, komşu sayısı sınırı, elit tavanı) tamamlandı ama 150-200 eşzamanlı düşman senaryosunda gerçek FPS ölçümü Unity Editor/cihaz gerektiriyor, buradan yapılamadı. Test için: Window → Analysis → Profiler (CPU), ya da Game view Stats overlay; hedef CLAUDE.md'deki "30 FPS @ 720p, 200 eşzamanlı düşman".
 - **B13 yeme mekaniği için Collision Matrix doğrulaması gerekiyor:** `BlobConsumption` artık Enemy layer'daki collider'lara `OnTriggerEnter` ile tepki veriyor (yutma). Bu daha önce hiç gerekmemişti (düşman hasarı mesafe bazlı, trigger'a bağlı değildi) — Project Settings → Physics → Collision Matrix'te Blob(8) × Enemy(14) kutucuğunun işaretli olduğu doğrulanmalı, yoksa yutma hiç tetiklenmez (sessizce, hata vermeden).
 - **Restart'ta run-scoped upgrade efektleri tam sıfırlanmıyor (A10'un bilinçli kapsam dışı bıraktığı):** A10 sadece `ApplyCharacter`'ın kendi kurduğu şeyleri (silah, karakter pasifi/`VacuumComponent`) temizliyor. Ama `BlobHealth` (Zırh/`DamageReductionEffect`, Rejenerasyon/`RegenBoostEffect`, Max Can/`HealthBoostEffect`), `WeaponBase.IncreaseDamage` (Silah Gücü) ve `ScoreSystem`'in multiplier'ı gibi o run içinde skill seçimiyle kazanılan efektler restart'ta **hâlâ sıfırlanmıyor** — blob aynı instance olarak kalıyor (sahne reload yok), bu component'lerin state'i bir önceki run'dan sızabilir. Henüz issue açılmadı; bir sonraki restart-ilgili sprint'te ele alınmalı.
+- **A15 Miniboss görsel placeholder kullanıyor:** `EnemyData_Miniboss_Stage1/2.asset` şu an `Enemy_ElitePolice.prefab`'ı işaret ediyor (stat/coin/sandık farklı ama görsel olarak elit polisle aynı görünüyor). Ayrı bir `Enemy_Miniboss.prefab` (büyütülmüş scale / farklı materyal) henüz oluşturulmadı — istenirse sonradan yapılıp iki stage asset'inin `_prefab` alanı buna çevrilebilir. Fonksiyonel olarak eksik değil, sadece görsel ayrım yok.
+- **A15 Play mode fonksiyonel testi yapılmadı:** Unity açıldı, derleme hatası (eksik `using`) düzeltildi, sahne Hierarchy'de `BossSpawner`/`SwarmSteering` doğru göründü — ama gerçek bir run'da miniboss'un 4./8. dk'da spawnladığı, yutulamadığı, öldüğünde bonus coin+sandık düştüğü ve `OnBossHealthChanged`'ın ateşlendiği henüz test edilmedi.
 
 ---
 
@@ -416,6 +421,7 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 - **B12 UpgradeSystem soft-lock + level refactor tamamlandı:** `OnUpgradeSelected` artık `_blobRoot == null` olsa bile `ResumeGame()` çağırıyor (soft-lock fix). `UpgradeData.CurrentLevel` kaldırıldı — seviye artık `UpgradeSystem._levels` (`Dictionary<UpgradeData,int>`) içinde runtime'da tutuluyor, `UpgradeSystem.GetLevel(data)` ile okunuyor. `HUDController` bu API'yi kullanacak şekilde güncellendi.
 - **B13 Hazard fix + yeme entegrasyonu tamamlandı:** `BlobConsumption`'daki ters hazard mantığı düzeltildi (artık `IsHazard` ise `HazardAmount` hasarı veriyor, hardcoded `MassValue*0.5` kaldırıldı). Enemy layer'a `A12`'nin `TryConsumeByBlob` API'si bağlandı — Tier eşiği tutan düşmanlar artık gerçekten temasla yutulabiliyor.
 - **A14 Sürü steering prod hardening tamamlandı:** Separation + engel kaçınma sorguları artık `aiTick`'te (0.15s throttle) hesaplanıp cache'leniyor, her frame değil (önceden `GetSeparationVector` her frame çağrılıyordu — 150-200 düşmanda gereksiz maliyet). Rotasyon `Quaternion.Slerp` ile yumuşatıldı (separation kaynaklı titreşim azaltıldı). `SwarmSteering.GetSeparationVector`'a komşu sayısı üst sınırı eklendi (`_maxNeighborsPerQuery=12`, yoğun kümelenmede worst-case'i sınırlar). Basit engel kaçınma eklendi: throttle'lı `Physics.Raycast` (Environment layer, `_avoidanceLookahead=1.2f`) ile duvara sıkışma önlenir — haritada henüz Environment collider'ı olmayabilir, o durumda no-op (güvenli). `EnemySpawner`'ın tavanı NavMesh-pathfinding maliyetine göre konmuş eski `30`'dan GDD Karar 2 hedefine (`40*tier+10`, max `200`) yükseltildi; elit/boss için ayrı ve düşük bir eşzamanlılık tavanı (`_maxActiveElites=8`) eklendi çünkü onlar hâlâ NavMeshAgent kullanıyor. **FPS doğrulaması yapılmadı** (yukarıya bkz.).
+- **A15 Miniboss sistemi tamamlandı (kod tarafı):** GDD Karar 8 + §7 — "aynı tasarım, artan stat" ifadesi mevcut `EnemyBase`/`EnemyData`/`AttackState` makinesiyle bire bir karşılandığı için **ayrı bir MinibossController/davranış sınıfı yazılmadı** — miniboss, `IsElite=true` işaretli 2 adet `EnemyData` ("stage") + yeni `BossData`/`BossSpawner` ikilisiyle tamamen veri-odaklı kuruldu. `IsElite` zaten NavMesh hareketi, çoklu-vuruş burst saldırı ("alan saldırısı" burada büyük `AttackRange` + burst olarak modellendi) ve ölümde garanti sandık+coin sağlıyordu. Eklenen tek yeni davranış: `EnemyData.PreventConsumption` (miniboss hiçbir tier'da yutulamaz — `EnemyBase.TryConsumeByBlob`'a guard eklendi) ve `EnemyBase.CurrentHealth`/`MaxHealth` public getter'ları (B18 boss health bar kontratı için — `GameEvents.OnBossHealthChanged` de bu amaçla eklendi, `max<=0` = aktif boss yok). `BossSpawner` (`ChestSpawner`/`CoinSpawner` singleton+pool pattern'i, `EnemySpawner`'ın spawn-pozisyonu mantığı) `GameEvents.OnSurvivalTimeUpdated`'ı bağımsız dinler, `WaveController.cs`'e dokunulmadı. **Veri/sahne kurulumu da tamamlandı (2026-08-12):** Unity Editor kapalıyken (Force Text serialization doğrulanarak) elle YAML üretildi — `EnemyData_Miniboss_Stage1/2.asset` (4./8. dk stat eğrisi, `_prefab` şimdilik placeholder olarak `Enemy_ElitePolice.prefab`'ı işaret ediyor), `BossData_Miniboss.asset` (SpawnTime 240/480, BonusCoin 15-25/25-40), ve `GameScene.unity`'ye `BossSpawner` GameObject'i (+ `_bossData` referansı) eklendi, `SceneRoots.m_Roots`'a kaydedildi. Bu sırada A11/A14'ün de aynı şekilde eksik kaldığı fark edildi ve `SwarmSteering` GameObject'i de aynı yöntemle sahneye eklendi (bkz. yukarıdaki not). **Unity'de açıldı, Hierarchy'de her iki GameObject de doğru göründü (2026-08-12).** İlk açılışta tek derleme hatası çıktı: `BossSpawner.cs`'de `using BlobSurvivor.Entities.Coins;` eksikti (`CoinSpawner.Instance` çağrısı için) — eklendi, düzeldi. Play mode'da miniboss'un fiilen 4./8. dk'da spawnladığı henüz test edilmedi (bkz. Bilinen Eksikler'deki doğrulama listesi).
 - **B14 Consumable pool return fix tamamlandı:** `ConsumableSpawner.ReturnToPool()` eklendi (`ConsumeAndSplit`'teki pattern genelleştirildi), `BlobConsumption.Consume()` artık `SetActive(false)` yerine bunu çağırıyor — normal yeme akışında da pool sızıntısı vardı (A9'un consumable karşılığı).
 - **B15 Dash (Hızlanma) yeniden implementasyonu tamamlandı (sonradan kaldırıldı — bkz. aşağıdaki 2026-08-11 kararı):** GDD'de "Hızlanma (**Bot**)" olarak geçiyor — oyuncu tetiklemez, otomatik/periyodik hız patlaması (tek input kuralına uyar). `DashComponent.cs` (Entities/Blob) + `DashEffect.cs` (Systems/Upgrade/Effects) + `Upgrade_Dash.asset` eklendi. Script `.meta` dosyaları Unity açık olmadığı için elle üretildi (guid'ler standart format, Unity sonraki reimport'ta olduğu gibi kabul eder).
 - **2026-08-11 — Dash ve Kalkan skill'leri kaldırıldı (Serra kararı):** Dash, kalıcı Hız skill'iyle; Kalkan, Zırh (`DamageReductionEffect`) ile fonksiyon olarak fazla örtüşüyordu. Silinenler: `DashComponent.cs`, `DashEffect.cs`, `Upgrade_Dash.asset`, `ShieldEffect.cs`, `Upgrade_Shield.asset`, `FX_Shield.asset`. `BlobHealth`'ten `CurrentShield`/`MaxShield`/`AddMaxShield` ve shield-absorbs-first hasar mantığı çıkarıldı; `GameEvents.OnShieldChanged`/`RaiseShieldChanged` kaldırıldı; `HUDController`'dan shield bar (ve artık kullanılmayan `CreateSliderFill` helper'ı) kaldırıldı. Sahnede `UpgradeSystem._allUpgrades` ve `HUDController._allUpgrades` dizilerinden Kalkan referansı çıkarıldı (Dash zaten hiç eklenmemişti). GDD_v2.md §16/§5'teki ilgili maddeler bir sonraki GDD güncellemesinde ✅/kaldırıldı olarak işaretlenmeli.
@@ -524,12 +530,12 @@ Sprint 1 B1-B5 kapsamının çoğu tamamlandı: UpgradeData level alanları, lev
 - **Yeniden Çek** butonu (oturum başına 1 ücretsiz, sonrası 50 altın)
 - Skill kartlarında renk + sembol (renk körü desteği)
 
-### 🔲 Phase 10 — Boss Dalgaları
+### 🟡 Phase 10 — Boss Dalgaları (GDD v2 Karar 1/8'e göre güncellendi: 25dk/5-10-15-20dk değil, 12-15dk run + 4./8.dk miniboss + 12.dk final boss)
 
-- `BossData` ScriptableObject (faz sayısı, faz başına saldırı deseni)
-- 5–10–15–20. dakika minyatür bosslar (SWAT arabası, drone, helikopter)
-- 25. dakikada Kıyamet Bossu (faz geçişleri, combo saldırılar)
-- Boss health bar UI
+- ✅ **A15 Miniboss (4./8. dk) tamamlandı** (kod + veri asset'leri + sahne kurulumu — Unity'de açılıp görsel doğrulama bekliyor, bkz. Bilinen Eksikler): `BossData` ScriptableObject, `BossSpawner`, `EnemyData.PreventConsumption`, `GameEvents.OnBossHealthChanged`. Ayrı bir boss davranış sınıfı yok — mevcut `EnemyBase`/`EnemyData` (`IsElite`) veri-odaklı olarak yeniden kullanıldı.
+- 🔲 A16 Final Boss (12. dk) — tek faz geçişi, son fazda Tier5 blob'a yutulabilir hale gelir (`PreventConsumption` A15'te eklendi, final boss'ta ilgili fazda `false`'a çevrilecek şekilde kullanılabilir)
+- 🔲 A17 Run süresi/sonu yapısı (12-15 dk run timer, final boss ölümü/yutulmasıyla run kapanır)
+- 🔲 B18 Boss health bar UI — `GameEvents.OnBossHealthChanged` (A15'te eklendi) dinleyecek
 
 ### 🔲 Phase 11 — Meta Progression (Market + Grimoire)
 

@@ -26,6 +26,8 @@ namespace BlobSurvivor.Entities.Enemies
 
         public EnemyData Data => _data;
         public Transform BlobTransform { get; private set; }
+        public float CurrentHealth => _currentHealth;
+        public float MaxHealth => _data != null ? _data.MaxHealth : 0f;
 
         // Karar 2 (GDD_v2.md §7): sürü düşmanları NavMeshAgent kullanmaz, basit steering kullanır.
         // Elit/boss NavMeshAgent'ta kalmaya devam eder.
@@ -230,6 +232,7 @@ namespace BlobSurvivor.Entities.Enemies
         {
             massReward = 0f;
             if (_isDead || _data == null) return false;
+            if (_data.PreventConsumption) return false; // A15/Karar 8: miniboss/final boss hiçbir tier'da yutulamaz, silahla öldürülür.
 
             BlobTier requiredTier = _data.IsElite ? BlobTier.Giant : BlobTier.Medium;
             if (blobTier < requiredTier) return false;

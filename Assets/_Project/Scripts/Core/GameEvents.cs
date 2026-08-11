@@ -20,6 +20,8 @@ namespace BlobSurvivor.Core
         public static event Action<int> OnConsumedCountChanged;
         public static event Action<CharacterData> OnCharacterSelected;
         public static event Action<int> OnCoinsChanged;
+        // A15: max <= 0 => aktif boss yok (B18 health bar bunu gizleme sinyali olarak kullanır)
+        public static event Action<float, float> OnBossHealthChanged;
 
         public static void RaiseBlobSizeChanged(float newSize) => OnBlobSizeChanged?.Invoke(newSize);
         public static void RaiseBlobTierChanged(BlobTier tier) => OnBlobTierChanged?.Invoke(tier);
@@ -36,6 +38,7 @@ namespace BlobSurvivor.Core
         public static void RaiseConsumedCountChanged(int count) => OnConsumedCountChanged?.Invoke(count);
         public static void RaiseCharacterSelected(CharacterData data) => OnCharacterSelected?.Invoke(data);
         public static void RaiseCoinsChanged(int total) => OnCoinsChanged?.Invoke(total);
+        public static void RaiseBossHealthChanged(float current, float max) => OnBossHealthChanged?.Invoke(current, max);
     }
 
     public enum BlobTier

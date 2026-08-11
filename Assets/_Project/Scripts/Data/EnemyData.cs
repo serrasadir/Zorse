@@ -23,6 +23,7 @@ namespace BlobSurvivor.Data
 
         [Header("Yutulabilirlik (A12 — Karar 5, yeme birincil)")]
         [SerializeField] private float _massReward = 3f;
+        [SerializeField] private bool _preventConsumption;
 
         public string DisplayName => _displayName;
         public GameObject Prefab => _prefab;
@@ -37,5 +38,6 @@ namespace BlobSurvivor.Data
         public int AttackHitCount => Mathf.Max(1, _attackHitCount);
         public float AttackHitInterval => _attackHitInterval;
         public float MassReward => _massReward;
+        public bool PreventConsumption => _preventConsumption;
     }
 }
