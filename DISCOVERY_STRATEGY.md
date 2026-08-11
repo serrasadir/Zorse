@@ -65,3 +65,71 @@
 ## En önemli tek adım
 
 Size-flip klibini **bir kere çekip yayınlamak değil**, onlarca varyasyon (farklı kurgu, farklı süre, farklı ilk kare) üretip hangisinin organik olarak tuttuğunu test etmek. Bütçe gerektirmeyen ama en çok disiplin gerektiren adım — beklenen getirisi en yüksek olan da bu.
+
+---
+
+## Ek — ASO Metin Taslağı
+
+Önizleme videosunun ilk karesi de bu metinlerle aynı hook'u taşımalı: küçük blob kaçarken → kesme → dev blob yutarken.
+
+### İngilizce (uluslararası pazar)
+
+**Başlık (iOS, 30 karakter sınırı):**
+`Blob.io: Eat & Evolve`
+
+**Alt başlık (iOS subtitle, 30 karakter):**
+`Prey becomes predator`
+
+**Kısa açıklama (Play Store, 80 karakter):**
+`Eat everything smaller. Grow bigger. Become what used to hunt you.`
+
+**Anahtar kelimeler (iOS keywords field, 100 karakter, virgülle ayrılmış boşluksuz):**
+`survivor,roguelite,io game,growth,eat,evolve,monster,agar,brotato,vampire`
+
+**Uzun açıklama (ilk 2-3 satır en kritik — kesilmeden önce görünen kısım):**
+```
+You start small. You start scared. Everything on screen is bigger than you.
+
+Eat what you can. Grow. Watch the thing that was hunting you three minutes
+ago become your next meal.
+
+12-minute runs. One control — movement. No attack button, no grinding.
+Pick a build every level-up, survive the wave, and eat your way from prey
+to apex predator before the run ends.
+
+• Grow in real time — size is your progress bar, not a number
+• Every enemy flips from threat to food as you level up
+• Zero pay-to-win — cosmetics only
+• 3 characters, distinct weapons, one shared rule: only eating makes you bigger
+```
+
+### Türkçe
+
+**Başlık:**
+`Blob.io: Ye, Büyü, Avcı Ol`
+
+**Alt başlık:**
+`Av iken avcı olma hikayesi`
+
+**Kısa açıklama (80 karakter):**
+`Küçüğü ye, büyü, seni avlayanları avla. 12 dakikalık hayatta kalma.`
+
+**Anahtar kelimeler:**
+`hayatta kalma, roguelite, büyüme oyunu, io oyunu, canavar, avcı, bullet heaven`
+
+**Uzun açıklama:**
+```
+Küçük başlarsın. Korkarsın. Ekrandaki her şey senden büyük.
+
+Yiyebildiğini ye. Büyü. Üç dakika önce seni kovalayan şeyin, bir sonraki
+yemeğin olduğunu izle.
+
+12 dakikalık run'lar. Tek kontrol — hareket. Saldırı tuşu yok.
+Her seviyede bir kart seç, dalgada hayatta kal, run bitmeden avdan
+apex predator'a dönüş.
+
+• Gerçek zamanlı büyüme — boyutun kendisi ilerleme çubuğun
+• Her düşman seviye atladıkça tehditten yemeğe dönüşüyor
+• Sıfır pay-to-win — sadece kozmetik
+• 3 karakter, farklı silahlar, tek ortak kural: sadece yemek büyütür
+```
