@@ -21,40 +21,18 @@
 
 ---
 
-## Sprint 3 — Faz 0 Onarım + Yeme/Hazard Çekirdeği (1 hafta)
+## Sprint 3 — ✅ Tamamlandı (Faz 0 Onarım + Yeme/Hazard Çekirdeği)
 
-**Amaç:** GDD_v2.md §14 "Faz 0 — Onarım Paketi" maddelerini kapatmak ve Karar 5 (yeme birincil) + Karar 6 (hazard tam commit) mekaniklerini devreye almak. Bu iki karar oyunun artık resmi ana fiili; şu ana kadar hiç kod karşılığı yok.
+**Amaç:** GDD_v2.md §14 "Faz 0 — Onarım Paketi" maddelerini kapatmak ve Karar 5 (yeme birincil) + Karar 6 (hazard tam commit) mekaniklerini devreye almak.
 
-**Kod incelemesinde doğrulanan somut buglar** (bu sprintin gerekçesi):
-- `EnemyBase.Die()` ve `BlobConsumption.Consume()` sadece `SetActive(false)` çağırıyor, `ObjectPool<T>.Return()` çağırmıyor → pool Queue'su hiç dolmuyor, her spawn'da yeni `Instantiate` tetikleniyor (CLAUDE.md'nin "Instantiate/Destroy runtime'da yasak" kuralının sessizce ihlali, sızıntı).
-- `BlobConsumption.OnTriggerEnter`'da hazard mantığı ters: `else if (!consumable.Data.IsHazard)` → hasar sadece hazard **olmayan** objelerde veriliyor, tam tersi olmalı. Ayrıca `HazardAmount` alanı hiç okunmuyor, hardcoded `MassValue * 0.5f` kullanılıyor.
-- `UpgradeSystem.OnUpgradeSelected`'da `_blobRoot == null` ise fonksiyon `ResumeGame()` çağırmadan `return` ediyor → level-up ekranı `Time.timeScale=0`'da kilitli kalabilir (soft-lock).
-- `GameManager.ApplyCharacter` restart'ta eski silahı temizlemeden yeni `Instantiate` yapıyor, pasifleri stack'liyor.
-- `EnemySpawner`, spawn pozisyonunu `NavMeshAgent.Warp()` yerine doğrudan `transform.SetPositionAndRotation` ile veriyor (agent iç state'i ile senkron değil).
+- **Dev A** (commit `7a6ae3e`): A9 enemy pool return + `NavMeshAgent.Warp()` fix, A10 restart flow fix (silah/pasif stack + kaybolan karakter seçimi bug'ı), A11 sürü steering spike (`SwarmSteering.cs`), A12 yutulabilirlik API'si (`EnemyBase.TryConsumeByBlob`)
+- **Dev B** (commit `aa9453b`): B12 UpgradeSystem soft-lock fix + `CurrentLevel` runtime'a taşınması, B13 hazard mantığı düzeltmesi + yeme entegrasyonu, B14 consumable pool return fix, B15 Dash yeniden implementasyonu (otomatik/periyodik — GDD'de "Hızlanma (Bot)")
+- Tracking: GitHub issue #19 (+ #20-26, #15) — hepsi kapalı
 
-**Dosya sahipliği (çakışma önleme):** Dev A sadece `Entities/Enemies/*`, `Core/GameManager.cs`, yeni `Systems/Steering/*` dosyalarına dokunur. Dev B sadece `Entities/Blob/*`, `Entities/Consumables/*`, `Systems/Upgrade/*` dosyalarına dokunur. Ortak sınır **API sözleşmesiyle** çözülür (A12 → B13), dosya kesişimi yok.
-
-### Dev A — Enemy/Pool/Core Mimarisi
-
-| Kod | Görev | Dosyalar | Bağımlılık |
-|-----|-------|----------|-------------|
-| **A9** | Enemy pool return fix — `EnemyBase`'e `OnDeath` event eklenir, `EnemySpawner` bu event'i dinleyip `pool.Return()` çağırır (CoinSpawner'daki mevcut doğru pattern tekrar kullanılır); spawn'da `agent.Warp(pos)` kullanılır | `EnemyBase.cs`, `EnemySpawner.cs` | — |
-| **A10** | Restart flow fix — `GameManager.ApplyCharacter` tekrar çağrılınca önceki silah instance'ı yok edilir/reuse edilir, pasifler idempotent uygulanır (stack'lenmez) | `GameManager.cs` | — |
-| **A11** | Sürü düşman steering spike (Karar 2 ön şartı, GDD §7 Mimari) — basit steering (seek + separation, spatial hash grid), sadece normal Police enemy tipine opsiyonel mod olarak eklenir; Elit/Boss NavMesh'te kalmaya devam eder. **Bu bir spike** — tam performans doğrulaması Sprint 4'te | yeni `Systems/Steering/SwarmSteering.cs`, `EnemyBase.cs` | A9 |
-| **A12** | Yutulabilirlik API'si (Karar 5) — `EnemyBase.TryConsumeByBlob(BlobTier blobTier)`: tier eşiği tutuyorsa (sürü→Tier3+, elit→Tier5) `true` döner + mass/coin/xp bilgisi verir + `Die()` tetikler; tutmuyorsa `false` | `EnemyBase.cs` | A9 |
-
-### Dev B — Blob/Consumption/Upgrade Mimarisi
-
-| Kod | Görev | Dosyalar | Bağımlılık |
-|-----|-------|----------|-------------|
-| **B12** | UpgradeSystem soft-lock fix + `CurrentLevel`'ın SO'dan runtime'a taşınması — `Dictionary<UpgradeData,int>` `UpgradeSystem` içinde tutulur, asset'in kendisi mutasyona uğramaz; `_blobRoot == null` durumunda da `ResumeGame()` her zaman çağrılır | `UpgradeSystem.cs`, `UpgradeData.cs` | — |
-| **B13** | Hazard dalının canlandırılması + yeme-birincil entegrasyonu — `BlobConsumption`'daki ters mantık düzeltilir (`IsHazard` ise `HazardAmount` hasarı), Enemy layer için A12'nin `TryConsumeByBlob()` API'si çağrılır | `BlobConsumption.cs` | **A12** (API sözleşmesi önceden anlaşılır, dosya çakışmaz) |
-| **B14** | Consumable pool return fix — `BlobConsumption.Consume()` ve `ConsumableBase` normal yeme akışında da `pool.Return()` eksik (aynı A9 bug'ı, consumable tarafında); `ConsumeAndSplit` zaten doğru pattern'i kullanıyor, referans alınır | `ConsumableBase.cs`, `ConsumableSpawner.cs`, `BlobConsumption.cs` (B13 ile aynı dosya, sıralı yapılır) | B13 |
-| **B15** | B6 Dash yeniden implementasyonu — issue #15 yanlış kapatılmıştı, kod yok; kısa süreli hız burst'ü + cooldown, level başına cooldown↓/süre↑ | yeni `DashComponent.cs` (Entities/Blob), `DashEffect.cs` (Systems/Upgrade/Effects), `Upgrade_Dash.asset` | — |
-
-**Kritik senkron:** A12 → B13 (yutulabilirlik API'si önce tanımlanmalı, iki dev de imzayı görüp anlaşmalı). B13 → B14 (aynı dosyada sıralı, aynı dev).
-
-**Tahmini süre:** ~5-6 iş günü/dev.
+**Kalan Editor adımları** (kod tamam, sahne kurulumu bekliyor — bkz. CLAUDE.md "Bilinen Eksikler"):
+1. Sahneye `SwarmSteering` component'li bir GameObject eklenmeli
+2. Physics Collision Matrix'te Blob(8) × Enemy(14) doğrulanmalı (yeme mekaniği için)
+3. `Upgrade_Dash.asset`, `UpgradeSystem._allUpgrades` dizisine eklenmeli
 
 ---
 
