@@ -6,13 +6,13 @@ Bu dosya, Claude Code'un projeyi sıfırdan anlayabilmesi için yazılmıştır.
 
 ## Proje Özeti
 
-**Blob.io** — Zorse Studio tarafından geliştirilen, top-down 2.5D Unity **roguelite / bullet-heaven / survival** oyunu. Oyuncu bir blob'u kontrol eder, kendinden küçük consumable itemleri yiyerek büyür; belirli bir süreden sonra polis/düşman dalgalarıyla saldırıya uğrar. Karakter büyüdükçe XP toplar, yetenek kazanır ve tüketebileceği consumable boyutu artar. 5-10-20-30. dakikalarda güçlü bosslar (SWAT arabası, helikopter, drone) spawn olur.
+**Blob.io** — Zorse Studio tarafından geliştirilen, top-down 2.5D Unity **roguelite / bullet-heaven / survival** oyunu. Oyuncu bir blob'u kontrol eder, kendinden küçük consumable itemleri yiyerek büyür; belirli bir süreden sonra polis/düşman dalgalarıyla saldırıya uğrar. Karakter büyüdükçe XP toplar, yetenek kazanır ve tüketebileceği consumable boyutu artar. 4. ve 8. dakikada miniboss (aynı tasarım, artan stat), 12. dakikada final boss spawn olur.
 
-- **Referanslar:** Vampire Survivors + Katamari Damacy + Hole.io
-- **Hedef platform:** Mobil (iOS/Android) ana hedef, PC ikincil
-- **Oturum süresi:** 20–30 dakika
-- **İş modeli:** Mobil ücretsiz oyna + kozmetik mağaza + reklam; PC ücretli
-- GDD: `/Users/baharyavuz/Downloads/Zorse GDD v.1 (1).pdf` (v1.0, Haziran 2025)
+- **Referanslar:** Vampire Survivors + Katamari Damacy + Hole.io + Brotato
+- **Hedef platform:** Mobil (iOS/Android) F2P — PC/Steam premium post-launch port
+- **Run süresi:** 12–15 dakika
+- **İş modeli:** Mobil ücretsiz oyna + kozmetik mağaza + reklam; PC ücretli, sıfır pay-to-win
+- **GDD (tek kaynak doküman): `GDD_v3.md`** — bu dosyadaki "GDD Vizyonu" özeti onun kısa bir yansımasıdır; çelişki çıkarsa `GDD_v3.md` kazanır. Tasarım kararlarının gerekçeleri için `DESIGN_REVIEW_v3.md`'ye bakın.
 - Unity 6, URP (Universal Render Pipeline)
 - New Input System (`UnityEngine.InputSystem`)
 - AI Navigation paketi (NavMeshAgent)
@@ -23,66 +23,64 @@ Bu dosya, Claude Code'un projeyi sıfırdan anlayabilmesi için yazılmıştır.
 
 ## GDD Vizyonu (Özet)
 
+> Tam ve otoriter tanım `GDD_v3.md`'dedir. Bu sadece hızlı referans içindir — sayı çelişkisi çıkarsa `GDD_v3.md` kazanır.
+
 ### Karakterler (Başlangıç)
-Her karakter bir "top" formunda; ellerinde silahları var.
+Her karakter bir "top" formunda; ellerinde silahları var. Silahlar otomatik ateşler (saldırı tuşu yok).
 
 | Karakter | Pasif | Başlangıç Silahı | Kilit |
 |----------|-------|------------------|-------|
-| **Topik** | +20% hareket hızı | Top | Başlangıçta açık |
-| **Mıknato** | +10% çekim gücü | Metal bilye | Market'te 500 kredi |
-| **Mermo** | Büyük consumable'ları mermiyle parçalara ayırır | Pistol | 3 farklı haritada oturum tamamla |
+| **Topik** | +20% hareket hızı | Top (arcing AoE) | Başlangıçta açık |
+| **Mıknato** | Attract hattına +25% etki | Metal bilye (yavaş homing) | Market'te 500 kredi |
+| **Mermo** | Mermileri büyük consumable'ları yenebilir parçalara ayırır (`ConsumeAndSplit`) | Pistol | 3 tamamlanmış oturum (ölümle biten run da sayılır) |
 
-### Skill Seti (Oturum İçi Güçlenmeler)
+### Combat Felsefesi
+**Sadece yeme mass (=XP) verir. Silahla öldürmek coin/skor verir ama büyütmez.** Silahların rolü, henüz yutulamayan düşmanı zayıflatmak/öldürmek ve boss'u yenebilir faza getirmektir — DPS yarışının değil, erişim ekonomisinin aracıdır. Bu kural silah build'inin oyunu jenerik bullet-heaven'a çekmesini önler; yeni skill/silah/düşman eklerken bu kuralı bozmadığından emin olun.
+
+### Skill Seti (Oturum İçi Güçlenmeler, 11 skill)
 1'den 8'e kadar seviye alır. Kategoriler:
-- **Savunma:** Kalkan, Rejenerasyon (+0.5 HP/sn, seviye başına +0.5)
-- **Saldırı:** Silah (karaktere göre değişir — Top, Bilye, Pistol)
+- **Saldırı:** Silah Gücü (karaktere göre değişir — Top, Bilye, Pistol)
+- **Savunma:** Zırh (görünmez % azaltma), Kalkan (görünür tükenen tampon — ikisi de korunuyor, farklı roller), Rejenerasyon (+0.5 HP/sn, seviye başına +0.5)
 - **Pasif:** Maksimum Can (base 100, seviye başına +10)
-- **Hareket:** Hızlanma (Bot)
-- **Destek:** Vakum (10 birim yarıçap, seviye başına +5%), Mıknatıs, Score Multiplier
+- **Hareket:** Hız (kalıcı, tier yavaşlama vergisine karşı), Hızlanma/Dash (otomatik/periyodik burst; aktifken hazard temas hasarı %50 azalır — panik butonu, Hız'la rolü ayrık)
+- **Destek:** Attract (Magnet+Vakum birleşik hat; sadece yenilebilir tier'ı çeker)
+- **Yeme:** Sindirim (mass kazancı +%), Yutuş (yemede HP yenile), Yırtıcı Çene (yutma eşiği kolaylaşır)
 
-Seviye atlandığında oyun durur → 3 kart sunulur → 1 seç. Aynı skill tekrar seçilirse seviye yükselir. **Yeniden Çek** butonu: oturum başına 1 ücretsiz, sonrası 50 altın.
+Score Multiplier run kartı **değil**, Market meta stat'ı (bkz. aşağı). Seviye atlandığında oyun durur → 3 kart sunulur → 1 seç. **Yeniden Çek** butonu: oturum başına 1 ücretsiz, sonrası 50 coin/rewarded reklam.
+
+**Evrim (lansmanda 2):** çapa skill maksimum seviye + eşleşen skill 4–5. seviye (maks/maks değil — tek run'da erişilebilirlik için). Kara Delik (Attract+Sindirim), Avcı Formu (Yırtıcı Çene+Silah Gücü).
 
 ### Düşman Sistemi
-| Tip | Davranış | XP |
-|-----|----------|-----|
-| Normal polis | Kalabalık koşar | 1–5 |
-| Elit polis | Yavaş, güçlü, özel saldırı deseni | 20–50 |
-| Minyatür boss | Her 5 dakikada bir | 100–200 |
-| Kıyamet Bossu | 25. dakikada; faz geçişleri | 500 |
+| Tip | Amaç | Yutulma | Ödül |
+|-----|------|---------|------|
+| Sürü (Normal polis) | Sürekli hareket kararı zorlar | Tier 3+ | Coin (düşük) |
+| Elit polis | Açgözlü yemeyi cezalandırır, tehlike cebi yaratır | Tier 5 | Sandık (skill + yüksek coin) |
+| Trafik (araç) | Dalgadan bağımsız güvenli/güvensiz sokak coğrafyası | Yenilmez, saf hazard | Yok |
+| Miniboss (4./8. dk) | Aynı tasarım, artan stat; ritim işareti | Hayır (silahla) | Yüksek coin + garanti sandık |
+| Final Boss (12. dk) | Son fazda `ConsumeAndSplit` deseniyle parçalara ayrılıp yenir | Son fazda | Run tamamlama ödülü |
 
-**Ölçekleme:** 0–5dk temel sürü → 5–10dk elit + hasar %20↑ → 10–15dk minyatür boss + 2x yoğunluk → 15–20dk çoklu elit + hız → 20–25dk hasar x3 → 25dk+ Kıyamet dalgası.
+**Tier-zaman hedefi:** Giant (Tier 5, mass 100) run'ın 8–10. dakikasında ulaşılabilir olmalı — final boss'tan (12. dk) önce elit yeme fantezisini yaşamaya yetecek pencere bırakır. Bu hedef mass/consumable tuning'ini yönlendirmeli.
 
-**Ölüm ödülleri:** Düşmandan coin; **elit** düşmandan sandık (skill + yüksek coin).
-
-### Hava Durumu Efektleri (Runtime Modifier)
-- **Ay Tutulması:** XP +50%, vampirler +30% güçlü
-- **Kızıl Yağmur:** Market çarpanı x2, düşmanlar yavaşlar
-- **Sis:** Görüş daralır, düşmanlar görünmez spawn
-- **Şimşek Fırtınası:** Oyuncu aura hasarı, mekanik düşmanlar devre dışı
+**Ölüm ödülleri:** Düşmandan coin; yutmadan mass+coin+XP; **elit** düşmandan sandık.
 
 ### Meta Progression — "Market"
 Oturumlardan toplanan kredi kalıcı kaynak. Ölümde %50 korunur.
 
 | Harcama | Maliyet | Etki |
 |---------|---------|------|
-| Yeni Karakter | 500 | Kalıcı unlock |
-| Karakter Pasif +1 | 200–800 | Kademe kalıcı pasif |
-| Yeni Harita | 300–700 | Harita havuzuna ekle |
-| Başlangıç Silahı Kilidi | 400 | Oturuma o silahla başla |
-| XP Çarpanı +10% | 1000 | Tüm oturumlarda |
+| Mıknato (karakter) | 500 | Kalıcı unlock |
+| Kalıcı stat: +%5 hız / +10 max HP / +%5 mass kazancı / +%5 coin kazancı / +%5 skor | 200–300 → artan | Düz, karakterden bağımsız |
+| XP Çarpanı +%10 | 1000 | Tüm oturumlarda |
 
-**Grimoire (Kodeks):** Tüm düşman/silah/harita için stat + lore. %100 doluluk → kozmetik ödül.
+Market ekranında ayrıca bir **keşif sayacı** ("X/Y şey keşfedildi") olmalı — Grimoire tracking verisi zaten loglanıyor (UI'sız), sayaç bu logu okur, yeni tracking işi gerektirmez.
 
-**NG+ zorluk:** Standart → Kızıl Ay → Kan Krizi → Apokalips.
+**Post-launch:** Hava durumu, NG+, Grimoire UI, karakter meta ağaçları, Medieval haritası.
 
-### Haritalar
-Sonsuz kaydırmalı (Vampire Survivors modeli). Toplanabilir: Coin, Kalp, Altın Kasa. Mağara/ahır gibi yapılar easter egg/rozet barındırabilir.
-- Modern Şehir (başlangıç)
-- Medieval
-- (Diğerleri sonra)
+### Harita
+Sonsuz kaydırmalı (Vampire Survivors modeli) tek harita: **Modern Şehir**. Toplanabilir: Coin, Kalp, Altın Kasa. Aynı sokak, oyuncunun tier'ına göre farklı spawn tablosu barındırmalı (Tiny geçişte çöp/hazard, Giant geçişte aynı yer artık zararsız/yiyecek-bitişik) — yeni sanat gerektirmez, sadece spawn verisi.
 
 ### Sanat Yönü
-Referanslar: Vampire Survivors + Castlevania. Gotik palet.
+2.5D stilize 3D, gotik palet. Blob sevimli/karizmatik olmalı.
 
 | Kullanım | Renk | Hex |
 |----------|------|-----|
@@ -91,14 +89,14 @@ Referanslar: Vampire Survivors + Castlevania. Gotik palet.
 | Arka plan | Gece mavisi | `#0D0D2B` |
 | Sürü düşman | Bataklık yeşili | `#3D5C3A` |
 | Elit düşman | Mor gecesi | `#4A0E6B` |
-| XP gem | Kehribar | `#FFC300` |
+| XP/coin | Kehribar | `#FFC300` |
 
-**Erişilebilirlik:** Renk körü dostu — güçlenme kartları renk + sembol (yıldız/elmas/daire).
+**Erişilebilirlik:** Renk körü dostu — güçlenme kartları renk + sembol (yıldız/elmas/daire); hazard outline + ikon (bu okunabilirlik pazarlama klibinin küçük ekranda anlaşılırlığını da taşır).
 
 ### Performans Hedefleri
-- **Mobil:** 30 FPS @ 720p, 500 düşman aynı anda
-- **PC:** 60 FPS @ 1080p, 1000+ düşman
-- **Batarya:** 30 dk oturum → max %15 tüketim
+- **Mobil:** 30 FPS @ 720p, **150–200 eşzamanlı düşman** (sürü=steering, NavMesh sadece elit/boss)
+- **PC (port):** 60 FPS @ 1080p
+- **Batarya:** 15 dk run'da ≤ %8
 
 ## Workflow
 
@@ -406,7 +404,7 @@ Raise metodları: `GameEvents.RaiseBlobSizeChanged(mass)` vs.
 - **A14 FPS/Profiler doğrulaması yapılmadı:** Kod tarafı (throttle, komşu sayısı sınırı, elit tavanı) tamamlandı ama 150-200 eşzamanlı düşman senaryosunda gerçek FPS ölçümü Unity Editor/cihaz gerektiriyor, buradan yapılamadı. Test için: Window → Analysis → Profiler (CPU), ya da Game view Stats overlay; hedef CLAUDE.md'deki "30 FPS @ 720p, 200 eşzamanlı düşman".
 - **B13 yeme mekaniği için Collision Matrix doğrulaması gerekiyor:** `BlobConsumption` artık Enemy layer'daki collider'lara `OnTriggerEnter` ile tepki veriyor (yutma). Bu daha önce hiç gerekmemişti (düşman hasarı mesafe bazlı, trigger'a bağlı değildi) — Project Settings → Physics → Collision Matrix'te Blob(8) × Enemy(14) kutucuğunun işaretli olduğu doğrulanmalı, yoksa yutma hiç tetiklenmez (sessizce, hata vermeden).
 - **B15 Dash'in Editor kurulumu eksik:** `Upgrade_Dash.asset` oluşturuldu ama sahnedeki `UpgradeSystem._allUpgrades` dizisine henüz eklenmedi — eklenmeden skill havuzunda görünmez.
-- **⏸️ Dash skill'inin kaderi açık karar (Serra karar verecek):** Oyunda hem kalıcı **Hız** hem geçici **Hızlanma (Dash)** var — GDD §5'te ikisi de listeli (Magnet/Vacuum'daki gibi bilinçli bir birleştirme kararı henüz yok). Şimdilik kod duruyor, dokunulmuyor. Karar netleşince: GDD_v2.md §16'daki madde ✅ olarak güncellenecek, ve karara göre ya kod kalacak ya da `DashComponent.cs`/`DashEffect.cs`/`Upgrade_Dash.asset` silinecek.
+- **✅ Dash skill'inin kaderi karara bağlandı (GDD_v3.md §0 Karar 16):** Hız ve Dash ikisi de kalıyor, roller ayrıştırıldı — Hız kalıcı/sürekli mobilite (tier yavaşlama vergisine karşı ekonomi aracı), Dash otomatik/periyodik panik butonu. **Kod tarafında eksik:** Dash'in aktif penceresinde hazard temas hasarının %50 azalması henüz implemente edilmedi (`DashComponent`/`BlobHealth` etkileşimi) — bu olmadan Dash, Hız'ın periyodik bir versiyonundan farksız kalır. Ayrıca `Upgrade_Dash.asset` hâlâ `UpgradeSystem._allUpgrades` dizisine eklenmemiş (bkz. aşağıdaki B15 maddesi).
 - **Restart'ta run-scoped upgrade efektleri tam sıfırlanmıyor (A10'un bilinçli kapsam dışı bıraktığı):** A10 sadece `ApplyCharacter`'ın kendi kurduğu şeyleri (silah, karakter pasifi/`VacuumComponent`) temizliyor. Ama `BlobHealth` (Zırh/`DamageReductionEffect`, Rejenerasyon/`RegenBoostEffect`, Max Can/`HealthBoostEffect`, Kalkan/`ShieldEffect`), `WeaponBase.IncreaseDamage` (Silah Gücü), `DashComponent` ve `ScoreSystem`'in multiplier'ı gibi o run içinde skill seçimiyle kazanılan efektler restart'ta **hâlâ sıfırlanmıyor** — blob aynı instance olarak kalıyor (sahne reload yok), bu component'lerin state'i bir önceki run'dan sızabilir. Henüz issue açılmadı; bir sonraki restart-ilgili sprint'te ele alınmalı.
 
 ---
