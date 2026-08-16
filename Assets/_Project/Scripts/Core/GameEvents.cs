@@ -22,6 +22,9 @@ namespace BlobSurvivor.Core
         public static event Action<int> OnCoinsChanged;
         // A15: max <= 0 => aktif boss yok (B18 health bar bunu gizleme sinyali olarak kullanır)
         public static event Action<float, float> OnBossHealthChanged;
+        // A16 (Karar 1+8, §4): final boss yenebilir fazdayken yutulunca ateşlenir — "Final boss'un ölümü = yutulması".
+        // A17 run-sonu yapısı bunu dinleyip run'ı "tamamlandı/zafer" olarak kapatacak.
+        public static event Action OnFinalBossConsumed;
 
         public static void RaiseBlobSizeChanged(float newSize) => OnBlobSizeChanged?.Invoke(newSize);
         public static void RaiseBlobTierChanged(BlobTier tier) => OnBlobTierChanged?.Invoke(tier);
@@ -39,6 +42,7 @@ namespace BlobSurvivor.Core
         public static void RaiseCharacterSelected(CharacterData data) => OnCharacterSelected?.Invoke(data);
         public static void RaiseCoinsChanged(int total) => OnCoinsChanged?.Invoke(total);
         public static void RaiseBossHealthChanged(float current, float max) => OnBossHealthChanged?.Invoke(current, max);
+        public static void RaiseFinalBossConsumed() => OnFinalBossConsumed?.Invoke();
     }
 
     public enum BlobTier

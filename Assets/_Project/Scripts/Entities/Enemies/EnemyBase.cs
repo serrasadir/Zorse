@@ -43,6 +43,7 @@ namespace BlobSurvivor.Entities.Enemies
         private float _damageMultiplier = 1f;
         private float _speedMultiplier = 1f;
         private bool _isDead;
+        private bool _consumableOverride;
         private Vector3 _steerTarget;
         private bool _hasSteerTarget;
         private Vector3 _separationCached;
@@ -65,6 +66,7 @@ namespace BlobSurvivor.Entities.Enemies
             _damageMultiplier = 1f;
             _speedMultiplier = 1f;
             _isDead = false;
+            _consumableOverride = false;
             _hasSteerTarget = false;
 
             GameObject blob = GameObject.FindWithTag("Blob");
@@ -162,9 +164,14 @@ namespace BlobSurvivor.Entities.Enemies
             return sqrDist <= _detectionRange * _detectionRange;
         }
 
+        // BossSpawner gibi çağıranlar, tek bir prefab'ı birden fazla EnemyData ("stage") ile paylaşır —
+        // OnEnable() zaten prefab'da serialize edilmiş (muhtemelen yanlış/stale) _data'ya göre
+        // _currentHealth'i set etmiş olur; burada doğru data'ya göre yeniden set edilmesi şart,
+        // yoksa boss yanlış HP'yle (spawn anındaki prefab-serialized data'nın MaxHealth'iyle) hayata başlar.
         public void SetData(EnemyData data, float damageMultiplier = 1f, float speedMultiplier = 1f)
         {
             _data = data;
+            _currentHealth = data.MaxHealth;
             _damageMultiplier = Mathf.Max(0f, damageMultiplier);
             _speedMultiplier = Mathf.Max(0.01f, speedMultiplier);
             if (_agent != null) _agent.speed = _data.MoveSpeed * _speedMultiplier;
@@ -223,8 +230,19 @@ namespace BlobSurvivor.Entities.Enemies
 
             _currentHealth -= amount;
             if (_currentHealth <= 0f)
-                Die();
+            {
+                // A16/Karar 1+8: final boss silahla öldürülemez — "vurarak son faza getirirsin, yutarak bitirirsin."
+                // HP 1'de kilitlenir, ölüm sadece TryConsumeByBlob üzerinden gerçekleşebilir.
+                if (_data != null && _data.RequiresConsumptionToDie)
+                    _currentHealth = 1f;
+                else
+                    Die();
+            }
         }
+
+        // FinalBossController, HP eşiği altına inince bunu true yapar — yenebilir faza geçiş.
+        // PreventConsumption asset-seviyesinde (paylaşımlı SO), bu ise instance-seviyesinde geçici override.
+        public void SetConsumableOverride(bool value) => _consumableOverride = value;
 
         // Karar 5 (GDD_v2.md §4 — yeme birincil): sürü düşmanı Tier3+'ta, elit Tier5'te temasla yutulabilir.
         // Mass ödülü BlobGrowth.AddMass üzerinden verilmeli — mass=XP zaten birleşik (Karar 7).
@@ -232,7 +250,9 @@ namespace BlobSurvivor.Entities.Enemies
         {
             massReward = 0f;
             if (_isDead || _data == null) return false;
-            if (_data.PreventConsumption) return false; // A15/Karar 8: miniboss/final boss hiçbir tier'da yutulamaz, silahla öldürülür.
+            // A15/Karar 8: miniboss/final boss normalde hiçbir tier'da yutulamaz, silahla öldürülür —
+            // A16: final boss'un yenebilir fazında _consumableOverride bunu geçici olarak açar.
+            if (_data.PreventConsumption && !_consumableOverride) return false;
 
             BlobTier requiredTier = _data.IsElite ? BlobTier.Giant : BlobTier.Medium;
             if (blobTier < requiredTier) return false;

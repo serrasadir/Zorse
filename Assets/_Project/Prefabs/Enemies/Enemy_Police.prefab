@@ -69,7 +69,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: f96821bbefeea864b9b418af4b8615ac, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -152,3 +152,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Enemies.EnemyBase
   _data: {fileID: 11400000, guid: 58bb1253e36e04bdd81ec5144eaf244a, type: 2}
   _detectionRange: 15
+  _separationRadius: 1.5
+  _separationWeight: 1.5
+  _avoidanceLookahead: 1.2
+  _avoidanceWeight: 2
+  _rotationSpeed: 10

@@ -25,6 +25,10 @@ namespace BlobSurvivor.Data
         [SerializeField] private float _massReward = 3f;
         [SerializeField] private bool _preventConsumption;
 
+        [Header("Final Boss (A16 — Karar 1+8)")]
+        [Tooltip("true ise bu düşman silah hasarıyla asla ölmez (HP 1'de kilitlenir) — sadece FinalBossController'ın açtığı consumable override ile yutularak ölür.")]
+        [SerializeField] private bool _requiresConsumptionToDie;
+
         public string DisplayName => _displayName;
         public GameObject Prefab => _prefab;
         public float MaxHealth => _maxHealth;
@@ -39,5 +43,6 @@ namespace BlobSurvivor.Data
         public float AttackHitInterval => _attackHitInterval;
         public float MassReward => _massReward;
         public bool PreventConsumption => _preventConsumption;
+        public bool RequiresConsumptionToDie => _requiresConsumptionToDie;
     }
 }

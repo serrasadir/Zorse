@@ -102,11 +102,19 @@ namespace BlobSurvivor.Entities.Enemies
             _activeBoss = boss;
             _activeStage = stage;
             _lastReportedHealth = -1f;
+
+#if UNITY_EDITOR
+            Debug.Log($"[BossSpawner] Spawn: {data.DisplayName} — CurrentHealth={boss.CurrentHealth}, MaxHealth={boss.MaxHealth}");
+#endif
         }
 
         private void HandleBossDeath(EnemyBase boss)
         {
             boss.OnDeath -= HandleBossDeath;
+
+#if UNITY_EDITOR
+            Debug.Log($"[BossSpawner] Öldü/yutuldu: {boss.Data.DisplayName}");
+#endif
 
             if (_pools.TryGetValue(boss.Data, out ObjectPool<EnemyBase> pool))
                 pool.Return(boss);

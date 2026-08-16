@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 429f33fc55f6f440f894712573415325, type: 3}
+  m_Name: EnemyData_FinalBoss
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
+  _displayName: Final Boss (12. dk)
+  _prefab: {fileID: 0}
+  _maxHealth: 3000
+  _damage: 28
+  _moveSpeed: 2.2
+  _attackRange: 4
+  _attackCooldown: 2
+  _spawnTier: 5
+  _scoreValue: 600
+  _isElite: 1
+  _attackHitCount: 5
+  _attackHitInterval: 0.3
+  _massReward: 300
+  _preventConsumption: 1
+  _requiresConsumptionToDie: 1

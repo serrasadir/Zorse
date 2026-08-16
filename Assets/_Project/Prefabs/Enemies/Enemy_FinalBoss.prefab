@@ -14,8 +14,9 @@ GameObject:
   - component: {fileID: 8531147409173935789}
   - component: {fileID: 3271368945399193040}
   - component: {fileID: 1807721003051236823}
+  - component: {fileID: 6604822438192926869}
   m_Layer: 14
-  m_Name: Enemy_Miniboss
+  m_Name: Enemy_FinalBoss
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -31,7 +32,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.0626, y: 0.8676, z: 0}
-  m_LocalScale: {x: 1.5, y: 1.2, z: 1}
+  m_LocalScale: {x: 1.8, y: 1.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -69,7 +70,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: fbf74f18220bd49589f1897bc952dbdd, type: 2}
+  - {fileID: 2100000, guid: f25b4ae82f30a400793a76acd7866f79, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -150,10 +151,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45b250f17e2334cb2bff5bfae205129c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Enemies.EnemyBase
-  _data: {fileID: 11400000, guid: a876694a404d42c28b8c4d55e36a404f, type: 2}
+  _data: {fileID: 11400000, guid: 842b0d38c86b42e2bfa97ac4831782ec, type: 2}
   _detectionRange: 18
   _separationRadius: 1.5
   _separationWeight: 1.5
   _avoidanceLookahead: 1.2
   _avoidanceWeight: 2
   _rotationSpeed: 10
+--- !u!114 &6604822438192926869
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2072016075202350378}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 944e546b98d4f4b049a52cb77f490529, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Enemies.FinalBossController
+  _edibleHealthFraction: 0.25
