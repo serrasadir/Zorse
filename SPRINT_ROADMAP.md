@@ -91,10 +91,26 @@
 
 ---
 
+## Sprint 5 — Market & Meta İlerleme (GDD §8)
+
+**Amaç:** MVP dikey dilimin son parçası — run içi coin'in kalıcı ilerlemeye dönüşmesi. Lansman kapsamı: 1 karakter unlock (Mıknato) + 4 düz kalıcı stat + XP çarpanı, 6 kalemlik Market.
+
+**Not:** Bahar (Dev B) izinli, bu sprint tek dev (Serra) yürütüyor — A/B dosya-sahipliği ayrımına gerek yok, tek sıralı liste. Kod yine tamamen assistant tarafından yazılıyor, Editor kurulumu Serra'da.
+
+| Kod | Görev | Dosyalar | Bağımlılık |
+|-----|-------|----------|-------------|
+| **M20** | Meta kredi/kalıcı stat data katmanı — `SaveSystem`'in JSON'ına kalıcı kredi + satın alınan stat seviyeleri eklenir; run bitince kalan coin krediye döner (tamamlanan run'da %100, ölümde %50) | `Systems/Meta/SaveSystem.cs`, yeni `Systems/Meta/MetaProgression.cs` | B19 (Sprint 4) |
+| **M21** | Market UI ekranı — 6 kalem: Mıknato unlock (500), +%5 Hız, +10 Max HP, +%5 Mass kazancı, +%5 Coin kazancı (hepsi artan maliyetli), XP Çarpanı +%10 (1000) | yeni `UI/MarketPanel.cs` | M20 |
+| **M22** | Kalıcı statların run başında uygulanması — `GameManager.StartGame()`/`ApplyCharacter` akışına meta bonus katmanı | `GameManager.cs` | M20 |
+| **M23** | Lobby ↔ Market giriş/çıkış butonu | `LobbyPanel.cs` | M21 |
+
+**Kritik senkron:** M21/M22 → M20 (data katmanı önce, UI ve runtime uygulama ondan sonra).
+
+---
+
 ## Sonraki Sprintler (Öngörü)
 
-**Sprint 5:** MVP dikey dilim tamamlama — Market ekranı, meta kredi aktarımı, 6 kalemlik kalıcı stat mağazası (GDD §8).
 **Sprint 6:** Grimoire tracking hook'ları (UI'sız log altyapısı) + NG+ zorluk taslağı — post-launch'a hazırlık, lansman kapsamı dışı ama erken enstrümantasyon.
 **Sprint 7+:** Soft launch hazırlığı — GameAnalytics/Unity Analytics entegrasyonu, size-flip pazarlama klibi teknik ihtiyaçları, D1/D7 metrik toplama.
 
-Bu roadmap Sprint 3 kapanışında güncellenir.
+Bu roadmap Sprint 5 kapanışında güncellenir.
