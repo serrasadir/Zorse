@@ -10,18 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 69a39f692a12e49499b3cddabf07df41, type: 3}
-  m_Name: Upgrade_Vacuum
+  m_Name: Upgrade_Sindirim
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
-  _id: vacuum
-  _displayName: Vakum
-  _description: "Karizman resmen elektrikli s\xFCp\xFCrge ayar\u0131na geldi."
+  _id: Sindirim
+  _displayName: Sindirim
+  _description: "Metabolizman resmen turbo modda. Ayn\u0131 lokma, iki kat kilo."
   _icon: {fileID: 0}
-  _category: 2
+  _category: 4
   _weight: 10
   _effectValue: 0
   _effectDuration: 0
   _cooldown: 0
-  _effect: {fileID: 11400000, guid: 2bb2fe1b5b27949399df02cc785aa1c6, type: 2}
+  _effect: {fileID: 11400000, guid: 30ccd600f613647db97fdf4b61daef7c, type: 2}
   _maxLevel: 8
-  _perLevelValue: 0.5
+  _perLevelValue: 0.1
   _isEvolution: 0

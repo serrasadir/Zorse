@@ -25,6 +25,8 @@ namespace BlobSurvivor.Core
         // A16 (Karar 1+8, §4): final boss yenebilir fazdayken yutulunca ateşlenir — "Final boss'un ölümü = yutulması".
         // A17 run-sonu yapısı bunu dinleyip run'ı "tamamlandı/zafer" olarak kapatacak.
         public static event Action OnFinalBossConsumed;
+        // A17: run GameOver'dan (ölüm) ayrı olarak "başarıyla" kapanınca ateşlenir (final boss yutuldu / run-timeout).
+        public static event Action<RunEndReason> OnRunComplete;
 
         public static void RaiseBlobSizeChanged(float newSize) => OnBlobSizeChanged?.Invoke(newSize);
         public static void RaiseBlobTierChanged(BlobTier tier) => OnBlobTierChanged?.Invoke(tier);
@@ -43,6 +45,7 @@ namespace BlobSurvivor.Core
         public static void RaiseCoinsChanged(int total) => OnCoinsChanged?.Invoke(total);
         public static void RaiseBossHealthChanged(float current, float max) => OnBossHealthChanged?.Invoke(current, max);
         public static void RaiseFinalBossConsumed() => OnFinalBossConsumed?.Invoke();
+        public static void RaiseRunComplete(RunEndReason reason) => OnRunComplete?.Invoke(reason);
     }
 
     public enum BlobTier

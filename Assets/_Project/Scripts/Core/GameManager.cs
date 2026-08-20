@@ -11,7 +11,15 @@ namespace BlobSurvivor.Core
         Playing,
         Paused,
         LevelUp,
-        GameOver
+        GameOver,
+        RunComplete
+    }
+
+    // A17 (GDD_v2.md Karar 1): run'ın GameOver'dan (oyuncu ölümü) ayrı, "başarıyla" kapandığı iki yol.
+    public enum RunEndReason
+    {
+        FinalBossConsumed,
+        TimeSurvived
     }
 
     public class GameManager : MonoBehaviour
@@ -19,6 +27,11 @@ namespace BlobSurvivor.Core
         public static GameManager Instance { get; private set; }
 
         [SerializeField] private CharacterData _defaultCharacter;
+
+        // A17: final boss (12. dk) yenilemese bile run'ın sonsuza kadar sürmemesi için güvenlik eşiği —
+        // GDD'nin "12-15 dk" run vizyonunun üst sınırı. WaveController'a dokunmadan (dev-a domaini,
+        // ayrı dosya) sadece burada, run'ın ne zaman kapanacağına dair kararı tutar.
+        [SerializeField] private float _runTimeoutSeconds = 900f;
 
         private CharacterData _lastCharacter;
 
@@ -42,13 +55,28 @@ namespace BlobSurvivor.Core
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
         }
 
+        private void OnEnable()
+        {
+            GameEvents.OnFinalBossConsumed += HandleFinalBossConsumed;
+        }
+
+        private void OnDisable()
+        {
+            GameEvents.OnFinalBossConsumed -= HandleFinalBossConsumed;
+        }
+
         private void Update()
         {
             if (CurrentState != GameState.Playing) return;
 
             SurvivalTime += Time.deltaTime;
             GameEvents.RaiseSurvivalTimeUpdated(SurvivalTime);
+
+            if (SurvivalTime >= _runTimeoutSeconds)
+                TriggerRunComplete(RunEndReason.TimeSurvived);
         }
+
+        private void HandleFinalBossConsumed() => TriggerRunComplete(RunEndReason.FinalBossConsumed);
 
         public void StartGame()
         {
@@ -140,6 +168,17 @@ namespace BlobSurvivor.Core
             ChangeState(GameState.GameOver);
             Time.timeScale = 0f;
             GameEvents.RaiseGameOver();
+        }
+
+        // A17: final boss yutulunca ya da run-timeout'a ulaşılınca — normal GameOver'dan (ölüm)
+        // bilinçli olarak ayrı bir state. UI tarafı (B18/Sprint 5) OnRunComplete'i dinleyip
+        // kendi "run tamamlandı" ekranını gösterecek; bu issue sadece state/event kontratını kurar.
+        public void TriggerRunComplete(RunEndReason reason)
+        {
+            if (CurrentState != GameState.Playing) return;
+            ChangeState(GameState.RunComplete);
+            Time.timeScale = 0f;
+            GameEvents.RaiseRunComplete(reason);
         }
 
         private void ChangeState(GameState newState)

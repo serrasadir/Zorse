@@ -23,6 +23,8 @@ namespace BlobSurvivor.Entities.Enemies
         private static int s_environmentMask = -1;
 
         public event System.Action<EnemyBase> OnDeath;
+        // B17 evrimi "Avcı Formu": silahla vurulan sürü düşmanlarını dinlemek için statik hit event'i.
+        public static event System.Action<EnemyBase> OnAnyEnemyDamaged;
 
         public EnemyData Data => _data;
         public Transform BlobTransform { get; private set; }
@@ -44,6 +46,7 @@ namespace BlobSurvivor.Entities.Enemies
         private float _speedMultiplier = 1f;
         private bool _isDead;
         private bool _consumableOverride;
+        private float _tierBypassUntil = -1f;
         private Vector3 _steerTarget;
         private bool _hasSteerTarget;
         private Vector3 _separationCached;
@@ -67,6 +70,7 @@ namespace BlobSurvivor.Entities.Enemies
             _speedMultiplier = 1f;
             _isDead = false;
             _consumableOverride = false;
+            _tierBypassUntil = -1f;
             _hasSteerTarget = false;
 
             GameObject blob = GameObject.FindWithTag("Blob");
@@ -229,6 +233,8 @@ namespace BlobSurvivor.Entities.Enemies
             if (_isDead) return;
 
             _currentHealth -= amount;
+            OnAnyEnemyDamaged?.Invoke(this);
+
             if (_currentHealth <= 0f)
             {
                 // A16/Karar 1+8: final boss silahla öldürülemez — "vurarak son faza getirirsin, yutarak bitirirsin."
@@ -244,6 +250,10 @@ namespace BlobSurvivor.Entities.Enemies
         // PreventConsumption asset-seviyesinde (paylaşımlı SO), bu ise instance-seviyesinde geçici override.
         public void SetConsumableOverride(bool value) => _consumableOverride = value;
 
+        // B17 evrimi "Avcı Formu": silahla vurulan sürü düşmanları kısa süreliğine tier şartı olmadan
+        // yutulabilir olur. Elit/boss'u kapsamaz (GDD: "sürü düşmanları").
+        public void MarkTemporarilyConsumable(float duration) => _tierBypassUntil = Mathf.Max(_tierBypassUntil, Time.time + duration);
+
         // Karar 5 (GDD_v2.md §4 — yeme birincil): sürü düşmanı Tier3+'ta, elit Tier5'te temasla yutulabilir.
         // Mass ödülü BlobGrowth.AddMass üzerinden verilmeli — mass=XP zaten birleşik (Karar 7).
         public bool TryConsumeByBlob(BlobTier blobTier, out float massReward)
@@ -254,8 +264,9 @@ namespace BlobSurvivor.Entities.Enemies
             // A16: final boss'un yenebilir fazında _consumableOverride bunu geçici olarak açar.
             if (_data.PreventConsumption && !_consumableOverride) return false;
 
+            bool tierBypassed = !_data.IsElite && Time.time <= _tierBypassUntil;
             BlobTier requiredTier = _data.IsElite ? BlobTier.Giant : BlobTier.Medium;
-            if (blobTier < requiredTier) return false;
+            if (!tierBypassed && blobTier < requiredTier) return false;
 
             massReward = _data.MassReward;
             Die();

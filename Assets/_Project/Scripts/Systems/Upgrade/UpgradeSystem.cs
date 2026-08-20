@@ -19,6 +19,10 @@ namespace BlobSurvivor.Systems
         // sızıntı riski ortadan kalkar.
         private readonly Dictionary<UpgradeData, int> _levels = new Dictionary<UpgradeData, int>();
 
+        // B17: EvolutionSystem, input skiller max level'a ulaşınca output skill'i buraya kaydeder —
+        // _allUpgrades sahnede sabit dizildiği için evrim çıktıları ayrı bir runtime listede tutulur.
+        private readonly List<UpgradeData> _dynamicUpgrades = new List<UpgradeData>();
+
         private void Awake()
         {
             Instance = this;
@@ -33,6 +37,13 @@ namespace BlobSurvivor.Systems
         {
             _blobRoot = GameObject.FindWithTag("Blob");
             _levels.Clear();
+            _dynamicUpgrades.Clear();
+        }
+
+        public void RegisterDynamicUpgrade(UpgradeData data)
+        {
+            if (data != null && !_dynamicUpgrades.Contains(data))
+                _dynamicUpgrades.Add(data);
         }
 
         private void OnEnable()
@@ -82,6 +93,10 @@ namespace BlobSurvivor.Systems
             foreach (var u in _allUpgrades)
             {
                 if (u != null && GetLevel(u) < u.MaxLevel) pool.Add(u);
+            }
+            foreach (var u in _dynamicUpgrades)
+            {
+                if (u != null && GetLevel(u) < u.MaxLevel && !pool.Contains(u)) pool.Add(u);
             }
             if (pool.Count == 0) return null;
 

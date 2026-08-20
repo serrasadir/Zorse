@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d6a53a70102945958a21afa051ceee4, type: 3}
+  m_Name: Evolution_AvciFormu
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.SkillEvolutionData
+  _inputA: {fileID: 11400000, guid: 810e282ced92b48fa89223c93a3ce000, type: 2}
+  _inputB: {fileID: 11400000, guid: 7a60ab4d1e9804c11a6724b7a567bac7, type: 2}
+  _output: {fileID: 11400000, guid: aaad9d55397924693b34b3ec438b7ed3, type: 2}

@@ -10,18 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 69a39f692a12e49499b3cddabf07df41, type: 3}
-  m_Name: Upgrade_Vacuum
+  m_Name: Upgrade_AvciFormu
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
-  _id: vacuum
-  _displayName: Vakum
-  _description: "Karizman resmen elektrikli s\xFCp\xFCrge ayar\u0131na geldi."
+  _id: avci_formu
+  _displayName: "Avc\u0131 Formu"
+  _description: "\xD6nce \u0131s\u0131r, sonra d\xFC\u015F\xFCn. Medeniyet biraz
+    beklesin."
   _icon: {fileID: 0}
-  _category: 2
+  _category: 4
   _weight: 10
   _effectValue: 0
   _effectDuration: 0
   _cooldown: 0
-  _effect: {fileID: 11400000, guid: 2bb2fe1b5b27949399df02cc785aa1c6, type: 2}
-  _maxLevel: 8
-  _perLevelValue: 0.5
-  _isEvolution: 0
+  _effect: {fileID: 11400000, guid: 276d8f4597b124bd6a942c36f9bae6eb, type: 2}
+  _maxLevel: 1
+  _perLevelValue: 0
+  _isEvolution: 1

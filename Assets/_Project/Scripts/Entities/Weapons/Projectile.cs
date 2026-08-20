@@ -19,6 +19,7 @@ namespace BlobSurvivor.Entities.Weapons
         protected float Damage { get; private set; }
         protected Vector3 Direction { get; set; }
         protected float LifetimeFraction => _lifetime > 0f ? Mathf.Clamp01(_elapsed / _lifetime) : 0f;
+        protected float NextLifetimeFraction => _lifetime > 0f ? Mathf.Clamp01((_elapsed + Time.deltaTime) / _lifetime) : 0f;
 
         public void Launch(WeaponBase owner, Vector3 direction, float damage)
         {
@@ -28,11 +29,29 @@ namespace BlobSurvivor.Entities.Weapons
             _elapsed = 0f;
         }
 
+        // Yatay hareketin dışında bu frame'e özel ek yer değiştirme (ör. CannonProjectile'ın
+        // yay yüksekliği) — sadece SphereCast'in bu hareketi de "görmesi" için var, varsayılan sıfır.
+        protected virtual Vector3 GetExtraMotion() => Vector3.zero;
+
         protected virtual void Update()
         {
-            float travelDistance = _speed * Time.deltaTime;
+            Vector3 extraMotion = GetExtraMotion();
+            Vector3 castDirection;
+            float travelDistance;
 
-            if (Physics.SphereCast(transform.position, _hitRadius, Direction, out RaycastHit hit, travelDistance, HitMask))
+            if (extraMotion == Vector3.zero)
+            {
+                castDirection = Direction;
+                travelDistance = _speed * Time.deltaTime;
+            }
+            else
+            {
+                Vector3 frameMotion = Direction * (_speed * Time.deltaTime) + extraMotion;
+                travelDistance = frameMotion.magnitude;
+                castDirection = travelDistance > 0f ? frameMotion / travelDistance : Direction;
+            }
+
+            if (travelDistance > 0f && Physics.SphereCast(transform.position, _hitRadius, castDirection, out RaycastHit hit, travelDistance, HitMask))
             {
                 transform.position = hit.point;
                 bool stopped = HandleHit(hit.collider);
@@ -40,11 +59,11 @@ namespace BlobSurvivor.Entities.Weapons
 
                 float remaining = travelDistance - hit.distance;
                 if (remaining > 0f)
-                    transform.position += Direction * remaining;
+                    transform.position += castDirection * remaining;
             }
             else
             {
-                transform.position += Direction * travelDistance;
+                transform.position += castDirection * travelDistance;
             }
 
             _elapsed += Time.deltaTime;

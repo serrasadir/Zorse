@@ -30,19 +30,34 @@ namespace BlobSurvivor.Entities.Blob
             }
 
             // Karar 5 (yeme birincil): sürü Tier3+, elit Tier5'te temasla yutulabilir (A12 API'si).
+            // B16 (Yırtıcı Çene): ConsumptionBonusComponent varsa efektif tier'ı yükseltip eşiği gevşetir.
             EnemyBase enemy = other.GetComponent<EnemyBase>();
-            if (enemy != null && enemy.TryConsumeByBlob(_blobGrowth.CurrentTier, out float massReward))
+            if (enemy != null)
             {
-                _blobGrowth.AddMass(massReward);
-                _blobGrowth.PunchScale();
+                BlobTier effectiveTier = _blobGrowth.CurrentTier;
+                ConsumptionBonusComponent bonus = GetComponent<ConsumptionBonusComponent>();
+                if (bonus != null)
+                    effectiveTier = (BlobTier)Mathf.Min((int)BlobTier.Giant, (int)effectiveTier + bonus.TierBonus);
+
+                if (enemy.TryConsumeByBlob(effectiveTier, out float massReward))
+                {
+                    _blobGrowth.AddMass(massReward);
+                    _blobGrowth.PunchScale();
+                    ApplyHealOnConsume();
+                }
             }
         }
+
+        // B17 evrimi "Kara Delik" (BlackHoleComponent) temassız otomatik yutma için bu girişi kullanır —
+        // normal temas akışıyla (Consume) aynı sonucu üretir, tek fark tetikleyicinin OverlapSphere olması.
+        public void ConsumeDirect(IConsumable consumable, GameObject obj) => Consume(consumable, obj);
 
         private void Consume(IConsumable consumable, GameObject obj)
         {
             if (_blobGrowth == null) return;
             _blobGrowth.AddMass(consumable.Data.MassValue);
             _blobGrowth.PunchScale();
+            ApplyHealOnConsume();
 
             ScoreSystem scoreSystem = FindAnyObjectByType<ScoreSystem>();
             scoreSystem?.AddScore(consumable.Data.ScoreValue);
@@ -63,6 +78,14 @@ namespace BlobSurvivor.Entities.Blob
 #if UNITY_IOS || UNITY_ANDROID
             Handheld.Vibrate();
 #endif
+        }
+
+        // B16 (Yutuş skill'i): HealOnConsumeComponent varsa her yemede küçük bir heal uygular.
+        private void ApplyHealOnConsume()
+        {
+            HealOnConsumeComponent healOnConsume = GetComponent<HealOnConsumeComponent>();
+            if (healOnConsume != null && healOnConsume.HealAmount > 0f)
+                _blobHealth?.Heal(healOnConsume.HealAmount);
         }
     }
 }

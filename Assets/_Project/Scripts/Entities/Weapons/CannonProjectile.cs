@@ -13,7 +13,10 @@ namespace BlobSurvivor.Entities.Weapons
         private float _baseY;
         private bool _baseYSet;
 
-        protected override void Update()
+        // Yay yüksekliğini artık SphereCast'ten SONRA değil, hareketin bir parçası olarak
+        // uyguluyoruz — eskiden mermi çarpışma kontrolünden habersiz yükselip alçalıyordu,
+        // bu da yay tepe noktasındayken düşmanın üzerinden uçup gitmesine sebep oluyordu.
+        protected override Vector3 GetExtraMotion()
         {
             if (!_baseYSet)
             {
@@ -21,11 +24,9 @@ namespace BlobSurvivor.Entities.Weapons
                 _baseYSet = true;
             }
 
-            base.Update();
-
-            Vector3 pos = transform.position;
-            pos.y = _baseY + Mathf.Sin(LifetimeFraction * Mathf.PI) * _arcHeight;
-            transform.position = pos;
+            float currentY = _baseY + Mathf.Sin(LifetimeFraction * Mathf.PI) * _arcHeight;
+            float nextY = _baseY + Mathf.Sin(NextLifetimeFraction * Mathf.PI) * _arcHeight;
+            return new Vector3(0f, nextY - currentY, 0f);
         }
 
         protected override void OnHitEnemy(EnemyBase enemy)

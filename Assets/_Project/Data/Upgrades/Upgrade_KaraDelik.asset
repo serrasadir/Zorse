@@ -10,18 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 69a39f692a12e49499b3cddabf07df41, type: 3}
-  m_Name: Upgrade_Vacuum
+  m_Name: Upgrade_KaraDelik
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
-  _id: vacuum
-  _displayName: Vakum
-  _description: "Karizman resmen elektrikli s\xFCp\xFCrge ayar\u0131na geldi."
+  _id: kara_delik
+  _displayName: Kara Delik
+  _description: "Uzanmaya \xFC\u015Fendin, hakl\u0131s\u0131n. Art\u0131k evren sana
+    geliyor."
   _icon: {fileID: 0}
-  _category: 2
+  _category: 4
   _weight: 10
   _effectValue: 0
   _effectDuration: 0
   _cooldown: 0
-  _effect: {fileID: 11400000, guid: 2bb2fe1b5b27949399df02cc785aa1c6, type: 2}
-  _maxLevel: 8
-  _perLevelValue: 0.5
-  _isEvolution: 0
+  _effect: {fileID: 11400000, guid: 4c4e5f515aa3a44cabdb9e469611129d, type: 2}
+  _maxLevel: 1
+  _perLevelValue: 0
+  _isEvolution: 1

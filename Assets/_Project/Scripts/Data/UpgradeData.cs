@@ -8,7 +8,8 @@ namespace BlobSurvivor.Data
         Mobility,
         Defense,
         Magnetic,
-        Weapon
+        Weapon,
+        Feeding // B16 (GDD_v2.md §5, Karar 5 — yeme birincil): sona eklendi, mevcut asset'lerin int değerleri kaymasın diye.
     }
 
     [CreateAssetMenu(fileName = "UpgradeData", menuName = "BlobSurvivor/Upgrade Data")]
@@ -29,6 +30,10 @@ namespace BlobSurvivor.Data
         [SerializeField] private int _maxLevel = 8;
         [SerializeField] private float _perLevelValue;
 
+        [Header("Evrim (B17)")]
+        [Tooltip("true ise UpgradePanel bu kartı görsel olarak (★ + altın renk) işaretler — EvolutionSystem tarafından havuza dinamik eklenen çıktı skillerinde kullanılır.")]
+        [SerializeField] private bool _isEvolution;
+
         public string Id => _id;
         public string DisplayName => _displayName;
         public string Description => _description;
@@ -41,5 +46,6 @@ namespace BlobSurvivor.Data
         public UpgradeEffect Effect => _effect;
         public int MaxLevel => _maxLevel;
         public float PerLevelValue => _perLevelValue;
+        public bool IsEvolution => _isEvolution;
     }
 }

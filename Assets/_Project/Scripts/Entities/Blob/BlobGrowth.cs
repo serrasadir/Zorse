@@ -38,6 +38,10 @@ namespace BlobSurvivor.Entities.Blob
         public float XPThreshold { get; private set; }
         public int CurrentLevel { get; private set; }
 
+        // B16 (Sindirim skill'i): yenen her şeyden kazanılan mass'ı çarpar. Mass=XP birleşik
+        // olduğu için (Karar 7) AddXP de aynı çarpılmış miktarı alır — ayrı bir XP çarpanına gerek yok.
+        private float _massGainMultiplier = 1f;
+
         private void Start()
         {
             transform.localScale = Vector3.one * _baseScale;
@@ -56,11 +60,14 @@ namespace BlobSurvivor.Entities.Blob
 
         public void AddMass(float amount)
         {
-            CurrentMass += amount;
+            float adjusted = amount * _massGainMultiplier;
+            CurrentMass += adjusted;
             RecalculateTier();
             GameEvents.RaiseBlobSizeChanged(CurrentMass);
-            AddXP(amount);
+            AddXP(adjusted);
         }
+
+        public void IncreaseMassGainMultiplier(float amount) => _massGainMultiplier += amount;
 
         private void AddXP(float amount)
         {

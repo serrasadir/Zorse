@@ -73,3 +73,6 @@ crashlytics-build.properties
 # Graphify output
 graphify-out/
 graphify-out.meta
+
+# Claude Code local tooling (settings, worktrees)
+.claude/

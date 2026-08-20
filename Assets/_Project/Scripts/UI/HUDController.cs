@@ -14,6 +14,10 @@ namespace BlobSurvivor.UI
         [Header("Health")]
         [SerializeField] private Slider _healthBar;
 
+        [Header("Boss Health (B18)")]
+        [SerializeField] private GameObject _bossHealthContainer;
+        [SerializeField] private Slider _bossHealthBar;
+
         [Header("Score & Timer")]
         [SerializeField] private TMP_Text _scoreText;
         [SerializeField] private TMP_Text _coinText;
@@ -40,6 +44,8 @@ namespace BlobSurvivor.UI
             EnsureRuntimeHudElements();
             if (_characterIcon != null)
                 _characterIcon.gameObject.SetActive(false);
+            if (_bossHealthContainer != null)
+                _bossHealthContainer.SetActive(false);
         }
 
         private void OnEnable()
@@ -55,6 +61,7 @@ namespace BlobSurvivor.UI
             GameEvents.OnCharacterSelected += OnCharacterSelected;
             GameEvents.OnGameOver += ClearBadges;
             GameEvents.OnGameOver += ClearCharacterIcon;
+            GameEvents.OnBossHealthChanged += OnBossHealthChanged;
         }
 
         private void OnDisable()
@@ -70,6 +77,22 @@ namespace BlobSurvivor.UI
             GameEvents.OnCharacterSelected -= OnCharacterSelected;
             GameEvents.OnGameOver -= ClearBadges;
             GameEvents.OnGameOver -= ClearCharacterIcon;
+            GameEvents.OnBossHealthChanged -= OnBossHealthChanged;
+        }
+
+        // B18: max<=0 => aktif boss yok (A15/A16 bu sözleşmeyle RaiseBossHealthChanged çağırıyor).
+        private void OnBossHealthChanged(float current, float max)
+        {
+            bool hasActiveBoss = max > 0f;
+
+            if (_bossHealthContainer != null)
+                _bossHealthContainer.SetActive(hasActiveBoss);
+
+            if (_bossHealthBar != null && hasActiveBoss)
+            {
+                _bossHealthBar.maxValue = max;
+                _bossHealthBar.value = current;
+            }
         }
 
         private void OnHealthChanged(float current, float max)

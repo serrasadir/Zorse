@@ -52,7 +52,11 @@ namespace BlobSurvivor.UI
                 if (!hasChoice) continue;
 
                 if (_upgradeNameTexts != null && i < _upgradeNameTexts.Length && _upgradeNameTexts[i] != null)
-                    _upgradeNameTexts[i].text = choices[i].DisplayName;
+                {
+                    // B17: evrim çıktısı kartları ★ + altın renkle işaretlenir (mevcut kart sistemine ek görsel işaret, ayrı ekran yok).
+                    _upgradeNameTexts[i].text = choices[i].IsEvolution ? $"★ {choices[i].DisplayName}" : choices[i].DisplayName;
+                    _upgradeNameTexts[i].color = choices[i].IsEvolution ? new Color(1f, 0.82f, 0.25f, 1f) : Color.white;
+                }
 
                 if (_upgradeDescTexts != null && i < _upgradeDescTexts.Length && _upgradeDescTexts[i] != null)
                     _upgradeDescTexts[i].text = choices[i].Description;
