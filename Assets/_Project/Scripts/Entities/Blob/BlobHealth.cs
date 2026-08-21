@@ -18,10 +18,28 @@ namespace BlobSurvivor.Entities.Blob
         private float _armorMultiplier = 1f;
         private float _regenTimer;
         private bool _regenEnabled;
+        private float _baseMaxHealth;
+
+        private void Awake()
+        {
+            _baseMaxHealth = _maxHealth;
+        }
 
         private void Start()
         {
             CurrentHealth = _maxHealth;
+            GameEvents.RaiseHealthChanged(CurrentHealth, _maxHealth);
+        }
+
+        // M22: restart aynı BlobHealth instance'ını yeniden kullanıyor (sahne reload yok) — bu metod
+        // olmadan Zırh/Rejenerasyon/Max Can skill'leri bir önceki run'dan sızardı, ve meta Max Can
+        // bonusu (GameManager.ApplyMetaProgression) her restart'ta üst üste eklenip katlanırdı.
+        public void ResetHealth()
+        {
+            _maxHealth = _baseMaxHealth;
+            CurrentHealth = _maxHealth;
+            _armorMultiplier = 1f;
+            DisableRegen();
             GameEvents.RaiseHealthChanged(CurrentHealth, _maxHealth);
         }
 

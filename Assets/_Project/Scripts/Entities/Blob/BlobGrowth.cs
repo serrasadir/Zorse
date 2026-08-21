@@ -38,9 +38,13 @@ namespace BlobSurvivor.Entities.Blob
         public float XPThreshold { get; private set; }
         public int CurrentLevel { get; private set; }
 
-        // B16 (Sindirim skill'i): yenen her şeyden kazanılan mass'ı çarpar. Mass=XP birleşik
-        // olduğu için (Karar 7) AddXP de aynı çarpılmış miktarı alır — ayrı bir XP çarpanına gerek yok.
+        // B16 (Sindirim skill'i) + M22 (meta "Mass Kazanımı" bonusu): yenen her şeyden kazanılan
+        // mass'ı çarpar. Mass=XP birleşik olduğu için (Karar 7) AddXP de bu çarpılmış miktarı alır.
         private float _massGainMultiplier = 1f;
+
+        // M22: meta "XP Çarpanı" bonusu — mass/boyutu etkilemeden sadece leveling hızını artırır
+        // (Mass Kazanımı'ndan bilinçli olarak ayrı, GDD'de de iki ayrı Market kalemi).
+        private float _xpBonusMultiplier = 1f;
 
         private void Start()
         {
@@ -69,9 +73,17 @@ namespace BlobSurvivor.Entities.Blob
 
         public void IncreaseMassGainMultiplier(float amount) => _massGainMultiplier += amount;
 
+        // M22: GameManager.ApplyMetaProgression her run başında (fresh start + restart) çağırır —
+        // overwrite (increment değil), böylece bir önceki run'ın Sindirim skill birikimi de temizlenmiş olur.
+        public void ApplyMetaBonuses(float massGainBonus, float xpBonus)
+        {
+            _massGainMultiplier = 1f + massGainBonus;
+            _xpBonusMultiplier = 1f + xpBonus;
+        }
+
         private void AddXP(float amount)
         {
-            CurrentXP += amount;
+            CurrentXP += amount * _xpBonusMultiplier;
             GameEvents.RaiseXPChanged((int)CurrentXP);
 
             while (CurrentXP >= XPThreshold)
@@ -94,6 +106,8 @@ namespace BlobSurvivor.Entities.Blob
             CurrentLevel = 0;
             XPThreshold = _baseXPThreshold;
             transform.localScale = Vector3.one * _baseScale;
+            _massGainMultiplier = 1f;
+            _xpBonusMultiplier = 1f;
 
             BlobTier previousTier = CurrentTier;
             CurrentTier = BlobTier.Tiny;

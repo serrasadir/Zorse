@@ -14,6 +14,9 @@ namespace BlobSurvivor.Systems
         public float ScoreMultiplier { get; private set; } = 1f;
         public int Coins { get; private set; }
 
+        // M22: Market'ten satın alınan "Coin Kazanımı" kalıcı bonusu (GameManager.ApplyMetaProgression).
+        private float _coinGainMultiplier = 1f;
+
         private void Awake()
         {
             HighScore = PlayerPrefs.GetInt(HighScoreKey, 0);
@@ -38,15 +41,18 @@ namespace BlobSurvivor.Systems
         public void AddCoin(int amount)
         {
             if (amount <= 0) return;
-            Coins += amount;
+            Coins += Mathf.RoundToInt(amount * _coinGainMultiplier);
             GameEvents.RaiseCoinsChanged(Coins);
         }
+
+        public void SetCoinGainMultiplier(float multiplier) => _coinGainMultiplier = Mathf.Max(1f, multiplier);
 
         public void ResetScore()
         {
             CurrentScore = 0;
             ScoreMultiplier = 1f;
             Coins = 0;
+            _coinGainMultiplier = 1f;
             PreviousHighScore = HighScore;
             HasNewHighScore = false;
             GameEvents.RaiseScoreChanged(CurrentScore);

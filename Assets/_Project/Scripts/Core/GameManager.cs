@@ -2,6 +2,7 @@ using UnityEngine;
 using BlobSurvivor.Data;
 using BlobSurvivor.Entities.Blob;
 using BlobSurvivor.Entities.Weapons;
+using BlobSurvivor.Systems.Meta;
 
 namespace BlobSurvivor.Core
 {
@@ -105,11 +106,13 @@ namespace BlobSurvivor.Core
             // kalan silah/pasif bileşenlerini temizlemeden ApplyCharacter tekrar çağrılırsa
             // silah çiftlenir ve pasifler (örn. VacuumComponent.Radius) stack'lenir.
             ClearPreviousRunState(blob);
+            ApplyMetaProgression(blob, character);
 
             switch (character.PassiveType)
             {
                 case CharacterPassiveType.MoveSpeed:
-                    blob.GetComponent<BlobController>()?.SetSpeedMultiplier(1f + character.PassiveValue);
+                    // M22: hız artık ApplyMetaProgression'da meta bonusuyla birlikte tek seferde set ediliyor
+                    // (aksi halde burada overwrite edilip meta bonusu kaybolurdu).
                     break;
                 case CharacterPassiveType.MagnetPull:
                     VacuumComponent vacuum = blob.AddComponent<VacuumComponent>();
@@ -139,6 +142,30 @@ namespace BlobSurvivor.Core
             if (oldWeapon != null) Destroy(oldWeapon.gameObject);
 
             blob.GetComponent<BlobGrowth>()?.ResetGrowth();
+            blob.GetComponent<BlobHealth>()?.ResetHealth();
+        }
+
+        // M22 (GDD §8): Market'te satın alınan kalıcı statlar her run başında (fresh start + restart)
+        // uygulanır. ClearPreviousRunState'ten SONRA çağrılmalı — Reset*() metodları önce temiz tabana
+        // dönmeli, meta bonusu ondan sonra üzerine binmeli (aksi halde restart'ta katlanır).
+        private void ApplyMetaProgression(GameObject blob, CharacterData character)
+        {
+            MetaProgression meta = MetaProgression.Instance;
+            float speedBonus = meta != null ? meta.SpeedBonus : 0f;
+            float maxHealthBonus = meta != null ? meta.MaxHealthBonus : 0f;
+            float massGainBonus = meta != null ? meta.MassGainBonus : 0f;
+            float coinGainBonus = meta != null ? meta.CoinGainBonus : 0f;
+            float xpBonus = meta != null ? meta.XpMultiplierBonus : 0f;
+
+            float characterSpeedBonus = character.PassiveType == CharacterPassiveType.MoveSpeed ? character.PassiveValue : 0f;
+            blob.GetComponent<BlobController>()?.SetSpeedMultiplier(1f + characterSpeedBonus + speedBonus);
+
+            if (maxHealthBonus > 0f)
+                blob.GetComponent<BlobHealth>()?.IncreaseMaxHealth(maxHealthBonus);
+
+            blob.GetComponent<BlobGrowth>()?.ApplyMetaBonuses(massGainBonus, xpBonus);
+
+            FindAnyObjectByType<Systems.ScoreSystem>()?.SetCoinGainMultiplier(1f + coinGainBonus);
         }
 
         public void PauseGame()
