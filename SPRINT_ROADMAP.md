@@ -93,7 +93,7 @@
 
 ## Sprint 5 — Market & Meta İlerleme (GDD §8)
 
-**Amaç:** MVP dikey dilimin son parçası — run içi coin'in kalıcı ilerlemeye dönüşmesi. Lansman kapsamı: 1 karakter unlock (Mıknato) + 4 düz kalıcı stat + XP çarpanı, 6 kalemlik Market.
+**Amaç:** MVP dikey dilimin son parçası — run içi coin'in kalıcı ilerlemeye dönüşmesi. Lansman kapsamı: 1 karakter unlock (Mıknato) + 4 düz kalıcı stat + XP çarpanı, 6 kalemlik Market. Ayrıca GDD_v2.md Karar 14 — yaya (sivil NPC) sistemi.
 
 **Not:** Bahar (Dev B) izinli, bu sprint tek dev (Serra) yürütüyor — A/B dosya-sahipliği ayrımına gerek yok, tek sıralı liste. Kod yine tamamen assistant tarafından yazılıyor, Editor kurulumu Serra'da.
 
@@ -103,6 +103,7 @@
 | **M21** | Market UI ekranı — 6 kalem: Mıknato unlock (500), +%5 Hız, +10 Max HP, +%5 Mass kazancı, +%5 Coin kazancı (hepsi artan maliyetli), XP Çarpanı +%10 (1000) | yeni `UI/MarketPanel.cs` | M20 |
 | **M22** | Kalıcı statların run başında uygulanması — `GameManager.StartGame()`/`ApplyCharacter` akışına meta bonus katmanı | `GameManager.cs` | M20 |
 | **M23** | Lobby ↔ Market giriş/çıkış butonu | `LobbyPanel.cs` | M21 |
+| **M24** | Yaya (sivil NPC) sistemi — GDD Karar 14: blob küçükken normal yürür (wander), yutma eşiğine yakınsa kaçar (flee), yutulabilir; animasyonsuz sinüs-bob hareketi, sürü düşmanlarıyla aynı ajan bütçesini paylaşır | yeni `Data/PedestrianData.cs`, `Entities/Pedestrians/PedestrianController.cs`, `Entities/Pedestrians/PedestrianSpawner.cs` | — |
 
 **Kritik senkron:** M21/M22 → M20 (data katmanı önce, UI ve runtime uygulama ondan sonra).
 

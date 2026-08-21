@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e5db3e842d74b5b9fcae602562d0b9f, type: 3}
+  m_Name: PedestrianData
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.PedestrianData
+  _displayName: Yaya
+  _prefab: {fileID: 209580712890757938, guid: be199e5ee95de46269568247027f187d, type: 3}
+  _scoreValue: 1
+  _massValue: 1
+  _objectSize: 0.5
+  _requiredTier: 2
+  _isHazard: 0
+  _hazardAmount: 0
+  _spawnYOffset: 0.75
+  _moveSpeed: 1
+  _fleeSpeed: 3
+  _wanderRadius: 8
+  _fleeTriggerDistance: 6
+  _bobHeight: 0.08
+  _bobSpeed: 6

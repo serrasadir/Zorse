@@ -29,6 +29,7 @@ Bu bölüm dokümanın anayasasıdır. Her karar kurulun raporlarındaki bir bul
 | 11 | Ertelemeler | Hava durumu, NG+, Grimoire UI, karakter meta ağaçları → **post-launch** |
 | 12 | Harita | **Lansmanda 1 cilalı harita** (Modern Şehir); Medieval = ilk içerik güncellemesi |
 | 13 | Go-to-market | **Self-publish + organik**; test pazarında soft launch, creator odaklı büyüme |
+| 14 | Yaya (sivil NPC) | **Eklendi** (20 Ağu 2026, Serra) — şehirde dolaşan, saldırmayan NPC'ler; blob küçükken normal yürür, yutma eşiğine yaklaşınca kaçar, yutulabilir. Animasyonsuz (sinüs bob hareketi) — perf maliyeti sıfıra yakın, sürü polisle aynı ajan bütçesini paylaşır. Sprint 5 kapsamı |
 
 **⏸️ Açık kararlar** (bkz. §16): Score Multiplier kartın kaderi · nihai oyun adı.
 
@@ -212,6 +213,14 @@ Her düşman ölümü/yutulması **mutlaka** coin düşürür ve `OnEnemyDied` e
 - Sürü düşmanları: basit steering (blob'a yönel + komşudan ayrıl, spatial hash). **NavMeshAgent kullanmaz.**
 - Elit + boss: NavMeshAgent (aynı anda ≤8–10 agent).
 - Sprint öncesi 1 haftalık steering spike zorunlu iş olarak roadmap'tedir.
+
+### Sivil NPC'ler (Yayalar) — Karar 14
+- Şehirde serbestçe dolaşan, düşman **olmayan** NPC'ler; saldırmazlar, sadece dünyayı canlandırırlar ve ek bir yutulabilir kaynak sağlarlar.
+- **Davranış:** Blob küçükken normal yürür (rastgele waypoint — sürü düşmanlarının `PatrolState`'iyle aynı desen). Blob'un tier'ı yaya için tanımlı yutma eşiğini geçip yakına gelince paniklenip blob'dan uzağa kaçar.
+- **Yutulma:** Eşik tier'ından itibaren yutulabilir consumable gibi davranır (küçük mass/coin ödülü). Düşman olmadıkları için §7'nin "asla ödülsüz ölüm yok" kuralına tabi değiller — coin garantisi yok, sadece bonus.
+- **Görsel:** Bilinçli olarak **animasyonsuz** — gerçek yürüme animasyonu (Animator/SkinnedMeshRenderer) yerine, Cannon mermisinin yay hareketinde kullanılan aynı teknikle (sinüs eğrisi) basit bir yukarı-aşağı "bob" hareketi. Mevcut `Enemy_Police` prefab'ı da zaten animasyonsuz olduğu için bu, ek bir maliyet sınıfı açmıyor.
+- **Performans:** Sürü düşmanlarıyla (yukarıdaki Mimari) **aynı eşzamanlı-ajan bütçesini paylaşır** — ayrı/ek bir tavan değil.
+- **Kapsam:** Sprint 5 (M24).
 
 ---
 

@@ -7,6 +7,10 @@ namespace BlobSurvivor.Core
     {
         public static event Action<float> OnBlobSizeChanged;
         public static event Action<BlobTier> OnBlobTierChanged;
+        // M25: consumable'ların spawn/pool-reuse anında (event'i kaçırmış olsalar bile) blob'un güncel
+        // tier'ını senkron okuyabilmesi için — ConsumableBase.SetData/OnEnable bunu Find/GetComponent
+        // yapmadan okur.
+        public static BlobTier CurrentBlobTier { get; private set; } = BlobTier.Tiny;
         public static event Action<int> OnScoreChanged;
         public static event Action<int> OnXPChanged;
         public static event Action<int> OnLevelUp;
@@ -29,7 +33,11 @@ namespace BlobSurvivor.Core
         public static event Action<RunEndReason> OnRunComplete;
 
         public static void RaiseBlobSizeChanged(float newSize) => OnBlobSizeChanged?.Invoke(newSize);
-        public static void RaiseBlobTierChanged(BlobTier tier) => OnBlobTierChanged?.Invoke(tier);
+        public static void RaiseBlobTierChanged(BlobTier tier)
+        {
+            CurrentBlobTier = tier;
+            OnBlobTierChanged?.Invoke(tier);
+        }
         public static void RaiseScoreChanged(int score) => OnScoreChanged?.Invoke(score);
         public static void RaiseXPChanged(int xp) => OnXPChanged?.Invoke(xp);
         public static void RaiseLevelUp(int level) => OnLevelUp?.Invoke(level);
