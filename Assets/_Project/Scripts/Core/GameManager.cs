@@ -137,6 +137,8 @@ namespace BlobSurvivor.Core
 
             WeaponBase oldWeapon = blob.GetComponentInChildren<WeaponBase>();
             if (oldWeapon != null) Destroy(oldWeapon.gameObject);
+
+            blob.GetComponent<BlobGrowth>()?.ResetGrowth();
         }
 
         public void PauseGame()

@@ -83,6 +83,27 @@ namespace BlobSurvivor.Entities.Blob
             }
         }
 
+        // 2026-08-22 bug fix: restart aynı BlobGrowth instance'ını yeniden kullanıyor (sahne reload yok),
+        // bu metod olmadan CurrentMass/CurrentTier bir önceki run'ın bitişindeki değerde kalıyordu —
+        // GameManager.ClearPreviousRunState() bunu çağırır. _massGainMultiplier (Sindirim skill'i) kasıtlı
+        // olarak dokunulmuyor — o ayrı, hâlâ açık bir restart-cleanup eksiği (bkz. CLAUDE.md).
+        public void ResetGrowth()
+        {
+            CurrentMass = 0f;
+            CurrentXP = 0f;
+            CurrentLevel = 0;
+            XPThreshold = _baseXPThreshold;
+            transform.localScale = Vector3.one * _baseScale;
+
+            BlobTier previousTier = CurrentTier;
+            CurrentTier = BlobTier.Tiny;
+
+            GameEvents.RaiseBlobSizeChanged(CurrentMass);
+            GameEvents.RaiseXPChanged((int)CurrentXP);
+            if (previousTier != CurrentTier)
+                GameEvents.RaiseBlobTierChanged(CurrentTier);
+        }
+
         public void RemoveMass(float amount)
         {
             CurrentMass = Mathf.Max(0f, CurrentMass - amount);
