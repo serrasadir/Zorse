@@ -15,6 +15,12 @@ namespace BlobSurvivor.UI
         [SerializeField] private Image[] _icons;
         [SerializeField] private TMP_Text[] _nameTexts;
 
+        // M23: Market'e giriş — MarketPanel'in kendi "geri" butonu buraya değil, bu script'e bağımlı
+        // olmadan LobbyPanel.Show + MarketPanel.Hide'ı Inspector'da iki ayrı OnClick listener olarak
+        // wire ediyor (döngüsel script referansına gerek kalmadı).
+        [SerializeField] private Button _marketButton;
+        [SerializeField] private MarketPanel _marketPanel;
+
         private void Start()
         {
             if (_panel != null) _panel.SetActive(true);
@@ -33,6 +39,21 @@ namespace BlobSurvivor.UI
                 if (_nameTexts != null && index < _nameTexts.Length && _nameTexts[index] != null)
                     _nameTexts[index].text = _characters[index].DisplayName;
             }
+
+            if (_marketButton != null)
+                _marketButton.onClick.AddListener(OpenMarket);
+        }
+
+        // M23: MarketPanel'in "geri" butonu Inspector'dan bunu çağırır.
+        public void Show()
+        {
+            if (_panel != null) _panel.SetActive(true);
+        }
+
+        private void OpenMarket()
+        {
+            if (_panel != null) _panel.SetActive(false);
+            _marketPanel?.Show();
         }
 
         private void OnCharacterSelected(CharacterData data)
