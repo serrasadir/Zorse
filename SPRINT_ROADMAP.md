@@ -104,6 +104,7 @@
 | **M22** | Kalıcı statların run başında uygulanması — `GameManager.StartGame()`/`ApplyCharacter` akışına meta bonus katmanı | `GameManager.cs` | M20 |
 | **M23** | Lobby ↔ Market giriş/çıkış butonu | `LobbyPanel.cs` | M21 |
 | **M24** | Yaya (sivil NPC) sistemi — GDD Karar 14: blob küçükken normal yürür (wander), yutma eşiğine yakınsa kaçar (flee), yutulabilir; animasyonsuz sinüs-bob hareketi, sürü düşmanlarıyla aynı ajan bütçesini paylaşır | yeni `Data/PedestrianData.cs`, `Entities/Pedestrians/PedestrianController.cs`, `Entities/Pedestrians/PedestrianSpawner.cs` | — |
+| **M25** | Blob'un tier'ı yetmediği consumable/yayalara fiziksel çarpma — Blob'un mevcut solid collider'ı + event-driven `isTrigger` toggle (`GameEvents.CurrentBlobTier`), per-frame maliyeti yok; hazard'lar davranışın dışında | `Core/GameEvents.cs`, `Entities/Consumables/ConsumableBase.cs` | M24 (Serra'nın yaya testi sırasında istendi, sprint planında yoktu) |
 
 **Kritik senkron:** M21/M22 → M20 (data katmanı önce, UI ve runtime uygulama ondan sonra).
 
