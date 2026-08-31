@@ -34,6 +34,14 @@ namespace BlobSurvivor.Entities.Pedestrians
         private bool _fleeing;
         private bool _wanderTargetSet;
 
+#if UNITY_EDITOR
+        // Geçici tanı: iki fix denemesi de yetmedi, gerçek veri lazım. Sadece "takılı" durumda
+        // (spam olmasın diye) loglar — normal hareket sırasında sessiz.
+        private Vector3 _lastTickPosition;
+        private float _stuckSeconds;
+        private float _lastStuckLogTime;
+#endif
+
         private PedestrianData PedData => Data as PedestrianData;
 
         protected override void OnEnable()
@@ -76,11 +84,40 @@ namespace BlobSurvivor.Entities.Pedestrians
                 _aiTimer = AIUpdateInterval;
                 UpdateFleeState();
                 _avoidanceCached = ComputeAvoidance();
+
+#if UNITY_EDITOR
+                DiagnoseStuck();
+#endif
             }
 
             Move();
             ApplyBob();
         }
+
+#if UNITY_EDITOR
+        private void DiagnoseStuck()
+        {
+            float movedSinceLastTick = (transform.position - _lastTickPosition).sqrMagnitude;
+            _lastTickPosition = transform.position;
+
+            if (movedSinceLastTick > 0.01f)
+            {
+                _stuckSeconds = 0f;
+                return;
+            }
+
+            _stuckSeconds += AIUpdateInterval;
+            if (_stuckSeconds >= 1.5f && Time.time - _lastStuckLogTime > 2f)
+            {
+                _lastStuckLogTime = Time.time;
+                Vector3 seek = _fleeing && _blobTransform != null
+                    ? transform.position - _blobTransform.position
+                    : _wanderTarget - transform.position;
+                bool rayHit = Physics.Raycast(transform.position, seek.normalized, out RaycastHit hit, _avoidanceLookahead, s_environmentMask);
+                Debug.Log($"[PedestrianController] {name} {_stuckSeconds:F1}s'dir takılı — pos={transform.position}, target={_wanderTarget}, fleeing={_fleeing}, seekDist={seek.magnitude:F2}, avoidance={_avoidanceCached}, rayHit={(rayHit ? hit.collider.name : "yok")}");
+            }
+        }
+#endif
 
         private Vector3 ComputeAvoidance()
         {
