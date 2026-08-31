@@ -17,7 +17,7 @@ Bu bölüm dokümanın anayasasıdır. Her karar kurulun raporlarındaki bir bul
 | # | Karar | Sonuç |
 |---|-------|-------|
 | 1 | Run süresi | **12–15 dakika** (20–30 dk ve 5–10 dk vizyonları iptal) |
-| 2 | Düşman ölçeği | ~~150–200 eşzamanlı~~ → **REVİZE (31 Ağu, Serra):** gerçekçilik gerekçesiyle **maks 15 eşzamanlı polis** (ölünce yenisi spawn olur, havuz sürekli dolu) + **maks 25 yaya**; sürü = basit steering, NavMesh sadece elit/boss |
+| 2 | Düşman ölçeği | ~~150–200 eşzamanlı~~ → **REVİZE (31 Ağu, Serra) — ⚠️ taslak, henüz ekip onayı yok:** gerçekçilik gerekçesiyle **maks 15 eşzamanlı polis** (ölünce yenisi spawn olur, havuz sürekli dolu) + **maks 25 yaya**; sürü = basit steering, NavMesh sadece elit/boss. Kod tarafına uygulandı ama sayılar Hüma ve Bahar ile henüz konuşulmadı — kesinleşince bu not silinecek. |
 | 3 | Platform | **Mobil önce, F2P** (kurul önerisinin tersi — bilinçli tercih). PC/Steam premium = post-launch port |
 | 4 | Sanat yönü | **2.5D stilize 3D** (16-bit pixel art vizyonu iptal); gotik palet korunur |
 | 5 | Ana fiil | **Yeme birincil, silah destek** — tier büyüdükçe sürü düşmanları yutulur |
