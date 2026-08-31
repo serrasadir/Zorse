@@ -34,14 +34,6 @@ namespace BlobSurvivor.Entities.Pedestrians
         private bool _fleeing;
         private bool _wanderTargetSet;
 
-#if UNITY_EDITOR
-        // Geçici tanı: iki fix denemesi de yetmedi, gerçek veri lazım. Sadece "takılı" durumda
-        // (spam olmasın diye) loglar — normal hareket sırasında sessiz.
-        private Vector3 _lastTickPosition;
-        private float _stuckSeconds;
-        private float _lastStuckLogTime;
-#endif
-
         private PedestrianData PedData => Data as PedestrianData;
 
         protected override void OnEnable()
@@ -84,40 +76,11 @@ namespace BlobSurvivor.Entities.Pedestrians
                 _aiTimer = AIUpdateInterval;
                 UpdateFleeState();
                 _avoidanceCached = ComputeAvoidance();
-
-#if UNITY_EDITOR
-                DiagnoseStuck();
-#endif
             }
 
             Move();
             ApplyBob();
         }
-
-#if UNITY_EDITOR
-        private void DiagnoseStuck()
-        {
-            float movedSinceLastTick = (transform.position - _lastTickPosition).sqrMagnitude;
-            _lastTickPosition = transform.position;
-
-            if (movedSinceLastTick > 0.01f)
-            {
-                _stuckSeconds = 0f;
-                return;
-            }
-
-            _stuckSeconds += AIUpdateInterval;
-            if (_stuckSeconds >= 1.5f && Time.time - _lastStuckLogTime > 2f)
-            {
-                _lastStuckLogTime = Time.time;
-                Vector3 seek = _fleeing && _blobTransform != null
-                    ? transform.position - _blobTransform.position
-                    : _wanderTarget - transform.position;
-                bool rayHit = Physics.Raycast(transform.position, seek.normalized, out RaycastHit hit, _avoidanceLookahead, s_environmentMask);
-                Debug.Log($"[PedestrianController] {name} {_stuckSeconds:F1}s'dir takılı — pos={transform.position}, target={_wanderTarget}, fleeing={_fleeing}, seekDist={seek.magnitude:F2}, avoidance={_avoidanceCached}, rayHit={(rayHit ? hit.collider.name : "yok")}");
-            }
-        }
-#endif
 
         private Vector3 ComputeAvoidance()
         {
@@ -155,13 +118,9 @@ namespace BlobSurvivor.Entities.Pedestrians
         private const int WanderTargetMaxAttempts = 5;
 
         // Bina gibi engeller NavMesh'te delik açtığında rastgele hedef bir binanın içine denk
-        // gelebilir. İLK VERSİYONDA (2026-08-31) bulunamayınca _wanderTarget hiç güncellenmiyordu —
-        // yaya zaten o hedefe ulaşmış olduğu için "hedefe ulaştım -> yeni hedef seç -> yine
-        // başarısız" döngüsüne girip kalıcı olarak yerinde sayıyordu (Move() her frame erken
-        // dönüyor ama ApplyBob() ondan sonra koşulsuz çağrıldığı için bob animasyonu devam
-        // ediyordu — Serra'nın gözlemlediği "yürümeyi bıraktı ama animasyon sürdü" bug'ı buydu).
-        // Düzeltme: birkaç kez dene, hepsi başarısız olursa spawn noktasına dön (spawn anında
-        // zaten NavMesh'te doğrulanmıştı) — _wanderTarget her çağrıda kesin bir değer alır.
+        // gelebilir — birkaç kez dene, hepsi başarısız olursa spawn noktasına dön (spawn anında
+        // zaten NavMesh'te doğrulanmıştı). yOverride olarak _spawnCenter.y kullanılıyor (0f DEĞİL —
+        // 2026-08-31'de burada 0f sabitlemek gerçek kök sebepti, bkz. Move()'daki not).
         private void PickNewWanderTarget()
         {
             for (int i = 0; i < WanderTargetMaxAttempts; i++)
@@ -169,7 +128,7 @@ namespace BlobSurvivor.Entities.Pedestrians
                 Vector2 offset = Random.insideUnitCircle * PedData.WanderRadius;
                 Vector3 candidate = _spawnCenter + new Vector3(offset.x, 0f, offset.y);
 
-                if (SpawnPositionUtility.TryFindNavMeshPosition(candidate, 0f, 3f, out Vector3 valid))
+                if (SpawnPositionUtility.TryFindNavMeshPosition(candidate, _spawnCenter.y, 3f, out Vector3 valid))
                 {
                     _wanderTarget = valid;
                     return;
@@ -192,6 +151,11 @@ namespace BlobSurvivor.Entities.Pedestrians
             else
             {
                 direction = _wanderTarget - transform.position;
+                // KRİTİK: Y düzleştirmesi burada, "ulaştım mı" kontrolünden ÖNCE yapılmalı —
+                // aksi halde spawn/bob yüksekliği farkı (~0.75-0.85) 3D mesafeyi şişirip eşiği
+                // (0.04) hep aştırıyor, "ulaştım" hiç tetiklenmiyor; X/Z'de gerçekten hedefe
+                // varan yaya hiç yeni hedef seçmeden kalıcı duruyordu (kök sebep buydu).
+                direction.y = 0f;
                 if (direction.sqrMagnitude < 0.04f)
                 {
                     PickNewWanderTarget();
