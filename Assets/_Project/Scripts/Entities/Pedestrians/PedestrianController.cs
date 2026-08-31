@@ -1,6 +1,7 @@
 using UnityEngine;
 using BlobSurvivor.Data;
 using BlobSurvivor.Entities.Blob;
+using BlobSurvivor.Systems;
 
 namespace BlobSurvivor.Entities.Pedestrians
 {
@@ -82,10 +83,16 @@ namespace BlobSurvivor.Entities.Pedestrians
                 PickNewWanderTarget();
         }
 
+        // Bina gibi engeller NavMesh'te delik açtığında rastgele hedef bir binanın içine denk
+        // gelebilir — bulunamazsa mevcut hedef korunur, Move()'daki "hedefe ulaştı" kontrolü
+        // zaten periyodik olarak bu metodu tekrar tetikliyor, bir sonraki denemede düzelir.
         private void PickNewWanderTarget()
         {
             Vector2 offset = Random.insideUnitCircle * PedData.WanderRadius;
-            _wanderTarget = _spawnCenter + new Vector3(offset.x, 0f, offset.y);
+            Vector3 candidate = _spawnCenter + new Vector3(offset.x, 0f, offset.y);
+
+            if (SpawnPositionUtility.TryFindNavMeshPosition(candidate, 0f, 3f, out Vector3 valid))
+                _wanderTarget = valid;
         }
 
         private void Move()

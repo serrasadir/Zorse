@@ -87,7 +87,8 @@ namespace BlobSurvivor.Entities
             ConsumableData data = GetRandomDataForTier(maxTier);
             if (data == null || !_pools.ContainsKey(data)) return;
 
-            Vector3 spawnPos = GetRandomSpawnPosition(data.SpawnYOffset);
+            if (!TryGetSpawnPosition(data.SpawnYOffset, out Vector3 spawnPos)) return;
+
             ConsumableBase instance = _pools[data].Get(spawnPos, Quaternion.identity);
             instance.SetData(data);
             _activeConsumables.Add(instance.gameObject);
@@ -104,11 +105,16 @@ namespace BlobSurvivor.Entities
             return valid[Random.Range(0, valid.Count)];
         }
 
-        private Vector3 GetRandomSpawnPosition(float yOffset = 0f)
+        // Greybox/gerçek bina engelleri NavMesh'te delik açtığında rastgele nokta bir binanın
+        // içine denk gelebilir — bu spawn denemesi o zaman atlanır, bir dahaki refill tick'inde
+        // yeniden denenir (bkz. SpawnPositionUtility).
+        private bool TryGetSpawnPosition(float yOffset, out Vector3 spawnPos)
         {
             Vector3 center = _blobTransform != null ? _blobTransform.position : Vector3.zero;
             Vector2 randomCircle = Random.insideUnitCircle.normalized * Random.Range(_minSpawnDistance, _spawnRadius);
-            return new Vector3(center.x + randomCircle.x, yOffset, center.z + randomCircle.y);
+            Vector3 candidate = new Vector3(center.x + randomCircle.x, yOffset, center.z + randomCircle.y);
+
+            return SpawnPositionUtility.TryFindNavMeshPosition(candidate, yOffset, 5f, out spawnPos);
         }
 
         // B14: normal yeme akışı için pool return — ConsumeAndSplit'teki pattern'in genel hali.

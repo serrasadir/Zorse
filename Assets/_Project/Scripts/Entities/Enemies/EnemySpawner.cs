@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI;
 using BlobSurvivor.Core;
 using BlobSurvivor.Data;
 using BlobSurvivor.Systems;
@@ -66,10 +65,11 @@ namespace BlobSurvivor.Entities.Enemies
             EnemyBase prefabBase = data.Prefab.GetComponent<EnemyBase>();
             if (prefabBase == null) return;
 
+            if (!TryGetSpawnPosition(out Vector3 spawnPos)) return;
+
             if (!_pools.ContainsKey(data))
                 _pools[data] = PoolManager.Instance.CreatePool(prefabBase, 5);
 
-            Vector3 spawnPos = GetSpawnPosition();
             EnemyBase enemy = _pools[data].Get(spawnPos, Quaternion.identity);
             enemy.WarpTo(spawnPos);
             enemy.SetData(data, _waveController.DamageMultiplier, _waveController.SpeedMultiplier);
@@ -115,16 +115,16 @@ namespace BlobSurvivor.Entities.Enemies
 
         private const float EnemySpawnY = 0.65f;
 
-        private Vector3 GetSpawnPosition()
+        // Greybox/gerçek bina engelleri NavMesh'te delik açtığında rastgele nokta bir binanın
+        // içine denk gelebilir — SpawnPositionUtility en yakın geçerli noktaya snap eder,
+        // bulamazsa (false) bu spawn denemesi atlanır, bir dahaki tick'te yeniden denenir.
+        private bool TryGetSpawnPosition(out Vector3 spawnPos)
         {
             Vector3 center = _blobTransform != null ? _blobTransform.position : Vector3.zero;
             Vector2 random = Random.insideUnitCircle.normalized * _spawnDistance;
             Vector3 candidate = new Vector3(center.x + random.x, EnemySpawnY, center.z + random.y);
 
-            if (NavMesh.SamplePosition(candidate, out NavMeshHit hit, 5f, NavMesh.AllAreas))
-                return new Vector3(hit.position.x, EnemySpawnY, hit.position.z);
-
-            return candidate;
+            return SpawnPositionUtility.TryFindNavMeshPosition(candidate, EnemySpawnY, 5f, out spawnPos);
         }
 
         private void CleanupInactive()
