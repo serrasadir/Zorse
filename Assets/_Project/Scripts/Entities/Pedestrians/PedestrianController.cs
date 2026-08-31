@@ -83,16 +83,31 @@ namespace BlobSurvivor.Entities.Pedestrians
                 PickNewWanderTarget();
         }
 
+        private const int WanderTargetMaxAttempts = 5;
+
         // Bina gibi engeller NavMesh'te delik açtığında rastgele hedef bir binanın içine denk
-        // gelebilir — bulunamazsa mevcut hedef korunur, Move()'daki "hedefe ulaştı" kontrolü
-        // zaten periyodik olarak bu metodu tekrar tetikliyor, bir sonraki denemede düzelir.
+        // gelebilir. İLK VERSİYONDA (2026-08-31) bulunamayınca _wanderTarget hiç güncellenmiyordu —
+        // yaya zaten o hedefe ulaşmış olduğu için "hedefe ulaştım -> yeni hedef seç -> yine
+        // başarısız" döngüsüne girip kalıcı olarak yerinde sayıyordu (Move() her frame erken
+        // dönüyor ama ApplyBob() ondan sonra koşulsuz çağrıldığı için bob animasyonu devam
+        // ediyordu — Serra'nın gözlemlediği "yürümeyi bıraktı ama animasyon sürdü" bug'ı buydu).
+        // Düzeltme: birkaç kez dene, hepsi başarısız olursa spawn noktasına dön (spawn anında
+        // zaten NavMesh'te doğrulanmıştı) — _wanderTarget her çağrıda kesin bir değer alır.
         private void PickNewWanderTarget()
         {
-            Vector2 offset = Random.insideUnitCircle * PedData.WanderRadius;
-            Vector3 candidate = _spawnCenter + new Vector3(offset.x, 0f, offset.y);
+            for (int i = 0; i < WanderTargetMaxAttempts; i++)
+            {
+                Vector2 offset = Random.insideUnitCircle * PedData.WanderRadius;
+                Vector3 candidate = _spawnCenter + new Vector3(offset.x, 0f, offset.y);
 
-            if (SpawnPositionUtility.TryFindNavMeshPosition(candidate, 0f, 3f, out Vector3 valid))
-                _wanderTarget = valid;
+                if (SpawnPositionUtility.TryFindNavMeshPosition(candidate, 0f, 3f, out Vector3 valid))
+                {
+                    _wanderTarget = valid;
+                    return;
+                }
+            }
+
+            _wanderTarget = _spawnCenter;
         }
 
         private void Move()
