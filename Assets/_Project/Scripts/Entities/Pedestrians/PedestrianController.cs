@@ -14,10 +14,21 @@ namespace BlobSurvivor.Entities.Pedestrians
     {
         private const float AIUpdateInterval = 0.4f;
 
+        // 2026-08-31: NavMesh hedef seçimi tek başına yetmedi — WanderRadius (8) blok aralığından
+        // (12) küçük olduğu için bazı yayalar binalarla her yönden kuşatılabiliyor, o zaman HİÇBİR
+        // rastgele hedef bulunamaz (şans değil, geometri meselesi). EnemyBase.ComputeAvoidance ile
+        // aynı teknik: throttle'lı raycast, yol üstünde engel varsa ondan uzaklaştıran bir sapma
+        // ekler — hedefin kusursuz olmasına gerek kalmaz, yaya engelin etrafından "sıyrılır".
+        [SerializeField] private float _avoidanceLookahead = 1.2f;
+        [SerializeField] private float _avoidanceWeight = 2f;
+
+        private static int s_environmentMask = -1;
+
         private Transform _blobTransform;
         private BlobGrowth _blobGrowth;
         private Vector3 _spawnCenter;
         private Vector3 _wanderTarget;
+        private Vector3 _avoidanceCached;
         private float _aiTimer;
         private float _bobTimer;
         private bool _fleeing;
@@ -64,10 +75,31 @@ namespace BlobSurvivor.Entities.Pedestrians
             {
                 _aiTimer = AIUpdateInterval;
                 UpdateFleeState();
+                _avoidanceCached = ComputeAvoidance();
             }
 
             Move();
             ApplyBob();
+        }
+
+        private Vector3 ComputeAvoidance()
+        {
+            if (s_environmentMask < 0)
+                s_environmentMask = LayerMask.GetMask("Environment");
+
+            Vector3 forward = _fleeing && _blobTransform != null
+                ? transform.position - _blobTransform.position
+                : _wanderTarget - transform.position;
+            forward.y = 0f;
+            if (forward.sqrMagnitude < 0.01f) return Vector3.zero;
+            forward.Normalize();
+
+            if (!Physics.Raycast(transform.position, forward, out RaycastHit hit, _avoidanceLookahead, s_environmentMask))
+                return Vector3.zero;
+
+            Vector3 away = Vector3.Cross(Vector3.up, hit.normal);
+            if (Vector3.Dot(away, forward) < 0f) away = -away;
+            return away;
         }
 
         private void UpdateFleeState()
@@ -135,6 +167,11 @@ namespace BlobSurvivor.Entities.Pedestrians
             if (direction.sqrMagnitude < 0.0001f) return;
 
             direction.Normalize();
+
+            Vector3 blended = direction + _avoidanceCached * _avoidanceWeight;
+            if (blended.sqrMagnitude > 0.0001f)
+                direction = blended.normalized;
+
             transform.position += direction * speed * Time.deltaTime;
             transform.rotation = Quaternion.LookRotation(direction);
         }
