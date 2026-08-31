@@ -18,3 +18,4 @@ MonoBehaviour:
   _startingWeaponPrefab: {fileID: 1195012648784995356, guid: a8bb66b1a3f09493b9773c11a568f190, type: 3}
   _passiveType: 1
   _passiveValue: 0.1
+  _requiresMarketUnlock: 1

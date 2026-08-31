@@ -107,4 +107,4 @@ MonoBehaviour:
   _lifetime: 3
   _hitRadius: 0.3
   _aoeRadius: 2
-  _arcHeight: 1.2
+  _arcHeight: 0.4

@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using BlobSurvivor.Core;
 using BlobSurvivor.Data;
+using BlobSurvivor.Systems.Meta;
 
 namespace BlobSurvivor.UI
 {
@@ -32,22 +33,43 @@ namespace BlobSurvivor.UI
                 if (index >= _characters.Length || _characters[index] == null) continue;
 
                 _buttons[i].onClick.AddListener(() => OnCharacterSelected(_characters[index]));
-
-                if (_icons != null && index < _icons.Length && _icons[index] != null)
-                    _icons[index].sprite = _characters[index].Icon;
-
-                if (_nameTexts != null && index < _nameTexts.Length && _nameTexts[index] != null)
-                    _nameTexts[index].text = _characters[index].DisplayName;
             }
 
             if (_marketButton != null)
                 _marketButton.onClick.AddListener(OpenMarket);
+
+            RefreshCharacterButtons();
         }
 
-        // M23: MarketPanel'in "geri" butonu Inspector'dan bunu çağırır.
+        // M23: MarketPanel'in "geri" butonu Inspector'dan bunu çağırır. Market'te Mıknato
+        // satın alınmış olabileceğinden kilit durumu her Show()'da yeniden değerlendirilir.
         public void Show()
         {
             if (_panel != null) _panel.SetActive(true);
+            RefreshCharacterButtons();
+        }
+
+        // #48: MiknatoCharacter satın alınana kadar RequiresMarketUnlock=true karakterler
+        // Lobby'de seçilemez görünmeli — buton disabled + isim yanında "(Kilitli)" etiketi.
+        private void RefreshCharacterButtons()
+        {
+            bool miknatoUnlocked = MetaProgression.Instance == null || MetaProgression.Instance.MiknatoUnlocked;
+
+            for (int i = 0; i < _buttons.Length; i++)
+            {
+                if (i >= _characters.Length || _characters[i] == null) continue;
+                CharacterData data = _characters[i];
+                bool locked = data.RequiresMarketUnlock && !miknatoUnlocked;
+
+                if (_buttons[i] != null)
+                    _buttons[i].interactable = !locked;
+
+                if (_icons != null && i < _icons.Length && _icons[i] != null)
+                    _icons[i].sprite = data.Icon;
+
+                if (_nameTexts != null && i < _nameTexts.Length && _nameTexts[i] != null)
+                    _nameTexts[i].text = locked ? $"{data.DisplayName}\n(Kilitli)" : data.DisplayName;
+            }
         }
 
         private void OpenMarket()

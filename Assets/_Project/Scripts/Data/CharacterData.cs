@@ -24,11 +24,18 @@ namespace BlobSurvivor.Data
         [SerializeField] private CharacterPassiveType _passiveType;
         [SerializeField] private float _passiveValue;
 
+        // M23 takip (#48): true ise LobbyPanel bu karakteri MetaProgression.MiknatoUnlocked
+        // satın alınana kadar kilitli gösterir. Şu an lansımda Market'ten unlock edilen tek
+        // karakter Mıknato olduğu için ayrı bir unlock-tipi alanı gerekmiyor.
+        [Header("Kilit (Market)")]
+        [SerializeField] private bool _requiresMarketUnlock;
+
         public string DisplayName => _displayName;
         public Sprite Icon => _icon;
         public string Description => _description;
         public GameObject StartingWeaponPrefab => _startingWeaponPrefab;
         public CharacterPassiveType PassiveType => _passiveType;
         public float PassiveValue => _passiveValue;
+        public bool RequiresMarketUnlock => _requiresMarketUnlock;
     }
 }
