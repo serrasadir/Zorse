@@ -11,10 +11,16 @@ namespace BlobSurvivor.Entities.Enemies
     {
         [SerializeField] private WaveController _waveController;
         [SerializeField] private float _spawnDistance = 20f;
-        [SerializeField] private int _maxActiveEnemies = 50;
+        // GDD_v2.md Karar 2 (31 Ağu 2026'da revize): eski tier-bazlı ölçekleme (40*tier+10, max 200)
+        // gerçekçi bulunmadı — bir şehirde aynı anda 200 polis olmaz. Sabit, düşük bir tavan; ölen
+        // polisin yerine yenisi gelir (havuz sürekli dolu görünür). Zamana bağlı yoğunluk artışı hâlâ
+        // WaveController.SpawnDensityMultiplier üzerinden geliyor (10dk+ 2x, GetEffectiveMaxActive'da).
+        [SerializeField] private int _maxActiveEnemies = 15;
         // Elit/boss NavMeshAgent kullanır (pahalı) — GDD_v2.md §7 Mimari: "aynı anda ≤8-10 agent".
         // Sürü tavanından ayrı tutulur, aksi halde weighted-random spawn elit sayısını da yükseltebilir.
-        [SerializeField] private int _maxActiveElites = 8;
+        // 8 -> 4 (31 Ağu 2026): toplam tavan 200'den 15'e inince eski 8 orantısız kaldı (nüfusun
+        // yarısından fazlası elit olabilirdi) — perf tavanı hâlâ geçerli ama oyun hissi için düşürüldü.
+        [SerializeField] private int _maxActiveElites = 4;
 
         private Transform _blobTransform;
         private float _spawnTimer;
@@ -26,13 +32,6 @@ namespace BlobSurvivor.Entities.Enemies
         {
             GameObject blob = GameObject.FindWithTag("Blob");
             if (blob != null) _blobTransform = blob.transform;
-
-            GameEvents.OnBlobTierChanged += OnTierChanged;
-        }
-
-        private void OnDestroy()
-        {
-            GameEvents.OnBlobTierChanged -= OnTierChanged;
         }
 
         private void Update()
@@ -126,14 +125,6 @@ namespace BlobSurvivor.Entities.Enemies
                 return new Vector3(hit.position.x, EnemySpawnY, hit.position.z);
 
             return candidate;
-        }
-
-        private void OnTierChanged(BlobTier tier)
-        {
-            // A14: sürü artık steering kullanıyor (NavMeshAgent değil), eski 30 tavanı NavMesh
-            // pathfinding maliyetine göre konmuştu ve artık geçerli değil. GDD Karar 2 hedefi:
-            // 150-200 eşzamanlı düşman @ mobil 30 FPS — tier'a göre kademeli artan yeni tavan.
-            _maxActiveEnemies = Mathf.Min(40 * (int)tier + 10, 200);
         }
 
         private void CleanupInactive()

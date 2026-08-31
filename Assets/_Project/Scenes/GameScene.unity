@@ -5319,7 +5319,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Pedestrians.PedestrianSpawner
   _pedestrianPool:
   - {fileID: 11400000, guid: 372bbff26ef8f4747ba5b3565cc1cb31, type: 2}
-  _maxActive: 12
+  _maxActive: 25
   _spawnRadius: 25
   _minSpawnDistance: 6
   _initialSpawnCount: 5

@@ -17,7 +17,7 @@ Bu bölüm dokümanın anayasasıdır. Her karar kurulun raporlarındaki bir bul
 | # | Karar | Sonuç |
 |---|-------|-------|
 | 1 | Run süresi | **12–15 dakika** (20–30 dk ve 5–10 dk vizyonları iptal) |
-| 2 | Düşman ölçeği | **150–200 eşzamanlı**; sürü = basit steering, NavMesh sadece elit/boss |
+| 2 | Düşman ölçeği | ~~150–200 eşzamanlı~~ → **REVİZE (31 Ağu, Serra):** gerçekçilik gerekçesiyle **maks 15 eşzamanlı polis** (ölünce yenisi spawn olur, havuz sürekli dolu) + **maks 25 yaya**; sürü = basit steering, NavMesh sadece elit/boss |
 | 3 | Platform | **Mobil önce, F2P** (kurul önerisinin tersi — bilinçli tercih). PC/Steam premium = post-launch port |
 | 4 | Sanat yönü | **2.5D stilize 3D** (16-bit pixel art vizyonu iptal); gotik palet korunur |
 | 5 | Ana fiil | **Yeme birincil, silah destek** — tier büyüdükçe sürü düşmanları yutulur |
@@ -208,8 +208,8 @@ Her karakter top formundadır, elinde silahı vardır. Silahlar otomatik ateşle
 ### Ödül kuralı (çekirdek döngü — asla ödülsüz ölüm yok)
 Her düşman ölümü/yutulması **mutlaka** coin düşürür ve `OnEnemyDied` event'i ateşler. `ScoreValue` alanı skora işler. (Kurulun "core loop kopuk" bulgusunun kapanışı — Sprint 2 A7 + orb drop.)
 
-### Mimari (Karar 2)
-- **Hedef: 150–200 eşzamanlı düşman, mobilde 30 FPS.**
+### Mimari (Karar 2 — 31 Ağu 2026'da revize edildi)
+- ~~Hedef: 150–200 eşzamanlı düşman, mobilde 30 FPS.~~ **Revize: maks 15 eşzamanlı polis (ölünce yenisi spawn olur) + maks 25 yaya, mobilde 30 FPS.** Gerekçe (Serra): gerçek bir şehirde aynı anda 150-200 polis koşuşturması gerçekçi değil; düşük ama sürekli akan bir popülasyon hem daha inandırıcı hem optimize etmesi daha kolay.
 - Sürü düşmanları: basit steering (blob'a yönel + komşudan ayrıl, spatial hash). **NavMeshAgent kullanmaz.**
 - Elit + boss: NavMeshAgent (aynı anda ≤8–10 agent).
 - Sprint öncesi 1 haftalık steering spike zorunlu iş olarak roadmap'tedir.
@@ -368,7 +368,7 @@ Her ertelenen özellik bir güncelleme manşetidir:
 
 | Hedef | Değer |
 |---|---|
-| Mobil FPS | 30 @ 720p, **200 eşzamanlı düşman** (500 hedefi revize — Karar 2) |
+| Mobil FPS | 30 @ 720p, **15 eşzamanlı polis + 25 yaya** (500 → 200 → bu değere revize edildi — Karar 2) |
 | Batarya | 15 dk run'da ≤ %8 |
 | Yükleme | < 3 sn |
 | PC (port) | 60 FPS @ 1080p |
