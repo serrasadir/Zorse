@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace BlobSurvivor.Input
@@ -7,11 +8,16 @@ namespace BlobSurvivor.Input
     {
         public static InputManager Instance { get; private set; }
 
-        [SerializeField] private VirtualJoystick _virtualJoystick;
+        // 2026-09-05: görsel joystick kaldırıldı (Serra: "elimi kaydırdıkça oynatsın,
+        // ekranda görsel olmasın"). Parmak nerede basılırsa oradan itibaren sürüklenen
+        // mesafe/yön hareketi belirler — hiçbir Canvas/Image kurulumu gerekmiyor.
+        [SerializeField] private float _dragRadius = 80f; // piksel — bu kadar sürüklenince yön max güce ulaşır
 
         public Vector2 MoveDirection { get; private set; }
 
         private InputAction _moveAction;
+        private Vector2 _dragStartScreenPos;
+        private bool _isDragging;
 
         private void Awake()
         {
@@ -40,17 +46,39 @@ namespace BlobSurvivor.Input
         private void Update()
         {
             Vector2 keyboardDir = _moveAction?.ReadValue<Vector2>() ?? Vector2.zero;
-
             if (keyboardDir.sqrMagnitude > 0.01f)
             {
-               
                 MoveDirection = keyboardDir.normalized;
+                _isDragging = false;
                 return;
             }
 
-            MoveDirection = _virtualJoystick != null ? _virtualJoystick.Direction : Vector2.zero;
+            MoveDirection = ReadTouchDrag();
         }
 
-        public void SetJoystick(VirtualJoystick joystick) => _virtualJoystick = joystick;
+        private Vector2 ReadTouchDrag()
+        {
+            Pointer pointer = Pointer.current;
+            if (pointer == null) return Vector2.zero;
+
+            if (pointer.press.wasPressedThisFrame)
+            {
+                // Basış bir UI butonunun (HUD, upgrade kartı, market vb.) üzerindeyse sürüklemeyi başlatma.
+                bool overUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+                _isDragging = !overUI;
+                _dragStartScreenPos = pointer.position.ReadValue();
+            }
+
+            if (pointer.press.wasReleasedThisFrame)
+                _isDragging = false;
+
+            if (!_isDragging || !pointer.press.isPressed)
+                return Vector2.zero;
+
+            Vector2 delta = pointer.position.ReadValue() - _dragStartScreenPos;
+            if (delta.sqrMagnitude < 1f) return Vector2.zero;
+
+            return Vector2.ClampMagnitude(delta / _dragRadius, 1f);
+        }
     }
 }

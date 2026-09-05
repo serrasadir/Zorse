@@ -15,8 +15,13 @@ namespace BlobSurvivor.Entities.Pedestrians
 
         [SerializeField] private PedestrianData[] _pedestrianPool;
         [SerializeField] private int _maxActive = 20;
-        [SerializeField] private float _spawnRadius = 25f;
-        [SerializeField] private float _minSpawnDistance = 6f;
+        // 2026-09-05: eskiden blob'un o anki konumu etrafında bir halkaya (ring) spawn oluyordu —
+        // blob fazla hareket etmeyince tüm yayalar aynı bölgede kümeleniyormuş gibi görünüyordu
+        // (Serra: "tek noktadan spawn oluyor, çevrede az oluyor"). Artık blob'dan bağımsız, tüm
+        // şehir alanına (GreyboxCityGenerator'ın (GridSize-1)*BlockSpacing/2 = 30 ile aynı ölçek)
+        // yayılıyor — dağılım blob'un nerede olduğuna bağlı değil.
+        [SerializeField] private float _mapHalfExtent = 30f;
+        [SerializeField] private float _minDistanceFromBlob = 4f;
         [SerializeField] private int _initialSpawnCount = 12;
         [SerializeField] private float _refillCheckInterval = 3f;
 
@@ -94,14 +99,29 @@ namespace BlobSurvivor.Entities.Pedestrians
 
         // Greybox/gerçek bina engelleri NavMesh'te delik açtığında rastgele nokta bir binanın
         // içine denk gelebilir — bu spawn denemesi o zaman atlanır, bir dahaki refill tick'inde
-        // yeniden denenir (bkz. SpawnPositionUtility).
+        // yeniden denenir (bkz. SpawnPositionUtility). Blob'un tam üstüne düşmesin diye sadece
+        // küçük bir dışlama mesafesi (_minDistanceFromBlob) var, geri kalanı tüm harita alanına
+        // eşit dağılıyor.
         private bool TryGetSpawnPosition(float yOffset, out Vector3 spawnPos)
         {
-            Vector3 center = _blobTransform != null ? _blobTransform.position : Vector3.zero;
-            Vector2 randomCircle = Random.insideUnitCircle.normalized * Random.Range(_minSpawnDistance, _spawnRadius);
-            Vector3 candidate = new Vector3(center.x + randomCircle.x, yOffset, center.z + randomCircle.y);
+            Vector3 blobPos = _blobTransform != null ? _blobTransform.position : Vector3.zero;
+            float minDistSq = _minDistanceFromBlob * _minDistanceFromBlob;
 
-            return SpawnPositionUtility.TryFindNavMeshPosition(candidate, yOffset, 5f, out spawnPos);
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                Vector3 candidate = new Vector3(
+                    Random.Range(-_mapHalfExtent, _mapHalfExtent),
+                    yOffset,
+                    Random.Range(-_mapHalfExtent, _mapHalfExtent));
+
+                if ((candidate - blobPos).sqrMagnitude < minDistSq) continue;
+
+                if (SpawnPositionUtility.TryFindNavMeshPosition(candidate, yOffset, 5f, out spawnPos))
+                    return true;
+            }
+
+            spawnPos = Vector3.zero;
+            return false;
         }
 
         public void ReturnToPool(PedestrianController target)

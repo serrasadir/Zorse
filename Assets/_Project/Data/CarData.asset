@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: CarData
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.CarData
   _spawnYOffset: 0.3
-  _moveSpeed: 6
+  _moveSpeed: 4
   _waypointReachDistance: 0.3
   _brakeSpeed: 15
   _carDetectionDistance: 3
