@@ -19,7 +19,7 @@ MonoBehaviour:
   _moveSpeed: 2.1
   _attackRange: 2.5
   _attackCooldown: 2
-  _spawnTier: 5
+  _requiredConsumeTier: 5
   _scoreValue: 35
   _isElite: 1
   _attackHitCount: 3

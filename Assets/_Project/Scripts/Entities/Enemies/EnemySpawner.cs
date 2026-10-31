@@ -9,7 +9,17 @@ namespace BlobSurvivor.Entities.Enemies
     public class EnemySpawner : MonoBehaviour
     {
         [SerializeField] private WaveController _waveController;
-        [SerializeField] private float _spawnDistance = 20f;
+        // 2026-09-06 (Serra): eskiden blob'un o anki konumu etrafında sabit bir halkaya (_spawnDistance)
+        // spawn oluyordu — polis nereye gitsen hep yakınında beliriyor, "haritanın her yerinde beni
+        // buluyorlar" hissi tam olarak buradan geliyordu (PedestrianSpawner'ın 2026-09-05'te düzelttiği
+        // aynı kümelenme deseni — polis tarafı o zaman unutulmuştu). Artık yayalarla aynı desen: tüm
+        // harita alanına (GreyboxCityGenerator ölçeğiyle aynı) eşit dağılıyor, Patrol/Chase state
+        // makinesi (EnemyBase._detectionRange) zaten "yakına gelince takip et" mantığını sağlıyordu,
+        // sadece spawn'ın kendisi bunu geçersiz kılıyordu.
+        [SerializeField] private float _mapHalfExtent = 30f;
+        // Detection range'in (EnemyBase._detectionRange=15) hemen üzerinde tutulur — yeni spawn olan
+        // polis anında "görüş menzilinde" başlayıp dümdüz kovalamaya geçmesin, önce dolaşsın.
+        [SerializeField] private float _minDistanceFromBlob = 18f;
         // GDD_v2.md Karar 2 (31 Ağu 2026'da revize): eski tier-bazlı ölçekleme (40*tier+10, max 200)
         // gerçekçi bulunmadı — bir şehirde aynı anda 200 polis olmaz. Sabit, düşük bir tavan; ölen
         // polisin yerine yenisi gelir (havuz sürekli dolu görünür). Zamana bağlı yoğunluk artışı hâlâ
@@ -26,6 +36,26 @@ namespace BlobSurvivor.Entities.Enemies
         private int _activeEliteCount;
         private readonly List<GameObject> _activeEnemies = new List<GameObject>();
         private readonly Dictionary<EnemyData, ObjectPool<EnemyBase>> _pools = new Dictionary<EnemyData, ObjectPool<EnemyBase>>();
+
+        private void OnEnable() => GameEvents.OnCharacterSelected += HandleRestart;
+
+        private void OnDisable() => GameEvents.OnCharacterSelected -= HandleRestart;
+
+        // Restart sahneyi yeniden yüklemiyor: önceki run'ın polisleri havuza dönmezse oyuncunun başında kalır.
+        private void HandleRestart(CharacterData _)
+        {
+            foreach (GameObject go in _activeEnemies)
+            {
+                if (go == null) continue;
+                EnemyBase enemy = go.GetComponent<EnemyBase>();
+                if (enemy != null && enemy.Data != null && _pools.TryGetValue(enemy.Data, out ObjectPool<EnemyBase> pool))
+                    pool.Return(enemy);
+            }
+
+            _activeEnemies.Clear();
+            _activeEliteCount = 0;
+            _spawnTimer = 0f;
+        }
 
         private void Start()
         {
@@ -118,13 +148,28 @@ namespace BlobSurvivor.Entities.Enemies
         // Greybox/gerçek bina engelleri NavMesh'te delik açtığında rastgele nokta bir binanın
         // içine denk gelebilir — SpawnPositionUtility en yakın geçerli noktaya snap eder,
         // bulamazsa (false) bu spawn denemesi atlanır, bir dahaki tick'te yeniden denenir.
+        // (2026-09-06) PedestrianSpawner.TryGetSpawnPosition ile aynı desen: blob'dan bağımsız,
+        // tüm harita alanına eşit dağılım + blob'a çok yakın düşmesin diye küçük bir dışlama.
         private bool TryGetSpawnPosition(out Vector3 spawnPos)
         {
-            Vector3 center = _blobTransform != null ? _blobTransform.position : Vector3.zero;
-            Vector2 random = Random.insideUnitCircle.normalized * _spawnDistance;
-            Vector3 candidate = new Vector3(center.x + random.x, EnemySpawnY, center.z + random.y);
+            Vector3 blobPos = _blobTransform != null ? _blobTransform.position : Vector3.zero;
+            float minDistSq = _minDistanceFromBlob * _minDistanceFromBlob;
 
-            return SpawnPositionUtility.TryFindNavMeshPosition(candidate, EnemySpawnY, 5f, out spawnPos);
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                Vector3 candidate = new Vector3(
+                    Random.Range(-_mapHalfExtent, _mapHalfExtent),
+                    EnemySpawnY,
+                    Random.Range(-_mapHalfExtent, _mapHalfExtent));
+
+                if ((candidate - blobPos).sqrMagnitude < minDistSq) continue;
+
+                if (SpawnPositionUtility.TryFindNavMeshPosition(candidate, EnemySpawnY, 5f, out spawnPos))
+                    return true;
+            }
+
+            spawnPos = Vector3.zero;
+            return false;
         }
 
         private void CleanupInactive()

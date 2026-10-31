@@ -1,4 +1,7 @@
+using System.Collections.Generic;
 using UnityEngine;
+using BlobSurvivor.Core;
+using BlobSurvivor.Data;
 using BlobSurvivor.Systems;
 
 namespace BlobSurvivor.Entities.Coins
@@ -13,10 +16,22 @@ namespace BlobSurvivor.Entities.Coins
 
         private ObjectPool<CoinPickup> _pool;
         private ScoreSystem _scoreSystem;
+        private readonly List<CoinPickup> _activeCoins = new List<CoinPickup>();
 
         private void Awake()
         {
             Instance = this;
+        }
+
+        private void OnEnable() => GameEvents.OnCharacterSelected += HandleRestart;
+
+        private void OnDisable() => GameEvents.OnCharacterSelected -= HandleRestart;
+
+        private void HandleRestart(CharacterData _)
+        {
+            foreach (CoinPickup coin in _activeCoins)
+                _pool.Return(coin);
+            _activeCoins.Clear();
         }
 
         private void Start()
@@ -36,10 +51,12 @@ namespace BlobSurvivor.Entities.Coins
             coin.Initialize(amount, _scoreSystem);
             coin.OnCollected -= HandleCollected;
             coin.OnCollected += HandleCollected;
+            _activeCoins.Add(coin);
         }
 
         private void HandleCollected(CoinPickup coin)
         {
+            _activeCoins.Remove(coin);
             _pool.Return(coin);
         }
 

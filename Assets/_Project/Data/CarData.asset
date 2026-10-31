@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed9b2733ef7ae40419b2dfed9ad5e921, type: 3}
   m_Name: CarData
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.CarData
-  _spawnYOffset: 0.3
+  _spawnYOffset: 0.06
   _moveSpeed: 4
   _waypointReachDistance: 0.3
   _brakeSpeed: 15

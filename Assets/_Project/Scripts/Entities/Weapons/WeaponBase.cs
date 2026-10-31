@@ -1,4 +1,5 @@
 using UnityEngine;
+using BlobSurvivor.Entities.Enemies;
 using BlobSurvivor.Systems;
 
 namespace BlobSurvivor.Entities.Weapons
@@ -52,6 +53,27 @@ namespace BlobSurvivor.Entities.Weapons
                 }
             }
             return nearest;
+        }
+
+        // 2026-09-06 (Serra): "mermiler polislerin arkasından geçip gidiyor" — non-homing silahlar
+        // (Cannon/Pistol) ateş anındaki pozisyona düz çizgi atıyordu; polis steering'le sürekli yön
+        // değiştirdiği için mermi menzile ulaşana kadar hedef kaymış oluyordu. Mermi hâlâ homing DEĞİL
+        // (fırlatıldıktan sonra yön değişmez) — sadece nişan noktası, hedefin o anki hızına ve mermi
+        // uçuş süresine göre "önden kesiliyor". Hedef ani yön değiştirirse mermi yine ıskalayabilir,
+        // bu bilinçli (silah kimliği farkı Metal Bilye'nin gerçek homing'i, bkz. HomingProjectile).
+        protected Vector3 GetPredictedAimPoint(Transform target)
+        {
+            Vector3 targetPos = target.position;
+            if (_projectilePrefab == null) return targetPos;
+
+            EnemyBase enemy = target.GetComponent<EnemyBase>();
+            if (enemy == null) return targetPos;
+
+            float projectileSpeed = _projectilePrefab.Speed;
+            if (projectileSpeed <= 0f) return targetPos;
+
+            float timeToImpact = Vector3.Distance(transform.position, targetPos) / projectileSpeed;
+            return targetPos + enemy.CurrentVelocity * timeToImpact;
         }
 
         protected Projectile SpawnProjectile(Vector3 direction)

@@ -50,12 +50,21 @@ namespace BlobSurvivor.Systems
         {
             GameEvents.OnLevelUp += OnLevelUp;
             GameEvents.OnUpgradeSelected += OnUpgradeSelected;
+            GameEvents.OnCharacterSelected += HandleRestart;
         }
 
         private void OnDisable()
         {
             GameEvents.OnLevelUp -= OnLevelUp;
             GameEvents.OnUpgradeSelected -= OnUpgradeSelected;
+            GameEvents.OnCharacterSelected -= HandleRestart;
+        }
+
+        // Skill seviyeleri ve açılan evrimler run'a özeldir.
+        private void HandleRestart(CharacterData _)
+        {
+            _levels.Clear();
+            _dynamicUpgrades.Clear();
         }
 
         public int GetLevel(UpgradeData data)

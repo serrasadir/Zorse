@@ -21,6 +21,11 @@ namespace BlobSurvivor.Entities.Pedestrians
         // ekler — hedefin kusursuz olmasına gerek kalmaz, yaya engelin etrafından "sıyrılır".
         [SerializeField] private float _avoidanceLookahead = 1.2f;
         [SerializeField] private float _avoidanceWeight = 2f;
+        // 2026-09-06 (Serra): "yaya binaların içinden geçememeli" — EnemyBase.ClampStepAgainstEnvironment
+        // ile birebir aynı teknik (bkz. oradaki not): yumuşak sapma (avoidance) yetmediği köşe/dar açı
+        // durumlarında her frame çalışan sert bir SphereCast bloğu. Yayanın gerçek bir collider yarıçapı
+        // olmadığı için (trigger consumable collider'ı bu işe uygun değil) küçük bir sabit kullanılıyor.
+        [SerializeField] private float _bodyRadius = 0.4f;
 
         private static int s_environmentMask = -1;
 
@@ -35,6 +40,10 @@ namespace BlobSurvivor.Entities.Pedestrians
         private bool _wanderTargetSet;
 
         private PedestrianData PedData => Data as PedestrianData;
+
+        // 2026-09-06 (Serra): yayalar dünyayı canlandıran arka plan NPC'leri — Vakum'un onları
+        // ekrandan öbür ucundan çekip getirmesi istenmiyor, sadece yürüyerek/kaçarak hareket etmeliler.
+        public override bool IsVacuumable => false;
 
         protected override void OnEnable()
         {
@@ -173,8 +182,31 @@ namespace BlobSurvivor.Entities.Pedestrians
             if (blended.sqrMagnitude > 0.0001f)
                 direction = blended.normalized;
 
-            transform.position += direction * speed * Time.deltaTime;
+            Vector3 step = ClampStepAgainstEnvironment(direction * speed * Time.deltaTime);
+            transform.position += step;
             transform.rotation = Quaternion.LookRotation(direction);
+        }
+
+        // Bkz. EnemyBase.ClampStepAgainstEnvironment — aynı sert-engel tekniği, yaya için kopyalandı
+        // (proje konvansiyonu: ComputeAvoidance de aynı şekilde iki dosyada ayrı ayrı yaşıyor, ortak
+        // SwarmSteering'e bağlı olmadığı için).
+        private const float EnvironmentSkin = 0.05f;
+
+        private Vector3 ClampStepAgainstEnvironment(Vector3 step)
+        {
+            // ComputeAvoidance() de aynı lazy-init'i yapıyor ama throttle tick'ine bağlı — Move() her
+            // frame çalıştığı için (ilk pedestrian'ın ilk tick'inden ÖNCE de) burada bağımsız garanti
+            // ediliyor, aksi halde -1 (tüm layer'lar) mask'iyle yanlışlıkla her şeye çarpardı.
+            if (s_environmentMask < 0)
+                s_environmentMask = LayerMask.GetMask("Environment");
+
+            float stepDist = step.magnitude;
+            if (stepDist < 0.0001f || s_environmentMask == 0) return step;
+
+            if (Physics.SphereCast(transform.position, _bodyRadius, step / stepDist, out RaycastHit hit, stepDist, s_environmentMask))
+                return step / stepDist * Mathf.Max(0f, hit.distance - EnvironmentSkin);
+
+            return step;
         }
 
         private void ApplyBob()

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using BlobSurvivor.Core;
 using BlobSurvivor.Data;
@@ -8,7 +9,7 @@ namespace BlobSurvivor.Entities.Vehicles
     public class CarSpawner : MonoBehaviour
     {
         [Header("Araç Ayarları")]
-        [SerializeField] private CarController _carPrefab;
+        [SerializeField] private CarController[] _carPrefabs;
         [SerializeField] private CarData _carData;
 
         [Header("Yol Waypoint'leri")]
@@ -19,13 +20,32 @@ namespace BlobSurvivor.Entities.Vehicles
         [SerializeField] private int _maxActiveCars = 3;
         [SerializeField] private int _poolSize = 6;
 
-        private ObjectPool<CarController> _pool;
+        private ObjectPool<CarController>[] _pools;
+        private readonly Dictionary<CarController, ObjectPool<CarController>> _ownerPools = new Dictionary<CarController, ObjectPool<CarController>>();
         private float _spawnTimer;
         private int _activeCarCount;
 
+        private void OnEnable() => GameEvents.OnCharacterSelected += HandleRestart;
+
+        private void OnDisable() => GameEvents.OnCharacterSelected -= HandleRestart;
+
+        private void HandleRestart(CharacterData _)
+        {
+            foreach (KeyValuePair<CarController, ObjectPool<CarController>> owner in _ownerPools)
+            {
+                if (owner.Key.gameObject.activeSelf)
+                    owner.Value.Return(owner.Key);
+            }
+
+            _activeCarCount = 0;
+            _spawnTimer = 0f;
+        }
+
         private void Start()
         {
-            _pool = new ObjectPool<CarController>(_carPrefab, _poolSize, transform);
+            _pools = new ObjectPool<CarController>[_carPrefabs.Length];
+            for (int i = 0; i < _carPrefabs.Length; i++)
+                _pools[i] = new ObjectPool<CarController>(_carPrefabs[i], _poolSize, transform);
         }
 
         private void Update()
@@ -43,12 +63,15 @@ namespace BlobSurvivor.Entities.Vehicles
 
         private void TrySpawnCar()
         {
-            if (_activeCarCount >= _maxActiveCars) return;
+            if (_activeCarCount >= _maxActiveCars || _pools.Length == 0) return;
 
             Vector3 wp = _waypoints[0].position;
             Vector3 spawnPos = new Vector3(wp.x, _carData.SpawnYOffset, wp.z);
-            CarController car = _pool.Get(spawnPos, Quaternion.identity);
+            ObjectPool<CarController> pool = _pools[Random.Range(0, _pools.Length)];
+            CarController car = pool.Get(spawnPos, Quaternion.identity);
             if (car == null) return;
+
+            _ownerPools[car] = pool;
 
             car.OnConsumed -= OnCarConsumed;
             car.OnConsumed += OnCarConsumed;
@@ -58,7 +81,7 @@ namespace BlobSurvivor.Entities.Vehicles
 
         private void OnCarConsumed(CarController car)
         {
-            _pool.Return(car);
+            _ownerPools[car].Return(car);
             _activeCarCount = Mathf.Max(0, _activeCarCount - 1);
         }
 

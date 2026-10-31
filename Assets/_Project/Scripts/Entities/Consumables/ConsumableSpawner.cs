@@ -134,7 +134,7 @@ namespace BlobSurvivor.Entities
             BlobTier spawnTier = target.RequiredTier > BlobTier.Tiny ? target.RequiredTier - 1 : BlobTier.Tiny;
             Vector3 position = target.transform.position;
 
-            ReturnToPool(target);
+            target.ReturnToOwner(); // havuz dışı şehir objeleri (CityConsumable) de gerçekten kaybolsun
 
             for (int i = 0; i < splitCount; i++)
             {

@@ -9,12 +9,17 @@ namespace BlobSurvivor.Entities.Blob
     {
         private BlobGrowth _blobGrowth;
         private BlobHealth _blobHealth;
+        private ScoreSystem _scoreSystem;
         private int _consumedCount;
 
         private void Awake()
         {
             _blobGrowth = GetComponent<BlobGrowth>();
             _blobHealth = GetComponent<BlobHealth>();
+            // 2026-09-06 (Serra): oyunun en sık çalışan yolu (her yeme) `FindAnyObjectByType` çağırıyordu —
+            // Awake'te bir kere cache'lendi (CLAUDE.md'nin kendi kuralına aykırıydı, Temmuz 2026'daki bir
+            // kod incelemesinde de flag'lenip hiç düzeltilmemişti).
+            _scoreSystem = FindAnyObjectByType<ScoreSystem>();
         }
 
         private void OnTriggerEnter(Collider other)
@@ -48,6 +53,12 @@ namespace BlobSurvivor.Entities.Blob
             }
         }
 
+        public void ResetConsumedCount()
+        {
+            _consumedCount = 0;
+            GameEvents.RaiseConsumedCountChanged(_consumedCount);
+        }
+
         // B17 evrimi "Kara Delik" (BlackHoleComponent) temassız otomatik yutma için bu girişi kullanır —
         // normal temas akışıyla (Consume) aynı sonucu üretir, tek fark tetikleyicinin OverlapSphere olması.
         public void ConsumeDirect(IConsumable consumable, GameObject obj) => Consume(consumable, obj);
@@ -59,8 +70,7 @@ namespace BlobSurvivor.Entities.Blob
             _blobGrowth.PunchScale();
             ApplyHealOnConsume();
 
-            ScoreSystem scoreSystem = FindAnyObjectByType<ScoreSystem>();
-            scoreSystem?.AddScore(consumable.Data.ScoreValue);
+            _scoreSystem?.AddScore(consumable.Data.ScoreValue);
 
             _consumedCount++;
             GameEvents.RaiseConsumedCountChanged(_consumedCount);

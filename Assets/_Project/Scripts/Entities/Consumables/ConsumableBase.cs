@@ -11,6 +11,10 @@ namespace BlobSurvivor.Entities
 
         public ConsumableData Data => _data;
         public BlobTier RequiredTier => _data != null ? _data.RequiredTier : BlobTier.Tiny;
+        // Sıradan consumable'lar vakumla çekilebilir; PedestrianController bunu false'a override eder
+        // (2026-09-06, Serra: "yaya ve polisleri vakum çekmesin" — bkz. IConsumable.cs notu).
+        public virtual bool IsVacuumable => true;
+        public virtual bool CanBeSplit => true; // Mermo'nun tabancası parçalayabilir mi
 
         private void Awake()
         {

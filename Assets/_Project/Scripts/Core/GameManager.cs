@@ -35,6 +35,15 @@ namespace BlobSurvivor.Core
         [SerializeField] private float _runTimeoutSeconds = 900f;
 
         private CharacterData _lastCharacter;
+        // 2026-09-06 (Serra): RaiseSurvivalTimeUpdated her frame ateşleniyordu — HUD (her frame string
+        // alloc, CLAUDE.md kuralına aykırı), WaveController ve BossSpawner'a gereksiz sıklıkta yayılıyordu.
+        // Hiçbir tüketicisi frame-hassas çözünürlük istemiyor (en dar eşik dakika bazlı); 0.1s'e throttle
+        // edildi. `SurvivalTime` property'si hâlâ her frame doğru güncelleniyor, sadece event daha seyrek.
+        private const float SurvivalTimeEventInterval = 0.1f;
+        private float _survivalTimeEventTimer;
+
+        private Vector3 _blobSpawnPosition;
+        private bool _hasBlobSpawnPosition;
 
         public GameState CurrentState { get; private set; }
         public float SurvivalTime { get; private set; }
@@ -71,7 +80,13 @@ namespace BlobSurvivor.Core
             if (CurrentState != GameState.Playing) return;
 
             SurvivalTime += Time.deltaTime;
-            GameEvents.RaiseSurvivalTimeUpdated(SurvivalTime);
+
+            _survivalTimeEventTimer -= Time.deltaTime;
+            if (_survivalTimeEventTimer <= 0f)
+            {
+                _survivalTimeEventTimer = SurvivalTimeEventInterval;
+                GameEvents.RaiseSurvivalTimeUpdated(SurvivalTime);
+            }
 
             if (SurvivalTime >= _runTimeoutSeconds)
                 TriggerRunComplete(RunEndReason.TimeSurvived);
@@ -88,6 +103,8 @@ namespace BlobSurvivor.Core
         {
             FindAnyObjectByType<Systems.ScoreSystem>()?.ResetScore();
             SurvivalTime = 0f;
+            _survivalTimeEventTimer = 0f;
+            Time.timeScale = 1f; // GameOver/RunComplete 0'da bırakır, restart bunu açmazsa oyun donuk başlar
             ChangeState(GameState.Playing);
 
             if (character != null)
@@ -141,8 +158,41 @@ namespace BlobSurvivor.Core
             WeaponBase oldWeapon = blob.GetComponentInChildren<WeaponBase>();
             if (oldWeapon != null) Destroy(oldWeapon.gameObject);
 
+            // Skill efektleri blob'a component olarak eklenir; kalırsa Yırtıcı Çene gibi bonuslar yeni run'a sızar.
+            RemoveComponent<ConsumptionBonusComponent>(blob);
+            RemoveComponent<HealOnConsumeComponent>(blob);
+            RemoveComponent<BlackHoleComponent>(blob);
+            RemoveComponent<AvciFormuComponent>(blob);
+
             blob.GetComponent<BlobGrowth>()?.ResetGrowth();
             blob.GetComponent<BlobHealth>()?.ResetHealth();
+            blob.GetComponent<BlobController>()?.ResetTierSlowdown();
+            blob.GetComponent<BlobConsumption>()?.ResetConsumedCount();
+
+            ResetBlobPosition(blob);
+        }
+
+        private static void RemoveComponent<T>(GameObject blob) where T : Component
+        {
+            T component = blob.GetComponent<T>();
+            if (component != null) Destroy(component);
+        }
+
+        // İlk StartGame'deki konum spawn noktasıdır; sonraki run'lar oraya döner.
+        private void ResetBlobPosition(GameObject blob)
+        {
+            if (!_hasBlobSpawnPosition)
+            {
+                _blobSpawnPosition = blob.transform.position;
+                _hasBlobSpawnPosition = true;
+                return;
+            }
+
+            blob.transform.position = _blobSpawnPosition;
+            Rigidbody rigidbody = blob.GetComponent<Rigidbody>();
+            if (rigidbody == null) return;
+            rigidbody.position = _blobSpawnPosition;
+            rigidbody.linearVelocity = Vector3.zero;
         }
 
         // M22 (GDD §8): Market'te satın alınan kalıcı statlar her run başında (fresh start + restart)

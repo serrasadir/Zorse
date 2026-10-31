@@ -15,7 +15,8 @@ namespace BlobSurvivor.Entities.Enemies
                 enemy.SetDestination(enemy.BlobTransform.position);
 
             float sqrDist = (enemy.transform.position - enemy.BlobTransform.position).sqrMagnitude;
-            if (sqrDist <= enemy.Data.AttackRange * enemy.Data.AttackRange)
+            float attackRange = enemy.EffectiveAttackRange();
+            if (sqrDist <= attackRange * attackRange)
                 enemy.ChangeState(new AttackState());
             else if (!enemy.CanSeeBlob())
                 enemy.ChangeState(new PatrolState());

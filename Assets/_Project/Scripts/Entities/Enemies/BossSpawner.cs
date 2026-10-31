@@ -63,6 +63,14 @@ namespace BlobSurvivor.Entities.Enemies
 
         private void HandleRestart(CharacterData _)
         {
+            if (_activeBoss != null)
+            {
+                _activeBoss.OnDeath -= HandleBossDeath;
+                if (_pools.TryGetValue(_activeBoss.Data, out ObjectPool<EnemyBase> pool))
+                    pool.Return(_activeBoss);
+                GameEvents.RaiseBossHealthChanged(0f, 0f);
+            }
+
             _nextStageIndex = 0;
             _activeBoss = null;
             _lastReportedHealth = -1f;

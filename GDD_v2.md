@@ -1,8 +1,8 @@
 # Blob.io — GDD v2.0 (Tek Kaynak Doküman)
 
 > **Bu doküman projenin tek kaynak (single source of truth) tasarım belgesidir.**
-> GDD v1.0 PDF'ini (Haziran 2025) ve kök `GDD.md` vizyon taslağını **geçersiz kılar**.
-> Temmuz 2026'da, `ADVISORY_BOARD.md` ve `BOARD_EVALUATION.md` bulgularının üzerinden yapılan 13 kararlık soru-cevap oturumuyla yazılmıştır. Çelişki kalmamıştır; bir çelişki bulursan bu doküman kazanır ve diğeri güncellenir.
+> GDD v1.0 PDF'ini (Haziran 2025) ve kök `GDD.md` vizyon taslağını **geçersiz kılar** (`GDD.md` artık dosya sisteminde yok — 2026-09-06'da, içeriği tamamen bu dokümana işlendiği için silindi).
+> Temmuz 2026'da, `ADVISORY_BOARD.md` ve `BOARD_EVALUATION.md` bulgularının üzerinden yapılan 13 kararlık soru-cevap oturumuyla yazılmıştır (bu iki rapor da 2026-09-06'da silindi — bulguları buradaki Karar Günlüğü'ne ve Ek A'ya tamamen işlenmişti). Çelişki kalmamıştır; bir çelişki bulursan bu doküman kazanır ve diğeri güncellenir.
 >
 > Balance değerleri ScriptableObject'lerde yaşar; buradaki sayılar başlangıç/hedef değerleridir.
 
@@ -31,7 +31,7 @@ Bu bölüm dokümanın anayasasıdır. Her karar kurulun raporlarındaki bir bul
 | 13 | Go-to-market | **Self-publish + organik**; test pazarında soft launch, creator odaklı büyüme |
 | 14 | Yaya (sivil NPC) | **Eklendi** (20 Ağu 2026, Serra) — şehirde dolaşan, saldırmayan NPC'ler; blob küçükken normal yürür, yutma eşiğine yaklaşınca kaçar, yutulabilir. Animasyonsuz (sinüs bob hareketi) — perf maliyeti sıfıra yakın, sürü polisle aynı ajan bütçesini paylaşır. Sprint 5 kapsamı |
 
-**⏸️ Açık kararlar** (bkz. §16): Score Multiplier kartın kaderi · nihai oyun adı.
+**⏸️ Açık kararlar** (bkz. §16): nihai oyun adı.
 
 ---
 
@@ -144,7 +144,7 @@ Mass kazanmak = XP kazanmak (tek sistem, ayrı XP kaynağı yok — Karar 7'nin 
 - Kartlar renk + sembol taşır (renk körü desteği: yıldız/elmas/daire).
 - Max seviyeye ulaşan skill havuzdan çıkar.
 
-### Lansman skill havuzu (10 skill)
+### Lansman skill havuzu (9 skill)
 | Kategori | Skill | Etki (seviye başına) |
 |---|---|---|
 | Saldırı | **Silah Gücü** | Karakter silahının hasar/atış hızı ↑ |
@@ -156,7 +156,8 @@ Mass kazanmak = XP kazanmak (tek sistem, ayrı XP kaynağı yok — Karar 7'nin 
 | 🆕 Yeme | **Sindirim** | Yediklerinden mass kazancı +% |
 | 🆕 Yeme | **Yutuş** | Her yeme küçük miktar HP yeniler |
 | 🆕 Yeme | **Yırtıcı Çene** | Düşman yutma tier eşiği kolaylaşır (yutma menzili/boyut toleransı ↑) |
-| ⏸️ | Score Multiplier | **Açık karar** — kart mı, meta upgrade mi (bkz. §16) |
+
+> ~~Score Multiplier~~ — **iptal edildi (2026-09-06, Serra karar), bkz. §16.**
 
 > 🆕 Yeme skilleri Karar 5'in doğrudan sonucudur: farklılaştırıcı fiil, skill havuzunda da yıldız olmalı. Üçü de mevcut sistemlerin (mass kazancı, BlobHealth, yutma eşiği) parametreleridir — yeni sistem gerektirmez.
 
@@ -331,7 +332,7 @@ UA bütçesi yok; görünürlük **kazanılacak**. Plan:
 
 ### Lansman kapsamı (MVP tanımı)
 **MVP = oynanabilir + bir kez bitirilebilir + tekrar oynanabilir.**
-1 harita · 3 karakter (1 açık + 2 unlock) · 11 skill + 2 evrim · 3 düşman tipi + miniboss + final boss · hazard aktif · coin ekonomisi + 6 kalemlik Market · yeme juice'u (squash, ses, haptic) · analytics + save.
+1 harita · 3 karakter (1 açık + 2 unlock) · 9 skill + 2 evrim · 3 düşman tipi + miniboss + final boss · hazard aktif · coin ekonomisi + 6 kalemlik Market · yeme juice'u (squash, ses, haptic) · analytics + save.
 
 ### Fazlar
 | Faz | Süre | İçerik | Kapı |
@@ -382,6 +383,7 @@ Mühendislik kuralları (throttle, `sqrMagnitude`, object pool zorunluluğu, Lay
 > Cevaplanınca silinmez; altına **✅ Karar:** notu düşülür.
 
 - 🔲 **Score Multiplier:** run içi kart mı kalsın, Market meta upgrade'ine mi taşınsın? (Kurul metayı öneriyor; karar bilinçli olarak ertelendi.)
+  - ✅ **Karar (2026-09-06, Serra):** Ne kart ne meta upgrade — **tamamen iptal.** Skor zaten sadece leaderboard göstergesi (Karar 7 — ekonomiye karışmıyor), bir de onu çarpan bir skill "hiçbir şeyi değiştirmeyen" en zayıf karttı (Sindirim gibi gerçek güç veren skillerin yanında sırf sayaç şişiren bir seçenek). `ScoreMultiplierEffect.cs`, `Upgrade_ScoreMult.asset`, `FX_ScoreMultiplier.asset` silindi; `ScoreSystem.ScoreMultiplier`/`SetMultiplier()` de (tek çağıranı oydu) kaldırıldı.
 - 🔲 **Nihai oyun adı:** Blob.io çalışma adı — store'da "io" eki algı riski taşır; global lansmandan önce kesinleşmeli.
 - 🔲 **Soft launch pazarları:** TR + hangi ikinci pazar?
 - 🔲 **Hızlanma (Dash) skill'i:** §5'te "Hareket" kategorisinde hem kalıcı **Hız** hem geçici **Hızlanma (Dash)** var — Serra bunun gerçekten gerekli mi yoksa Hız'la örtüşüyor mu (Magnet/Vacuum'daki gibi) diye karar verecek. Kod tarafı mevcut (`DashComponent.cs`, `DashEffect.cs`, `Upgrade_Dash.asset`, B15/#15). Karar netleşene kadar kod kalıyor, dokunulmuyor.
@@ -402,7 +404,7 @@ Mühendislik kuralları (throttle, `sqrMagnitude`, object pool zorunluluğu, Lay
 
 ## Ek A — GDD v1.0 → v2.0 Değişiklik Özeti
 
-Neyin neden değiştiğinin hızlı referansı. Gerekçelerin tamamı `ADVISORY_BOARD.md` ve `BOARD_EVALUATION.md`'de.
+Neyin neden değiştiğinin hızlı referansı. Gerekçelerin tamamı eskiden `ADVISORY_BOARD.md` ve `BOARD_EVALUATION.md`'deydi (2026-09-06'da silindi — bulguları buraya ve Karar Günlüğü'ne (§0) tamamen işlenmişti, ayrı dosya olarak tutulmaya gerek kalmamıştı).
 
 | Konu | v1.0 (Haziran 2025) | v2.0 (Temmuz 2026) |
 |---|---|---|
@@ -420,7 +422,7 @@ Neyin neden değiştiğinin hızlı referansı. Gerekçelerin tamamı `ADVISORY_
 | **Mermo pasifi** | Mermiyle parçalama (fragman maliyeti belirsiz) | **Korundu ve netleşti**: `ConsumeAndSplit` alt-tier havuzundan saçar, sıfır asset vergisi (10 Tem revizesi) |
 | **Mermo unlock** | 3 farklı haritada oturum tamamla | **Toplam 3 oturum tamamla** (lansmanda 1 harita var) |
 | **Kalkan skilli** | Listede | **İptal** (Zırh ile aynı iş — Sprint 1 kararı) |
-| **Skill havuzu** | 8 jenerik skill | **11 skill**: +Sindirim, +Yutuş, +Yırtıcı Çene (yeme-temalı); Score Multiplier askıda |
+| **Skill havuzu** | 8 jenerik skill | **9 skill**: +Sindirim, +Yutuş, +Yırtıcı Çene (yeme-temalı); Score Multiplier iptal edildi (2026-09-06) |
 | **Evrim** | Bahsedilmiş, tanımsız (GDD'de boş satır) | **Lansmanda 2 tanımlı evrim** (Kara Delik, Avcı Formu — playtest'te doğrulanacak) |
 | **Haritalar** | Modern Şehir + Medieval (+ Park/Liman/Endüstri) | **Lansmanda 1** (Modern Şehir); Medieval ilk içerik güncellemesi |
 | **Hava durumu** | 4 efekt lansman özelliği | **Post-launch** |

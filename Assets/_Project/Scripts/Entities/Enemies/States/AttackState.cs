@@ -25,7 +25,7 @@ namespace BlobSurvivor.Entities.Enemies
                 UpdateCooldown(enemy);
 
             float sqrDist = (enemy.transform.position - enemy.BlobTransform.position).sqrMagnitude;
-            float leaveRange = enemy.Data.AttackRange * 1.2f;
+            float leaveRange = enemy.EffectiveAttackRange() * 1.2f;
             if (sqrDist > leaveRange * leaveRange)
                 enemy.ChangeState(new ChaseState());
         }

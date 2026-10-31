@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using BlobSurvivor.Entities.Vehicles;
@@ -39,6 +40,9 @@ namespace BlobSurvivor.EditorTools
                 return;
             }
 
+            // Art/Buildings'te asset varsa küp yerine onlar kullanılır; yoksa eski greybox davranışı.
+            List<GameObject> buildingPrefabs = BuildingAssetPipeline.BuildPrefabs();
+
             GameObject root = new GameObject(RootName);
             Undo.RegisterCreatedObjectUndo(root, "Greybox Şehir Oluştur");
 
@@ -53,6 +57,17 @@ namespace BlobSurvivor.EditorTools
 
                     if (blockCenter.magnitude < BlobKeepClearRadius) continue;
                     if (Random.value > BuildingChance) continue;
+
+                    if (buildingPrefabs.Count > 0)
+                    {
+                        GameObject prefab = buildingPrefabs[Random.Range(0, buildingPrefabs.Count)];
+                        GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, root.transform);
+                        instance.name = $"Building_{x}_{z}";
+                        instance.transform.position = blockCenter; // döndürme yok: ön cephe kameraya bakmalı
+                        Undo.RegisterCreatedObjectUndo(instance, "Greybox Şehir Oluştur");
+                        buildingCount++;
+                        continue;
+                    }
 
                     float width = Random.Range(4f, BlockSpacing - StreetWidth);
                     float depth = Random.Range(4f, BlockSpacing - StreetWidth);
@@ -82,7 +97,7 @@ namespace BlobSurvivor.EditorTools
         // koridorlarını (Generate()'in aynı ızgara sabitleriyle hesaplanır, bina yarı-genişliği
         // (BlockSpacing-StreetWidth)/2 olduğu için sokak çizgisi her zaman güvenli mesafede kalır)
         // kullanarak 4 köşeli gerçek bir döngü yolu kurar ve CarSpawner._waypoints'e otomatik bağlar.
-        private const string CarRoadRootName = "CarRoad_Waypoints";
+        internal const string CarRoadRootName = "CarRoad_Waypoints";
         private const string LegacyCarRoadRootName = "Road_Waypoints";
         private const float RoadWidth = 3f;
         private const float RoadThickness = 0.05f;

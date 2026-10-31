@@ -9,6 +9,9 @@ namespace BlobSurvivor.Entities.Weapons
         [SerializeField] private float _lifetime = 3f;
         [SerializeField] private float _hitRadius = 0.3f;
 
+        // WeaponBase'in "önden kesme" (lead) hesabı için — bkz. WeaponBase.GetPredictedAimPoint.
+        public float Speed => _speed;
+
         private const int EnemyLayer = 14;
         // Enemy(14) + ConsumableTier1-5(9-13) — Rigidbody/Collider gerektirmez, doğrudan spatial sorgu
         private const int HitMask = (1 << 14) | (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13);

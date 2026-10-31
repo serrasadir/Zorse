@@ -51,6 +51,25 @@ namespace BlobSurvivor.Entities.Enemies
         private bool _hasSteerTarget;
         private Vector3 _separationCached;
         private Vector3 _avoidanceCached;
+        private float _blobSolidRadius = 0.5f;
+        private Vector3 _steeringVelocity;
+
+        // 2026-09-06 (Serra): "mermiler polislerin arkasından geçip gidiyor" — Cannon/Pistol non-homing,
+        // ateş anındaki pozisyona düz çizgi atıyor; polis steering'le (separation/avoidance) sürekli yön
+        // değiştirdiği için mermi menzile ulaşana kadar hedef kaymış oluyordu. WeaponBase bu hızı okuyup
+        // "önden kesme" (lead) hesaplıyor — mermiler homing OLMUYOR, sadece nişan noktası düzeliyor.
+        public Vector3 CurrentVelocity => UsesSteering ? _steeringVelocity : (_agent != null ? _agent.velocity : Vector3.zero);
+
+        // 2026-09-06 (Serra): "polis görselde bana değmiyor ama değmiş gibi davranıyor" — kök sebep
+        // raycast değil, ChaseState/AttackState'in EnemyData.AttackRange'i (normal polis: 2 birim) sabit
+        // bir eşik olarak kullanmasıydı. Blob küçükken (Tiny/Small) gerçek temas mesafesi (collider
+        // yarıçapları toplamı, ~0.75-1.0) bu sabitin çok altında — polis görsel temastan ~1-1.5 birim
+        // önce duruyor ve hasar veriyordu. Elit/boss'ta (özel saldırı deseni/alan saldırısı, GDD §7)
+        // sabit AttackRange bilinçli bırakıldı; sadece sıradan sürü düşmanı artık blob'un GERÇEK o anki
+        // boyutundan (transform.localScale, BlobGrowth her frame günceller) dinamik hesaplanan temas
+        // mesafesini kullanıyor — büyüme formülü ileride tekrar ayarlanırsa (2026-09-06'dan önce zaten
+        // iki kez değişti) bu sabit kalıp yeniden bozulmaz.
+        private const float ContactBuffer = 0.15f;
 
         private void Awake()
         {
@@ -72,12 +91,25 @@ namespace BlobSurvivor.Entities.Enemies
             _consumableOverride = false;
             _tierBypassUntil = -1f;
             _hasSteerTarget = false;
+            _steeringVelocity = Vector3.zero;
 
             GameObject blob = GameObject.FindWithTag("Blob");
             if (blob != null)
             {
                 BlobTransform = blob.transform;
                 _blobHealth = blob.GetComponent<BlobHealth>();
+
+                // Blob'da iki SphereCollider var (trigger=yeme algılama, solid=fiziksel/dokunma) —
+                // temas mesafesi için solid olanın yarıçapı gerekli (M25 notuna bkz., CLAUDE.md).
+                SphereCollider[] blobColliders = blob.GetComponents<SphereCollider>();
+                foreach (SphereCollider c in blobColliders)
+                {
+                    if (!c.isTrigger)
+                    {
+                        _blobSolidRadius = c.radius;
+                        break;
+                    }
+                }
             }
 
             if (UsesSteering)
@@ -155,10 +187,33 @@ namespace BlobSurvivor.Entities.Enemies
             moveDir.Normalize();
 
             float speed = _data.MoveSpeed * _speedMultiplier;
-            transform.position += moveDir * speed * Time.deltaTime;
+            _steeringVelocity = moveDir * speed;
+            Vector3 step = ClampStepAgainstEnvironment(_steeringVelocity * Time.deltaTime);
+            transform.position += step;
 
             // Ani yön sıçramalarını yumuşat (Slerp) — separation kaynaklı titreşimi görsel olarak azaltır.
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(moveDir), _rotationSpeed * Time.deltaTime);
+        }
+
+        // 2026-09-06 (Serra): "yaya ve polisler binaların içinden geçememeli" — ComputeAvoidance() zaten
+        // vardı ama sadece YUMUŞAK bir sapmaydı (throttle tick'te hesaplanan tek bir raycast'e göre yön
+        // karıştırma); dar açılarda veya tam köşede yetersiz kalıp binaya girmeyi engelleyemiyordu. Bu,
+        // HER FRAME çalışan sert bir engel — o frame'in hareket adımı boyunca Environment'a çarpıyorsa
+        // adımı çarpma noktasının hemen öncesine kısıtlar (klasik "slide/stop" collider'sız karakter
+        // kontrolcüsü tekniği). Tek bir kısa mesafeli SphereCast, 15 polis + 25 yaya için bile per-frame
+        // maliyeti ihmal edilebilir düzeyde.
+        private const float EnvironmentSkin = 0.05f;
+
+        private Vector3 ClampStepAgainstEnvironment(Vector3 step)
+        {
+            float stepDist = step.magnitude;
+            if (stepDist < 0.0001f || s_environmentMask == 0) return step;
+
+            float radius = _agent != null ? _agent.radius : 0.5f;
+            if (Physics.SphereCast(transform.position, radius, step / stepDist, out RaycastHit hit, stepDist, s_environmentMask))
+                return step / stepDist * Mathf.Max(0f, hit.distance - EnvironmentSkin);
+
+            return step;
         }
 
         private bool ComputeCanSeeBlob()
@@ -223,6 +278,19 @@ namespace BlobSurvivor.Entities.Enemies
 
         public bool CanSeeBlob() => _canSeeBlobCached;
 
+        // Elit/boss'ta EnemyData.AttackRange bilinçli bir "menzil/alan saldırısı" değeridir, olduğu gibi
+        // kalır. Sıradan sürü düşmanında gerçek temas mesafesine (iki collider'ın o anki dünya-uzayı
+        // yarıçapları toplamı + küçük bir tampon) dayanır — bkz. yukarıdaki ContactBuffer notu.
+        public float EffectiveAttackRange()
+        {
+            if (_data == null) return 0f;
+            if (_data.IsElite) return _data.AttackRange;
+
+            float enemyRadius = _agent != null ? _agent.radius : 0.5f;
+            float blobRadius = BlobTransform != null ? BlobTransform.localScale.x * _blobSolidRadius : 0f;
+            return enemyRadius + blobRadius + ContactBuffer;
+        }
+
         public void PerformAttack()
         {
             _blobHealth?.TakeDamage(_data.Damage * _damageMultiplier);
@@ -265,8 +333,9 @@ namespace BlobSurvivor.Entities.Enemies
             if (_data.PreventConsumption && !_consumableOverride) return false;
 
             bool tierBypassed = !_data.IsElite && Time.time <= _tierBypassUntil;
-            BlobTier requiredTier = _data.IsElite ? BlobTier.Giant : BlobTier.Medium;
-            if (!tierBypassed && blobTier < requiredTier) return false;
+            // 2026-09-06: eskiden burada hardcoded IsElite? Giant : Medium vardı — artık EnemyData'nın
+            // gerçek RequiredConsumeTier alanından okunuyor (veri-odaklı, enemy başına farklılaştırılabilir).
+            if (!tierBypassed && blobTier < _data.RequiredConsumeTier) return false;
 
             massReward = _data.MassReward;
             Die();

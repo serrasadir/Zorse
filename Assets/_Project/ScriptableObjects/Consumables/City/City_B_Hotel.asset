@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e5d2fd3fea44742bb673b7ccf0e379, type: 3}
+  m_Name: City_B_Hotel
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
+  _displayName: B_Hotel
+  _prefab: {fileID: 3363327116842776367, guid: bf7591b2b7702449aab5b19f3c72959d, type: 3}
+  _scoreValue: 50
+  _massValue: 50
+  _objectSize: 5
+  _requiredTier: 5
+  _isHazard: 0
+  _hazardAmount: 0
+  _spawnYOffset: 0.15

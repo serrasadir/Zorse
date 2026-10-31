@@ -1,4 +1,7 @@
+using System.Collections.Generic;
 using UnityEngine;
+using BlobSurvivor.Core;
+using BlobSurvivor.Data;
 using BlobSurvivor.Systems;
 
 namespace BlobSurvivor.Entities.Loot
@@ -13,10 +16,22 @@ namespace BlobSurvivor.Entities.Loot
 
         private ObjectPool<ChestPickup> _pool;
         private ScoreSystem _scoreSystem;
+        private readonly List<ChestPickup> _activeChests = new List<ChestPickup>();
 
         private void Awake()
         {
             Instance = this;
+        }
+
+        private void OnEnable() => GameEvents.OnCharacterSelected += HandleRestart;
+
+        private void OnDisable() => GameEvents.OnCharacterSelected -= HandleRestart;
+
+        private void HandleRestart(CharacterData _)
+        {
+            foreach (ChestPickup chest in _activeChests)
+                _pool.Return(chest);
+            _activeChests.Clear();
         }
 
         private void Start()
@@ -40,10 +55,12 @@ namespace BlobSurvivor.Entities.Loot
             chest.Initialize(_scoreSystem);
             chest.OnCollected -= HandleCollected;
             chest.OnCollected += HandleCollected;
+            _activeChests.Add(chest);
         }
 
         private void HandleCollected(ChestPickup chest)
         {
+            _activeChests.Remove(chest);
             _pool.Return(chest);
         }
 

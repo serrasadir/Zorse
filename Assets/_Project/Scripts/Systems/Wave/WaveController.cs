@@ -28,11 +28,21 @@ namespace BlobSurvivor.Systems
         private void OnEnable()
         {
             GameEvents.OnSurvivalTimeUpdated += CheckWaveProgression;
+            GameEvents.OnCharacterSelected += HandleRestart;
         }
 
         private void OnDisable()
         {
             GameEvents.OnSurvivalTimeUpdated -= CheckWaveProgression;
+            GameEvents.OnCharacterSelected -= HandleRestart;
+        }
+
+        // Dalga indeksi sadece ileri gider; sıfırlanmazsa restart son dalgadan başlar.
+        private void HandleRestart(CharacterData _)
+        {
+            _currentWaveIndex = -1;
+            CurrentWave = null;
+            UpdateDifficultyScaling(0f);
         }
 
         private void CheckWaveProgression(float survivalTime)

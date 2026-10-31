@@ -73,7 +73,8 @@ namespace BlobSurvivor.Entities.Vehicles
 
             // AI sorgularını throttle et
             _aiUpdateTimer -= Time.deltaTime;
-            if (_aiUpdateTimer <= 0f)
+            bool aiTick = _aiUpdateTimer <= 0f;
+            if (aiTick)
             {
                 _aiUpdateTimer = AIUpdateInterval;
                 _cachedIsCarAhead = IsCarAhead();
@@ -86,7 +87,9 @@ namespace BlobSurvivor.Entities.Vehicles
             if (_currentSpeed > 0.01f)
             {
                 MoveTowardsWaypoint();
-                PushNearbyConsumables();
+                // 2026-09-06 (Serra): her frame OverlapSphere çalışıyordu (CLAUDE.md kuralına aykırı) —
+                // aynı throttle tick'ine bağlandı.
+                if (aiTick) PushNearbyConsumables();
             }
 
             _damageTimer -= Time.deltaTime;
@@ -145,7 +148,10 @@ namespace BlobSurvivor.Entities.Vehicles
                 Transform t = _pushHits[i].transform;
                 Vector3 pushDir = (t.position - transform.position).normalized;
                 if (pushDir == Vector3.zero) pushDir = transform.right;
-                t.position = Vector3.MoveTowards(t.position, t.position + pushDir, 8f * Time.deltaTime);
+                // Artık her frame değil throttle tick'inde (AIUpdateInterval) çağrılıyor — mesafe buna
+                // göre ölçeklendi, aksi halde itme eskisinin ~1/9'una düşerdi (Time.deltaTime tek
+                // frame'lik, çağrı arası boşluğu hesaba katmazdı).
+                t.position = Vector3.MoveTowards(t.position, t.position + pushDir, 8f * AIUpdateInterval);
             }
         }
 

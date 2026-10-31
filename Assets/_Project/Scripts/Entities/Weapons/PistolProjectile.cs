@@ -12,7 +12,7 @@ namespace BlobSurvivor.Entities.Weapons
         protected override bool OnHitOther(Collider other)
         {
             ConsumableBase consumable = other.GetComponent<ConsumableBase>();
-            if (consumable == null || consumable.RequiredTier <= _splitAboveTier) return false;
+            if (consumable == null || !consumable.CanBeSplit || consumable.RequiredTier <= _splitAboveTier) return false;
 
             ConsumableSpawner.Instance?.ConsumeAndSplit(consumable, _splitCount);
             ReturnToPool();

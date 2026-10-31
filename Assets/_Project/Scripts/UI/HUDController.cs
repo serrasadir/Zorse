@@ -38,6 +38,13 @@ namespace BlobSurvivor.UI
 
         private readonly Dictionary<UpgradeData, GameObject> _badges = new Dictionary<UpgradeData, GameObject>();
         private float _survivalTime;
+        // 2026-09-06 (Serra): timer sadece görüntülenen saniye değeri değişince string oluştursun diye
+        // (CLAUDE.md: "her frame string allocation... sadece değer değişince güncelle").
+        private int _lastDisplayedSeconds = -1;
+        // 2026-09-06 (Serra): OnXPChanged her yemede ateşleniyor (mass=XP) — FindAnyObjectByType'ı bu
+        // sıklıkta çağırmak CLAUDE.md'nin kendi kuralına aykırıydı (Temmuz 2026'daki bir kod incelemesinde
+        // de flag'lenip hiç düzeltilmemişti). OnCharacterSelected'da (run başına bir kere) cache'leniyor.
+        private Entities.Blob.BlobGrowth _blobGrowth;
 
         private void Awake()
         {
@@ -119,12 +126,15 @@ namespace BlobSurvivor.UI
         private void OnSurvivalTimeUpdated(float time)
         {
             _survivalTime = time;
-            if (_timerText != null)
-            {
-                int minutes = (int)time / 60;
-                int seconds = (int)time % 60;
-                _timerText.text = $"{minutes:00}:{seconds:00}";
-            }
+            if (_timerText == null) return;
+
+            int totalSeconds = (int)time;
+            if (totalSeconds == _lastDisplayedSeconds) return;
+            _lastDisplayedSeconds = totalSeconds;
+
+            int minutes = totalSeconds / 60;
+            int seconds = totalSeconds % 60;
+            _timerText.text = $"{minutes:00}:{seconds:00}";
         }
 
         private void OnTierChanged(BlobTier tier)
@@ -136,10 +146,10 @@ namespace BlobSurvivor.UI
         private void OnXPChanged(int xp)
         {
             if (_xpBar == null) return;
-            var blob = FindAnyObjectByType<Entities.Blob.BlobGrowth>();
-            if (blob == null) return;
-            _xpBar.maxValue = blob.XPThreshold;
-            _xpBar.value = blob.CurrentXP;
+            if (_blobGrowth == null) _blobGrowth = FindAnyObjectByType<Entities.Blob.BlobGrowth>();
+            if (_blobGrowth == null) return;
+            _xpBar.maxValue = _blobGrowth.XPThreshold;
+            _xpBar.value = _blobGrowth.CurrentXP;
         }
 
         private void OnLevelUp(int level)
@@ -240,6 +250,8 @@ namespace BlobSurvivor.UI
 
         private void OnCharacterSelected(CharacterData data)
         {
+            _blobGrowth = FindAnyObjectByType<Entities.Blob.BlobGrowth>();
+
             if (_characterIcon == null) return;
 
             _characterIcon.sprite = data != null ? data.Icon : null;

@@ -9,6 +9,16 @@ namespace BlobSurvivor.Entities.Blob
         [SerializeField] private float _baseMoveSpeed = 5f;
         [SerializeField] private float _drag = 8f;
 
+        // GDD_v2.md §17 Pillar 2 "büyüdükçe yavaşla" (hız = 1/tier^üs) korunur ama ayarlanabilir kalır —
+        // 2026-09-06 (Serra): eski üs 0.5 (1/√tier) Giant'ta hızı %44.7'ye düşürüyordu, "çok zor takip
+        // ediliyorum" şikayetine yol açtı. 0.2'ye düşürüldü (Giant'ta ~%72.5) — takas hissi kalıyor,
+        // ceza küçülüyor. Hızlanma skili her seviyede bunu biraz daha azaltabiliyor (bkz. SpeedBoostEffect).
+        [SerializeField] private float _tierSlowdownExponent = 0.2f;
+        private const float MinTierSlowdownExponent = 0.05f;
+        // BlobHealth._maxHealth cache deseniyle aynı: restart'ta Inspector'da ayarlanmış değere
+        // dönülür, hardcoded bir sabite değil (ReduceTierSlowdownExponent run-scoped bir upgrade etkisi).
+        private float _baseTierSlowdownExponent;
+
         private Rigidbody _rigidbody;
         private BlobGrowth _blobGrowth;
         private float _speedMultiplier = 1f;
@@ -17,6 +27,7 @@ namespace BlobSurvivor.Entities.Blob
         {
             _rigidbody = GetComponent<Rigidbody>();
             _blobGrowth = GetComponent<BlobGrowth>();
+            _baseTierSlowdownExponent = _tierSlowdownExponent;
 
             _rigidbody.linearDamping = _drag;
             _rigidbody.angularDamping = 10f;
@@ -42,10 +53,17 @@ namespace BlobSurvivor.Entities.Blob
 
         public float GetSpeedMultiplier() => _speedMultiplier;
 
+        // Hızlanma skili (SpeedBoostEffect) her seviyede çağırır — büyüme cezasını hafifçe azaltır.
+        public void ReduceTierSlowdownExponent(float amount) =>
+            _tierSlowdownExponent = Mathf.Max(MinTierSlowdownExponent, _tierSlowdownExponent - amount);
+
+        // GameManager.ClearPreviousRunState() restart'ta çağırır (BlobGrowth.ResetGrowth/BlobHealth.ResetHealth ile aynı desen).
+        public void ResetTierSlowdown() => _tierSlowdownExponent = _baseTierSlowdownExponent;
+
         private float SpeedScaleModifier()
         {
             if (_blobGrowth == null) return 1f;
-            return 1f / Mathf.Sqrt((float)_blobGrowth.CurrentTier);
+            return 1f / Mathf.Pow((float)_blobGrowth.CurrentTier, _tierSlowdownExponent);
         }
     }
 }
