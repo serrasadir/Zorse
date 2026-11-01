@@ -15,8 +15,7 @@ namespace BlobSurvivor.EditorTools
         private const string MeshPath = "Assets/_Project/Art/Roads/RoadNetwork.asset";
         private const string MaterialPath = "Assets/_Project/Art/Roads/Mat_Road.mat";
 
-        private static readonly float[] StreetLines = { -18f, -6f, 6f, 18f };
-        private const float InnerLine = 6f;  // yalnızca iç kesişimler dörtlü kavşak, yaya geçitli
+        private static readonly float[] Level01StreetLines = { -18f, -6f, 6f, 18f };
         private const float RoadHalf = 2f;
         private const float RoadY = 0.05f;   // çizgiler 0.03, kaldırımlar 0.14
 
@@ -28,7 +27,10 @@ namespace BlobSurvivor.EditorTools
         private const float PlainU0 = 0.03f;
         private const float PlainU1 = 0.18f;
 
-        internal static void Generate()
+        internal static void Generate() => Generate(Level01StreetLines);
+
+        // streetLines: küçükten büyüğe sıralı sokak eksenleri (X ve Z için aynı). İlk/son çizgi dış çevre yolu.
+        internal static void Generate(float[] streetLines)
         {
             Texture2D atlas = AssetDatabase.LoadAssetAtPath<Texture2D>(AtlasPath);
             if (atlas == null)
@@ -42,7 +44,7 @@ namespace BlobSurvivor.EditorTools
 
             GameObject root = new GameObject(RootName);
             Undo.RegisterCreatedObjectUndo(root, "Yol Ağı");
-            root.AddComponent<MeshFilter>().sharedMesh = BuildMesh();
+            root.AddComponent<MeshFilter>().sharedMesh = BuildMesh(streetLines);
 
             MeshRenderer renderer = root.AddComponent<MeshRenderer>();
             renderer.sharedMaterial = GetOrCreateMaterial(atlas);
@@ -52,29 +54,31 @@ namespace BlobSurvivor.EditorTools
             Debug.Log($"[RoadNetworkGenerator] Yol ağı hazır: {root.GetComponent<MeshFilter>().sharedMesh.vertexCount / 4} parça.");
         }
 
-        private static Mesh BuildMesh()
+        private static Mesh BuildMesh(float[] streetLines)
         {
             List<Vector3> vertices = new List<Vector3>();
             List<Vector2> uvs = new List<Vector2>();
             List<int> triangles = new List<int>();
+            float outer = streetLines[streetLines.Length - 1];
 
-            foreach (float x in StreetLines)
+            foreach (float x in streetLines)
             {
-                foreach (float z in StreetLines)
+                foreach (float z in streetLines)
                 {
-                    bool fourWay = Mathf.Abs(x) <= InnerLine && Mathf.Abs(z) <= InnerLine;
+                    // Dış çevre yolundaki T/köşe kavşaklar çizgisiz; iç kesişimler dörtlü, yaya geçitli.
+                    bool fourWay = Mathf.Abs(x) < outer && Mathf.Abs(z) < outer;
                     AddQuad(vertices, uvs, triangles,
                         x - RoadHalf, x + RoadHalf, z - RoadHalf, z + RoadHalf,
                         fourWay ? CrossU0 : PlainU0, fourWay ? CrossU1 : PlainU1, false);
                 }
             }
 
-            foreach (float line in StreetLines)
+            foreach (float line in streetLines)
             {
-                for (int i = 0; i < StreetLines.Length - 1; i++)
+                for (int i = 0; i < streetLines.Length - 1; i++)
                 {
-                    float start = StreetLines[i] + RoadHalf;
-                    float end = StreetLines[i + 1] - RoadHalf;
+                    float start = streetLines[i] + RoadHalf;
+                    float end = streetLines[i + 1] - RoadHalf;
                     AddQuad(vertices, uvs, triangles, line - RoadHalf, line + RoadHalf, start, end, StraightU0, StraightU1, false);
                     AddQuad(vertices, uvs, triangles, start, end, line - RoadHalf, line + RoadHalf, StraightU0, StraightU1, true);
                 }
