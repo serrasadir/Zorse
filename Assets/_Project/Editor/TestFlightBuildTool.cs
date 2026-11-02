@@ -13,12 +13,13 @@ namespace BlobSurvivor.EditorTools
     // Her çalıştırmada iOS build numarasını 1 artırır — App Store Connect aynı numarayı ikinci kez kabul etmez.
     // Arşiv + yükleme Unity dışında xcodebuild ile yapılır (bkz. CLAUDE.md, Editor Araçları).
     // Temp/testflight.request varsa script yüklemesinde kendiliğinden başlar, sonucu Temp/testflight.result'a yazar.
+    // Not: istek sadece bir script derlemesinden sonra okunur; derleme yoksa menüden çalıştır.
     public static class TestFlightBuildTool
     {
         private const string RequestPath = "Temp/testflight.request";
         private const string ResultPath = "Temp/testflight.result";
         private const string OutputPath = "../zorse-ios-build";
-        private const string BundleId = "com.zorsestudio.blobio";
+        private const string BundleId = "com.zorsestudio.leftnocrumbs";
         private const string TeamId = "66ZS86R987";
         private const string IconPath = "Assets/_Project/Art/AppIcon/AppIcon_Placeholder.png";
 
@@ -56,7 +57,7 @@ namespace BlobSurvivor.EditorTools
         private static void ApplyPlayerSettings()
         {
             PlayerSettings.companyName = "Zorse Studio";
-            PlayerSettings.productName = "Blob.io";
+            PlayerSettings.productName = "Left No Crumbs"; // 2026-11-02 (Serra): oyunun adı
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.iOS, BundleId);
             PlayerSettings.iOS.appleDeveloperTeamID = TeamId;
             PlayerSettings.iOS.appleEnableAutomaticSigning = true;
@@ -94,6 +95,8 @@ namespace BlobSurvivor.EditorTools
             PlistDocument plist = new PlistDocument();
             plist.ReadFromFile(plistPath);
             plist.root.SetBoolean("ITSAppUsesNonExemptEncryption", false);
+            // Ana ekran ~12 karakter gösteriyor; "Left No Crumbs" (14) kesilirdi. App Store adı etkilenmez.
+            plist.root.SetString("CFBundleDisplayName", "No Crumbs");
             plist.WriteToFile(plistPath);
         }
     }
