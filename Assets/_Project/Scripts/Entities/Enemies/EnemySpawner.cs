@@ -17,6 +17,14 @@ namespace BlobSurvivor.Entities.Enemies
         // makinesi (EnemyBase._detectionRange) zaten "yakına gelince takip et" mantığını sağlıyordu,
         // sadece spawn'ın kendisi bunu geçersiz kılıyordu.
         [SerializeField] private float _mapHalfExtent = 30f;
+        // 2026-11-01 (GDD_v2 Karar 15, büyük harita): dağılım hâlâ eşit ama blob etrafındaki ±_spawnRange
+        // penceresinde. 30 = eski 60x60 haritanın tamamı, yani hissedilen yoğunluk değişmez.
+        [SerializeField] private float _spawnRange = 30f;
+        // Bu mesafeden uzakta kalan polis havuza döner (coin/ölüm yok), tavandaki yeri oyuncunun
+        // yakınına yeniden spawn edilir. Detection range (15) ve ekranın epey dışında.
+        [SerializeField] private float _despawnDistance = 50f;
+        private const float DespawnCheckInterval = 1f;
+        private float _despawnTimer;
         // Detection range'in (EnemyBase._detectionRange=15) hemen üzerinde tutulur — yeni spawn olan
         // polis anında "görüş menzilinde" başlayıp dümdüz kovalamaya geçmesin, önce dolaşsın.
         [SerializeField] private float _minDistanceFromBlob = 18f;
@@ -69,6 +77,7 @@ namespace BlobSurvivor.Entities.Enemies
             if (!IsGamePlaying()) return;
 
             CleanupInactive();
+            RecycleFarEnemies();
 
             if (_activeEnemies.Count >= GetEffectiveMaxActive()) return;
 
@@ -109,6 +118,24 @@ namespace BlobSurvivor.Entities.Enemies
 
             _activeEnemies.Add(enemy.gameObject);
             if (data.IsElite) _activeEliteCount++;
+        }
+
+        private void RecycleFarEnemies()
+        {
+            _despawnTimer -= Time.deltaTime;
+            if (_despawnTimer > 0f || _blobTransform == null) return;
+            _despawnTimer = DespawnCheckInterval;
+
+            Vector3 blobPos = _blobTransform.position;
+            float despawnSq = _despawnDistance * _despawnDistance;
+            for (int i = _activeEnemies.Count - 1; i >= 0; i--)
+            {
+                GameObject go = _activeEnemies[i];
+                if ((go.transform.position - blobPos).sqrMagnitude < despawnSq) continue;
+
+                EnemyBase enemy = go.GetComponent<EnemyBase>();
+                if (enemy != null) HandleEnemyDeath(enemy); // aynı havuz dönüşü, coin/sandık Die()'da olduğu için düşmez
+            }
         }
 
         private void HandleEnemyDeath(EnemyBase enemy)
@@ -157,10 +184,7 @@ namespace BlobSurvivor.Entities.Enemies
 
             for (int attempt = 0; attempt < 3; attempt++)
             {
-                Vector3 candidate = new Vector3(
-                    Random.Range(-_mapHalfExtent, _mapHalfExtent),
-                    EnemySpawnY,
-                    Random.Range(-_mapHalfExtent, _mapHalfExtent));
+                Vector3 candidate = SpawnPositionUtility.RandomPointNearBlob(blobPos, _spawnRange, _mapHalfExtent, EnemySpawnY);
 
                 if ((candidate - blobPos).sqrMagnitude < minDistSq) continue;
 

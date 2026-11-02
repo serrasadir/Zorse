@@ -88,7 +88,7 @@ namespace BlobSurvivor.EditorTools
         };
 
         [Serializable]
-        private class CityItem
+        internal class CityItem
         {
             public string mesh;
             public float x, y, z, yaw, sx, sy, sz;
@@ -137,7 +137,13 @@ namespace BlobSurvivor.EditorTools
         }
 
         [MenuItem("Tools/Blob.io/Şehir Kur (Level01)")]
-        private static void Build()
+        private static void Build() => BuildCity(false);
+
+        // GDD_v2 Karar 15: Level01 ortada, çevresi mahalle şablonlarıyla dolu sınırlı büyük harita.
+        [MenuItem("Tools/Blob.io/Şehir Kur (Büyük)")]
+        private static void BuildLarge() => BuildCity(true);
+
+        private static void BuildCity(bool large)
         {
             AssetDatabase.Refresh();
 
@@ -192,7 +198,8 @@ namespace BlobSurvivor.EditorTools
             root.transform.position = new Vector3(0f, GroundClearance, 0f);
             root.AddComponent<CityLevel>();
 
-            foreach (CityItem item in layout.items)
+            IEnumerable<CityItem> placed = large ? CityExpansion.Compose(layout.items) : (IEnumerable<CityItem>)layout.items;
+            foreach (CityItem item in placed)
             {
                 if (IsVehicle(item.mesh)) continue; // araçlar sahnede durmaz, CarSpawner havuzundan gelir
 
@@ -201,11 +208,21 @@ namespace BlobSurvivor.EditorTools
                 instance.transform.localRotation = Quaternion.Euler(0f, item.yaw, 0f);
             }
 
+            float mapHalfExtent = PedestrianMapHalfExtent;
+            if (large)
+            {
+                CityExpansion.BuildGround(root.transform, palette); // L_Ground 40x40'ın yerine
+                CityExpansion.BuildBounds(root.transform);
+                mapHalfExtent = CityExpansion.HalfExtent - 1f;
+            }
+
             DisableGreybox();
             MoveCarLoop();
-            AssignPedestrians(man, woman);
+            AssignPedestrians(man, woman, mapHalfExtent);
+            if (large) AssignEnemyMapExtent(mapHalfExtent);
             AssignCars(cars);
-            RoadNetworkGenerator.Generate();
+            if (large) RoadNetworkGenerator.Generate(CityExpansion.StreetLines());
+            else RoadNetworkGenerator.Generate();
             BakeNavMesh();
 
             EditorSceneManager.MarkSceneDirty(root.scene);
@@ -589,7 +606,22 @@ namespace BlobSurvivor.EditorTools
             return data;
         }
 
-        private static void AssignPedestrians(PedestrianData man, PedestrianData woman)
+        private static void AssignEnemyMapExtent(float mapHalfExtent)
+        {
+            BlobSurvivor.Entities.Enemies.EnemySpawner spawner =
+                UnityEngine.Object.FindAnyObjectByType<BlobSurvivor.Entities.Enemies.EnemySpawner>();
+            if (spawner == null)
+            {
+                Debug.LogWarning("[CityKitPipeline] EnemySpawner bulunamadı, harita sınırı bağlanmadı.");
+                return;
+            }
+
+            SerializedObject so = new SerializedObject(spawner);
+            so.FindProperty("_mapHalfExtent").floatValue = mapHalfExtent;
+            so.ApplyModifiedProperties();
+        }
+
+        private static void AssignPedestrians(PedestrianData man, PedestrianData woman, float mapHalfExtent)
         {
             PedestrianSpawner spawner = UnityEngine.Object.FindAnyObjectByType<PedestrianSpawner>();
             if (spawner == null)
@@ -603,7 +635,7 @@ namespace BlobSurvivor.EditorTools
             pool.arraySize = 2;
             pool.GetArrayElementAtIndex(0).objectReferenceValue = man;
             pool.GetArrayElementAtIndex(1).objectReferenceValue = woman;
-            so.FindProperty("_mapHalfExtent").floatValue = PedestrianMapHalfExtent;
+            so.FindProperty("_mapHalfExtent").floatValue = mapHalfExtent;
             so.ApplyModifiedProperties();
         }
 

@@ -21,6 +21,11 @@ namespace BlobSurvivor.Entities.Pedestrians
         // şehir alanına (GreyboxCityGenerator'ın (GridSize-1)*BlockSpacing/2 = 30 ile aynı ölçek)
         // yayılıyor — dağılım blob'un nerede olduğuna bağlı değil.
         [SerializeField] private float _mapHalfExtent = 30f;
+        // 2026-11-01 (GDD_v2 Karar 15, büyük harita): EnemySpawner ile aynı desen — blob etrafındaki
+        // ±_spawnRange penceresinde eşit dağılım (küçük haritada pencere = tüm harita), uzakta kalan
+        // yaya havuza döner ve oyuncunun yakınına yeniden gelir.
+        [SerializeField] private float _spawnRange = 30f;
+        [SerializeField] private float _despawnDistance = 50f;
         [SerializeField] private float _minDistanceFromBlob = 4f;
         [SerializeField] private int _initialSpawnCount = 12;
         [SerializeField] private float _refillCheckInterval = 3f;
@@ -57,7 +62,24 @@ namespace BlobSurvivor.Entities.Pedestrians
 
             _refillTimer = 0f;
             CleanupInactive();
+            RecycleFarPedestrians();
             RefillIfNeeded();
+        }
+
+        private void RecycleFarPedestrians()
+        {
+            if (_blobTransform == null) return;
+
+            Vector3 blobPos = _blobTransform.position;
+            float despawnSq = _despawnDistance * _despawnDistance;
+            for (int i = _active.Count - 1; i >= 0; i--)
+            {
+                GameObject go = _active[i];
+                if ((go.transform.position - blobPos).sqrMagnitude < despawnSq) continue;
+
+                PedestrianController pedestrian = go.GetComponent<PedestrianController>();
+                if (pedestrian != null) ReturnToPool(pedestrian);
+            }
         }
 
         private void InitializePools()
@@ -109,10 +131,7 @@ namespace BlobSurvivor.Entities.Pedestrians
 
             for (int attempt = 0; attempt < 3; attempt++)
             {
-                Vector3 candidate = new Vector3(
-                    Random.Range(-_mapHalfExtent, _mapHalfExtent),
-                    yOffset,
-                    Random.Range(-_mapHalfExtent, _mapHalfExtent));
+                Vector3 candidate = SpawnPositionUtility.RandomPointNearBlob(blobPos, _spawnRange, _mapHalfExtent, yOffset);
 
                 if ((candidate - blobPos).sqrMagnitude < minDistSq) continue;
 

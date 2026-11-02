@@ -30,6 +30,7 @@ Bu bölüm dokümanın anayasasıdır. Her karar kurulun raporlarındaki bir bul
 | 12 | Harita | **Lansmanda 1 cilalı harita** (Modern Şehir); Medieval = ilk içerik güncellemesi |
 | 13 | Go-to-market | **Self-publish + organik**; test pazarında soft launch, creator odaklı büyüme |
 | 14 | Yaya (sivil NPC) | **Eklendi** (20 Ağu 2026, Serra) — şehirde dolaşan, saldırmayan NPC'ler; blob küçükken normal yürür, yutma eşiğine yaklaşınca kaçar, yutulabilir. Animasyonsuz (sinüs bob hareketi) — perf maliyeti sıfıra yakın, sürü polisle aynı ajan bütçesini paylaşır. Sprint 5 kapsamı |
+| 15 | Harita sınırı | ~~Sonsuz kaydırmalı (Vampire Survivors modeli)~~ → **REVİZE (1 Kas 2026, Bahar):** **sınırlı, büyük (~150×150 birim) elle tasarlanmış harita**; kenarda görünmez duvar + görsel doğal sınır (su/otoyol/çit). Gerekçe: büyüme hissi (Hole.io/Katamari — şehir blob büyüdükçe "küçülür"), baked NavMesh'e bağlı elit/boss/spawn sistemi, mobil perf (statik batching/baked ışık/occlusion), 12–15 dk run'da sınıra dayanma riski düşük. Spawn ekran dışından devam eder, oyuncu kenardayken sadece harita içi taraftan |
 
 **⏸️ Açık kararlar** (bkz. §16): nihai oyun adı.
 
@@ -256,7 +257,7 @@ Her düşman ölümü/yutulması **mutlaka** coin düşürür ve `OnEnemyDied` e
 ## 9. Harita (Karar 12 — lansmanda 1)
 
 **Modern Şehir** — tam işlenmiş tek harita:
-- Sonsuz kaydırmalı (Vampire Survivors modeli).
+- ~~Sonsuz kaydırmalı (Vampire Survivors modeli).~~ → **Sınırlı, büyük harita (~150×150 birim, Karar 15):** kenarda görünmez duvar + görsel doğal sınır (su/otoyol/çit).
 - Kendi consumable seti (çöp → eşya → araç → yapı ölçeğinde), düşman havuzu, gotik-şehir paleti.
 - Toplanabilirler: Coin, Kalp (can), Altın Kasa (bonus güçlenme).
 - 2–3 easter egg noktası (mağara/garaj tipi yapılar) — Grimoire tracking'i şimdiden loglar (UI'sız).
@@ -425,6 +426,7 @@ Neyin neden değiştiğinin hızlı referansı. Gerekçelerin tamamı eskiden `A
 | **Skill havuzu** | 8 jenerik skill | **9 skill**: +Sindirim, +Yutuş, +Yırtıcı Çene (yeme-temalı); Score Multiplier iptal edildi (2026-09-06) |
 | **Evrim** | Bahsedilmiş, tanımsız (GDD'de boş satır) | **Lansmanda 2 tanımlı evrim** (Kara Delik, Avcı Formu — playtest'te doğrulanacak) |
 | **Haritalar** | Modern Şehir + Medieval (+ Park/Liman/Endüstri) | **Lansmanda 1** (Modern Şehir); Medieval ilk içerik güncellemesi |
+| **Harita sınırı** | Sonsuz kaydırmalı (Vampire Survivors modeli) | **Sınırlı büyük harita** (~150×150, Karar 15 — 1 Kas 2026) |
 | **Hava durumu** | 4 efekt lansman özelliği | **Post-launch** |
 | **NG+ (4 zorluk)** | Lansman özelliği | **Post-launch** |
 | **Grimoire** | Lansman özelliği | **UI post-launch**; tracking hook'ları lansmanda kodda |
