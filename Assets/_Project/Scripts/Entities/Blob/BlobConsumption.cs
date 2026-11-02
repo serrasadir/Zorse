@@ -90,9 +90,7 @@ namespace BlobSurvivor.Entities.Blob
             else
                 obj.SetActive(false);
 
-#if UNITY_IOS || UNITY_ANDROID
-            Handheld.Vibrate();
-#endif
+            Haptics.LightTap(); // 2026-11-02: Handheld.Vibrate() bildirim gibi güçlüydü
         }
 
         // B16 (Yutuş skill'i): HealOnConsumeComponent varsa her yemede küçük bir heal uygular.
