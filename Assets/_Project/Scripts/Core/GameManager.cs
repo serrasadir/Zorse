@@ -234,6 +234,21 @@ namespace BlobSurvivor.Core
             GameEvents.RaiseGameResumed();
         }
 
+        // Duraklatma menüsünün "Devam" butonu: seviye atlama ekranı açıkken oyunu kart seçmeden sürdürmesin.
+        public void ResumeFromPause()
+        {
+            if (CurrentState == GameState.Paused) ResumeGame();
+        }
+
+        // 2026-11-02: seviye atlama eskiden PauseGame kullanıyordu; artık duraklatma menüsü OnGamePaused'u
+        // dinlediği için kart ekranının üstüne açılmasın diye ayrı bir state. OnGamePaused ateşlenmez.
+        public void BeginLevelUp()
+        {
+            if (CurrentState != GameState.Playing) return;
+            ChangeState(GameState.LevelUp);
+            Time.timeScale = 0f;
+        }
+
         public void TriggerLevelUp(Data.UpgradeData[] choices)
         {
             if (CurrentState != GameState.Playing) return;
@@ -269,10 +284,19 @@ namespace BlobSurvivor.Core
 #endif
         }
 
+        // Arka plana atılınca (veya iOS'ta bildirim/kontrol merkezi çekilince) oyun duraklar.
+        // 2026-11-02: eskiden de duruyordu ama devam ettirecek hiçbir UI yoktu — oyun dönüşte donuk kalıyordu.
+        // Artık PauseMenu OnGamePaused'u dinleyip "Devam" butonunu gösteriyor; otomatik devam bilinçli olarak yok.
         private void OnApplicationPause(bool paused)
         {
-            if (paused && CurrentState == GameState.Playing)
-                PauseGame();
+            if (paused) PauseGame();
+        }
+
+        private void OnApplicationFocus(bool hasFocus)
+        {
+#if !UNITY_EDITOR
+            if (!hasFocus) PauseGame();
+#endif
         }
 
         private void OnDestroy()

@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
   _displayName: P_TreeGreen
   _prefab: {fileID: 2475573494079990735, guid: 4c32c782764414573a227d3369a9284f, type: 3}
-  _scoreValue: 4
-  _massValue: 4
-  _objectSize: 2
-  _requiredTier: 2
+  _scoreValue: 10
+  _massValue: 10
+  _objectSize: 3
+  _requiredTier: 3
   _isHazard: 0
   _hazardAmount: 0
   _spawnYOffset: 0.15

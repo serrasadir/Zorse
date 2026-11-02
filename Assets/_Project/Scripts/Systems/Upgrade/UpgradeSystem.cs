@@ -80,7 +80,7 @@ namespace BlobSurvivor.Systems
             if (choices == null || choices.Length == 0) return;
 
             GameEvents.RaiseUpgradeChoicesReady(choices);
-            GameManager.Instance?.PauseGame();
+            GameManager.Instance?.BeginLevelUp();
         }
 
         private void OnUpgradeSelected(UpgradeData data)

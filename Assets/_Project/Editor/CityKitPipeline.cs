@@ -70,6 +70,14 @@ namespace BlobSurvivor.EditorTools
         private const float EliteRootY = 1f;         // NavMeshAgent.baseOffset: pivot NavMesh'in 1 birim üstünde
         private const float CoinModelY = 0.2f;       // CoinSpawner kökü 0.15'te tutar; merkez 0.35'te kaldırımın üstünde kalır
 
+        // 2026-11-02: export Blender +Y'yi Unity -Z'ye çeviriyor (Unity'de ölçüldü). Ön yüzleri +Y'de modellenen
+        // insanlar/araçlar hareket yönünün tersine, binalar kameranın tersine bakıyordu. Yerleşim (level01.json)
+        // yaw'ları 0 veya hareketle belirlendiği için modele 180° eklemek yeterli. P_ eşyaları ve L_ zemin bilinçli
+        // olarak dışarıda: yaw'lı yerleşimleri var, doğrulanmadan çevrilmedi.
+        private static readonly Quaternion FacingFix = Quaternion.Euler(0f, 180f, 0f);
+        internal const float TallBuildingHeight = 5f;
+        internal const float TallBuildingHeightScale = 0.75f;
+
         // Hareketli arabalar dış çevre yolunda, sağ şeritte döner (Waypoint_0..3 sırasıyla).
         private static readonly Vector3[] CarLoop =
         {
@@ -103,9 +111,9 @@ namespace BlobSurvivor.EditorTools
                 case "P_Bench":
                 case "P_Lamp":
                 case "P_TrafficLight":
-                case "P_TreeGreen":
-                case "P_TreeYellow":
                     return (BlobTier.Small, 4);
+                case "P_TreeGreen":   // 2026-11-02 (Serra): ağaçlar Medium
+                case "P_TreeYellow":
                 case "P_BusStop":
                 case "V_CarRed":
                 case "V_CarBlue":
@@ -220,8 +228,41 @@ namespace BlobSurvivor.EditorTools
 
             bool police = ApplyEnemyModel("Assets/_Project/Prefabs/Enemies/Enemy_Police.prefab", "H_Police", -PoliceRootY, palette);
             bool elite = ApplyEnemyModel("Assets/_Project/Prefabs/Enemies/Enemy_ElitePolice.prefab", "H_Elite", -EliteRootY, palette);
+            bool tank = ApplyMinibossModel(palette);
             AssetDatabase.SaveAssets();
-            Debug.Log($"[CityKitPipeline] Polis modelleri: normal={police}, elit={elite}.");
+            Debug.Log($"[CityKitPipeline] Polis modelleri: normal={police}, elit={elite}, miniboss tank={tank}.");
+        }
+
+        // Miniboss = polis tankı. Eski kapsül (1.5, 1.2, 1) ölçekliydi: kök 1'e çekilir, gövde collider'ı tanka göre büyür.
+        // Pivot NavMeshAgent.baseOffset (1) kadar yukarıda olduğu için model elit polis gibi -1'e iner.
+        [MenuItem("Tools/Blob.io/Miniboss Tank Modelini Uygula")]
+        private static void ApplyMinibossMenu() => ApplyMinibossModel();
+
+        internal static bool ApplyMinibossModel() => ApplyMinibossModel(GetPaletteMaterial());
+
+        private static bool ApplyMinibossModel(Material palette)
+        {
+            const string prefabPath = "Assets/_Project/Prefabs/Enemies/Enemy_Miniboss.prefab";
+            if (palette == null)
+            {
+                Debug.LogError("[CityKitPipeline] Palet materyali bulunamadı.");
+                return false;
+            }
+            if (!ApplyEnemyModel(prefabPath, "V_PoliceTank", -EliteRootY, palette)) return false;
+
+            GameObject contents = PrefabUtility.LoadPrefabContents(prefabPath);
+            contents.transform.localScale = Vector3.one;
+            CapsuleCollider capsule = contents.GetComponent<CapsuleCollider>();
+            if (capsule != null)
+            {
+                capsule.radius = 0.95f;        // tank 1.8 x 2.5 (namlu hariç)
+                capsule.height = 2f;
+                capsule.center = Vector3.zero; // -1..1: zeminden kule tepesine
+            }
+            PrefabUtility.SaveAsPrefabAsset(contents, prefabPath);
+            PrefabUtility.UnloadPrefabContents(contents);
+            AssetDatabase.SaveAssets();
+            return true;
         }
 
         // Kök ölçeği 1 yapılır: eski küpün 0.2 ölçeği modeli de toplama alanını da küçültürdü.
@@ -351,7 +392,7 @@ namespace BlobSurvivor.EditorTools
             data.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static void BakeNavMesh()
+        internal static void BakeNavMesh()
         {
             NavMeshSurface surface = UnityEngine.Object.FindAnyObjectByType<NavMeshSurface>();
             if (surface == null)
@@ -385,22 +426,38 @@ namespace BlobSurvivor.EditorTools
             return material;
         }
 
-        // FBX'in kök dönüşü/ölçeği korunarak "Model" child'ı olarak eklenir.
-        private static MeshRenderer AddModel(GameObject root, string mesh, Material material)
+        internal static MeshFilter LoadSourceMesh(string mesh)
         {
             string modelPath = $"{ArtRoot}/{mesh}.fbx";
             GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
             MeshFilter source = model != null ? model.GetComponentInChildren<MeshFilter>(true) : null;
             if (source == null)
-            {
                 Debug.LogError($"[CityKitPipeline] {modelPath} yüklenemedi veya mesh içermiyor.");
-                return null;
-            }
+            return source;
+        }
+
+        // Model child'ının dönüşü/ölçeği: FBX kökü + yön düzeltmesi + yüksek binalarda basıklık.
+        internal static void ApplyModelTransform(Transform model, MeshFilter source, string mesh)
+        {
+            bool facesBackward = mesh.StartsWith("H_") || mesh.StartsWith("V_") || mesh.StartsWith("B_");
+            model.localRotation = facesBackward ? FacingFix * source.transform.rotation : source.transform.rotation;
+
+            Vector3 scale = source.transform.lossyScale;
+            float height = source.sharedMesh.bounds.size.y * scale.y;
+            if (mesh.StartsWith("B_") && height > TallBuildingHeight)
+                scale.y *= TallBuildingHeightScale;
+            model.localScale = scale;
+        }
+
+        // FBX'in kök dönüşü/ölçeği korunarak "Model" child'ı olarak eklenir.
+        private static MeshRenderer AddModel(GameObject root, string mesh, Material material)
+        {
+            MeshFilter source = LoadSourceMesh(mesh);
+            if (source == null) return null;
 
             GameObject child = new GameObject("Model");
             child.transform.SetParent(root.transform, false);
-            child.transform.localRotation = source.transform.rotation;
-            child.transform.localScale = source.transform.lossyScale;
+            ApplyModelTransform(child.transform, source, mesh);
             child.AddComponent<MeshFilter>().sharedMesh = source.sharedMesh;
             MeshRenderer renderer = child.AddComponent<MeshRenderer>();
             renderer.sharedMaterial = material;
@@ -419,6 +476,8 @@ namespace BlobSurvivor.EditorTools
 
             Bounds bounds = renderer.bounds;
             Vector3 expected = new Vector3(item.sx, item.sy, item.sz);
+            if (item.mesh.StartsWith("B_") && item.sy > TallBuildingHeight)
+                expected.y *= TallBuildingHeightScale;
             if ((bounds.size - expected).magnitude > expected.magnitude * 0.1f)
                 Debug.LogWarning($"[CityKitPipeline] {item.mesh}: boyut {bounds.size}, beklenen {expected}. Eksen/ölçek hatalı olabilir.");
 

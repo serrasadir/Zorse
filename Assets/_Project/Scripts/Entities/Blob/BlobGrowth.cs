@@ -46,20 +46,26 @@ namespace BlobSurvivor.Entities.Blob
         // (Mass Kazanımı'ndan bilinçli olarak ayrı, GDD'de de iki ayrı Market kalemi).
         private float _xpBonusMultiplier = 1f;
 
+        // 2026-11-02 (Serra): "büyüme tak diye oluyor". PunchScale eskiden ölçeği anında yeni HEDEF boyutun
+        // %15 fazlasına çekiyordu, yani büyümenin tamamı tek karede oluyordu. Artık büyüme (_smoothScale) ve
+        // yeme şişmesi (_punch) ayrı: büyüme hedefe yumuşakça yaklaşır, şişme o anki boyutun üstüne eklenip söner.
+        [SerializeField] private float _punchDecay = 8f;
+
+        private float _smoothScale;
+        private float _punch;
+
         private void Start()
         {
+            _smoothScale = _baseScale;
             transform.localScale = Vector3.one * _baseScale;
             XPThreshold = _baseXPThreshold;
         }
 
         private void Update()
         {
-            float targetScale = CalculateScale();
-            transform.localScale = Vector3.Lerp(
-                transform.localScale,
-                Vector3.one * targetScale,
-                Time.deltaTime * _scaleSmoothing
-            );
+            _smoothScale = Mathf.Lerp(_smoothScale, CalculateScale(), Time.deltaTime * _scaleSmoothing);
+            _punch = Mathf.Lerp(_punch, 0f, Time.deltaTime * _punchDecay);
+            transform.localScale = Vector3.one * (_smoothScale * (1f + _punch));
         }
 
         public void AddMass(float amount)
@@ -105,6 +111,8 @@ namespace BlobSurvivor.Entities.Blob
             CurrentXP = 0f;
             CurrentLevel = 0;
             XPThreshold = _baseXPThreshold;
+            _smoothScale = _baseScale;
+            _punch = 0f;
             transform.localScale = Vector3.one * _baseScale;
             _massGainMultiplier = 1f;
             _xpBonusMultiplier = 1f;
@@ -127,7 +135,7 @@ namespace BlobSurvivor.Entities.Blob
 
         public void PunchScale(float punchAmount = 0.15f)
         {
-            transform.localScale = Vector3.one * (CalculateScale() * (1f + punchAmount));
+            _punch = Mathf.Max(_punch, punchAmount);
         }
 
         private float CalculateScale()

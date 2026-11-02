@@ -192,7 +192,7 @@ Her karakter top formundadır, elinde silahı vardır. Silahlar otomatik ateşle
 | Tip | Davranış | Yutulma | Ödül |
 |---|---|---|---|
 | **Normal polis** (sürü) | Kalabalık koşar, basit steering | Tier 3+ | Coin (düşük) |
-| **Elit polis** | Yavaş, güçlü, özel saldırı deseni; NavMesh | Tier 5 | **Sandık** (skill + yüksek coin) |
+| **Elit polis** | Yavaş, tabancalı: durur, nişan lazeri + 3'lü mermi serisi (menzil 7,5); NavMesh | Tier 5 | **Sandık** (skill + yüksek coin) |
 | **Miniboss** | 4. ve 8. dk; aynı tasarım, artan stat; alan saldırısı | Hayır (silahla) | Yüksek coin + garanti sandık |
 | **Final Boss** | 12. dk; tek faz geçişi; son fazda **yutulur** | Son fazda | Run tamamlama ödülü |
 
@@ -201,7 +201,7 @@ Her karakter top formundadır, elinde silahı vardır. Silahlar otomatik ateşle
 |---|---|
 | 0–1 | Sadece consumable; hazard öğrenimi |
 | 1–3 | Temel sürü, düşük sağlık |
-| 3–5 | Elit eklenir; hasar +%20; **4. dk miniboss** |
+| 3–6 | **4. dk elit eklenir**; hasar +%20 (5. dk); **6. dk miniboss** (2 Kas 2026, Serra: önce elit, sonra miniboss) |
 | 5–8 | Yoğunluk ×2; **8. dk miniboss** (güçlenmiş) |
 | 8–12 | Çoklu elit + hız bonusu; hasar ×2 |
 | 12+ | **Final boss** + kıyamet yoğunluğu; run 15. dk'da ölümle ya da boss'un yutulmasıyla biter |

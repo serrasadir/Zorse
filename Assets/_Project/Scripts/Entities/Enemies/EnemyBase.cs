@@ -53,6 +53,14 @@ namespace BlobSurvivor.Entities.Enemies
         private Vector3 _avoidanceCached;
         private float _blobSolidRadius = 0.5f;
         private Vector3 _steeringVelocity;
+        private EnemyAimLine _aimLine;
+        private ObjectPool<EnemyProjectile> _projectilePool;
+
+        private const float MuzzleOffset = 0.7f;
+        private const int InitialProjectilePoolSize = 12;
+
+        // State çıkışında kaybolmaması için burada tutulur: oyuncu menzilden çıkıp girerek bekleme süresini atlayamaz.
+        public float NextRangedAttackTime { get; set; }
 
         // 2026-09-06 (Serra): "mermiler polislerin arkasından geçip gidiyor" — Cannon/Pistol non-homing,
         // ateş anındaki pozisyona düz çizgi atıyor; polis steering'le (separation/avoidance) sürekli yön
@@ -92,6 +100,10 @@ namespace BlobSurvivor.Entities.Enemies
             _tierBypassUntil = -1f;
             _hasSteerTarget = false;
             _steeringVelocity = Vector3.zero;
+            NextRangedAttackTime = 0f;
+
+            if (_projectilePool == null && _data != null && _data.ProjectilePrefab != null && PoolManager.Instance != null)
+                _projectilePool = PoolManager.Instance.CreatePool(_data.ProjectilePrefab, InitialProjectilePoolSize);
 
             GameObject blob = GameObject.FindWithTag("Blob");
             if (blob != null)
@@ -296,6 +308,61 @@ namespace BlobSurvivor.Entities.Enemies
             _blobHealth?.TakeDamage(_data.Damage * _damageMultiplier);
         }
 
+        public Vector3 DirectionToBlob()
+        {
+            if (BlobTransform == null) return transform.forward;
+
+            Vector3 direction = BlobTransform.position - transform.position;
+            direction.y = 0f;
+            return direction.sqrMagnitude > 0.0001f ? direction.normalized : transform.forward;
+        }
+
+        public void FaceTowards(Vector3 direction)
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), _rotationSpeed * Time.deltaTime);
+        }
+
+        public bool HasLineOfSightToBlob()
+        {
+            if (BlobTransform == null) return false;
+
+            Vector3 toBlob = BlobTransform.position - transform.position;
+            toBlob.y = 0f;
+            return !Physics.Raycast(transform.position, toBlob.normalized, toBlob.magnitude, s_environmentMask, QueryTriggerInteraction.Collide);
+        }
+
+        // Lazer merminin gerçek yolunu göstersin diye binada kesilir.
+        public float ComputeAimLength(Vector3 direction)
+        {
+            float maxDistance = _data.ProjectileMaxDistance;
+            return Physics.Raycast(transform.position, direction, out RaycastHit hit, maxDistance, s_environmentMask, QueryTriggerInteraction.Collide)
+                ? hit.distance
+                : maxDistance;
+        }
+
+        public void ShowAimLine(Vector3 direction, float length, float width)
+        {
+            if (_aimLine == null)
+            {
+                if (_data.AimLineMaterial == null) return;
+                _aimLine = new EnemyAimLine(transform, _data.AimLineMaterial);
+            }
+
+            _aimLine.Show(transform.position + direction * MuzzleOffset, transform.position + direction * length, width);
+        }
+
+        public void HideAimLine() => _aimLine?.Hide();
+
+        public void FireProjectile(Vector3 direction)
+        {
+            if (_projectilePool == null) return;
+
+            Vector3 position = transform.position + direction * MuzzleOffset;
+            EnemyProjectile projectile = _projectilePool.Get(position, Quaternion.LookRotation(direction));
+            projectile.Launch(_projectilePool, _blobHealth, _blobSolidRadius, direction,
+                _data.ProjectileSpeed, _data.ProjectileMaxDistance, _data.Damage * _damageMultiplier);
+        }
+
         public void TakeDamage(float amount)
         {
             if (_isDead) return;
@@ -342,6 +409,19 @@ namespace BlobSurvivor.Entities.Enemies
             return true;
         }
 
+        // 2026-11-02 (Serra): polisi yemek bedelsizdi. Eşiğe yeni ulaşmışken ısırık acıtır, büyüdükçe azalır
+        // ve 2 tier fark kalınca biter. Yırtıcı Çene/Avcı Formu ile erken yutmak tam hasarı alır.
+        public float GetConsumeDamage(BlobTier blobTier)
+        {
+            if (_data == null || _data.ConsumeDamage <= 0f) return 0f;
+
+            int tierGap = (int)blobTier - (int)_data.RequiredConsumeTier;
+            if (tierGap >= 2) return 0f;
+
+            float damage = _data.ConsumeDamage * _damageMultiplier;
+            return tierGap == 1 ? damage * 0.5f : damage;
+        }
+
         private void Die()
         {
             if (_isDead) return;
@@ -353,6 +433,8 @@ namespace BlobSurvivor.Entities.Enemies
             CoinSpawner.Instance?.SpawnCoin(transform.position, coinAmount);
             if (_data.IsElite)
                 ChestSpawner.Instance?.SpawnChest(transform.position);
+            if (_data.HeartPrefab != null && Random.value < _data.HeartDropChance)
+                HeartPickup.Spawn(_data.HeartPrefab, transform.position);
 
             // Pool'a dönüş çağıranın (EnemySpawner) sorumluluğunda — CoinSpawner/CoinPickup'taki pattern'in aynısı.
             OnDeath?.Invoke(this);

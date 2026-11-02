@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: EnemyData_FinalBoss
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
   _displayName: Final Boss (12. dk)
-  _prefab: {fileID: 0}
+  _prefab: {fileID: 2072016075202350378, guid: e55e570b097534c299337932d151eb22, type: 3}
   _maxHealth: 3000
   _damage: 28
   _moveSpeed: 2.2

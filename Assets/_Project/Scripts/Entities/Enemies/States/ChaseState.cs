@@ -1,4 +1,5 @@
 using UnityEngine;
+using BlobSurvivor.Data;
 
 namespace BlobSurvivor.Entities.Enemies
 {
@@ -17,7 +18,13 @@ namespace BlobSurvivor.Entities.Enemies
             float sqrDist = (enemy.transform.position - enemy.BlobTransform.position).sqrMagnitude;
             float attackRange = enemy.EffectiveAttackRange();
             if (sqrDist <= attackRange * attackRange)
-                enemy.ChangeState(new AttackState());
+            {
+                // Menzilli düşman, arada bina varsa ateş etmek yerine yürümeye devam eder.
+                if (enemy.Data.AttackType != EnemyAttackType.Ranged)
+                    enemy.ChangeState(new AttackState());
+                else if (aiTick && enemy.HasLineOfSightToBlob())
+                    enemy.ChangeState(new RangedAttackState());
+            }
             else if (!enemy.CanSeeBlob())
                 enemy.ChangeState(new PatrolState());
         }

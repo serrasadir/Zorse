@@ -15,13 +15,25 @@ MonoBehaviour:
   _displayName: Elit Polis
   _prefab: {fileID: 2072016075202350378, guid: 1e23d1661c144992b9d80c72c678a721, type: 3}
   _maxHealth: 250
-  _damage: 20
+  _damage: 10
   _moveSpeed: 2.1
-  _attackRange: 2.5
+  _attackRange: 7.5
   _attackCooldown: 2
-  _requiredConsumeTier: 5
   _scoreValue: 35
   _isElite: 1
   _attackHitCount: 3
   _attackHitInterval: 0.3
+  _attackType: 1
+  _projectilePrefab: {fileID: 7310000000000000005, guid: 72ea09cc756c4a21b9f53362ab72701a, type: 3}
+  _aimLineMaterial: {fileID: 2100000, guid: 5db4a71ce5b8412fb29916ee1504ee4f, type: 2}
+  _projectileSpeed: 10
+  _projectileMaxDistance: 12
+  _aimDuration: 0.5
+  _aimLockDuration: 0.2
   _massReward: 20
+  _preventConsumption: 0
+  _requiredConsumeTier: 5
+  _consumeDamage: 0
+  _heartPrefab: {fileID: 7633646316503275560, guid: 0bd1dfcaa907047789043c4bbd111054, type: 3}
+  _heartDropChance: 1
+  _requiresConsumptionToDie: 0

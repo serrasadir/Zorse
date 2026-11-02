@@ -44,10 +44,13 @@ namespace BlobSurvivor.Entities.Blob
                 if (bonus != null)
                     effectiveTier = (BlobTier)Mathf.Min((int)BlobTier.Giant, (int)effectiveTier + bonus.TierBonus);
 
+                // TryConsumeByBlob düşmanı havuza döndürür; hasar ondan önce okunur.
+                float biteDamage = enemy.GetConsumeDamage(effectiveTier);
                 if (enemy.TryConsumeByBlob(effectiveTier, out float massReward))
                 {
                     _blobGrowth.AddMass(massReward);
                     _blobGrowth.PunchScale();
+                    if (biteDamage > 0f) _blobHealth.TakeDamage(biteDamage);
                     ApplyHealOnConsume();
                 }
             }
