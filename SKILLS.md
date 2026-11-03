@@ -4,6 +4,17 @@
 > Değer değiştirmek için ilgili `Upgrade_*.asset` dosyasındaki `Max Level` / `Per Level Value` alanlarını Inspector'dan düzenle; kod gerekmez.
 > GDD karşılığı: `GDD_v2.md` §5.
 
+## ⭐ Toplantı için öne çıkanlar
+
+1. **Final boss tek seride öldürüyor:** 5 × 28 = 140 hasar; başlangıç canı 100. Zırh/Can Artışı almamış oyuncu tek saldırıda ölür. (Bölüm 5, madde 10)
+2. **Final boss'a yetişmek zor:** 12. dk'da geliyor, run 15. dk'da bitiyor. Silah Gücü almamış oyuncu onu yenebilir faza ~3.75 dk'da indirir, yetişemez. (madde 11)
+3. **Düşman sayıları belgelerle uyuşmuyor:** Sahnede aynı anda 30 düşman / 10 elit (10. dk'dan sonra 60); GDD ve CLAUDE.md 15 / 4 diyor. Hangisi geçerli? (madde 16)
+4. **Yırtıcı Çene neredeyse değersiz:** polis yutmak 3 mass veriyor, 5 can ısırıyor. Öneri: polis mass'ı 15–20 + ısırıksız. (Bölüm 2, madde 1)
+5. **Mermo'nun kilidi yok:** GDD "3 oturum tamamla" diyor, oyunda baştan açık. (madde 8)
+6. **Avcı Formu final boss'u Giant olmadan yutturabiliyor:** ödül mü, açık mı? (madde 14)
+7. **Bosslar sandık da düşürüyor** ve zaman çarpanlarıyla güçlenmiyor: bilinçli mi? (madde 12–13)
+
+
 ---
 
 ## 1. Genel kurallar
