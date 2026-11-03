@@ -77,7 +77,6 @@ namespace BlobSurvivor.Entities.Blob
             float adjusted = amount * _massGainMultiplier;
             CurrentMass += adjusted;
             RecalculateTier();
-            GameEvents.RaiseBlobSizeChanged(CurrentMass);
             AddXP(adjusted);
         }
 
@@ -124,7 +123,6 @@ namespace BlobSurvivor.Entities.Blob
             BlobTier previousTier = CurrentTier;
             CurrentTier = BlobTier.Tiny;
 
-            GameEvents.RaiseBlobSizeChanged(CurrentMass);
             GameEvents.RaiseXPChanged((int)CurrentXP);
             if (previousTier != CurrentTier)
                 GameEvents.RaiseBlobTierChanged(CurrentTier);

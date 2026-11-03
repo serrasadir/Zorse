@@ -5,7 +5,6 @@ namespace BlobSurvivor.Core
 {
     public static class GameEvents
     {
-        public static event Action<float> OnBlobSizeChanged;
         public static event Action<BlobTier> OnBlobTierChanged;
         // M25: consumable'ların spawn/pool-reuse anında (event'i kaçırmış olsalar bile) blob'un güncel
         // tier'ını senkron okuyabilmesi için — ConsumableBase.SetData/OnEnable bunu Find/GetComponent
@@ -25,7 +24,6 @@ namespace BlobSurvivor.Core
         public static event Action<UpgradeData, int> OnUpgradeApplied;
         public static event Action<float, float> OnHealthChanged;
         public static event Action<float> OnSurvivalTimeUpdated;
-        public static event Action<int> OnConsumedCountChanged;
         public static event Action<CharacterData> OnCharacterSelected;
         public static event Action<int> OnCoinsChanged;
         // A15: max <= 0 => aktif boss yok (B18 health bar bunu gizleme sinyali olarak kullanır)
@@ -36,7 +34,6 @@ namespace BlobSurvivor.Core
         // A17: run GameOver'dan (ölüm) ayrı olarak "başarıyla" kapanınca ateşlenir (final boss yutuldu / run-timeout).
         public static event Action<RunEndReason> OnRunComplete;
 
-        public static void RaiseBlobSizeChanged(float newSize) => OnBlobSizeChanged?.Invoke(newSize);
         public static void RaiseBlobTierChanged(BlobTier tier)
         {
             CurrentBlobTier = tier;
@@ -53,7 +50,6 @@ namespace BlobSurvivor.Core
         public static void RaiseUpgradeApplied(UpgradeData data, int level) => OnUpgradeApplied?.Invoke(data, level);
         public static void RaiseHealthChanged(float current, float max) => OnHealthChanged?.Invoke(current, max);
         public static void RaiseSurvivalTimeUpdated(float time) => OnSurvivalTimeUpdated?.Invoke(time);
-        public static void RaiseConsumedCountChanged(int count) => OnConsumedCountChanged?.Invoke(count);
         public static void RaiseCharacterSelected(CharacterData data) => OnCharacterSelected?.Invoke(data);
         public static void RaiseCoinsChanged(int total) => OnCoinsChanged?.Invoke(total);
         public static void RaiseBossHealthChanged(float current, float max) => OnBossHealthChanged?.Invoke(current, max);

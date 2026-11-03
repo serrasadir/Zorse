@@ -10,7 +10,6 @@ namespace BlobSurvivor.Entities.Blob
         private BlobGrowth _blobGrowth;
         private BlobHealth _blobHealth;
         private ScoreSystem _scoreSystem;
-        private int _consumedCount;
 
         private void Awake()
         {
@@ -60,12 +59,6 @@ namespace BlobSurvivor.Entities.Blob
             }
         }
 
-        public void ResetConsumedCount()
-        {
-            _consumedCount = 0;
-            GameEvents.RaiseConsumedCountChanged(_consumedCount);
-        }
-
         // B17 evrimi "Kara Delik" (BlackHoleComponent) temassız otomatik yutma için bu girişi kullanır —
         // normal temas akışıyla (Consume) aynı sonucu üretir, tek fark tetikleyicinin OverlapSphere olması.
         public void ConsumeDirect(IConsumable consumable, GameObject obj) => Consume(consumable, obj);
@@ -78,9 +71,6 @@ namespace BlobSurvivor.Entities.Blob
             ApplyHealOnConsume();
 
             _scoreSystem?.AddScore(consumable.Data.ScoreValue);
-
-            _consumedCount++;
-            GameEvents.RaiseConsumedCountChanged(_consumedCount);
 
             consumable.OnConsumed();
 
