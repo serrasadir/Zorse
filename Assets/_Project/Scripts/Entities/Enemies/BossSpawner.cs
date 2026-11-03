@@ -16,6 +16,18 @@ namespace BlobSurvivor.Entities.Enemies
         [SerializeField] private BossData _bossData;
         [SerializeField] private float _spawnDistance = 20f;
 
+        // 2026-11-03 (Serra: "minibosstan rahatça kaçabiliyorum"): boss ekran dışındayken VE uzaktayken hızlanır,
+        // ekrana girince normal hızına döner — ışınlama gibi seni bulur ama gözünün önünde belirmez, binaların
+        // etrafından gerçekten dolaşarak gelir. Mesafe kamera uzaklaşmasından bağımsız: ekran kontrolü onu zaten kapsar.
+        [Header("Yetişme")]
+        [SerializeField] private float _catchUpDistance = 25f;
+        [SerializeField] private float _catchUpSpeedMultiplier = 2f;
+        [SerializeField] private float _catchUpCheckInterval = 0.25f;
+        private const float ViewportMargin = 0.05f;
+
+        private Camera _camera;
+        private float _catchUpTimer;
+
         private const float SpawnY = 0.65f;
 
         private Transform _blobTransform;
@@ -34,6 +46,7 @@ namespace BlobSurvivor.Entities.Enemies
         {
             GameObject blob = GameObject.FindWithTag("Blob");
             if (blob != null) _blobTransform = blob.transform;
+            _camera = Camera.main;
 
             GameEvents.OnSurvivalTimeUpdated += CheckSpawnTrigger;
             GameEvents.OnCharacterSelected += HandleRestart;
@@ -52,12 +65,35 @@ namespace BlobSurvivor.Entities.Enemies
         {
             if (_activeBoss == null) return;
 
+            UpdateCatchUp();
+
             float current = _activeBoss.CurrentHealth;
             if (!Mathf.Approximately(current, _lastReportedHealth))
             {
                 _lastReportedHealth = current;
                 GameEvents.RaiseBossHealthChanged(current, _activeBoss.MaxHealth);
             }
+        }
+
+        private void UpdateCatchUp()
+        {
+            _catchUpTimer -= Time.deltaTime;
+            if (_catchUpTimer > 0f || _blobTransform == null) return;
+            _catchUpTimer = _catchUpCheckInterval;
+
+            Vector3 bossPos = _activeBoss.transform.position;
+            Vector3 delta = bossPos - _blobTransform.position;
+            delta.y = 0f;
+            bool far = delta.sqrMagnitude > _catchUpDistance * _catchUpDistance;
+            _activeBoss.SetCatchUpMultiplier(far && !IsOnScreen(bossPos) ? _catchUpSpeedMultiplier : 1f);
+        }
+
+        private bool IsOnScreen(Vector3 worldPos)
+        {
+            if (_camera == null) return false;
+            Vector3 v = _camera.WorldToViewportPoint(worldPos);
+            return v.z > 0f && v.x > -ViewportMargin && v.x < 1f + ViewportMargin
+                && v.y > -ViewportMargin && v.y < 1f + ViewportMargin;
         }
 
         private void HandleRestart(CharacterData _)

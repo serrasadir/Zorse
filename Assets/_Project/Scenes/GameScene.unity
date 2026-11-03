@@ -25953,7 +25953,7 @@ MonoBehaviour:
   _followSmoothing: 5
   _baseHeight: 7
   _baseTilt: 60
-  _zoomExponent: 0.5
+  _zoomExponent: 0.3
   _maxHeightMultiplier: 4
   _zoomSmoothing: 1.5
   _useBounds: 0

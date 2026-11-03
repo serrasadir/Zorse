@@ -65,6 +65,10 @@ namespace BlobSurvivor.Entities.Weapons
 
         protected virtual void Update()
         {
+            // 2026-11-03: SphereCast başlangıçta zaten içinde olduğu collider'ı görmez — blob'a yapışmış polisin
+            // içinde doğan mermi ondan geçip gidiyordu. İlk karede bir kez yerinde bakılır.
+            if (_elapsed <= 0f && CheckSpawnOverlap()) return;
+
             Vector3 extraMotion = GetExtraMotion();
             Vector3 castDirection;
             float travelDistance;
@@ -100,6 +104,16 @@ namespace BlobSurvivor.Entities.Weapons
             if (_elapsed >= _lifetime)
                 ReturnToPool();
         }
+
+        private bool CheckSpawnOverlap()
+        {
+            int count = Physics.OverlapSphereNonAlloc(transform.position, _hitRadius, s_spawnHits, 1 << EnemyLayer);
+            for (int i = 0; i < count; i++)
+                if (HandleHit(s_spawnHits[i])) return true;
+            return false;
+        }
+
+        private static readonly Collider[] s_spawnHits = new Collider[4];
 
         private bool HandleHit(Collider other)
         {

@@ -17,10 +17,11 @@ namespace BlobSurvivor.Core
         // 2026-11-03 (Serra: "bir süre sonra kamera tamamen blob'u kapsıyor"): kamera blob büyüdükçe uzaklaşır,
         // ama büyümeden YAVAŞ — blob ekranda yine de büyür, büyüme hissi korunur. Yükseklik çarpanı
         // (ölçek / başlangıç ölçeği) ^ _zoomExponent: 0 = hiç uzaklaşmaz, 1 = blob ekranda hep aynı boyda kalır.
-        // Örnek (0.45): blob 8 kat büyüyünce kamera ~2.5 kat uzaklaşır, blob ekranda ~3.2 kat büyük görünür.
+        // Örnek (0.3, 2026-11-03'te 0.5'ten indirildi — Serra: "kamera çok uzaklaşıyor, büyüme hissi yok"):
+        // blob 8 kat büyüyünce kamera ~1.9 kat uzaklaşır, blob ekranda ~4.3 kat büyük görünür (0.5'te 2.8 kat).
         // (2026-08'de kaldırılan tier zoom'u kademeliydi ve "tak" diye sıçrıyordu; bu sürekli ve yumuşak.)
         [Header("Büyüdükçe Uzaklaşma")]
-        [SerializeField, Range(0f, 1f)] private float _zoomExponent = 0.45f;
+        [SerializeField, Range(0f, 1f)] private float _zoomExponent = 0.3f;
         [SerializeField] private float _maxHeightMultiplier = 4f;
         [SerializeField] private float _zoomSmoothing = 1.5f;
 

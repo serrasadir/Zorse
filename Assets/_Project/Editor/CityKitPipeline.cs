@@ -79,7 +79,9 @@ namespace BlobSurvivor.EditorTools
         internal const float TallBuildingHeightScale = 0.75f;
         // 2026-11-03 (Serra): polis yayalarla (1.16) neredeyse aynı boydaydı (1.20), kalabalıkta tehdit okunmuyordu.
         // ×1.15 ≈ 1.38: yayadan belirgin büyük, elitten (~1.58) belirgin küçük. Sadece görsel; kapsül zaten 2 birim.
-        internal const float PoliceModelScale = 1.15f;
+        // 2026-11-03 (Serra): polis 1.15 → ×1.15 daha (1.3225), elit ×1.10. Sadece görsel; kapsül/oynanış aynı.
+        internal const float PoliceModelScale = 1.3225f;
+        internal const float EliteModelScale = 1.1f;
 
         [Serializable]
         internal class CityItem
@@ -503,6 +505,8 @@ namespace BlobSurvivor.EditorTools
                 scale.y *= TallBuildingHeightScale;
             if (mesh == "H_Police")
                 scale *= PoliceModelScale;
+            else if (mesh == "H_Elite")
+                scale *= EliteModelScale;
             model.localScale = scale;
         }
 

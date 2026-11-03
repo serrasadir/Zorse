@@ -99,6 +99,16 @@ namespace BlobSurvivor.Core
         {
             if (_renderersByCollider.TryGetValue(collider, out Renderer[] renderers)) return renderers;
 
+            // 2026-11-03 (Serra: "şehrin en güneyinde tüm binalar saydam oluyor"): sadece binaların engel kutusu.
+            // Harita sınır duvarı (CityBounds, 30 birim yüksek) da Environment'ta ve şehrin kök objesinin child'ı —
+            // güneyde kamera duvarın dışına çıkınca ışın duvara çarpıyor, "kardeşleri" de tüm şehir oluyordu.
+            if (collider.gameObject.name != "EnvironmentObstacle")
+            {
+                renderers = System.Array.Empty<Renderer>();
+                _renderersByCollider.Add(collider, renderers);
+                return renderers;
+            }
+
             // EnvironmentObstacle binanın child'ı: görsel, kardeş "Model" objesinde.
             Transform root = collider.transform.parent != null ? collider.transform.parent : collider.transform;
             renderers = root.GetComponentsInChildren<Renderer>(true);

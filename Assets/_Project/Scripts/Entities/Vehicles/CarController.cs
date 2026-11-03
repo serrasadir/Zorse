@@ -171,10 +171,17 @@ namespace BlobSurvivor.Entities.Vehicles
             int count = Physics.OverlapSphereNonAlloc(transform.position, 1.2f, _pushHits);
             for (int i = 0; i < count; i++)
             {
-                if (_pushHits[i].GetComponent<IConsumable>() == null) continue;
+                // 2026-11-03 (Serra: "önümde görünürde bir şey yok ama takılıyorum"): araba şehir objelerini de
+                // itiyordu. Şehir objeleri static batching'de — görseli yerinde kalıyor, sadece collider kayıyordu
+                // (itilen otobüs durağı sokağın ortasında görünmez duvar oldu). Vakumun çekebildiği (= taşınabilir)
+                // küçük objeler itilir; şehir objeleri ve yayalar (IsVacuumable=false) itilmez.
+                IConsumable consumable = _pushHits[i].GetComponent<IConsumable>();
+                if (consumable == null || !consumable.IsVacuumable) continue;
                 Transform t = _pushHits[i].transform;
-                Vector3 pushDir = (t.position - transform.position).normalized;
-                if (pushDir == Vector3.zero) pushDir = transform.right;
+                // Yatay it — eskiden Y de dahildi, araba merkezi alçakta olduğu için objeler havaya kalkıyordu.
+                Vector3 pushDir = t.position - transform.position;
+                pushDir.y = 0f;
+                pushDir = pushDir.sqrMagnitude > 0.0001f ? pushDir.normalized : transform.right;
                 // Artık her frame değil throttle tick'inde (AIUpdateInterval) çağrılıyor — mesafe buna
                 // göre ölçeklendi, aksi halde itme eskisinin ~1/9'una düşerdi (Time.deltaTime tek
                 // frame'lik, çağrı arası boşluğu hesaba katmazdı).

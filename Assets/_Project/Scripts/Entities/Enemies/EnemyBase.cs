@@ -45,6 +45,8 @@ namespace BlobSurvivor.Entities.Enemies
         private bool _edibleByBlobCached;
         private float _damageMultiplier = 1f;
         private float _speedMultiplier = 1f;
+        // 2026-11-03: boss yetişme hızı (BossSpawner ekran dışında + uzakken ayarlar), dalga çarpanından ayrı.
+        private float _catchUpMultiplier = 1f;
         private bool _isDead;
         private bool _consumableOverride;
         private float _tierBypassUntil = -1f;
@@ -79,6 +81,9 @@ namespace BlobSurvivor.Entities.Enemies
 
         // State çıkışında kaybolmaması için burada tutulur: oyuncu menzilden çıkıp girerek bekleme süresini atlayamaz.
         public float NextRangedAttackTime { get; set; }
+        // 2026-11-03 (Serra: "polis değer değmez hasar versin"): yakın dövüş de ilk temasta anında vurur; bekleme
+        // süresi burada tutulur ki menzil kenarında girip çıkmak vuruşları hızlandırmasın.
+        public float NextMeleeAttackTime { get; set; }
 
         // 2026-09-06 (Serra): "mermiler polislerin arkasından geçip gidiyor" — Cannon/Pistol non-homing,
         // ateş anındaki pozisyona düz çizgi atıyor; polis steering'le (separation/avoidance) sürekli yön
@@ -138,6 +143,7 @@ namespace BlobSurvivor.Entities.Enemies
             _canSeeBlobCached = false;
             _damageMultiplier = 1f;
             _speedMultiplier = 1f;
+            _catchUpMultiplier = 1f;
             _isDead = false;
             _consumableOverride = false;
             _tierBypassUntil = -1f;
@@ -146,6 +152,7 @@ namespace BlobSurvivor.Entities.Enemies
             _nextRepathTime = 0f;
             _steeringVelocity = Vector3.zero;
             NextRangedAttackTime = 0f;
+            NextMeleeAttackTime = 0f;
 
             if (_projectilePool == null && _data != null && _data.ProjectilePrefab != null && PoolManager.Instance != null)
                 _projectilePool = PoolManager.Instance.CreatePool(_data.ProjectilePrefab, InitialProjectilePoolSize);
@@ -265,6 +272,9 @@ namespace BlobSurvivor.Entities.Enemies
 
             _currentState?.Update(this, aiTick);
 
+            // 2026-11-03 (Serra: "mermiler polislerin içinden geçiyor"): duran polis (AttackState → StopMoving)
+            // son koşu hızını raporlamaya devam ediyordu; silah "önden kesme" ile boşluğa nişan alıyordu.
+            _steeringVelocity = Vector3.zero;
             if (UsesSteering && _hasSteerTarget)
                 ApplySteeringMovement();
 
@@ -356,10 +366,13 @@ namespace BlobSurvivor.Entities.Enemies
             if (moveDir.sqrMagnitude < 0.0001f) return;
             moveDir.Normalize();
 
-            float speed = _data.MoveSpeed * _speedMultiplier;
+            float speed = _data.MoveSpeed * _speedMultiplier * _catchUpMultiplier;
             _steeringVelocity = moveDir * speed;
             Vector3 step = ClampStepAgainstEnvironment(_steeringVelocity * Time.deltaTime);
             transform.position += step;
+            // 2026-11-03: nişan tahmini (WeaponBase.GetPredictedAimPoint) için GERÇEK hız — duvara takılınca
+            // istenen hız değil, fiilen gidilen yol.
+            _steeringVelocity = Time.deltaTime > 0f ? step / Time.deltaTime : Vector3.zero;
 
             // Ani yön sıçramalarını yumuşat (Slerp) — separation kaynaklı titreşimi görsel olarak azaltır.
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(moveDir), _rotationSpeed * Time.deltaTime);
@@ -421,7 +434,20 @@ namespace BlobSurvivor.Entities.Enemies
             _currentHealth = data.MaxHealth;
             _damageMultiplier = Mathf.Max(0f, damageMultiplier);
             _speedMultiplier = Mathf.Max(0.01f, speedMultiplier);
-            if (_agent != null) _agent.speed = _data.MoveSpeed * _speedMultiplier;
+            ApplyAgentSpeed();
+        }
+
+        public void SetCatchUpMultiplier(float multiplier)
+        {
+            multiplier = Mathf.Max(1f, multiplier);
+            if (Mathf.Approximately(multiplier, _catchUpMultiplier)) return;
+            _catchUpMultiplier = multiplier;
+            ApplyAgentSpeed();
+        }
+
+        private void ApplyAgentSpeed()
+        {
+            if (_agent != null && _data != null) _agent.speed = _data.MoveSpeed * _speedMultiplier * _catchUpMultiplier;
         }
 
         public void ChangeState(IEnemyState newState)
