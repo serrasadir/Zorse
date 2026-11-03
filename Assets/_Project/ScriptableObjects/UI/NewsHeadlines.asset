@@ -1,0 +1,106 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84c376c596b32456e922ef994d59dbdc, type: 3}
+  m_Name: NewsHeadlines
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.NewsHeadlines
+  _worldNews:
+  - "Krali\xE7enin ku\u011Fusu kayboldu, saray \"endi\u015Feye gerek yok\" diyor"
+  - "Bug\xFCn hava g\xFCzel, meteoroloji \u015Fa\u015Fk\u0131n"
+  - "Belediye: \"Kald\u0131r\u0131mdaki \xE7ukur art\u0131k turistik bir mek\xE2n\""
+  - "Mahallenin kedisi muhtar se\xE7ildi, ilk icraat\u0131 mama zamm\u0131"
+  - "Uzmanlar uyard\u0131: Pazartesi yine geliyor"
+  - "Bilim insanlar\u0131 tostun neden hep ya\u011Fl\u0131 y\xFCz\xFCne d\xFC\u015Ft\xFC\u011F\xFCn\xFC
+    \xE7\xF6zd\xFC"
+  - "Simit\xE7i rekor k\u0131rd\u0131: Bir g\xFCnde 4.000 simit"
+  - "G\xFCvercinler meydanda greve ba\u015Flad\u0131, talepleri belirsiz"
+  - "\u015Eehirde trafik yok, s\xFCr\xFCc\xFCler ne yapaca\u011F\u0131n\u0131 bilemedi"
+  - "\xDCnl\xFC fenomen suyu ke\u015Ffetti: \"\xC7ok ferahlat\u0131c\u0131\""
+  - "Yeni ara\u015Ft\u0131rma: Kahve i\xE7enlerin kahve i\xE7ti\u011Fi kan\u0131tland\u0131"
+  - "Kay\u0131p \xE7orap vakas\u0131 34. g\xFCn\xFCnde, h\xE2l\xE2 ipucu yok"
+  - "Mart\u0131 turistin dondurmas\u0131n\u0131 \xE7ald\u0131, olay yerinden u\xE7arak
+    ka\xE7t\u0131"
+  - "Hayvanat bah\xE7esindeki panda bug\xFCn de hi\xE7bir \u015Fey yapmad\u0131"
+  - "Belediye f\u0131skiyeyi a\xE7t\u0131, halk sevin\xE7 g\xF6zya\u015Flar\u0131na
+    bo\u011Fuldu"
+  - "Kom\u015Fu \xE7ocuk piyano dersine ba\u015Flad\u0131, mahalle tedirgin"
+  - "Pizzaya ananas tart\u0131\u015Fmas\u0131 mecliste gerginlik \xE7\u0131kard\u0131"
+  - "Otob\xFCs tam zaman\u0131nda geldi, yolcular \u015F\xFCpheli"
+  - "D\xFCnyan\u0131n en b\xFCy\xFCk k\xF6ftesi yap\u0131ld\u0131, kimse bitiremedi"
+  - "Bir \xF6rdek k\u0131rm\u0131z\u0131 \u0131\u015F\u0131kta durdu, s\xFCr\xFCc\xFCler
+    alk\u0131\u015Flad\u0131"
+  - "Wi-Fi \u015Fifresi \"sifre123\" olan kafe hacklendi"
+  - "Emekli amca in\u015Faat\u0131 6 saat izledi: \"Kolon yamuk\""
+  - "Bilim insanlar\u0131: Uyumak yorgunlu\u011Fa iyi geliyor"
+  - "Dondurmac\u0131 \"son top\" dedi, \xFC\xE7 top daha verdi"
+  - "\u015Eehrin en ya\u015Fl\u0131 kaplumba\u011Fas\u0131 do\u011Fum g\xFCn\xFC
+    pastas\u0131na h\xE2l\xE2 y\xFCr\xFCyor"
+  - "Teyzeler bankta topland\u0131, \u015Fehrin t\xFCm s\u0131rlar\u0131 \xE7\xF6z\xFCld\xFC"
+  _blobNews:
+  - Tier: 2
+    Headlines:
+    - "Parkta \"sinirli bir top\" g\xF6r\xFCld\xFC\u011F\xFC iddia edildi"
+    - "Vatanda\u015F: \"\xC7\xF6p\xFCm\xFC bir top yedi.\" Polis: \"Tabii, tabii.\""
+    - "Sokaklardaki \xE7\xF6pler gizemli \u015Fekilde azal\u0131yor, belediye \xF6vg\xFCleri
+      toplad\u0131"
+    - "\xC7ocuk \"top beni kovalad\u0131\" dedi, kimse inanmad\u0131"
+    - "Kay\u0131p ilan\u0131: \"Simidimi g\xF6ren var m\u0131?\""
+    - "Hayvan bar\u0131na\u011F\u0131: \"Yuvarlak bir \u015Fey ka\xE7m\u0131\u015F
+      olabilir\""
+    - "Devriye polisleri sinirli bir topu ar\u0131yor, ellerindeki tek ipucu bir
+      top foto\u011Fraf\u0131"
+    - "Emniyet \"sinirli top\" ihbarlar\u0131n\u0131 ilk kez ciddiye ald\u0131"
+    - "Polis, kay\u0131p \xE7\xF6p kutular\u0131 i\xE7in \"yuvarlak bir \u015F\xFCpheli\"
+      ar\u0131yor"
+  - Tier: 3
+    Headlines:
+    - "Polis yuvarlak \u015F\xFCpheliyi ar\u0131yor: \"K\u0131rm\u0131z\u0131, sinirli,
+      a\xE7\""
+    - "Yayalar uyar\u0131ld\u0131: Yuvarlak \u015Feylere yakla\u015Fmay\u0131n"
+    - "Uzmanlar tart\u0131\u015F\u0131yor: Top mu, blob mu, yoksa \xE7ok b\xFCy\xFCk
+      bir kiraz m\u0131?"
+    - "Otob\xFCs dura\u011F\u0131 kayboldu, yolcular h\xE2l\xE2 bekliyor"
+    - "Emniyet: \"Durum kontrol alt\u0131nda.\" Durum: Kontrol alt\u0131nda de\u011Fil"
+    - "Sosyal medyada #TopGeliyor g\xFCndemde"
+    - "\xD6zel Harek\xE2t g\xF6reve \xE7a\u011Fr\u0131ld\u0131: Hedef yuvarlak, k\u0131rm\u0131z\u0131
+      ve \xE7ok a\xE7"
+    - "\xD6zel Harek\xE2t komutan\u0131: \"Kariyerimde ilk kez bir topu koval\u0131yoruz\""
+    - "\xD6zel Harek\xE2t, topa kar\u015F\u0131 yeni taktik deniyor: \"Biz de yuvarlanaca\u011F\u0131z\""
+  - Tier: 4
+    Headlines:
+    - "SON DAK\u0130KA: Dev top arabalar\u0131 yemeye ba\u015Flad\u0131"
+    - "Sigorta \u015Firketleri \"top hasar\u0131\"n\u0131 poli\xE7elerden \xE7\u0131kard\u0131"
+    - "Belediye ba\u015Fkan\u0131: \"Topla m\xFCzakere masas\u0131na oturmaya haz\u0131r\u0131z\""
+    - "Elit polis birlikleri sahada, top h\xE2l\xE2 a\xE7"
+    - "Bilim insanlar\u0131: \"Top b\xFCy\xFCmeye devam ederse... b\xFCy\xFCmeye
+      devam edecek\""
+    - "Halk evlerine kapand\u0131, marketlerde ekmek kalmad\u0131"
+  - Tier: 5
+    Headlines:
+    - "SON DAK\u0130KA: Top binalar\u0131 yiyor"
+    - "Saray a\xE7\u0131klama yapt\u0131: Ku\u011Fuyu da o yemi\u015F"
+    - "H\xFCk\xFCmet ola\u011Fan\xFCst\xFC topland\u0131, tek g\xFCndem maddesi:
+      \"O top\""
+    - "Haritac\u0131lar \u015Fehri yeniden \xE7iziyor: Art\u0131k daha az \u015Fehir
+      var"
+    - "Top, \"Y\u0131l\u0131n Ki\u015Fisi\" adaylar\u0131 aras\u0131nda"
+    - "D\xFCnya liderlerinden ortak bildiri: \"L\xFCtfen bizi yeme\""
+    - "Uzmanlar tek bir tavsiyede birle\u015Fti: Ko\u015Fun"
+    - "\u015Eehirde yiyecek bir \u015Fey kalmad\u0131, top h\xE2l\xE2 a\xE7"
+    - "A\u015F\xE7\u0131lar seferber oldu: \"Ne pi\u015Firsek yetmiyor, taba\u011F\u0131
+      da yiyor\""
+    - "Bilim insanlar\u0131: \"Topun midesi yok, sadece i\u015Ftah\u0131 var\""
+  _blobNewsChanceByTier:
+  - 0
+  - 0.2
+  - 0.45
+  - 0.7
+  - 0.9
