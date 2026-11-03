@@ -14,7 +14,7 @@ using UnityEngine;
 namespace BlobSurvivor.EditorTools
 {
     // Blender şehir kiti: Art/City altında mesh başına .fbx + CityPalette.png + level01.json.
-    // BuildingAssetPipeline'dan ayrı çünkü burada model çevrilmez/ölçeklenmez ve tek materyal paylaşılır.
+    // Tüm kit tek palet materyalini paylaşır (B_Restaurant hariç: Art/Buildings/Restaurant/Mat_Restaurant).
     public class CityKitImportSettings : AssetPostprocessor
     {
         private void OnPreprocessModel()
@@ -77,15 +77,9 @@ namespace BlobSurvivor.EditorTools
         private static readonly Quaternion FacingFix = Quaternion.Euler(0f, 180f, 0f);
         internal const float TallBuildingHeight = 5f;
         internal const float TallBuildingHeightScale = 0.75f;
-
-        // Hareketli arabalar dış çevre yolunda, sağ şeritte döner (Waypoint_0..3 sırasıyla).
-        private static readonly Vector3[] CarLoop =
-        {
-            new Vector3(19f, 0f, -19f),
-            new Vector3(19f, 0f, 19f),
-            new Vector3(-19f, 0f, 19f),
-            new Vector3(-19f, 0f, -19f),
-        };
+        // 2026-11-03 (Serra): polis yayalarla (1.16) neredeyse aynı boydaydı (1.20), kalabalıkta tehdit okunmuyordu.
+        // ×1.15 ≈ 1.38: yayadan belirgin büyük, elitten (~1.58) belirgin küçük. Sadece görsel; kapsül zaten 2 birim.
+        internal const float PoliceModelScale = 1.15f;
 
         [Serializable]
         internal class CityItem
@@ -216,8 +210,6 @@ namespace BlobSurvivor.EditorTools
                 mapHalfExtent = CityExpansion.HalfExtent - 1f;
             }
 
-            DisableGreybox();
-            MoveCarLoop();
             AssignPedestrians(man, woman, mapHalfExtent);
             if (large) AssignEnemyMapExtent(mapHalfExtent);
             AssignCars(cars);
@@ -453,6 +445,52 @@ namespace BlobSurvivor.EditorTools
             return source;
         }
 
+        // 2026-11-03 (Serra: "ağaçla bina arasında görünmez blok var"): çarpışma kutusu modelin en dış sınırıydı —
+        // ağaçta yapraklar (1.78×1.25, gövde 0.24), durakta çatı, lambada kol yerde görünmez duvar oluyordu.
+        // Blob yerde yuvarlandığı için XZ ayak izi sadece zemine yakın geometriden (gövde, duvar, direk) alınır;
+        // yükseklik tam kalır (yeme tetikleyicisi ve mermi isabeti için). Kök orijinde olmalı (prefab-yerel uzay).
+        internal const float GroundSliceHeight = 0.6f;
+        private const float MinFootprint = 0.2f;
+
+        internal static Bounds ComputeColliderBounds(MeshRenderer renderer)
+        {
+            Bounds full = renderer.bounds;
+            MeshFilter filter = renderer.GetComponent<MeshFilter>();
+            Mesh mesh = filter != null ? filter.sharedMesh : null;
+            if (mesh == null) return full;
+
+            Matrix4x4 toRoot = renderer.transform.localToWorldMatrix;
+            float maxY = full.min.y + GroundSliceHeight;
+            float minX = float.MaxValue, maxX = float.MinValue, minZ = float.MaxValue, maxZ = float.MinValue;
+            foreach (Vector3 v in mesh.vertices)
+            {
+                Vector3 p = toRoot.MultiplyPoint3x4(v);
+                if (p.y > maxY) continue;
+                minX = Mathf.Min(minX, p.x); maxX = Mathf.Max(maxX, p.x);
+                minZ = Mathf.Min(minZ, p.z); maxZ = Mathf.Max(maxZ, p.z);
+            }
+            if (minX > maxX) return full;
+
+            Vector3 center = new Vector3((minX + maxX) * 0.5f, full.center.y, (minZ + maxZ) * 0.5f);
+            Vector3 size = new Vector3(Mathf.Max(maxX - minX, MinFootprint), full.size.y, Mathf.Max(maxZ - minZ, MinFootprint));
+            return new Bounds(center, size);
+        }
+
+        // 2026-11-03: NavMesh render mesh'ten bake ediliyor; binanın altından devam eden zemin, duvarlarla
+        // çatı arasında kaldığı için yürünebilir sayılıyordu (bina içi ~908 birim²), çatılar da (~1616 birim²).
+        // Binaya "yürünemez" etiketi yetmez (içerideki zemin binanın değil) — taban izini kaplayan bir
+        // NotWalkable hacim içerideki ve üstteki her şeyi siler. Ayak izi yer seviyesinden (tente altı yürünür).
+        private const float NavBlockerMargin = 0.5f; // zemin (y=0) ve çatının hacmin içinde kalması için
+
+        internal static void ApplyNavBlocker(GameObject root, Bounds footprint)
+        {
+            NavMeshModifierVolume volume = root.GetComponent<NavMeshModifierVolume>();
+            if (volume == null) volume = root.AddComponent<NavMeshModifierVolume>();
+            volume.center = footprint.center;
+            volume.size = new Vector3(footprint.size.x, footprint.size.y + NavBlockerMargin * 2f, footprint.size.z);
+            volume.area = UnityEngine.AI.NavMesh.GetAreaFromName("Not Walkable");
+        }
+
         // Model child'ının dönüşü/ölçeği: FBX kökü + yön düzeltmesi + yüksek binalarda basıklık.
         internal static void ApplyModelTransform(Transform model, MeshFilter source, string mesh)
         {
@@ -463,6 +501,8 @@ namespace BlobSurvivor.EditorTools
             float height = source.sharedMesh.bounds.size.y * scale.y;
             if (mesh.StartsWith("B_") && height > TallBuildingHeight)
                 scale.y *= TallBuildingHeightScale;
+            if (mesh == "H_Police")
+                scale *= PoliceModelScale;
             model.localScale = scale;
         }
 
@@ -507,9 +547,10 @@ namespace BlobSurvivor.EditorTools
             ConsumableData data = isGround ? null : GetConsumableData(item.mesh);
             if (!isGround)
             {
+                Bounds colliderBounds = ComputeColliderBounds(renderer);
                 BoxCollider body = root.AddComponent<BoxCollider>();
-                body.center = bounds.center;
-                body.size = bounds.size;
+                body.center = colliderBounds.center;
+                body.size = colliderBounds.size;
 
                 CityConsumable consumable = root.AddComponent<CityConsumable>();
                 root.layer = 8 + (int)data.RequiredTier;
@@ -517,7 +558,10 @@ namespace BlobSurvivor.EditorTools
                 SerializedObject so = new SerializedObject(consumable);
                 so.FindProperty("_data").objectReferenceValue = data;
                 if (item.mesh.StartsWith("B_"))
-                    so.FindProperty("_obstacle").objectReferenceValue = AddObstacle(root, bounds);
+                {
+                    so.FindProperty("_obstacle").objectReferenceValue = AddObstacle(root, colliderBounds);
+                    ApplyNavBlocker(root, colliderBounds);
+                }
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
 
@@ -637,42 +681,6 @@ namespace BlobSurvivor.EditorTools
             pool.GetArrayElementAtIndex(1).objectReferenceValue = woman;
             so.FindProperty("_mapHalfExtent").floatValue = mapHalfExtent;
             so.ApplyModifiedProperties();
-        }
-
-        private static void DisableGreybox()
-        {
-            GameObject greybox = GameObject.Find("GreyboxCity");
-            if (greybox == null) return;
-            Undo.RecordObject(greybox, "Şehir Kur");
-            greybox.SetActive(false);
-        }
-
-        // Waypoint'ler ve CarSpawner bağlantısı korunur, yalnızca köşeler yeni yollara taşınır.
-        private static void MoveCarLoop()
-        {
-            GameObject carRoad = GameObject.Find(GreyboxCityGenerator.CarRoadRootName);
-            if (carRoad == null)
-            {
-                Debug.LogWarning("[CityKitPipeline] CarRoad_Waypoints bulunamadı, araba güzergâhı taşınmadı.");
-                return;
-            }
-
-            for (int i = 0; i < CarLoop.Length; i++)
-            {
-                Transform waypoint = carRoad.transform.Find($"Waypoint_{i}");
-                if (waypoint == null)
-                {
-                    Debug.LogWarning($"[CityKitPipeline] Waypoint_{i} bulunamadı.");
-                    continue;
-                }
-                Undo.RecordObject(waypoint, "Şehir Kur");
-                waypoint.position = CarLoop[i];
-
-                Transform segment = carRoad.transform.Find($"RoadSegment_{i}");
-                if (segment == null) continue;
-                Undo.RecordObject(segment.gameObject, "Şehir Kur");
-                segment.gameObject.SetActive(false); // eski gri şerit yeni şehrin içinden geçerdi
-            }
         }
     }
 }

@@ -101,6 +101,7 @@ GameObject:
   - component: {fileID: 2037816004827695324}
   - component: {fileID: 633126504560281160}
   - component: {fileID: 3521819258853373852}
+  - component: {fileID: 9008644819877736048}
   m_Layer: 13
   m_Name: B_ApartmentRed
   m_TagString: Untagged
@@ -144,8 +145,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 3.600016, y: 5.002512, z: 3.600016}
-  m_Center: {x: 3.0172235e-16, y: 2.46375, z: -3.0172235e-16}
+  m_Size: {x: 3.4399967, y: 5.002512, z: 3.4599996}
+  m_Center: {x: 0.0000006556511, y: 2.46375, z: -0.010000646}
 --- !u!114 &3521819258853373852
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -160,6 +161,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.CityConsumable
   _data: {fileID: 11400000, guid: 7053f501d5dc34a9db0c1cbde654ba04, type: 2}
   _obstacle: {fileID: 3722919977587280800}
+--- !u!114 &9008644819877736048
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3663371310266897940}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35e95dc5ff2b64380880dd7ac5922847, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifierVolume
+  m_SerializedVersion: 0
+  m_Size: {x: 3.4399967, y: 6.002512, z: 3.4599996}
+  m_Center: {x: 0.0000006556511, y: 2.46375, z: -0.010000646}
+  m_Area: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &7207698022393229220
 GameObject:
   m_ObjectHideFlags: 0
@@ -211,5 +229,5 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 3.600016, y: 5.002512, z: 3.600016}
-  m_Center: {x: 3.0172235e-16, y: 2.46375, z: -3.0172235e-16}
+  m_Size: {x: 3.4399967, y: 5.002512, z: 3.4599996}
+  m_Center: {x: 0.0000006556511, y: 2.46375, z: -0.010000646}

@@ -56,6 +56,15 @@ namespace BlobSurvivor.EditorTools
                 log.AppendLine(FixPrefab(path, mesh, refitColliders: true));
             }
 
+            // 2026-11-03: sokak eşyaları (ağaç, durak, lamba...) da yer seviyesi ayak izine oturtulur. Dönmezler (yön düzeltmesi yok).
+            foreach (string guid in AssetDatabase.FindAssets("t:Prefab P_", new[] { "Assets/_Project/Prefabs/City" }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                string mesh = Path.GetFileNameWithoutExtension(path);
+                if (!mesh.StartsWith("P_")) continue;
+                log.AppendLine(FixPrefab(path, mesh, refitColliders: true));
+            }
+
             foreach (string guid in AssetDatabase.FindAssets("t:Prefab Car_V_", new[] { "Assets/_Project/Prefabs/City/Cars" }))
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
@@ -95,17 +104,22 @@ namespace BlobSurvivor.EditorTools
                 if (refitColliders)
                 {
                     // LoadPrefabContents kökü orijinde tutar: renderer.bounds prefab-yerel uzaydadır.
-                    Bounds bounds = model.GetComponent<MeshRenderer>().bounds;
+                    Bounds bounds = CityKitPipeline.ComputeColliderBounds(model.GetComponent<MeshRenderer>());
                     BoxCollider body = contents.GetComponent<BoxCollider>();
                     if (body != null) { body.center = bounds.center; body.size = bounds.size; }
 
                     Transform obstacle = contents.transform.Find("EnvironmentObstacle");
                     BoxCollider obstacleBox = obstacle != null ? obstacle.GetComponent<BoxCollider>() : null;
                     if (obstacleBox != null) { obstacleBox.center = bounds.center; obstacleBox.size = bounds.size; }
+
+                    if (mesh.StartsWith("B_"))
+                        CityKitPipeline.ApplyNavBlocker(contents, bounds);
                 }
 
                 PrefabUtility.SaveAsPrefabAsset(contents, path);
-                return $"OK {Path.GetFileName(path)} rot={model.localEulerAngles.y:F0} scaleY={model.localScale.y:F2}";
+                BoxCollider fitted = contents.GetComponent<BoxCollider>();
+                string fit = refitColliders && fitted != null ? $" collider={fitted.size.x:F2}x{fitted.size.z:F2}" : "";
+                return $"OK {Path.GetFileName(path)} rot={model.localEulerAngles.y:F0} scaleY={model.localScale.y:F2}{fit}";
             }
             finally
             {

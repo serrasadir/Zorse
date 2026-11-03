@@ -3,15 +3,21 @@ using BlobSurvivor.Core;
 
 namespace BlobSurvivor.Entities.Blob
 {
-    // B17 evrimi "Kara Delik" (Vakum(max) + Sindirim(max)): vakumla çekilen tier1/2 consumable'lar
-    // artık temasa gerek kalmadan, bu iç yarıçapa girince otomatik yutulur.
+    // B17 evrimi "Kara Delik" (Vakum(max) + Sindirim(max)): blob'un çevresindeki, yiyebildiği her şey
+    // temasa gerek kalmadan otomatik yutulur.
+    // 2026-11-03: eskiden sabit 1 birim yarıçap + sadece Tiny/Small'du — bu evrime ulaşıldığında blob zaten
+    // Large/Giant olduğu için yarıçap gövdenin içinde kalıyor, yenenler de önemsiz mass veriyordu.
+    // Artık yarıçap blob'un o anki gövdesiyle ölçeklenir ve tier eşiği blob'un kendi tier'ı.
     public class BlackHoleComponent : MonoBehaviour
     {
-        [SerializeField] private float _autoConsumeRadius = 1f;
+        [SerializeField] private float _radiusMultiplier = 2f; // gövde yarıçapının katı
         private const float CheckInterval = 0.1f;
+        // ConsumableTier1-5 (9-13) — polis/çevre/zemin taranmasın
+        private const int ConsumableMask = (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13);
 
         private BlobGrowth _growth;
         private BlobConsumption _consumption;
+        private float _bodyLocalRadius = 0.5f;
         private float _timer;
         private readonly Collider[] _hits = new Collider[32];
 
@@ -19,6 +25,15 @@ namespace BlobSurvivor.Entities.Blob
         {
             _growth = GetComponent<BlobGrowth>();
             _consumption = GetComponent<BlobConsumption>();
+
+            foreach (SphereCollider c in GetComponents<SphereCollider>())
+            {
+                if (!c.isTrigger)
+                {
+                    _bodyLocalRadius = c.radius;
+                    break;
+                }
+            }
         }
 
         private void Update()
@@ -27,17 +42,21 @@ namespace BlobSurvivor.Entities.Blob
             if (_timer > 0f) return;
             _timer = CheckInterval;
 
-            int count = Physics.OverlapSphereNonAlloc(transform.position, _autoConsumeRadius, _hits);
+            if (_growth == null || _consumption == null) return;
+
+            float radius = transform.localScale.x * _bodyLocalRadius * _radiusMultiplier;
+            int count = Physics.OverlapSphereNonAlloc(transform.position, radius, _hits, ConsumableMask, QueryTriggerInteraction.Collide);
             for (int i = 0; i < count; i++)
             {
-                if (_hits[i].gameObject == gameObject) continue;
+                GameObject target = _hits[i].gameObject;
+                if (!target.activeInHierarchy) continue; // bu tarama içinde zaten yenmiş olabilir
 
                 IConsumable consumable = _hits[i].GetComponent<IConsumable>();
-                if (consumable == null) continue;
-                if (consumable.RequiredTier > BlobTier.Small) continue; // sadece tier1/2 (Tiny/Small)
-                if (_growth != null && consumable.RequiredTier > _growth.CurrentTier) continue;
+                if (consumable == null || consumable.Data == null) continue;
+                if (consumable.Data.IsHazard) continue;
+                if (consumable.RequiredTier > _growth.CurrentTier) continue;
 
-                _consumption?.ConsumeDirect(consumable, _hits[i].gameObject);
+                _consumption.ConsumeDirect(consumable, target);
             }
         }
     }

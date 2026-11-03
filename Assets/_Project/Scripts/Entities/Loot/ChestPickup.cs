@@ -32,7 +32,8 @@ namespace BlobSurvivor.Entities.Loot
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!other.CompareTag("Blob")) return;
+            // Blob'un iki collider'ı aynı adımda iki OnTriggerEnter üretebilir — çift level-up olmasın.
+            if (!gameObject.activeInHierarchy || !other.CompareTag("Blob")) return;
 
             if (_scoreSystem == null)
                 _scoreSystem = FindAnyObjectByType<ScoreSystem>();

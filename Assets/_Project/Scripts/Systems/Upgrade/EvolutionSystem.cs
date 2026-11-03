@@ -18,19 +18,19 @@ namespace BlobSurvivor.Systems
 
         private void OnEnable()
         {
-            GameEvents.OnUpgradeSelected += CheckEvolutions;
+            GameEvents.OnUpgradeApplied += CheckEvolutions;
             GameEvents.OnCharacterSelected += HandleRestart;
         }
 
         private void OnDisable()
         {
-            GameEvents.OnUpgradeSelected -= CheckEvolutions;
+            GameEvents.OnUpgradeApplied -= CheckEvolutions;
             GameEvents.OnCharacterSelected -= HandleRestart;
         }
 
         private void HandleRestart(CharacterData _) => _unlocked.Clear();
 
-        private void CheckEvolutions(UpgradeData _)
+        private void CheckEvolutions(UpgradeData _, int __)
         {
             if (_evolutions == null || UpgradeSystem.Instance == null) return;
 

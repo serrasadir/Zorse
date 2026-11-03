@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.CharacterData
   _displayName: Topik
   _icon: {fileID: 0}
-  _description: "Default h\u0131z \xF6zelli\u011Fi"
+  _description: "+%25 h\u0131z, b\xFCy\xFCd\xFCk\xE7e daha az yava\u015Flar."
   _startingWeaponPrefab: {fileID: 1195012648784995356, guid: 8dc57e157854348fd95c73a2d2e69c1d, type: 3}
   _passiveType: 0
-  _passiveValue: 0.2
+  _passiveValue: 0.25

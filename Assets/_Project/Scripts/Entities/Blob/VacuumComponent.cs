@@ -7,7 +7,9 @@ namespace BlobSurvivor.Entities.Blob
     public class VacuumComponent : MonoBehaviour
     {
         [SerializeField] private float _pullSpeed = 6f;
-        [SerializeField] private float _baseRadius = 3f;
+        // 2026-11-03: menzil artık blob merkezinden değil gövde yüzeyinden ölçülüyor — eskiden sabit
+        // yarıçap Giant blob'da (gövde ~2) gövdenin sadece 1-1.5 birim dışına uzanıyordu.
+        [SerializeField] private float _baseReach = 3f;
 
         // 2026-09-06 (Serra): Temmuz 2026'da bir kod incelemesinde flag'lenmiş ama hiç düzeltilmemiş bir
         // eksikti — sorgu LayerMask'siz her frame çalışıyordu (CLAUDE.md'nin kendi throttle/LayerMask
@@ -19,12 +21,19 @@ namespace BlobSurvivor.Entities.Blob
         private static int s_consumableMask = -1;
         private float _updateTimer;
 
-        public float Radius { get; private set; }
+        // Gövde yüzeyinden itibaren çekme mesafesi (Vakum skili artırır).
+        public float Reach { get; private set; }
+        // Menzil + çekme hızı çarpanı — Mıknato'nun pasifi (GDD Karar 9: "Attract hattına +%25").
+        public float EffectMultiplier { get; private set; } = 1f;
 
-        private void Reset() => Radius = _baseRadius;
+        // Blob merkezinden toplam tarama yarıçapı: gövde + menzil × çarpan.
+        public float EffectiveRadius => transform.localScale.x * _bodyLocalRadius + Reach * EffectMultiplier;
+
+        private float _bodyLocalRadius = 0.5f;
+
         private void OnEnable()
         {
-            if (Radius <= 0f) Radius = _baseRadius;
+            if (Reach <= 0f) Reach = _baseReach;
             _updateTimer = Random.Range(0f, UpdateInterval);
         }
 
@@ -40,6 +49,16 @@ namespace BlobSurvivor.Entities.Blob
         {
             _growth = GetComponent<BlobGrowth>();
 
+            // Blob'da iki SphereCollider var: trigger (yeme) ve solid (gövde) — gövde yarıçapı solid olanınki.
+            foreach (SphereCollider c in GetComponents<SphereCollider>())
+            {
+                if (!c.isTrigger)
+                {
+                    _bodyLocalRadius = c.radius;
+                    break;
+                }
+            }
+
             if (s_consumableMask < 0)
             {
                 s_consumableMask = LayerMask.GetMask(
@@ -49,7 +68,7 @@ namespace BlobSurvivor.Entities.Blob
 
         private void Update()
         {
-            if (Radius <= 0f) return;
+            if (Reach <= 0f) return;
 
             _updateTimer -= Time.deltaTime;
             if (_updateTimer <= 0f)
@@ -58,7 +77,7 @@ namespace BlobSurvivor.Entities.Blob
                 RefreshPulledTargets();
             }
 
-            float step = _pullSpeed * Time.deltaTime;
+            float step = _pullSpeed * EffectMultiplier * Time.deltaTime;
             for (int i = 0; i < _pulledTargets.Count; i++)
             {
                 Transform target = _pulledTargets[i];
@@ -71,7 +90,7 @@ namespace BlobSurvivor.Entities.Blob
         {
             _pulledTargets.Clear();
 
-            int count = Physics.OverlapSphereNonAlloc(transform.position, Radius, _hits, s_consumableMask);
+            int count = Physics.OverlapSphereNonAlloc(transform.position, EffectiveRadius, _hits, s_consumableMask);
             for (int i = 0; i < count; i++)
             {
                 if (_hits[i].gameObject == gameObject) continue;
@@ -84,12 +103,14 @@ namespace BlobSurvivor.Entities.Blob
             }
         }
 
-        public void IncreaseRadius(float amount) => Radius += amount;
+        public void IncreaseReach(float amount) => Reach += amount;
+
+        public void SetEffectMultiplier(float multiplier) => EffectMultiplier = Mathf.Max(0f, multiplier);
 
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = new Color(1f, 0.5f, 0.2f, 0.2f);
-            Gizmos.DrawSphere(transform.position, Radius);
+            Gizmos.DrawSphere(transform.position, EffectiveRadius);
         }
     }
 }

@@ -51,8 +51,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 5.0000205, y: 5.827515, z: 4.910642}
-  m_Center: {x: -0.000000031062267, y: 2.8762498, z: -0.35531092}
+  m_Size: {x: 4.8000035, y: 5.827515, z: 4.8106184}
+  m_Center: {x: -0.00000047683716, y: 2.8762498, z: -0.40531248}
 --- !u!1 &3363327116842776367
 GameObject:
   m_ObjectHideFlags: 0
@@ -64,6 +64,7 @@ GameObject:
   - component: {fileID: 1310612691107330685}
   - component: {fileID: 4212661454822333032}
   - component: {fileID: 1608888748826720943}
+  - component: {fileID: 4178149059936464162}
   m_Layer: 13
   m_Name: B_Hotel
   m_TagString: Untagged
@@ -107,8 +108,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 5.0000205, y: 5.827515, z: 4.910642}
-  m_Center: {x: -0.000000031062267, y: 2.8762498, z: -0.35531092}
+  m_Size: {x: 4.8000035, y: 5.827515, z: 4.8106184}
+  m_Center: {x: -0.00000047683716, y: 2.8762498, z: -0.40531248}
 --- !u!114 &1608888748826720943
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -123,6 +124,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.CityConsumable
   _data: {fileID: 11400000, guid: fff379fcce5404486ab8893fac14f8b5, type: 2}
   _obstacle: {fileID: 7382167061044514227}
+--- !u!114 &4178149059936464162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3363327116842776367}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35e95dc5ff2b64380880dd7ac5922847, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifierVolume
+  m_SerializedVersion: 0
+  m_Size: {x: 4.8000035, y: 6.827515, z: 4.8106184}
+  m_Center: {x: -0.00000047683716, y: 2.8762498, z: -0.40531248}
+  m_Area: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &9044715857064441316
 GameObject:
   m_ObjectHideFlags: 0

@@ -8,6 +8,16 @@ namespace BlobSurvivor.Entities.Blob
     {
         public int TierBonus { get; private set; }
 
-        public void IncreaseTierBonus(int amount) => TierBonus += amount;
+        // Polislerin "beni yiyebilir mi" kontrolü (kaçma kararı) her AI tick'inde GetComponent yapmasın diye.
+        // Blob tek; bileşen restart'ta Destroy edildiğinde sıfırlanır.
+        public static int ActiveTierBonus { get; private set; }
+
+        public void IncreaseTierBonus(int amount)
+        {
+            TierBonus += amount;
+            ActiveTierBonus = TierBonus;
+        }
+
+        private void OnDestroy() => ActiveTierBonus = 0;
     }
 }

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI;
 using BlobSurvivor.Core;
 using BlobSurvivor.Data;
 using BlobSurvivor.Entities.Coins;
@@ -135,15 +134,18 @@ namespace BlobSurvivor.Entities.Enemies
             GameEvents.RaiseBossHealthChanged(0f, 0f);
         }
 
+        // Boss mutlaka çıkmalı: birkaç rastgele yön denenir (bina içi/çatı reddedilir), hiçbiri tutmazsa ham aday.
         private Vector3 GetSpawnPosition()
         {
             Vector3 center = _blobTransform != null ? _blobTransform.position : Vector3.zero;
-            Vector2 random = Random.insideUnitCircle.normalized * _spawnDistance;
-            Vector3 candidate = new Vector3(center.x + random.x, SpawnY, center.z + random.y);
-
-            if (NavMesh.SamplePosition(candidate, out NavMeshHit hit, 5f, NavMesh.AllAreas))
-                return new Vector3(hit.position.x, SpawnY, hit.position.z);
-
+            Vector3 candidate = center;
+            for (int attempt = 0; attempt < 8; attempt++)
+            {
+                Vector2 random = Random.insideUnitCircle.normalized * _spawnDistance;
+                candidate = new Vector3(center.x + random.x, SpawnY, center.z + random.y);
+                if (SpawnPositionUtility.TryFindNavMeshPosition(candidate, SpawnY, 5f, out Vector3 valid))
+                    return valid;
+            }
             return candidate;
         }
     }

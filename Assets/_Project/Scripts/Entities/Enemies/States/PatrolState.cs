@@ -24,7 +24,7 @@ namespace BlobSurvivor.Entities.Enemies
             }
 
             if (enemy.CanSeeBlob())
-                enemy.ChangeState(new ChaseState());
+                enemy.ChangeState(enemy.IsEdibleByBlob ? new FleeState() : new ChaseState());
         }
 
         public void Exit(EnemyBase enemy) { }

@@ -13,7 +13,7 @@ namespace BlobSurvivor.Systems
             if (vacuum == null)
                 vacuum = blobRoot.AddComponent<VacuumComponent>();
 
-            vacuum.IncreaseRadius(data.PerLevelValue);
+            vacuum.IncreaseReach(data.PerLevelValue);
         }
     }
 }

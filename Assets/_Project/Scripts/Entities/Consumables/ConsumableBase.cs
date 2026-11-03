@@ -14,7 +14,13 @@ namespace BlobSurvivor.Entities
         // Sıradan consumable'lar vakumla çekilebilir; PedestrianController bunu false'a override eder
         // (2026-09-06, Serra: "yaya ve polisleri vakum çekmesin" — bkz. IConsumable.cs notu).
         public virtual bool IsVacuumable => true;
-        public virtual bool CanBeSplit => true; // Mermo'nun tabancası parçalayabilir mi
+        // Mermo'nun tabancası parçalayabilir mi. Hazard'lar parçalanmaz; yayalar override ile hariç.
+        public virtual bool CanBeSplit => _data != null && !_data.IsHazard;
+
+        // 0 = Data.MassValue kullan. Mermo'nun parçaları, parçalanan objenin mass'ını paylaşır.
+        private float _massOverride;
+        public float MassValue => _massOverride > 0f ? _massOverride : (_data != null ? _data.MassValue : 0f);
+        public void SetMassOverride(float mass) => _massOverride = mass;
 
         private void Awake()
         {
@@ -26,6 +32,7 @@ namespace BlobSurvivor.Entities
         public void SetData(ConsumableData data)
         {
             _data = data;
+            _massOverride = 0f; // havuzdan tekrar çıkan parça eski override'ı taşımasın
             AssignLayer();
             UpdateTriggerState(GameEvents.CurrentBlobTier);
         }

@@ -15,7 +15,16 @@ namespace BlobSurvivor.Entities.Vehicles
         private enum CarState { Moving, Stopped }
 
         private CarData _data;
-        private Transform[] _waypoints;
+        // 2026-11-03: rota artık Transform değil nokta listesi — CarSpawner büyük şehrin sokak ızgarasından
+        // runtime'da üretiyor. Araba kendi tamponunu tutar, spawner'ın geçici dizisi yeniden kullanılabilir.
+        private Vector3[] _waypoints = new Vector3[0];
+        private int _waypointCount;
+        // İki araba kavşakta birbirinin önünü raycast'le kesip sonsuza kadar bekleyebilir — bu kadar
+        // bekledikten sonra kısa süreliğine "önümde araba var" kontrolü yok sayılır.
+        private const float CarBlockGiveUpTime = 2f;
+        private const float CarBlockIgnoreTime = 1f;
+        private float _blockedByCarTime;
+        private float _ignoreCarsUntil;
         private int _currentWaypointIndex;
         private float _damageTimer;
         private bool _isActive;
@@ -35,11 +44,15 @@ namespace BlobSurvivor.Entities.Vehicles
 
         private readonly Collider[] _pushHits = new Collider[16];
 
-        public void Initialize(CarData data, Transform[] waypoints)
+        public void Initialize(CarData data, Vector3[] waypoints, int count)
         {
             _data = data;
-            _waypoints = waypoints;
-            _currentWaypointIndex = 0;
+            if (_waypoints.Length < count) _waypoints = new Vector3[count];
+            for (int i = 0; i < count; i++) _waypoints[i] = waypoints[i];
+            _waypointCount = count;
+            _currentWaypointIndex = count > 1 ? 1 : 0; // 0. köşede doğar, 1.'ye doğru gider
+            _blockedByCarTime = 0f;
+            _ignoreCarsUntil = 0f;
             _damageTimer = 0f;
             _isActive = true;
             _state = CarState.Moving;
@@ -59,16 +72,18 @@ namespace BlobSurvivor.Entities.Vehicles
             if (_scoreSystem == null)
                 _scoreSystem = FindAnyObjectByType<ScoreSystem>();
 
-            if (_waypoints != null && _waypoints.Length > 0)
+            if (_waypointCount > 0)
             {
-                transform.position = new Vector3(_waypoints[0].position.x, _data.SpawnYOffset, _waypoints[0].position.z);
-                transform.rotation = Quaternion.identity;
+                transform.position = new Vector3(_waypoints[0].x, _data.SpawnYOffset, _waypoints[0].z);
+                Vector3 heading = _waypointCount > 1 ? _waypoints[1] - _waypoints[0] : Vector3.forward;
+                heading.y = 0f;
+                transform.rotation = heading.sqrMagnitude > 0.0001f ? Quaternion.LookRotation(heading) : Quaternion.identity;
             }
         }
 
         private void Update()
         {
-            if (!_isActive || _waypoints == null || _waypoints.Length == 0) return;
+            if (!_isActive || _waypointCount == 0) return;
             if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameState.Playing) return;
 
             // AI sorgularını throttle et
@@ -77,9 +92,21 @@ namespace BlobSurvivor.Entities.Vehicles
             if (aiTick)
             {
                 _aiUpdateTimer = AIUpdateInterval;
-                _cachedIsCarAhead = IsCarAhead();
+                _cachedIsCarAhead = Time.time >= _ignoreCarsUntil && IsCarAhead();
                 _cachedIsBlobDangerous = IsBlobDangerous();
             }
+
+            if (_cachedIsCarAhead)
+            {
+                _blockedByCarTime += Time.deltaTime;
+                if (_blockedByCarTime >= CarBlockGiveUpTime)
+                {
+                    _blockedByCarTime = 0f;
+                    _ignoreCarsUntil = Time.time + CarBlockIgnoreTime;
+                    _cachedIsCarAhead = false;
+                }
+            }
+            else _blockedByCarTime = 0f;
 
             UpdateState();
             UpdateSpeed();
@@ -124,10 +151,10 @@ namespace BlobSurvivor.Entities.Vehicles
 
         private void MoveTowardsWaypoint()
         {
-            Transform target = _waypoints[_currentWaypointIndex];
+            Vector3 target = _waypoints[_currentWaypointIndex];
 
             Vector3 myPos = new Vector3(transform.position.x, 0f, transform.position.z);
-            Vector3 targetPos = new Vector3(target.position.x, 0f, target.position.z);
+            Vector3 targetPos = new Vector3(target.x, 0f, target.z);
             Vector3 direction = (targetPos - myPos).normalized;
 
             transform.position += direction * _currentSpeed * Time.deltaTime;
@@ -135,8 +162,8 @@ namespace BlobSurvivor.Entities.Vehicles
             if (direction != Vector3.zero)
                 transform.rotation = Quaternion.LookRotation(direction);
 
-            if (Vector3.Distance(myPos, targetPos) <= _data.WaypointReachDistance)
-                _currentWaypointIndex = (_currentWaypointIndex + 1) % _waypoints.Length;
+            if ((myPos - targetPos).sqrMagnitude <= _data.WaypointReachDistance * _data.WaypointReachDistance)
+                _currentWaypointIndex = (_currentWaypointIndex + 1) % _waypointCount;
         }
 
         private void PushNearbyConsumables()

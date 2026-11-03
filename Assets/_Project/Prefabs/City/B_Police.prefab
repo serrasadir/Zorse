@@ -51,8 +51,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 3.8000138, y: 4.9700136, z: 3.900014}
-  m_Center: {x: -0.000000021855694, y: 2.435, z: -0.25}
+  m_Size: {x: 3.6400054, y: 4.9700136, z: 3.2600002}
+  m_Center: {x: 0.00000059604645, y: 2.435, z: -0.010001242}
 --- !u!1 &5673164180913338768
 GameObject:
   m_ObjectHideFlags: 0
@@ -64,6 +64,7 @@ GameObject:
   - component: {fileID: 67109861552013827}
   - component: {fileID: 6165796979615002420}
   - component: {fileID: 1467471079712416382}
+  - component: {fileID: 2757780788905868412}
   m_Layer: 12
   m_Name: B_Police
   m_TagString: Untagged
@@ -107,8 +108,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 3.8000138, y: 4.9700136, z: 3.900014}
-  m_Center: {x: -0.000000021855694, y: 2.435, z: -0.25}
+  m_Size: {x: 3.6400054, y: 4.9700136, z: 3.2600002}
+  m_Center: {x: 0.00000059604645, y: 2.435, z: -0.010001242}
 --- !u!114 &1467471079712416382
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -123,6 +124,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.CityConsumable
   _data: {fileID: 11400000, guid: c2b3d96ce7da94b0eb6f3652400b95ad, type: 2}
   _obstacle: {fileID: 5024843941938637654}
+--- !u!114 &2757780788905868412
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5673164180913338768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35e95dc5ff2b64380880dd7ac5922847, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifierVolume
+  m_SerializedVersion: 0
+  m_Size: {x: 3.6400054, y: 5.9700136, z: 3.2600002}
+  m_Center: {x: 0.00000059604645, y: 2.435, z: -0.010001242}
+  m_Area: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &6330153334151849067
 GameObject:
   m_ObjectHideFlags: 0

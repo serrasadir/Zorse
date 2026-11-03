@@ -13,8 +13,8 @@ namespace BlobSurvivor.Entities
 
         public override bool IsVacuumable => false;
 
-        // Şehir objeleri sadece yutulur: mermi yoksa tier'a bakmadan binayı silerdi.
-        public override bool CanBeSplit => false;
+        // Binalar (engel kutusu olanlar) mermiyi durdurur; sokak eşyaları durdurmaz.
+        public bool BlocksProjectiles => _obstacle != null;
 
         public override void ReturnToOwner() => gameObject.SetActive(false);
 

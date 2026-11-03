@@ -51,8 +51,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 5.400989, y: 4.7054086, z: 4.4249387}
-  m_Center: {x: -0.0021375415, y: 2.3526971, z: 0.0022339823}
+  m_Size: {x: 5.0577006, y: 4.7054086, z: 3.9564328}
+  m_Center: {x: -0.0014345646, y: 2.3526971, z: 0.23193836}
 --- !u!1 &2674776478355046504
 GameObject:
   m_ObjectHideFlags: 0
@@ -64,6 +64,7 @@ GameObject:
   - component: {fileID: 296645221148933773}
   - component: {fileID: 1589911027481870861}
   - component: {fileID: 744295227945189633}
+  - component: {fileID: 4817868567592403964}
   m_Layer: 12
   m_Name: B_Restaurant
   m_TagString: Untagged
@@ -107,8 +108,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 5.400989, y: 4.7054086, z: 4.4249387}
-  m_Center: {x: -0.0021375415, y: 2.3526971, z: 0.0022339823}
+  m_Size: {x: 5.0577006, y: 4.7054086, z: 3.9564328}
+  m_Center: {x: -0.0014345646, y: 2.3526971, z: 0.23193836}
 --- !u!114 &744295227945189633
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -123,6 +124,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.CityConsumable
   _data: {fileID: 11400000, guid: 1b4f54a3a5e84415c983368ab19ee91a, type: 2}
   _obstacle: {fileID: 3621604914443433934}
+--- !u!114 &4817868567592403964
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2674776478355046504}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35e95dc5ff2b64380880dd7ac5922847, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifierVolume
+  m_SerializedVersion: 0
+  m_Size: {x: 5.0577006, y: 5.7054086, z: 3.9564328}
+  m_Center: {x: -0.0014345646, y: 2.3526971, z: 0.23193836}
+  m_Area: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &7514735740299041721
 GameObject:
   m_ObjectHideFlags: 0

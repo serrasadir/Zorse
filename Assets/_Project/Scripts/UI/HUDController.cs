@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -31,7 +30,6 @@ namespace BlobSurvivor.UI
         [Header("Skill Badges")]
         [SerializeField] private Transform _skillBadgeContainer;
         [SerializeField] private GameObject _skillBadgePrefab;
-        [SerializeField] private UpgradeData[] _allUpgrades;
 
         [Header("Character")]
         [SerializeField] private Image _characterIcon;
@@ -64,7 +62,7 @@ namespace BlobSurvivor.UI
             GameEvents.OnBlobTierChanged += OnTierChanged;
             GameEvents.OnXPChanged += OnXPChanged;
             GameEvents.OnLevelUp += OnLevelUp;
-            GameEvents.OnUpgradeSelected += OnUpgradeSelected;
+            GameEvents.OnUpgradeApplied += OnUpgradeApplied;
             GameEvents.OnCharacterSelected += OnCharacterSelected;
             GameEvents.OnGameOver += ClearBadges;
             GameEvents.OnGameOver += ClearCharacterIcon;
@@ -80,7 +78,7 @@ namespace BlobSurvivor.UI
             GameEvents.OnBlobTierChanged -= OnTierChanged;
             GameEvents.OnXPChanged -= OnXPChanged;
             GameEvents.OnLevelUp -= OnLevelUp;
-            GameEvents.OnUpgradeSelected -= OnUpgradeSelected;
+            GameEvents.OnUpgradeApplied -= OnUpgradeApplied;
             GameEvents.OnCharacterSelected -= OnCharacterSelected;
             GameEvents.OnGameOver -= ClearBadges;
             GameEvents.OnGameOver -= ClearCharacterIcon;
@@ -158,55 +156,9 @@ namespace BlobSurvivor.UI
                 _levelText.text = $"Lv.{level}";
         }
 
-        private void OnUpgradeSelected(UpgradeData data)
-        {
-            if (_skillBadgeContainer == null || _skillBadgePrefab == null) return;
-            StartCoroutine(RenderSkillBadgesNextFrame(data));
-        }
-
-        private IEnumerator RenderSkillBadgesNextFrame(UpgradeData selected)
-        {
-            yield return null;
-            RenderSkillBadges(selected);
-        }
-
-        private void RenderSkillBadges(UpgradeData selected)
-        {
-            if (_skillBadgeContainer == null || _skillBadgePrefab == null) return;
-
-            if (_allUpgrades != null && _allUpgrades.Length > 0)
-            {
-                bool renderedSelected = false;
-                foreach (var upgrade in _allUpgrades)
-                {
-                    if (upgrade != null && GetUpgradeLevel(upgrade) > 0)
-                    {
-                        RenderSkillBadge(upgrade);
-                        if (upgrade == selected)
-                            renderedSelected = true;
-                    }
-                }
-                if (selected != null && !renderedSelected)
-                    RenderSkillBadge(selected, 1);
-                RemoveInactiveBadges(selected);
-                return;
-            }
-
-            if (selected != null && GetUpgradeLevel(selected) > 0)
-                RenderSkillBadge(selected);
-            else if (selected != null)
-                RenderSkillBadge(selected, 1);
-        }
-
-        private static int GetUpgradeLevel(UpgradeData data)
-        {
-            return UpgradeSystem.Instance != null ? UpgradeSystem.Instance.GetLevel(data) : 0;
-        }
-
-        private void RenderSkillBadge(UpgradeData data)
-        {
-            RenderSkillBadge(data, GetUpgradeLevel(data));
-        }
+        // 2026-11-03: rozet sadece seviyesi değişen skill için güncellenir. Eskiden sahnedeki ikinci bir skill
+        // listesini (_allUpgrades, UpgradeSystem'deki listenin kopyası) her seçimde baştan tarıyordu.
+        private void OnUpgradeApplied(UpgradeData data, int level) => RenderSkillBadge(data, level);
 
         private void RenderSkillBadge(UpgradeData data, int level)
         {
@@ -228,28 +180,12 @@ namespace BlobSurvivor.UI
 
             var levelText = badge.GetComponentInChildren<TMP_Text>();
             if (levelText != null)
-                levelText.text = Mathf.Max(1, level).ToString();
-        }
-
-        private void RemoveInactiveBadges(UpgradeData selected)
-        {
-            var inactive = new List<UpgradeData>();
-            foreach (var kv in _badges)
-            {
-                if (kv.Key == null || (GetUpgradeLevel(kv.Key) <= 0 && kv.Key != selected))
-                    inactive.Add(kv.Key);
-            }
-
-            foreach (var data in inactive)
-            {
-                if (_badges.TryGetValue(data, out GameObject badge) && badge != null)
-                    Destroy(badge);
-                _badges.Remove(data);
-            }
+                levelText.text = level.ToString();
         }
 
         private void OnCharacterSelected(CharacterData data)
         {
+            ClearBadges(); // skill seviyeleri run başında sıfırlanıyor (RunComplete sonrası restart'ta da)
             _blobGrowth = FindAnyObjectByType<Entities.Blob.BlobGrowth>();
 
             if (_characterIcon == null) return;

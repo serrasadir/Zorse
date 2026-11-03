@@ -16,11 +16,16 @@ namespace BlobSurvivor.Entities
         [SerializeField] private float _minSpawnDistance = 5f;
         [SerializeField] private int _initialSpawnCount = 40;
         [SerializeField] private float _refillCheckInterval = 2f;
+        // 2026-11-03 (Serra, Karar 15 büyük harita): geride kalan consumable 80'lik tavanı dolduruyor,
+        // oyuncunun etrafı boşalıyordu. Bu mesafeden uzaktakiler havuza döner, refill onları yakına getirir
+        // (Enemy/PedestrianSpawner ile aynı desen). Şehir objeleri (CityConsumable) bu listede değil.
+        [SerializeField] private float _despawnDistance = 50f;
 
         private Transform _blobTransform;
         private readonly List<GameObject> _activeConsumables = new List<GameObject>();
         private readonly Dictionary<ConsumableData, ObjectPool<ConsumableBase>> _pools = new Dictionary<ConsumableData, ObjectPool<ConsumableBase>>();
         private float _refillTimer;
+        private readonly List<ConsumableData> _validBuffer = new List<ConsumableData>(); // spawn başına List ayırmasın
 
         private void Awake()
         {
@@ -49,6 +54,7 @@ namespace BlobSurvivor.Entities
             if (_refillTimer >= _refillCheckInterval)
             {
                 _refillTimer = 0f;
+                RecycleFarConsumables();
                 RefillIfNeeded();
             }
 
@@ -82,6 +88,22 @@ namespace BlobSurvivor.Entities
                 SpawnRandom(BlobTier.Tiny);
         }
 
+        private void RecycleFarConsumables()
+        {
+            if (_blobTransform == null) return;
+
+            Vector3 blobPos = _blobTransform.position;
+            float despawnSq = _despawnDistance * _despawnDistance;
+            for (int i = _activeConsumables.Count - 1; i >= 0; i--)
+            {
+                GameObject go = _activeConsumables[i];
+                if (go == null || (go.transform.position - blobPos).sqrMagnitude < despawnSq) continue;
+
+                ConsumableBase consumable = go.GetComponent<ConsumableBase>();
+                if (consumable != null) ReturnToPool(consumable);
+            }
+        }
+
         private void SpawnRandom(BlobTier maxTier)
         {
             ConsumableData data = GetRandomDataForTier(maxTier);
@@ -96,25 +118,29 @@ namespace BlobSurvivor.Entities
 
         private ConsumableData GetRandomDataForTier(BlobTier maxTier)
         {
-            List<ConsumableData> valid = new List<ConsumableData>();
+            _validBuffer.Clear();
             foreach (ConsumableData d in _consumablePool)
                 if (d != null && d.RequiredTier <= maxTier)
-                    valid.Add(d);
+                    _validBuffer.Add(d);
 
-            if (valid.Count == 0) return null;
-            return valid[Random.Range(0, valid.Count)];
+            if (_validBuffer.Count == 0) return null;
+            return _validBuffer[Random.Range(0, _validBuffer.Count)];
         }
 
-        // Greybox/gerçek bina engelleri NavMesh'te delik açtığında rastgele nokta bir binanın
-        // içine denk gelebilir — bu spawn denemesi o zaman atlanır, bir dahaki refill tick'inde
-        // yeniden denenir (bkz. SpawnPositionUtility).
+        // Rastgele nokta bir binanın içine/çatısına denk gelebilir — SpawnPositionUtility reddeder,
+        // birkaç kez denenir; hepsi tutmazsa bir dahaki refill tick'inde yeniden denenir.
         private bool TryGetSpawnPosition(float yOffset, out Vector3 spawnPos)
         {
             Vector3 center = _blobTransform != null ? _blobTransform.position : Vector3.zero;
-            Vector2 randomCircle = Random.insideUnitCircle.normalized * Random.Range(_minSpawnDistance, _spawnRadius);
-            Vector3 candidate = new Vector3(center.x + randomCircle.x, yOffset, center.z + randomCircle.y);
-
-            return SpawnPositionUtility.TryFindNavMeshPosition(candidate, yOffset, 5f, out spawnPos);
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                Vector2 randomCircle = Random.insideUnitCircle.normalized * Random.Range(_minSpawnDistance, _spawnRadius);
+                Vector3 candidate = new Vector3(center.x + randomCircle.x, yOffset, center.z + randomCircle.y);
+                if (SpawnPositionUtility.TryFindNavMeshPosition(candidate, yOffset, 5f, out spawnPos))
+                    return true;
+            }
+            spawnPos = Vector3.zero;
+            return false;
         }
 
         // B14: normal yeme akışı için pool return — ConsumeAndSplit'teki pattern'in genel hali.
@@ -123,7 +149,7 @@ namespace BlobSurvivor.Entities
             if (target == null) return;
 
             _activeConsumables.Remove(target.gameObject);
-            if (_pools.TryGetValue(target.Data, out ObjectPool<ConsumableBase> pool))
+            if (target.Data != null && _pools.TryGetValue(target.Data, out ObjectPool<ConsumableBase> pool))
                 pool.Return(target);
         }
 
@@ -133,6 +159,9 @@ namespace BlobSurvivor.Entities
 
             BlobTier spawnTier = target.RequiredTier > BlobTier.Tiny ? target.RequiredTier - 1 : BlobTier.Tiny;
             Vector3 position = target.transform.position;
+            // Parçaların toplamı parçalanan objenin mass'ı kadar — havuzda tek tür (2 mass'lık Trash) olduğu için
+            // eskiden Giant bina (50) 3 × 2 = 6 mass'a dönüşüyordu.
+            float pieceMass = splitCount > 0 ? target.MassValue / splitCount : 0f;
 
             target.ReturnToOwner(); // havuz dışı şehir objeleri (CityConsumable) de gerçekten kaybolsun
 
@@ -143,15 +172,21 @@ namespace BlobSurvivor.Entities
 
                 Vector2 scatter = Random.insideUnitCircle * 1.5f;
                 Vector3 spawnPos = new Vector3(position.x + scatter.x, data.SpawnYOffset, position.z + scatter.y);
+                // Parça komşu bir binanın içine saçılmasın; tutmazsa parçalanan objenin (artık boş) yerine düşer.
+                if (!SpawnPositionUtility.IsClear(spawnPos))
+                    spawnPos = new Vector3(position.x, data.SpawnYOffset, position.z);
                 ConsumableBase instance = _pools[data].Get(spawnPos, Quaternion.identity);
                 instance.SetData(data);
+                instance.SetMassOverride(pieceMass);
                 _activeConsumables.Add(instance.gameObject);
             }
         }
 
         private void OnTierChanged(BlobTier newTier)
         {
-            int bonus = (int)newTier * 5;
+            // Bonus da tavana uyar — eskiden tavanı aşıp run'dan run'a birikiyordu (ResetGrowth da tetikliyor).
+            CleanupInactive();
+            int bonus = Mathf.Min((int)newTier * 5, _maxActive - _activeConsumables.Count);
             for (int i = 0; i < bonus; i++)
                 SpawnRandom(newTier);
         }

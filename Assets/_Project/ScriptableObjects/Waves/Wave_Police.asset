@@ -17,5 +17,4 @@ MonoBehaviour:
   - EnemyData: {fileID: 11400000, guid: 58bb1253e36e04bdd81ec5144eaf244a, type: 2}
     SpawnWeight: 1
   _spawnRate: 3
-  _maxActiveCount: 5
   _waveName: Police

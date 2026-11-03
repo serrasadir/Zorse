@@ -24,6 +24,9 @@ namespace BlobSurvivor.Entities.Blob
 
         private void OnTriggerEnter(Collider other)
         {
+            // Blob'un iki collider'ı (trigger + solid) aynı adımda iki çağrı üretebilir; ilki nesneyi zaten yedi.
+            if (!other.gameObject.activeInHierarchy) return;
+
             IConsumable consumable = other.GetComponent<IConsumable>();
             if (consumable != null)
             {
@@ -41,7 +44,8 @@ namespace BlobSurvivor.Entities.Blob
             {
                 BlobTier effectiveTier = _blobGrowth.CurrentTier;
                 ConsumptionBonusComponent bonus = GetComponent<ConsumptionBonusComponent>();
-                if (bonus != null)
+                // 2026-11-03: Yırtıcı Çene elitleri kapsamaz — Small blob elit yiyordu. Elit yemek Avcı Formu'nun işi.
+                if (bonus != null && enemy.Data != null && !enemy.Data.IsElite)
                     effectiveTier = (BlobTier)Mathf.Min((int)BlobTier.Giant, (int)effectiveTier + bonus.TierBonus);
 
                 // TryConsumeByBlob düşmanı havuza döndürür; hasar ondan önce okunur.
@@ -69,7 +73,7 @@ namespace BlobSurvivor.Entities.Blob
         private void Consume(IConsumable consumable, GameObject obj)
         {
             if (_blobGrowth == null) return;
-            _blobGrowth.AddMass(consumable.Data.MassValue);
+            _blobGrowth.AddMass(consumable.MassValue);
             _blobGrowth.PunchScale();
             ApplyHealOnConsume();
 

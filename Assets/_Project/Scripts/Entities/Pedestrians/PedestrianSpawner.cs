@@ -18,7 +18,7 @@ namespace BlobSurvivor.Entities.Pedestrians
         // 2026-09-05: eskiden blob'un o anki konumu etrafında bir halkaya (ring) spawn oluyordu —
         // blob fazla hareket etmeyince tüm yayalar aynı bölgede kümeleniyormuş gibi görünüyordu
         // (Serra: "tek noktadan spawn oluyor, çevrede az oluyor"). Artık blob'dan bağımsız, tüm
-        // şehir alanına (GreyboxCityGenerator'ın (GridSize-1)*BlockSpacing/2 = 30 ile aynı ölçek)
+        // şehir alanına (o zamanki 60x60 harita ölçeği)
         // yayılıyor — dağılım blob'un nerede olduğuna bağlı değil.
         [SerializeField] private float _mapHalfExtent = 30f;
         // 2026-11-01 (GDD_v2 Karar 15, büyük harita): EnemySpawner ile aynı desen — blob etrafındaki

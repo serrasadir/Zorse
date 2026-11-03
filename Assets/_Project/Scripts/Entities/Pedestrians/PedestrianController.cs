@@ -39,6 +39,16 @@ namespace BlobSurvivor.Entities.Pedestrians
         private bool _fleeing;
         private bool _wanderTargetSet;
 
+        // 2026-11-03 (Serra: "yayalar duvar kenarında durup bekliyor"): hedefe ulaşamayan yaya yeni hedef
+        // seçmiyordu. Bu süre içinde bu kadar ilerleyemezse takılmış sayılır ve yeni hedef seçer.
+        private const float StuckCheckInterval = 1.2f;
+        private const float StuckMinProgress = 0.3f;
+        private float _stuckTimer;
+        private Vector3 _stuckCheckPos;
+        // Hiç açık hedef bulunamazsa her kare yeniden aramasın (NavMesh + SphereCast); kısa bir bekleme.
+        private const float RetryPickDelay = 0.6f;
+        private float _retryPickAt;
+
         private PedestrianData PedData => Data as PedestrianData;
 
         // 2026-09-06 (Serra): yayalar dünyayı canlandıran arka plan NPC'leri — Vakum'un onları
@@ -54,6 +64,9 @@ namespace BlobSurvivor.Entities.Pedestrians
             _fleeing = false;
             _wanderTargetSet = false;
             _spawnCenter = transform.position;
+            _stuckTimer = StuckCheckInterval;
+            _stuckCheckPos = transform.position;
+            _retryPickAt = 0f;
 
             if (_blobTransform == null)
             {
@@ -89,6 +102,20 @@ namespace BlobSurvivor.Entities.Pedestrians
 
             Move();
             ApplyBob();
+            CheckStuck();
+        }
+
+        private void CheckStuck()
+        {
+            _stuckTimer -= Time.deltaTime;
+            if (_stuckTimer > 0f) return;
+            _stuckTimer = StuckCheckInterval;
+
+            Vector3 moved = transform.position - _stuckCheckPos;
+            moved.y = 0f;
+            _stuckCheckPos = transform.position;
+            if (moved.sqrMagnitude < StuckMinProgress * StuckMinProgress && !_fleeing)
+                PickNewWanderTarget();
         }
 
         private Vector3 ComputeAvoidance()
@@ -103,7 +130,8 @@ namespace BlobSurvivor.Entities.Pedestrians
             if (forward.sqrMagnitude < 0.01f) return Vector3.zero;
             forward.Normalize();
 
-            if (!Physics.Raycast(transform.position, forward, out RaycastHit hit, _avoidanceLookahead, s_environmentMask))
+            // Gövde kalınlığında süpürme: ince ışın bina köşesini ıskalıyor, gövde ise çarpıp kilitleniyordu.
+            if (!Physics.SphereCast(transform.position, _bodyRadius, forward, out RaycastHit hit, _avoidanceLookahead, s_environmentMask))
                 return Vector3.zero;
 
             Vector3 away = Vector3.Cross(Vector3.up, hit.normal);
@@ -132,19 +160,43 @@ namespace BlobSurvivor.Entities.Pedestrians
         // 2026-08-31'de burada 0f sabitlemek gerçek kök sebepti, bkz. Move()'daki not).
         private void PickNewWanderTarget()
         {
+            if (Time.time < _retryPickAt) return;
+
             for (int i = 0; i < WanderTargetMaxAttempts; i++)
             {
                 Vector2 offset = Random.insideUnitCircle * PedData.WanderRadius;
                 Vector3 candidate = _spawnCenter + new Vector3(offset.x, 0f, offset.y);
 
-                if (SpawnPositionUtility.TryFindNavMeshPosition(candidate, _spawnCenter.y, 3f, out Vector3 valid))
+                if (SpawnPositionUtility.TryFindNavMeshPosition(candidate, _spawnCenter.y, 3f, out Vector3 valid)
+                    && HasClearPath(valid))
                 {
                     _wanderTarget = valid;
                     return;
                 }
             }
 
-            _wanderTarget = _spawnCenter;
+            // Hiçbiri tutmadı: dönüş yolu açıksa spawn noktası, değilse olduğu yerde kalıp bir sonraki takılma
+            // kontrolünde yeniden dener (eskiden hedefi duvarın arkasında da olsa spawn noktasına sabitliyordu).
+            if (HasClearPath(_spawnCenter))
+            {
+                _wanderTarget = _spawnCenter;
+                return;
+            }
+            _wanderTarget = transform.position; // kısa süre dur, sonra yeniden dene
+            _retryPickAt = Time.time + RetryPickDelay;
+        }
+
+        // Yaya hedefe düz yürüyor (NavMesh yolu kullanmıyor) — arada bina olan hedef seçilmez.
+        private bool HasClearPath(Vector3 target)
+        {
+            if (s_environmentMask < 0)
+                s_environmentMask = LayerMask.GetMask("Environment");
+
+            Vector3 to = target - transform.position;
+            to.y = 0f;
+            float distance = to.magnitude;
+            if (distance < 0.01f) return true;
+            return !Physics.SphereCast(transform.position, _bodyRadius, to / distance, out _, distance, s_environmentMask);
         }
 
         private void Move()
@@ -203,10 +255,27 @@ namespace BlobSurvivor.Entities.Pedestrians
             float stepDist = step.magnitude;
             if (stepDist < 0.0001f || s_environmentMask == 0) return step;
 
-            if (Physics.SphereCast(transform.position, _bodyRadius, step / stepDist, out RaycastHit hit, stepDist, s_environmentMask))
-                return step / stepDist * Mathf.Max(0f, hit.distance - EnvironmentSkin);
+            Vector3 dir = step / stepDist;
+            if (!Physics.SphereCast(transform.position, _bodyRadius, dir, out RaycastHit hit, stepDist, s_environmentMask))
+                return step;
 
-            return step;
+            // Duvara kadar git, kalan adımı duvar boyunca kaydır (eskiden adım sıfırlanıyor, köşede kilitleniyordu).
+            float travel = Mathf.Max(0f, hit.distance - EnvironmentSkin);
+            Vector3 toWall = dir * travel;
+            Vector3 normal = hit.normal;
+            normal.y = 0f;
+            if (normal.sqrMagnitude < 0.0001f) return toWall;
+            normal.Normalize();
+
+            Vector3 slide = Vector3.ProjectOnPlane(dir * (stepDist - travel), normal);
+            float slideDist = slide.magnitude;
+            if (slideDist < 0.0001f) return toWall;
+
+            Vector3 slideDir = slide / slideDist;
+            if (Physics.SphereCast(transform.position + toWall, _bodyRadius, slideDir, out RaycastHit slideHit, slideDist, s_environmentMask))
+                slide = slideDir * Mathf.Max(0f, slideHit.distance - EnvironmentSkin); // iç köşe: ikinci duvarda dur
+
+            return toWall + slide;
         }
 
         private void ApplyBob()
@@ -216,6 +285,8 @@ namespace BlobSurvivor.Entities.Pedestrians
             pos.y = Data.SpawnYOffset + Mathf.Abs(Mathf.Sin(_bobTimer)) * PedData.BobHeight;
             transform.position = pos;
         }
+
+        public override bool CanBeSplit => false; // yaya eşyaya bölünmez
 
         public override void ReturnToOwner() => PedestrianSpawner.Instance?.ReturnToPool(this);
     }

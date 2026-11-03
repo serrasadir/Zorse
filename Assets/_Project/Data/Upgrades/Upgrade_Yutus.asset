@@ -18,9 +18,6 @@ MonoBehaviour:
   _icon: {fileID: 0}
   _category: 4
   _weight: 10
-  _effectValue: 0
-  _effectDuration: 0
-  _cooldown: 0
   _effect: {fileID: 11400000, guid: ba4021874fdb148b3b73b221bc147ed2, type: 2}
   _maxLevel: 8
   _perLevelValue: 1

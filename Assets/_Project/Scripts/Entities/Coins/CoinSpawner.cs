@@ -51,6 +51,8 @@ namespace BlobSurvivor.Entities.Coins
             coin.Initialize(amount, _scoreSystem);
             coin.OnCollected -= HandleCollected;
             coin.OnCollected += HandleCollected;
+            coin.OnExpired -= HandleCollected;
+            coin.OnExpired += HandleCollected;
             _activeCoins.Add(coin);
         }
 

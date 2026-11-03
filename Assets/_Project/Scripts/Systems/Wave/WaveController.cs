@@ -53,7 +53,10 @@ namespace BlobSurvivor.Systems
 
             for (int i = _waves.Length - 1; i >= 0; i--)
             {
-                if (survivalTime >= _waves[i].TimeThreshold && i > _currentWaveIndex)
+                WaveData wave = _waves[i];
+                bool unlocked = survivalTime >= wave.TimeThreshold
+                    || (wave.UnlockByBlobTier && GameEvents.CurrentBlobTier >= wave.UnlockTier);
+                if (unlocked && i > _currentWaveIndex)
                 {
                     _currentWaveIndex = i;
                     CurrentWave = _waves[i];

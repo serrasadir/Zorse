@@ -21,14 +21,14 @@ namespace BlobSurvivor.Data
         [SerializeField] private Sprite _icon;
         [SerializeField] private UpgradeCategory _category;
         [SerializeField] private int _weight = 10;
-        [SerializeField] private float _effectValue;
-        [SerializeField] private float _effectDuration;
-        [SerializeField] private float _cooldown;
         [SerializeField] private UpgradeEffect _effect;
 
         [Header("Leveling")]
         [SerializeField] private int _maxLevel = 8;
         [SerializeField] private float _perLevelValue;
+        [Tooltip("İsteğe bağlı: seviyeye özel kart açıklaması (0. eleman = Sv.1). Boş/eksikse Description gösterilir. " +
+                 "{ultimate} yazısı aktif silahın son form açıklamasıyla değiştirilir.")]
+        [SerializeField] private string[] _levelDescriptions;
 
         [Header("Evrim (B17)")]
         [Tooltip("true ise UpgradePanel bu kartı görsel olarak (★ + altın renk) işaretler — EvolutionSystem tarafından havuza dinamik eklenen çıktı skillerinde kullanılır.")]
@@ -40,12 +40,19 @@ namespace BlobSurvivor.Data
         public Sprite Icon => _icon;
         public UpgradeCategory Category => _category;
         public int Weight => _weight;
-        public float EffectValue => _effectValue;
-        public float EffectDuration => _effectDuration;
-        public float Cooldown => _cooldown;
         public UpgradeEffect Effect => _effect;
         public int MaxLevel => _maxLevel;
         public float PerLevelValue => _perLevelValue;
         public bool IsEvolution => _isEvolution;
+
+        // Seçilince ulaşılacak seviyenin açıklaması; tanımlı değilse genel açıklama.
+        public string GetDescriptionForLevel(int level)
+        {
+            int index = level - 1;
+            if (_levelDescriptions != null && index >= 0 && index < _levelDescriptions.Length
+                && !string.IsNullOrEmpty(_levelDescriptions[index]))
+                return _levelDescriptions[index];
+            return _description;
+        }
     }
 }

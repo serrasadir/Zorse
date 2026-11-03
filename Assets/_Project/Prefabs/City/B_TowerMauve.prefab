@@ -51,8 +51,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 3.6400244, y: 8.175018, z: 3.6400244}
-  m_Center: {x: 4.95982e-16, y: 4.05, z: -4.95982e-16}
+  m_Size: {x: 3.4000056, y: 8.175018, z: 3.4400005}
+  m_Center: {x: -0.00000047683716, y: 4.05, z: -0.019997954}
 --- !u!1 &4244898096983091066
 GameObject:
   m_ObjectHideFlags: 0
@@ -154,6 +154,7 @@ GameObject:
   - component: {fileID: 5429085745987610873}
   - component: {fileID: 347530163842810027}
   - component: {fileID: 5247566291082759678}
+  - component: {fileID: 6324789499063691396}
   m_Layer: 13
   m_Name: B_TowerMauve
   m_TagString: Untagged
@@ -197,8 +198,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 3.6400244, y: 8.175018, z: 3.6400244}
-  m_Center: {x: 4.95982e-16, y: 4.05, z: -4.95982e-16}
+  m_Size: {x: 3.4000056, y: 8.175018, z: 3.4400005}
+  m_Center: {x: -0.00000047683716, y: 4.05, z: -0.019997954}
 --- !u!114 &5247566291082759678
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -213,3 +214,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.CityConsumable
   _data: {fileID: 11400000, guid: b1123ed275aff483e8d179aaafcc23d2, type: 2}
   _obstacle: {fileID: 4270714141406659155}
+--- !u!114 &6324789499063691396
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9072843084645165989}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35e95dc5ff2b64380880dd7ac5922847, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifierVolume
+  m_SerializedVersion: 0
+  m_Size: {x: 3.4000056, y: 9.175018, z: 3.4400005}
+  m_Center: {x: -0.00000047683716, y: 4.05, z: -0.019997954}
+  m_Area: 1
+  m_AffectedAgents: ffffffff

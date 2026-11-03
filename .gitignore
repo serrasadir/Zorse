@@ -76,3 +76,6 @@ graphify-out.meta
 
 # Claude Code local tooling (settings, worktrees)
 .claude/
+
+# Unity build Burst debug çıktısı (her build yeniden üretilir)
+*_BurstDebugInformation_DoNotShip/

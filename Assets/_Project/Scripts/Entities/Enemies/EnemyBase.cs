@@ -42,6 +42,7 @@ namespace BlobSurvivor.Entities.Enemies
         private float _currentHealth;
         private float _aiUpdateTimer;
         private bool _canSeeBlobCached;
+        private bool _edibleByBlobCached;
         private float _damageMultiplier = 1f;
         private float _speedMultiplier = 1f;
         private bool _isDead;
@@ -49,6 +50,23 @@ namespace BlobSurvivor.Entities.Enemies
         private float _tierBypassUntil = -1f;
         private Vector3 _steerTarget;
         private bool _hasSteerTarget;
+
+        // 2026-11-03 (Serra: "binanın arkasına geçince polis dolanmak yerine binanın üstüne yürüyüp takılıyor"):
+        // sürü polisi NavMeshAgent kullanmıyor, hedefe düz yürüyordu. Hedefe düz yol açıksa yine düz koşar
+        // (ucuz); arada bina varsa NavMesh.CalculatePath ile köşe köşe dolanır. Yol hesabı seyrek: görüş
+        // kapalıyken en fazla RepathInterval'da bir ya da hedef belirgin kaydığında.
+        private const float RepathInterval = 0.5f;
+        private const float RepathTargetShift = 2f;
+        private const float CornerReachDistance = 0.6f;
+        private const float PathSampleRadius = 3f;
+        private const int MaxPathCorners = 16;
+        private NavMeshPath _path;
+        private readonly Vector3[] _pathCorners = new Vector3[MaxPathCorners];
+        private int _pathCornerCount;
+        private int _pathCornerIndex;
+        private bool _followingPath;
+        private float _nextRepathTime;
+        private Vector3 _pathTarget;
         private Vector3 _separationCached;
         private Vector3 _avoidanceCached;
         private float _blobSolidRadius = 0.5f;
@@ -79,10 +97,35 @@ namespace BlobSurvivor.Entities.Enemies
         // iki kez değişti) bu sabit kalıp yeniden bozulmaz.
         private const float ContactBuffer = 0.15f;
 
+        // 2026-11-03 (Serra: "polis vururken basit bir animasyon"): iskeletsiz "hamle" — Model child'ı kısa bir
+        // ileri atılma + öne eğilme + basıklaşma yapar (vuruş anında), sonra yavaşça yerine döner. Elit ateş
+        // edince aynı sistemle geri teper. Asset ya da Animator gerekmez, maliyeti birkaç transform hesabı.
+        private const float LungeDuration = 0.28f;
+        private const float LungePeak = 0.3f;        // sürenin bu kadarında en ileride, kalanı dönüş
+        private const float MeleeLungeDistance = 0.35f;
+        private const float MeleeLungePitch = 18f;
+        private const float RecoilDistance = -0.12f;
+        private const float RecoilPitch = -8f;
+        private Transform _model;
+        private Vector3 _modelRestPos;
+        private Quaternion _modelRestRot;
+        private Vector3 _modelRestScale;
+        private float _lungeTime = -1f;
+        private float _lungeDistance;
+        private float _lungePitch;
+
         private void Awake()
         {
             _agent = GetComponent<NavMeshAgent>();
             _scoreSystem = FindAnyObjectByType<ScoreSystem>();
+
+            _model = transform.Find("Model");
+            if (_model != null)
+            {
+                _modelRestPos = _model.localPosition;
+                _modelRestRot = _model.localRotation;
+                _modelRestScale = _model.localScale;
+            }
 
             if (s_environmentMask < 0)
                 s_environmentMask = LayerMask.GetMask("Environment");
@@ -99,13 +142,16 @@ namespace BlobSurvivor.Entities.Enemies
             _consumableOverride = false;
             _tierBypassUntil = -1f;
             _hasSteerTarget = false;
+            _followingPath = false;
+            _nextRepathTime = 0f;
             _steeringVelocity = Vector3.zero;
             NextRangedAttackTime = 0f;
 
             if (_projectilePool == null && _data != null && _data.ProjectilePrefab != null && PoolManager.Instance != null)
                 _projectilePool = PoolManager.Instance.CreatePool(_data.ProjectilePrefab, InitialProjectilePoolSize);
 
-            GameObject blob = GameObject.FindWithTag("Blob");
+            // Blob sahnede tek ve kalıcı — her spawn'da FindWithTag/GetComponents (GC) yerine bir kere bulunur.
+            GameObject blob = BlobTransform == null ? GameObject.FindWithTag("Blob") : null;
             if (blob != null)
             {
                 BlobTransform = blob.transform;
@@ -141,6 +187,52 @@ namespace BlobSurvivor.Entities.Enemies
         private void OnDisable()
         {
             SwarmSteering.Instance?.Unregister(this);
+            ResetModelPose(); // havuza hamlenin ortasında dönerse bir sonraki spawn'da eğik kalmasın
+        }
+
+        private void PlayLunge(float distance, float pitch)
+        {
+            if (_model == null) return;
+            _lungeTime = 0f;
+            _lungeDistance = distance;
+            _lungePitch = pitch;
+        }
+
+        private void AnimateLunge()
+        {
+            if (_lungeTime < 0f || _model == null) return;
+
+            _lungeTime += Time.deltaTime;
+            float t = _lungeTime / LungeDuration;
+            if (t >= 1f)
+            {
+                ResetModelPose();
+                return;
+            }
+
+            // Hızlı çıkış (vuruş anı), yumuşak dönüş.
+            float k = t < LungePeak
+                ? Mathf.Sin(t / LungePeak * Mathf.PI * 0.5f)
+                : 1f - Mathf.SmoothStep(0f, 1f, (t - LungePeak) / (1f - LungePeak));
+
+            // Model'in parent'ı kök: Vector3.forward kökün baktığı yön (saldırıda blob'a döner), +X ekseni etrafında
+            // pozitif açı öne eğilme. Model'in pivotu ayaklarda, yani eğilme ayak üstünde olur.
+            _model.localPosition = _modelRestPos + Vector3.forward * (_lungeDistance * k);
+            _model.localRotation = Quaternion.AngleAxis(_lungePitch * k, Vector3.right) * _modelRestRot;
+            float squash = Mathf.Abs(k) * 0.1f;
+            _model.localScale = new Vector3(
+                _modelRestScale.x * (1f + squash * 0.6f),
+                _modelRestScale.y * (1f - squash),
+                _modelRestScale.z * (1f + squash * 0.6f));
+        }
+
+        private void ResetModelPose()
+        {
+            _lungeTime = -1f;
+            if (_model == null) return;
+            _model.localPosition = _modelRestPos;
+            _model.localRotation = _modelRestRot;
+            _model.localScale = _modelRestScale;
         }
 
         private void Update()
@@ -151,6 +243,12 @@ namespace BlobSurvivor.Entities.Enemies
             {
                 _aiUpdateTimer = AIUpdateInterval;
                 _canSeeBlobCached = ComputeCanSeeBlob();
+                _edibleByBlobCached = ComputeEdibleByBlob();
+
+                // 2026-11-03 (Serra): sürü polisi blob onu yiyebilecek boyuttaysa (Medium, Yırtıcı Çene ile daha
+                // erken) kovalamak yerine kaçar. Elit/boss kaçmaz (UsesSteering = elit değil).
+                if (_edibleByBlobCached && _canSeeBlobCached && !(_currentState is FleeState))
+                    ChangeState(new FleeState());
 
                 // Ayrım (separation) ve engel kaçınma sorguları pahalı (komşu grid taraması / raycast) —
                 // her frame değil, throttle tick'te hesaplanıp cache'lenir. Seek her frame taze kalır
@@ -160,6 +258,7 @@ namespace BlobSurvivor.Entities.Enemies
                     _separationCached = SwarmSteering.Instance != null
                         ? SwarmSteering.Instance.GetSeparationVector(this, _separationRadius)
                         : Vector3.zero;
+                    if (_hasSteerTarget) UpdateSteeringPath();
                     _avoidanceCached = ComputeAvoidance();
                 }
             }
@@ -168,18 +267,77 @@ namespace BlobSurvivor.Entities.Enemies
 
             if (UsesSteering && _hasSteerTarget)
                 ApplySteeringMovement();
+
+            AnimateLunge();
+        }
+
+        // Throttle tick'inde: hedefe düz yol açık mı? Değilse NavMesh yolu (gerekirse yeniden) hesaplanır.
+        private void UpdateSteeringPath()
+        {
+            float radius = _agent != null ? _agent.radius : 0.5f;
+            if (HasClearPath(_steerTarget, radius))
+            {
+                _followingPath = false;
+                return;
+            }
+
+            bool targetShifted = (_steerTarget - _pathTarget).sqrMagnitude > RepathTargetShift * RepathTargetShift;
+            if (_followingPath && !targetShifted && Time.time < _nextRepathTime) return;
+
+            _nextRepathTime = Time.time + RepathInterval;
+            _pathTarget = _steerTarget;
+            _followingPath = false;
+
+            if (!NavMesh.SamplePosition(transform.position, out NavMeshHit from, PathSampleRadius, NavMesh.AllAreas)) return;
+            if (!NavMesh.SamplePosition(_steerTarget, out NavMeshHit to, PathSampleRadius, NavMesh.AllAreas)) return;
+
+            _path ??= new NavMeshPath();
+            if (!NavMesh.CalculatePath(from.position, to.position, NavMesh.AllAreas, _path)) return;
+
+            _pathCornerCount = _path.GetCornersNonAlloc(_pathCorners);
+            _pathCornerIndex = 1; // 0. köşe bulunduğumuz yer
+            _followingPath = _pathCornerCount > 1;
+        }
+
+        private bool HasClearPath(Vector3 target, float radius)
+        {
+            Vector3 to = target - transform.position;
+            to.y = 0f;
+            float distance = to.magnitude;
+            if (distance < 0.01f || s_environmentMask == 0) return true;
+            return !Physics.SphereCast(transform.position, radius * 0.9f, to / distance, out _, distance, s_environmentMask);
+        }
+
+        // Yol izleniyorsa sıradaki köşe, değilse doğrudan hedef. Köşeye varınca bir sonrakine geçer.
+        private Vector3 CurrentWaypoint()
+        {
+            if (!_followingPath) return _steerTarget;
+
+            while (_pathCornerIndex < _pathCornerCount)
+            {
+                Vector3 corner = _pathCorners[_pathCornerIndex];
+                Vector3 delta = corner - transform.position;
+                delta.y = 0f;
+                if (delta.sqrMagnitude > CornerReachDistance * CornerReachDistance) return corner;
+                _pathCornerIndex++;
+            }
+
+            _followingPath = false;
+            return _steerTarget;
         }
 
         private Vector3 ComputeAvoidance()
         {
             if (s_environmentMask == 0) return Vector3.zero;
 
-            Vector3 forward = _hasSteerTarget ? _steerTarget - transform.position : transform.forward;
+            Vector3 forward = _hasSteerTarget ? CurrentWaypoint() - transform.position : transform.forward;
             forward.y = 0f;
             if (forward.sqrMagnitude < 0.01f) return Vector3.zero;
             forward.Normalize();
 
-            if (!Physics.Raycast(transform.position, forward, out RaycastHit hit, _avoidanceLookahead, s_environmentMask))
+            // Gövde kalınlığında süpürme: ince ışın bina köşesini ıskalıyor, gövde çarpıp kilitleniyordu.
+            float bodyRadius = _agent != null ? _agent.radius : 0.5f;
+            if (!Physics.SphereCast(transform.position, bodyRadius * 0.9f, forward, out RaycastHit hit, _avoidanceLookahead, s_environmentMask))
                 return Vector3.zero;
 
             // Duvara sıkışmayı önle: engelden uzaklaştıran, hareket yönüne dik bir sapma.
@@ -190,7 +348,7 @@ namespace BlobSurvivor.Entities.Enemies
 
         private void ApplySteeringMovement()
         {
-            Vector3 toTarget = _steerTarget - transform.position;
+            Vector3 toTarget = CurrentWaypoint() - transform.position;
             toTarget.y = 0f;
 
             Vector3 seek = toTarget.sqrMagnitude > 0.01f ? toTarget.normalized : Vector3.zero;
@@ -222,10 +380,28 @@ namespace BlobSurvivor.Entities.Enemies
             if (stepDist < 0.0001f || s_environmentMask == 0) return step;
 
             float radius = _agent != null ? _agent.radius : 0.5f;
-            if (Physics.SphereCast(transform.position, radius, step / stepDist, out RaycastHit hit, stepDist, s_environmentMask))
-                return step / stepDist * Mathf.Max(0f, hit.distance - EnvironmentSkin);
+            Vector3 dir = step / stepDist;
+            if (!Physics.SphereCast(transform.position, radius, dir, out RaycastHit hit, stepDist, s_environmentMask))
+                return step;
 
-            return step;
+            // 2026-11-03: duvara kadar git, kalan adımı duvar boyunca kaydır (eskiden adım sıfırlanıyordu,
+            // köşeye sürtünen polis kilitleniyordu). İç köşede ikinci duvarda durur.
+            float travel = Mathf.Max(0f, hit.distance - EnvironmentSkin);
+            Vector3 toWall = dir * travel;
+            Vector3 normal = hit.normal;
+            normal.y = 0f;
+            if (normal.sqrMagnitude < 0.0001f) return toWall;
+            normal.Normalize();
+
+            Vector3 slide = Vector3.ProjectOnPlane(dir * (stepDist - travel), normal);
+            float slideDist = slide.magnitude;
+            if (slideDist < 0.0001f) return toWall;
+
+            Vector3 slideDir = slide / slideDist;
+            if (Physics.SphereCast(transform.position + toWall, radius, slideDir, out RaycastHit slideHit, slideDist, s_environmentMask))
+                slide = slideDir * Mathf.Max(0f, slideHit.distance - EnvironmentSkin);
+
+            return toWall + slide;
         }
 
         private bool ComputeCanSeeBlob()
@@ -289,6 +465,15 @@ namespace BlobSurvivor.Entities.Enemies
         }
 
         public bool CanSeeBlob() => _canSeeBlobCached;
+        public bool IsEdibleByBlob => _edibleByBlobCached;
+        public float DetectionRange => _detectionRange;
+
+        private bool ComputeEdibleByBlob()
+        {
+            if (!UsesSteering || _data == null || _data.PreventConsumption || BlobTransform == null) return false;
+            int effectiveTier = Mathf.Min((int)BlobTier.Giant, (int)GameEvents.CurrentBlobTier + ConsumptionBonusComponent.ActiveTierBonus);
+            return effectiveTier >= (int)_data.RequiredConsumeTier;
+        }
 
         // Elit/boss'ta EnemyData.AttackRange bilinçli bir "menzil/alan saldırısı" değeridir, olduğu gibi
         // kalır. Sıradan sürü düşmanında gerçek temas mesafesine (iki collider'ın o anki dünya-uzayı
@@ -305,6 +490,7 @@ namespace BlobSurvivor.Entities.Enemies
 
         public void PerformAttack()
         {
+            PlayLunge(MeleeLungeDistance, MeleeLungePitch);
             _blobHealth?.TakeDamage(_data.Damage * _damageMultiplier);
         }
 
@@ -357,6 +543,7 @@ namespace BlobSurvivor.Entities.Enemies
         {
             if (_projectilePool == null) return;
 
+            PlayLunge(RecoilDistance, RecoilPitch);
             Vector3 position = transform.position + direction * MuzzleOffset;
             EnemyProjectile projectile = _projectilePool.Get(position, Quaternion.LookRotation(direction));
             projectile.Launch(_projectilePool, _blobHealth, _blobSolidRadius, direction,
@@ -385,8 +572,8 @@ namespace BlobSurvivor.Entities.Enemies
         // PreventConsumption asset-seviyesinde (paylaşımlı SO), bu ise instance-seviyesinde geçici override.
         public void SetConsumableOverride(bool value) => _consumableOverride = value;
 
-        // B17 evrimi "Avcı Formu": silahla vurulan sürü düşmanları kısa süreliğine tier şartı olmadan
-        // yutulabilir olur. Elit/boss'u kapsamaz (GDD: "sürü düşmanları").
+        // B17 evrimi "Avcı Formu": silahla vurulan düşmanlar kısa süreliğine tier şartı olmadan yutulabilir
+        // olur. 2026-11-03: elitler de dahil; boss'lar PreventConsumption kontrolüyle zaten dışarıda.
         public void MarkTemporarilyConsumable(float duration) => _tierBypassUntil = Mathf.Max(_tierBypassUntil, Time.time + duration);
 
         // Karar 5 (GDD_v2.md §4 — yeme birincil): sürü düşmanı Tier3+'ta, elit Tier5'te temasla yutulabilir.
@@ -399,7 +586,7 @@ namespace BlobSurvivor.Entities.Enemies
             // A16: final boss'un yenebilir fazında _consumableOverride bunu geçici olarak açar.
             if (_data.PreventConsumption && !_consumableOverride) return false;
 
-            bool tierBypassed = !_data.IsElite && Time.time <= _tierBypassUntil;
+            bool tierBypassed = Time.time <= _tierBypassUntil;
             // 2026-09-06: eskiden burada hardcoded IsElite? Giant : Medium vardı — artık EnemyData'nın
             // gerçek RequiredConsumeTier alanından okunuyor (veri-odaklı, enemy başına farklılaştırılabilir).
             if (!tierBypassed && blobTier < _data.RequiredConsumeTier) return false;

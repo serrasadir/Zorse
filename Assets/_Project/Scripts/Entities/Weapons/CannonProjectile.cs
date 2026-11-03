@@ -7,6 +7,8 @@ namespace BlobSurvivor.Entities.Weapons
     {
         [SerializeField] private float _aoeRadius = 2f;
         [SerializeField] private float _arcHeight = 1.2f;
+        // Silah Gücü Sv.8 (Topik son formu "Büyük Patlama"): patlama alanı çarpanı.
+        [SerializeField] private float _ultimateAoeMultiplier = 2.5f;
 
         private const int EnemyLayerMask = 1 << 14;
         private readonly Collider[] _hits = new Collider[16];
@@ -16,6 +18,9 @@ namespace BlobSurvivor.Entities.Weapons
         // Yay yüksekliğini artık SphereCast'ten SONRA değil, hareketin bir parçası olarak
         // uyguluyoruz — eskiden mermi çarpışma kontrolünden habersiz yükselip alçalıyordu,
         // bu da yay tepe noktasındayken düşmanın üzerinden uçup gitmesine sebep oluyordu.
+        // Havuzdan tekrar çıkınca yay yeni atış yüksekliğinden başlasın (blob büyüdükçe silah yüksekliği değişir).
+        protected override void OnLaunched() => _baseYSet = false;
+
         protected override Vector3 GetExtraMotion()
         {
             if (!_baseYSet)
@@ -31,7 +36,8 @@ namespace BlobSurvivor.Entities.Weapons
 
         protected override void OnHitEnemy(EnemyBase enemy)
         {
-            int count = Physics.OverlapSphereNonAlloc(transform.position, _aoeRadius, _hits, EnemyLayerMask);
+            float radius = IsUltimate ? _aoeRadius * _ultimateAoeMultiplier : _aoeRadius;
+            int count = Physics.OverlapSphereNonAlloc(transform.position, radius, _hits, EnemyLayerMask);
             for (int i = 0; i < count; i++)
             {
                 EnemyBase splash = _hits[i].GetComponent<EnemyBase>();

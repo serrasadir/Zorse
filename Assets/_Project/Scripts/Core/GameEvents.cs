@@ -19,6 +19,10 @@ namespace BlobSurvivor.Core
         public static event Action OnGameResumed;
         public static event Action<UpgradeData[]> OnUpgradeChoicesReady;
         public static event Action<UpgradeData> OnUpgradeSelected;
+        // 2026-11-03: UpgradeSystem seviyeyi artırıp efekti uyguladıktan SONRA ateşlenir (data, yeni seviye).
+        // Seviyeye bakan dinleyiciler (EvolutionSystem, HUD rozetleri) bunu dinlemeli — OnUpgradeSelected'da
+        // abone sırası belirsiz olduğu için seviye henüz artmamış olabiliyordu.
+        public static event Action<UpgradeData, int> OnUpgradeApplied;
         public static event Action<float, float> OnHealthChanged;
         public static event Action<float> OnSurvivalTimeUpdated;
         public static event Action<int> OnConsumedCountChanged;
@@ -46,6 +50,7 @@ namespace BlobSurvivor.Core
         public static void RaiseGameResumed() => OnGameResumed?.Invoke();
         public static void RaiseUpgradeChoicesReady(UpgradeData[] choices) => OnUpgradeChoicesReady?.Invoke(choices);
         public static void RaiseUpgradeSelected(UpgradeData data) => OnUpgradeSelected?.Invoke(data);
+        public static void RaiseUpgradeApplied(UpgradeData data, int level) => OnUpgradeApplied?.Invoke(data, level);
         public static void RaiseHealthChanged(float current, float max) => OnHealthChanged?.Invoke(current, max);
         public static void RaiseSurvivalTimeUpdated(float time) => OnSurvivalTimeUpdated?.Invoke(time);
         public static void RaiseConsumedCountChanged(int count) => OnConsumedCountChanged?.Invoke(count);

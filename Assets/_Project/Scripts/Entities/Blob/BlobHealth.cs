@@ -19,10 +19,17 @@ namespace BlobSurvivor.Entities.Blob
         private float _regenTimer;
         private bool _regenEnabled;
         private float _baseMaxHealth;
+        private float _baseRegenRate;
+
+        // 2026-11-03: hasar geri bildirimi (DamageFlash kırmızı parlama, CameraController sarsıntı) dinler.
+        public event System.Action<float> OnDamaged;
 
         private void Awake()
         {
             _baseMaxHealth = _maxHealth;
+            _baseRegenRate = _regenRate;
+            // Sahne kurulumu gerekmesin diye kırmızı parlama bileşeni burada eklenir.
+            if (GetComponent<DamageFlash>() == null) gameObject.AddComponent<DamageFlash>();
         }
 
         private void Start()
@@ -39,6 +46,9 @@ namespace BlobSurvivor.Entities.Blob
             _maxHealth = _baseMaxHealth;
             CurrentHealth = _maxHealth;
             _armorMultiplier = 1f;
+            // 2026-11-03: sadece kapatmak yetmiyordu — hız kalıyordu, sonraki run'ın ilk Rejenerasyon
+            // seçimi önceki run'ın birikimi üstüne ekleniyordu.
+            _regenRate = _baseRegenRate;
             DisableRegen();
             GameEvents.RaiseHealthChanged(CurrentHealth, _maxHealth);
         }
@@ -65,6 +75,7 @@ namespace BlobSurvivor.Entities.Blob
             {
                 CurrentHealth = Mathf.Max(0f, CurrentHealth - remainingDamage);
                 GameEvents.RaiseHealthChanged(CurrentHealth, _maxHealth);
+                OnDamaged?.Invoke(remainingDamage);
             }
 
             if (CurrentHealth <= 0f)

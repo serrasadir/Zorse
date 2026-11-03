@@ -23,6 +23,12 @@ namespace BlobSurvivor.Systems
         // _allUpgrades sahnede sabit dizildiği için evrim çıktıları ayrı bir runtime listede tutulur.
         private readonly List<UpgradeData> _dynamicUpgrades = new List<UpgradeData>();
 
+        // 2026-11-03: tek lokma eşiği birden fazla kez geçince (AddXP döngüsü) ikinci level-up ilk kart
+        // ekranının üstüne yazıyor, seçilmeyen seviye kayboluyordu. Kart ekranı açıkken gelenler sıraya
+        // alınır, seçim sonrası arka arkaya gösterilir.
+        private bool _awaitingChoice;
+        private int _pendingLevelUps;
+
         private void Awake()
         {
             Instance = this;
@@ -65,6 +71,8 @@ namespace BlobSurvivor.Systems
         {
             _levels.Clear();
             _dynamicUpgrades.Clear();
+            _awaitingChoice = false;
+            _pendingLevelUps = 0;
         }
 
         public int GetLevel(UpgradeData data)
@@ -74,25 +82,49 @@ namespace BlobSurvivor.Systems
 
         private void OnLevelUp(int level)
         {
-            if (_allUpgrades == null || _allUpgrades.Length == 0) return;
+            if (_awaitingChoice)
+            {
+                _pendingLevelUps++;
+                return;
+            }
+
+            if (TryShowChoices())
+                GameManager.Instance?.BeginLevelUp();
+        }
+
+        private bool TryShowChoices()
+        {
+            if (_allUpgrades == null || _allUpgrades.Length == 0) return false;
 
             UpgradeData[] choices = SelectUpgrades();
-            if (choices == null || choices.Length == 0) return;
+            if (choices == null || choices.Length == 0) return false; // her şey max — level-up ödülsüz geçer
 
+            _awaitingChoice = true;
             GameEvents.RaiseUpgradeChoicesReady(choices);
-            GameManager.Instance?.BeginLevelUp();
+            return true;
         }
 
         private void OnUpgradeSelected(UpgradeData data)
         {
             if (data == null) return;
+            _awaitingChoice = false;
 
-            _levels[data] = GetLevel(data) + 1;
+            int newLevel = GetLevel(data) + 1;
+            _levels[data] = newLevel;
 
-            // _blobRoot bulunamasa bile oyunu duraklamış bırakma — soft-lock fix (B12).
             if (_blobRoot != null && data.Effect != null)
                 data.Effect.Apply(_blobRoot, data);
 
+            GameEvents.RaiseUpgradeApplied(data, newLevel);
+
+            // Sırada bekleyen level-up varsa oyun duraklamış kalır, sıradaki kartlar gösterilir.
+            while (_pendingLevelUps > 0)
+            {
+                _pendingLevelUps--;
+                if (TryShowChoices()) return;
+            }
+
+            // _blobRoot bulunamasa bile oyunu duraklamış bırakma — soft-lock fix (B12).
             GameManager.Instance?.ResumeGame();
         }
 

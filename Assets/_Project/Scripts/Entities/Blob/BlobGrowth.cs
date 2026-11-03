@@ -54,6 +54,10 @@ namespace BlobSurvivor.Entities.Blob
         private float _smoothScale;
         private float _punch;
 
+        // Kamera zoom'u için: yeme şişmesi hariç, yumuşatılmış büyüme ölçeği ve başlangıç ölçeği.
+        public float SmoothScale => _smoothScale > 0f ? _smoothScale : _baseScale;
+        public float BaseScale => _baseScale;
+
         private void Start()
         {
             _smoothScale = _baseScale;
@@ -124,13 +128,6 @@ namespace BlobSurvivor.Entities.Blob
             GameEvents.RaiseXPChanged((int)CurrentXP);
             if (previousTier != CurrentTier)
                 GameEvents.RaiseBlobTierChanged(CurrentTier);
-        }
-
-        public void RemoveMass(float amount)
-        {
-            CurrentMass = Mathf.Max(0f, CurrentMass - amount);
-            RecalculateTier();
-            GameEvents.RaiseBlobSizeChanged(CurrentMass);
         }
 
         public void PunchScale(float punchAmount = 0.15f)

@@ -18,10 +18,16 @@ MonoBehaviour:
   _icon: {fileID: 0}
   _category: 3
   _weight: 10
-  _effectValue: 0
-  _effectDuration: 0
-  _cooldown: 0
   _effect: {fileID: 11400000, guid: 7b9e904a57210460688f9d50741701d3, type: 2}
   _maxLevel: 8
-  _perLevelValue: 5
+  _perLevelValue: 2
+  _levelDescriptions:
+  - "Mermi hasar\u0131 +2."
+  - "Mermi hasar\u0131 +2."
+  - "Ayn\u0131 anda en yak\u0131n 2 d\xFC\u015Fmana ate\u015F eder."
+  - "Mermi hasar\u0131 +2."
+  - "Mermiler ilk d\xFC\u015Fman\u0131 delip arkas\u0131ndakine de vurur."
+  - "Mermi hasar\u0131 +2."
+  - "Ayn\u0131 anda en yak\u0131n 3 d\xFC\u015Fmana ate\u015F eder."
+  - "SON FORM: {ultimate}"
   _isEvolution: 0

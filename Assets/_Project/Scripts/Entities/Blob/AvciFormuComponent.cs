@@ -3,8 +3,9 @@ using BlobSurvivor.Entities.Enemies;
 
 namespace BlobSurvivor.Entities.Blob
 {
-    // B17 evrimi "Avcı Formu" (Yırtıcı Çene(max) + Silah Gücü(max)): silahla vurulan sürü
-    // düşmanları kısa süreliğine tier şartı olmadan yutulabilir hale gelir.
+    // B17 evrimi "Avcı Formu" (Yırtıcı Çene(max) + Silah Gücü(max)): silahla vurulan düşmanlar kısa
+    // süreliğine tier şartı olmadan yutulabilir hale gelir. 2026-11-03: elitler de dahil (Yırtıcı Çene
+    // artık elitleri kapsamıyor, elit yemek bu evrimin ödülü). Bosslar PreventConsumption ile korunur.
     public class AvciFormuComponent : MonoBehaviour
     {
         [SerializeField] private float _markDuration = 3f;
@@ -14,7 +15,7 @@ namespace BlobSurvivor.Entities.Blob
 
         private void HandleEnemyDamaged(EnemyBase enemy)
         {
-            if (enemy != null && !enemy.Data.IsElite)
+            if (enemy != null)
                 enemy.MarkTemporarilyConsumable(_markDuration);
         }
     }

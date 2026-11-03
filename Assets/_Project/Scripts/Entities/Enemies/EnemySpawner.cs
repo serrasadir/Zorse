@@ -13,7 +13,7 @@ namespace BlobSurvivor.Entities.Enemies
         // spawn oluyordu — polis nereye gitsen hep yakınında beliriyor, "haritanın her yerinde beni
         // buluyorlar" hissi tam olarak buradan geliyordu (PedestrianSpawner'ın 2026-09-05'te düzelttiği
         // aynı kümelenme deseni — polis tarafı o zaman unutulmuştu). Artık yayalarla aynı desen: tüm
-        // harita alanına (GreyboxCityGenerator ölçeğiyle aynı) eşit dağılıyor, Patrol/Chase state
+        // harita alanına eşit dağılıyor, Patrol/Chase state
         // makinesi (EnemyBase._detectionRange) zaten "yakına gelince takip et" mantığını sağlıyordu,
         // sadece spawn'ın kendisi bunu geçersiz kılıyordu.
         [SerializeField] private float _mapHalfExtent = 30f;

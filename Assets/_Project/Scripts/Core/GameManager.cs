@@ -25,6 +25,8 @@ namespace BlobSurvivor.Core
 
     public class GameManager : MonoBehaviour
     {
+        private const float TopikSlowdownReduction = 0.03f;
+
         public static GameManager Instance { get; private set; }
 
         [SerializeField] private CharacterData _defaultCharacter;
@@ -121,7 +123,7 @@ namespace BlobSurvivor.Core
 
             // Restart aynı blob instance'ını yeniden kullanır (sahne reload yok) — önceki run'dan
             // kalan silah/pasif bileşenlerini temizlemeden ApplyCharacter tekrar çağrılırsa
-            // silah çiftlenir ve pasifler (örn. VacuumComponent.Radius) stack'lenir.
+            // silah çiftlenir ve pasifler (örn. VacuumComponent.Reach) stack'lenir.
             ClearPreviousRunState(blob);
             ApplyMetaProgression(blob, character);
 
@@ -130,10 +132,14 @@ namespace BlobSurvivor.Core
                 case CharacterPassiveType.MoveSpeed:
                     // M22: hız artık ApplyMetaProgression'da meta bonusuyla birlikte tek seferde set ediliyor
                     // (aksi halde burada overwrite edilip meta bonusu kaybolurdu).
+                    // 2026-11-03: Topik ayrıca büyüdükçe daha az yavaşlar (üs 0.3 → 0.27, ~%10) — "hantallaşmayan" karakter.
+                    blob.GetComponent<BlobController>()?.ReduceTierSlowdownExponent(TopikSlowdownReduction);
                     break;
                 case CharacterPassiveType.MagnetPull:
+                    // 2026-11-03: eskiden +PassiveValue yarıçap ekliyordu (0.1 birim, hissedilmiyordu).
+                    // GDD Karar 9 "Attract hattına +%25": menzil ve çekme hızı çarpanı. Vakum skili de bunun üstüne biner.
                     VacuumComponent vacuum = blob.AddComponent<VacuumComponent>();
-                    vacuum.IncreaseRadius(character.PassiveValue);
+                    vacuum.SetEffectMultiplier(1f + character.PassiveValue);
                     break;
                 case CharacterPassiveType.ConsumableSplit:
                     // PistolWeapon zaten hedef tier'ı kontrol edip parçalıyor — ek kurulum gerekmiyor.
@@ -247,14 +253,6 @@ namespace BlobSurvivor.Core
             if (CurrentState != GameState.Playing) return;
             ChangeState(GameState.LevelUp);
             Time.timeScale = 0f;
-        }
-
-        public void TriggerLevelUp(Data.UpgradeData[] choices)
-        {
-            if (CurrentState != GameState.Playing) return;
-            ChangeState(GameState.LevelUp);
-            Time.timeScale = 0f;
-            GameEvents.RaiseUpgradeChoicesReady(choices);
         }
 
         public void TriggerGameOver()

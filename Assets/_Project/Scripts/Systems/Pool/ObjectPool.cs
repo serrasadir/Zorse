@@ -27,6 +27,9 @@ namespace BlobSurvivor.Systems
 
         public void Return(T obj)
         {
+            // Zaten havuzdaysa (pasif) tekrar kuyruğa ekleme — çift dönüş aynı nesneyi iki Get()'e verirdi.
+            // Blob'da iki collider var, tek temas aynı adımda iki OnTriggerEnter üretebiliyor (2026-11-03).
+            if (obj == null || !obj.gameObject.activeSelf) return;
             obj.gameObject.SetActive(false);
             _pool.Enqueue(obj);
         }
