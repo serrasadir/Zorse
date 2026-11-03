@@ -1,6 +1,6 @@
-# Left No Crumbs: Skill ve Evrim Rehberi
+# Left No Crumbs: Skill, Karakter ve Boss Rehberi
 
-> Son güncelleme: 2026-11-03. Değerler koddan ve asset'lerden okundu (`Assets/_Project/Data/Upgrades/`).
+> Son güncelleme: 2026-11-03. Değerler koddan ve asset'lerden okundu (`Assets/_Project/Data/Upgrades/`, `Data/Characters/`, `ScriptableObjects/Enemies/`).
 > Değer değiştirmek için ilgili `Upgrade_*.asset` dosyasındaki `Max Level` / `Per Level Value` alanlarını Inspector'dan düzenle; kod gerekmez.
 > GDD karşılığı: `GDD_v2.md` §5.
 
@@ -225,18 +225,105 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 
 ---
 
-## 4. Karakter pasifleriyle etkileşim
+## 4. Karakterler (3 adet)
 
-| Karakter | Pasif | İlgili skill |
-|---|---|---|
-| Topik | **+%25 hız** ve büyüdükçe ~%10 daha az yavaşlar (üs 0.3 → 0.27) | Hız Artışı ile toplanır (Hız 8 → ×2.05). "Hantallaşmayan" karakter |
-| Mıknato | Başlangıçta Vakum açık (3 menzil) + çekme etkisi **×1.25** (menzil ve çekme hızı) | Vakum seçimleri bunun üstüne eklenir ve çarpandan yararlanır (Vakum 8 → 8.75 menzil) |
-| Mermo | Mermileri, blob'un **tam 1 tier üstündeki** objeleri (şehir objeleri dahil) 3 parçaya böler. Parçaların toplam mass'ı objeninki kadar ve hemen yenebilir. Daha büyükleri delip geçer (tabanca dev binayı silemez). Yayalar ve hazard'lar parçalanmaz | Sindirim parçaları da çarpar. "Bir boy büyük lokmayı erken ye" karakteri. Örnek: Medium blob, Large bina (25 mass) → 3 × 8.3 mass |
+Üç karakter de aynı blob'dur; farkları **başlangıç silahı** ve **pasif yetenektir**. Temel silah değerleri üçünde aynı: saniyede 2.5 atış × 4 hasar, menzil 8. Silah Gücü yolu (Bölüm 2) üçünde de aynı ilerler, sadece **Sv. 8 son formu** karaktere özeldir.
+
+| | 🟠 Topik | 🧲 Mıknato | 🔫 Mermo |
+|---|---|---|---|
+| **Kilit** | Başlangıçta açık | Market'te **500 kredi** | Kodda açık (GDD: "3 oturum tamamla", bkz. Bölüm 6) |
+| **Silah** | Top: yay çizerek uçar, çarptığı yerde patlar | Metal bilye: güdümlü, hedefe kıvrılır | Tabanca: düz ve en hızlı mermi |
+| **Mermi hızı / ömrü** | 14 / 0.9 sn | 12 / 1.5 sn | 18 / 0.7 sn |
+| **Silah özelliği** | 2 birim yarıçapta **alan hasarı** (vurulan dışındakilere de tam hasar) | **Iskalamaz** (sürekli hedefe döner) | Bir boy büyük objeyi **parçalar** (pasif) |
+| **Pasif** | **+%25 hız** ve büyüdükçe ~%10 daha az yavaşlama | **Vakum baştan açık** (3 menzil) + çekim etkisi **×1.25** | Mermileri, blob'un **tam 1 tier üstündeki** objeyi 3 yenebilir parçaya böler |
+| **Sv. 8 son form** | **Büyük Patlama:** alan 2.5 kat (5 birim) | **Sekme:** isabetten sonra 6 birim içindeki 2 düşmana daha seker | **Pompalı:** 40°'lik yelpazede 5 saçma (her biri %60 hasar) |
+| **Oyun tarzı** | Hızlı, hantallaşmayan; kalabalığı patlamayla dağıtır | Toplayıcı; yemi kendine çeker, hızlı büyür | Fırsatçı; büyük lokmaları bir boy erken yer |
+
+### 🟠 Topik
+- **Pasif:** Hız çarpanı +0.25 (Hız Artışı skiliyle toplanır: Hız 8 ile ×2.05). Ayrıca büyüme yavaşlaması üssü 0.30 → 0.27. Giant'ta bile çevik kalır.
+- **Silah:** Top yay çizerek uçar (0.4 birim yükseklik), ilk düşmana çarpınca patlar ve 2 birim içindeki diğer düşmanlara da tam hasar verir. Kalabalığa en etkili silah.
+- **Örnek:** Sv. 7'de 3 hedefe ateş eden, her biri 2 birimlik patlama yapan Topik, sürüyü saniyeler içinde eritir. Sv. 8'de patlama 5 birim olur.
+- **Zayıf yanı:** Top binaya çarpınca durur; patlama ince bir duvarın arkasına sızabilir (bilinçli kabul edildi).
+
+### 🧲 Mıknato
+- **Pasif:** Oyuna Vakum skili açık başlar (3 menzil, gövde yüzeyinden). Çekim menzili ve çekme hızı ×1.25. Vakum skilini alırsa çarpan onu da büyütür (Vakum 8 → 8.75 menzil).
+- **Silah:** Metal bilye hedefe sürekli kıvrılır, pratikte ıskalamaz. Hedef ölürse düz gider.
+- **Örnek:** Diğer karakterler Vakum'u kart olarak beklerken Mıknato ilk saniyeden çevresini toplar. Erken büyüme ve erken level demek. Kara Delik evrimine (Vakum 8 + Sindirim 8) en doğal giden karakter.
+- **Not:** En güçlü pasif. Bu yüzden 500 kredilik Market kilidi var.
+
+### 🔫 Mermo
+- **Pasif:** Mermisi blob'un **tam bir boy büyüğü** olan objeye (şehir binaları dahil) çarparsa onu 3 parçaya böler. Parçalar blob'un yiyebileceği boyda ve toplamda objenin mass'ı kadar verir. Daha büyük objelerde mermi durur; dev binaları silemez. Yayalar ve hazard'lar parçalanmaz.
+- **Silah:** En hızlı, düz giden mermi. Nişan, polisin hareketine göre önden kesilir.
+- **Örnek:** Medium blob, Large bir binaya (25 mass) ateş eder → 3 × 8.3 mass'lık parça. Normalde Large olmadan yenemeyeceği lokmayı erken yer.
+- **Son form:** Pompalı yakın mesafede çok güçlü (5 saçma × %60 = 3 kat hasar).
 
 ---
 
-## 5. Açık sorular / ileride bakılacaklar
+## 5. Düşmanlar ve Bosslar
 
+### Normal düşmanlar (karşılaştırma için)
+| | Polis | Elit Polis |
+|---|---|---|
+| **Ne zaman** | 1. dk'dan itibaren | Blob **Medium** olunca (en geç 4. dk) |
+| **Can** | 50 | 250 |
+| **Saldırı** | Yakın dövüş, 10 hasar, saniyede 1 | Tabanca: 0.5 sn nişan lazeri → **3'lü seri**, mermi başına 10 hasar, menzil 7.5. Arada bina varsa ateş etmez |
+| **Hız** | 3 | 2.1 |
+| **Yutulma** | Medium blob (Yırtıcı Çene ile daha erken) | Giant blob ya da Avcı Formu |
+| **Davranış** | Blob onu yiyebiliyorsa **kaçar** | Kaçmaz |
+| **Ödül** | 3 mass, 1 coin, %5 kalp | 20 mass, 5–10 coin, **sandık**, %100 kalp |
+
+### 👹 Miniboss: "Polis Tankı"
+Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Ayrı bir davranış kodu yok; elit makinesini kullanır (yol bulma + yakın saldırı serisi).
+
+| | 1. Miniboss | 2. Miniboss |
+|---|---|---|
+| **Geliş** | **6. dk** | **8. dk** (ilki hâlâ yaşıyorsa o ölene kadar bekler) |
+| **Can** | 300 | 600 |
+| **Saldırı** | 3 vuruşluk seri × 15 = **45 hasar**, 2.5 sn'de bir, menzil 3 | 4 vuruşluk seri × 22 = **88 hasar**, 2.2 sn'de bir, menzil 3.5 |
+| **Hız** | 1.8 (blob'dan yavaş, kaçılabilir) | 2.0 |
+| **Algı** | Tüm harita: oyuncuyu her yerden bulur | Tüm harita |
+| **Yutulma** | **Hiçbir şekilde yutulamaz**, silahla ölür | Aynı |
+| **Ödül** | 150 skor + 5–10 coin + sandık + **15–25 bonus coin** | 250 skor + 5–10 coin + sandık + **25–40 bonus coin** |
+
+- **Silahla öldürme süresi:** 1. Miniboss: temel silahla ~30 sn, Silah Gücü 8 ile ~10 sn. 2. Miniboss: ~60 sn / ~20 sn.
+- **Ekranda:** Boss can barı HUD'da görünür.
+- **Görsel:** Polis tankı modeli. Saldırırken ileri atılır (hamle animasyonu).
+
+### 💀 Final Boss
+GDD Karar 1+8: **"Vurarak son faza getirirsin, yutarak bitirirsin."**
+
+| | Final Boss |
+|---|---|
+| **Geliş** | **12. dk** (bir miniboss yaşıyorsa o ölene kadar bekler) |
+| **Can** | 3000 |
+| **Saldırı** | 5 vuruşluk seri × 28 = **140 hasar**, 2 sn'de bir, menzil 4 |
+| **Hız** | 2.2 |
+| **Algı** | Tüm harita |
+| **Faz 1** | Silahla vurulur ama **silahla ölmez**: can 1'in altına inmez |
+| **Faz 2 ("yenebilir")** | Can **%25'in altına** (750) inince yutulabilir hale gelir. Blob **Giant** olmalı (ya da Avcı Formu, bkz. Bölüm 6) |
+| **Ödül** | Yutulunca **run "tamamlandı" olarak biter** (ölümden ayrı ekran), 300 mass, 600 skor, **60–100 bonus coin**, tam kredi (ölümde %50) |
+
+- **Faz 2'ye indirme süresi:** 2250 hasar gerekir. Temel silahla ~225 sn (3.75 dk), Silah Gücü 8 ile ~75 sn (tek hedef).
+- **Zaman sınırı:** Final boss yutulamazsa run **15. dk'da** "hayatta kaldın" olarak biter (güvenlik eşiği).
+
+### Zorluk zaman çizelgesi
+| Dakika | Olay |
+|---|---|
+| 0–1 | Sadece yenebilir objeler, yayalar, arabalar |
+| 1 | Polisler gelmeye başlar (aynı anda en fazla 30 düşman) |
+| **Medium** (en geç 4) | Elit polis dalgası (aynı anda en fazla 10 elit, toplam 30'un içinde) |
+| 5 | Düşman hasarı ×1.2 |
+| 6 | 1. Miniboss |
+| 8 | 2. Miniboss |
+| 10 | Düşman yoğunluğu ×2 (aynı anda en fazla 60) |
+| 12 | Final Boss |
+| 15 | Run biter |
+
+---
+
+## 6. Açık sorular / ileride bakılacaklar
+
+**Skiller**
 1. **Yırtıcı Çene'nin değeri** (bkz. yukarıdaki A–D).
 2. ~~Vakum yarıçapı blob boyutuyla ölçeklenmeli mi?~~ ✅ 2026-11-03: menzil artık gövde yüzeyinden ölçülüyor.
 3. ~~Mıknato pasifi hissedilmiyor~~ ✅ 2026-11-03: ×1.25 menzil ve çekme hızı (GDD Karar 9).
@@ -244,3 +331,16 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 5. **Araba yemek Yutuş'u tetiklemiyor**: araba kendi çarpışma yolunu kullanıyor, bilinçli mi?
 6. **Kara Delik'e ulaşmak 16 seçim**: 15 dakikalık run'da ortalama kaç level atlandığına bakılıp gerçekçi mi değerlendirilmeli.
 7. Tüm skill ikonları hâlâ boş (sanat TODO'su).
+
+**Karakterler**
+8. **Mermo'nun kilidi yok:** GDD "toplam 3 oturum tamamla" diyor, kodda başlangıçta açık.
+9. Karakter ikonları boş (#47).
+
+**Bosslar**
+10. **Final boss tek seride öldürüyor:** 140 hasar, başlangıç canı 100. Zırh ve Can Artışı almamış oyuncu tek saldırıda ölür. Bilinçli mi?
+11. **Final boss'a yetişmek zor olabilir:** 12. dk'da geliyor, run 15. dk'da bitiyor. Silah Gücü almamış oyuncu faz 2'ye ~3.75 dk'da iner, yani yetişemez. Ya boss daha erken gelmeli, ya canı düşmeli, ya da süre uzamalı.
+12. **Boss hasarı zamanla artmıyor:** Polislere uygulanan ×1.2 / ×2 zorluk çarpanları bosslara uygulanmıyor (değerler zaten sabit yüksek). Bilinçli mi?
+13. **Bosslar sandık da düşürüyor:** Elit sayıldıkları için ölünce bonus coin'in yanında bir sandık (ekstra skill seçimi) ve 5–10 coin daha veriyorlar.
+14. **Avcı Formu final boss'u erken yutturabilir:** Avcı Formu'nun "vurulan düşman 3 sn tier'a bakmadan yenir" kuralı, faz 2'deki final boss'a da işliyor; Giant olmadan bitirilebilir. Ödül mü, açık mı?
+15. **Miniboss'u ayırt eden bir mekanik yok:** GDD alan saldırısı öngörüyor, şu an elit gibi yakın dövüş serisi (#58).
+16. **Düşman tavanları belgelerle uyuşmuyor:** Sahnede aynı anda 30 düşman / 10 elit var (10. dk'dan sonra 60). GDD ve CLAUDE.md 15 polis / 4 elit diyor (#50). Hangisi geçerli?
