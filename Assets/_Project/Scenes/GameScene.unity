@@ -45640,7 +45640,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -30, y: -30}
+  m_AnchoredPosition: {x: -950, y: -1800}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &1725239953
@@ -57293,11 +57293,9 @@ MonoBehaviour:
   _viewport: {fileID: 1476814953}
   _text: {fileID: 59540903}
   _firstNewsDelay: 8
-  _minInterval: 45
-  _maxInterval: 60
+  _newsInterval: 30
   _tierNewsDelay: 2.5
   _fadeDuration: 0.35
-  _holdDuration: 7
   _scrollStartDelay: 1.5
   _scrollSpeed: 110
   _scrollEndHold: 2
