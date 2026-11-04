@@ -2,7 +2,7 @@
 
 > Son güncelleme: 2026-11-04 (miniboss tank topu). Değerler koddan ve asset'lerden okundu (`Assets/_Project/Data/Upgrades/`, `Data/Characters/`, `ScriptableObjects/Enemies/`).
 > Değer değiştirmek için ilgili `Upgrade_*.asset` dosyasındaki `Max Level` / `Per Level Value` alanlarını Inspector'dan düzenle; kod gerekmez.
-> GDD karşılığı: `GDD_v2.md` §5.
+> Oyunun genel hali: `OYUN.md`.
 
 ## ⭐ Toplantı için öne çıkanlar
 
