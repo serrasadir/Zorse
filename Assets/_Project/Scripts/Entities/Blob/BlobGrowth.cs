@@ -31,6 +31,9 @@ namespace BlobSurvivor.Entities.Blob
         [Header("XP & Level")]
         [SerializeField] private float _baseXPThreshold = 20f;
         [SerializeField] private float _xpGrowthPerLevel = 15f;
+        // Geç oyunda büyük objeler (bina 25–50 kütle = XP) doğrusal eşiği saniyeler içinde aşıyordu.
+        // Eşik = taban + seviye × artış + seviye² × bu değer. Erken oyunu az, geç oyunu çok yavaşlatır.
+        [SerializeField] private float _xpQuadraticPerLevel = 2f;
 
         public float CurrentMass { get; private set; }
         public BlobTier CurrentTier { get; private set; } = BlobTier.Tiny;
@@ -108,7 +111,7 @@ namespace BlobSurvivor.Entities.Blob
             {
                 CurrentXP -= XPThreshold;
                 CurrentLevel++;
-                XPThreshold = _baseXPThreshold + CurrentLevel * _xpGrowthPerLevel;
+                XPThreshold = ThresholdFor(CurrentLevel);
                 GameEvents.RaiseLevelUp(CurrentLevel);
             }
         }
@@ -136,6 +139,9 @@ namespace BlobSurvivor.Entities.Blob
             if (previousTier != CurrentTier)
                 GameEvents.RaiseBlobTierChanged(CurrentTier);
         }
+
+        private float ThresholdFor(int level) =>
+            _baseXPThreshold + level * _xpGrowthPerLevel + level * level * _xpQuadraticPerLevel;
 
         public void PunchScale(float punchAmount = 0.15f)
         {

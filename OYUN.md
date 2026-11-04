@@ -73,7 +73,7 @@ Boss'lar sırayla ve tek tek gelir: biri yaşıyorsa sonraki onun ölmesini bekl
 
 - **Ölçek:** `0.5 × (1 + kütle × 0.1) ^ 0.45` — Giant (1000 kütle) ≈ 4 birim çap. Yeme anında kısa şişme (punch).
 - **Hız:** `1 / tier ^ 0.3` × karakter/skill/meta çarpanları (Giant'ta ~%62).
-- **XP eşiği:** `20 + level × 15`.
+- **XP eşiği:** `20 + seviye × 15 + seviye² × 2` (geç oyunda bina yerken seviye yağmuru olmasın diye karesel; `BlobGrowth._xpQuadraticPerLevel`). Giant (1000 kütle) ≈ 9. seviye, 4000 kütle ≈ 15.
 
 | Tier | Kütle | Kabaca ne yer |
 |---|---|---|
