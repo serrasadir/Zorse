@@ -208,26 +208,27 @@ namespace BlobSurvivor.Entities.Vehicles
                 _currentWaypointIndex = (_currentWaypointIndex + 1) % _waypointCount;
         }
 
+        private const int ConsumableMask = (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13);
+
+        // Önündeki küçük objeleri yana savurur (ConsumableKnock kayarak taşır). Şehir objeleri static
+        // batching'de, yayalar kendi yürür — ikisi de IsVacuumable=false, itilmez.
         private void PushNearbyConsumables()
         {
-            int count = Physics.OverlapSphereNonAlloc(transform.position, 1.2f, _pushHits);
+            int count = Physics.OverlapSphereNonAlloc(transform.position, 1.2f, _pushHits, ConsumableMask, QueryTriggerInteraction.Collide);
             for (int i = 0; i < count; i++)
             {
-                // 2026-11-03 (Serra: "önümde görünürde bir şey yok ama takılıyorum"): araba şehir objelerini de
-                // itiyordu. Şehir objeleri static batching'de — görseli yerinde kalıyor, sadece collider kayıyordu
-                // (itilen otobüs durağı sokağın ortasında görünmez duvar oldu). Vakumun çekebildiği (= taşınabilir)
-                // küçük objeler itilir; şehir objeleri ve yayalar (IsVacuumable=false) itilmez.
                 IConsumable consumable = _pushHits[i].GetComponent<IConsumable>();
                 if (consumable == null || !consumable.IsVacuumable) continue;
                 Transform t = _pushHits[i].transform;
-                // Yatay it — eskiden Y de dahildi, araba merkezi alçakta olduğu için objeler havaya kalkıyordu.
-                Vector3 pushDir = t.position - transform.position;
-                pushDir.y = 0f;
-                pushDir = pushDir.sqrMagnitude > 0.0001f ? pushDir.normalized : transform.right;
-                // Artık her frame değil throttle tick'inde (AIUpdateInterval) çağrılıyor — mesafe buna
-                // göre ölçeklendi, aksi halde itme eskisinin ~1/9'una düşerdi (Time.deltaTime tek
-                // frame'lik, çağrı arası boşluğu hesaba katmazdı).
-                t.position = Vector3.MoveTowards(t.position, t.position + pushDir, 8f * AIUpdateInterval);
+                if (!t.TryGetComponent(out ConsumableKnock knock))
+                    knock = t.gameObject.AddComponent<ConsumableKnock>(); // obje başına bir kez (havuzda kalır)
+                if (knock.IsSliding) continue;
+
+                Vector3 toItem = t.position - transform.position;
+                float side = Vector3.Dot(toItem, transform.right) >= 0f ? 1f : -1f;
+                Vector3 dir = (transform.right * side * 0.8f + transform.forward * 0.6f).normalized;
+                float speed = Mathf.Clamp(_currentSpeed * 0.9f, 4f, 9f);
+                knock.Knock(dir * speed);
             }
         }
 

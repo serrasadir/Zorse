@@ -32,6 +32,8 @@ namespace BlobSurvivor.Entities.Blob
             _rigidbody.linearDamping = _drag;
             _rigidbody.angularDamping = 10f;
             _rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
+            // Fizik 50 Hz, ekran 30/60 Hz: interpolasyonsuz blob ve kamera titrer.
+            _rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
         }
 
         private void FixedUpdate()
