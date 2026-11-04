@@ -846,13 +846,21 @@ namespace BlobSurvivor.EditorTools
         // NotWalkable hacim içerideki ve üstteki her şeyi siler. Ayak izi yer seviyesinden (tente altı yürünür).
         private const float NavBlockerMargin = 0.5f; // zemin (y=0) ve çatının hacmin içinde kalması için
 
-        internal static void ApplyNavBlocker(GameObject root, Bounds footprint)
+        // humanoidOnly: 2026-11-04 — sokak eşyaları (P_) sadece normal ajanın NavMesh'inde delik açar; elit polis
+        // etrafından dolanır, tank (kendi NavMesh'i) üstünden geçip ezmeye devam eder (TankCrusher). Binalar herkesi engeller.
+        internal static void ApplyNavBlocker(GameObject root, Bounds footprint, bool humanoidOnly = false)
         {
             NavMeshModifierVolume volume = root.GetComponent<NavMeshModifierVolume>();
             if (volume == null) volume = root.AddComponent<NavMeshModifierVolume>();
             volume.center = footprint.center;
             volume.size = new Vector3(footprint.size.x, footprint.size.y + NavBlockerMargin * 2f, footprint.size.z);
             volume.area = UnityEngine.AI.NavMesh.GetAreaFromName("Not Walkable");
+
+            SerializedObject so = new SerializedObject(volume);
+            SerializedProperty agents = so.FindProperty("m_AffectedAgents");
+            agents.arraySize = 1;
+            agents.GetArrayElementAtIndex(0).intValue = humanoidOnly ? 0 : -1; // -1 = tüm ajan tipleri
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // Model child'ının dönüşü/ölçeği: FBX kökü + yön düzeltmesi + yüksek binalarda basıklık.
@@ -927,6 +935,10 @@ namespace BlobSurvivor.EditorTools
                 {
                     so.FindProperty("_obstacle").objectReferenceValue = AddObstacle(root, colliderBounds);
                     ApplyNavBlocker(root, colliderBounds);
+                }
+                else if (item.mesh.StartsWith("P_"))
+                {
+                    ApplyNavBlocker(root, colliderBounds, humanoidOnly: true);
                 }
                 so.ApplyModifiedPropertiesWithoutUndo();
             }

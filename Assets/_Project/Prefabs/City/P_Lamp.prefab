@@ -101,6 +101,7 @@ GameObject:
   - component: {fileID: 69372028779079154}
   - component: {fileID: 609318409877363438}
   - component: {fileID: 4338747576669042607}
+  - component: {fileID: 5933778129272578431}
   m_Layer: 10
   m_Name: P_Lamp
   m_TagString: Untagged
@@ -159,3 +160,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.CityConsumable
   _data: {fileID: 11400000, guid: bfdb14278f70a457ba4a7f7d5aafcd23, type: 2}
   _obstacle: {fileID: 0}
+--- !u!114 &5933778129272578431
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5042382848107133750}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35e95dc5ff2b64380880dd7ac5922847, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifierVolume
+  m_SerializedVersion: 0
+  m_Size: {x: 0.2, y: 3.3300045, z: 0.2}
+  m_Center: {x: -0.00000006891787, y: 1.165, z: -0.00000006891787}
+  m_Area: 1
+  m_AffectedAgents: 00000000

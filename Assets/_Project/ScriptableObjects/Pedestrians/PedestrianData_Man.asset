@@ -26,3 +26,15 @@ MonoBehaviour:
   _fleeTriggerDistance: 6
   _bobHeight: 0.08
   _bobSpeed: 6
+  _variantMeshes:
+  - {fileID: 343952566640694605, guid: 9a1043a78737a4615a0e4dc0c82659b7, type: 3}
+  - {fileID: 1523282579530605732, guid: cd3a506c111524647ac609b2104b7603, type: 3}
+  - {fileID: -3465455558853168899, guid: b351b7c92187f4800b4119a664d4b2f7, type: 3}
+  - {fileID: 4263013986654043924, guid: dc92f5d61d81541aea150816b1a2c175, type: 3}
+  - {fileID: 6746092301083058628, guid: c363738daa99540d8a18f331e96167ef, type: 3}
+  - {fileID: -7010120090413674210, guid: 9dad4a596eaa945b6a270eeb91dbe2b8, type: 3}
+  - {fileID: -4582026670439788967, guid: 04e594a69a06d47829d96b8eb0458b57, type: 3}
+  - {fileID: 8178111129988046453, guid: 627583ae5ddc345398e706943be8e0eb, type: 3}
+  - {fileID: -8894979977413071893, guid: cb0153ea351204f2491f660aa7bc11ae, type: 3}
+  - {fileID: 9073267550280450768, guid: 71a4017b0c89e4439b1ae5d0e4b287aa, type: 3}
+  - {fileID: -1686800264688173001, guid: 0174208f113d144aeab5fcb95d0aea06, type: 3}

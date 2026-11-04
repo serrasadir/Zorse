@@ -101,6 +101,7 @@ GameObject:
   - component: {fileID: 9016390143614721224}
   - component: {fileID: 5460246428456185038}
   - component: {fileID: 781899822469221233}
+  - component: {fileID: 489148118594064276}
   m_Layer: 11
   m_Name: P_BusStop
   m_TagString: Untagged
@@ -159,3 +160,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.CityConsumable
   _data: {fileID: 11400000, guid: db32c614c0136415f83a4b63a467e7bc, type: 2}
   _obstacle: {fileID: 0}
+--- !u!114 &489148118594064276
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1551944618903740950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35e95dc5ff2b64380880dd7ac5922847, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifierVolume
+  m_SerializedVersion: 0
+  m_Size: {x: 1.8800001, y: 2.570005, z: 0.22999917}
+  m_Center: {x: 0.00000074505806, y: 0.785, z: -0.16499934}
+  m_Area: 1
+  m_AffectedAgents: 00000000

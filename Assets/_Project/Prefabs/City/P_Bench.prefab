@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4239051685582901464}
   - component: {fileID: 1296261756422705837}
   - component: {fileID: 876054638706894848}
+  - component: {fileID: 5563722824568461837}
   m_Layer: 10
   m_Name: P_Bench
   m_TagString: Untagged
@@ -69,6 +70,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.CityConsumable
   _data: {fileID: 11400000, guid: 549f73e1f99894ab4a4195a04058a8de, type: 2}
   _obstacle: {fileID: 0}
+--- !u!114 &5563722824568461837
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 126084901800393674}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35e95dc5ff2b64380880dd7ac5922847, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifierVolume
+  m_SerializedVersion: 0
+  m_Size: {x: 1.0000001, y: 1.5500021, z: 0.31000072}
+  m_Center: {x: -0.000000059604645, y: 0.275, z: -0.014999904}
+  m_Area: 1
+  m_AffectedAgents: 00000000
 --- !u!1 &2236467581282862236
 GameObject:
   m_ObjectHideFlags: 0

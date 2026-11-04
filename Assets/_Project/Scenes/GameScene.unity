@@ -31390,6 +31390,7 @@ MonoBehaviour:
   _pedestrianPool:
   - {fileID: 11400000, guid: 821acb351ebea4ae3b36610110221aae, type: 2}
   - {fileID: 11400000, guid: 4ed76298f66b84ae9b610420cf129d99, type: 2}
+  - {fileID: 11400000, guid: 90b2e95927d647de90c4c10ee9d7b9ef, type: 2}
   _maxActive: 25
   _mapHalfExtent: 67
   _spawnRange: 30

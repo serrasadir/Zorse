@@ -114,6 +114,8 @@ namespace BlobSurvivor.EditorTools
 
                     if (mesh.StartsWith("B_"))
                         CityKitPipeline.ApplyNavBlocker(contents, bounds);
+                    else if (mesh.StartsWith("P_"))
+                        CityKitPipeline.ApplyNavBlocker(contents, bounds, humanoidOnly: true); // elit dolanır, tank ezer
                 }
 
                 PrefabUtility.SaveAsPrefabAsset(contents, path);

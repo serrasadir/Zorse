@@ -44,6 +44,22 @@ namespace BlobSurvivor.Entities.Vehicles
 
         private readonly Collider[] _pushHits = new Collider[16];
 
+        // 2026-11-04 (Serra: "elit polisler bir şeylerin içinden geçmemeli"): NavMeshAgent'lı düşmanlar (elit,
+        // boss) fizik collider'larına bakmaz, hareketli araba NavMesh'e bake edilemez. Oymayan (carve=false)
+        // NavMeshObstacle: ajanların yerel kaçınması arabanın etrafından dolanır, NavMesh yeniden hesaplanmaz (ucuz).
+        // Prefab başına elle kurmamak için havuzdaki her araba ilk uyanışta bir kez ekler.
+        private void Awake()
+        {
+            BoxCollider box = GetComponentInChildren<BoxCollider>();
+            if (box == null || box.GetComponent<UnityEngine.AI.NavMeshObstacle>() != null) return;
+
+            UnityEngine.AI.NavMeshObstacle obstacle = box.gameObject.AddComponent<UnityEngine.AI.NavMeshObstacle>();
+            obstacle.shape = UnityEngine.AI.NavMeshObstacleShape.Box;
+            obstacle.center = box.center;
+            obstacle.size = box.size;
+            obstacle.carving = false;
+        }
+
         public void Initialize(CarData data, Vector3[] waypoints, int count)
         {
             _data = data;

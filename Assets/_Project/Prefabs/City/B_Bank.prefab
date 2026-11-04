@@ -55,8 +55,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 5.2799964, y: 4.477513, z: 5.050003}
-  m_Center: {x: -0.0000011920929, y: 2.20125, z: -0.3249992}
+  m_Size: {x: 5.2799964, y: 4.689506, z: 5.050003}
+  m_Center: {x: -0.0000011920929, y: 2.3054707, z: -0.3249992}
 --- !u!114 &658018302218263768
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -84,8 +84,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifierVolume
   m_SerializedVersion: 0
-  m_Size: {x: 5.2799964, y: 5.477513, z: 5.050003}
-  m_Center: {x: -0.0000011920929, y: 2.20125, z: -0.3249992}
+  m_Size: {x: 5.2799964, y: 5.689506, z: 5.050003}
+  m_Center: {x: -0.0000011920929, y: 2.3054707, z: -0.3249992}
   m_Area: 1
   m_AffectedAgents: ffffffff
 --- !u!1 &8668859677039546286
@@ -116,7 +116,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 6.123234e-17, y: -0.00000004371139, z: 6.123234e-17, w: -1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 0.75, z: 1}
+  m_LocalScale: {x: 1, y: 0.78550965, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4062620837233381066}
@@ -229,5 +229,5 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 5.2799964, y: 4.477513, z: 5.050003}
-  m_Center: {x: -0.0000011920929, y: 2.20125, z: -0.3249992}
+  m_Size: {x: 5.2799964, y: 4.689506, z: 5.050003}
+  m_Center: {x: -0.0000011920929, y: 2.3054707, z: -0.3249992}

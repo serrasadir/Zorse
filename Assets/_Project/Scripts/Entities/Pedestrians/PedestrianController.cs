@@ -49,6 +49,8 @@ namespace BlobSurvivor.Entities.Pedestrians
         private const float RetryPickDelay = 0.6f;
         private float _retryPickAt;
 
+        private MeshFilter _modelFilter;
+
         private PedestrianData PedData => Data as PedestrianData;
 
         // 2026-09-06 (Serra): yayalar dünyayı canlandıran arka plan NPC'leri — Vakum'un onları
@@ -89,6 +91,7 @@ namespace BlobSurvivor.Entities.Pedestrians
             if (!_wanderTargetSet)
             {
                 _wanderTargetSet = true;
+                ApplyRandomVariant(); // SetData'dan sonraki ilk kare — PedData artık dolu (bkz. OnEnable notu)
                 PickNewWanderTarget();
             }
 
@@ -103,6 +106,17 @@ namespace BlobSurvivor.Entities.Pedestrians
             Move();
             ApplyBob();
             CheckStuck();
+        }
+
+        // Görsel çeşitlilik: PedestrianData.VariantMeshes'ten rastgele biri (havuzdan her çıkışta yeniden).
+        private void ApplyRandomVariant()
+        {
+            Mesh[] variants = PedData.VariantMeshes;
+            if (variants == null || variants.Length == 0) return;
+            if (_modelFilter == null) _modelFilter = GetComponentInChildren<MeshFilter>();
+            if (_modelFilter == null) return;
+            Mesh mesh = variants[Random.Range(0, variants.Length)];
+            if (mesh != null) _modelFilter.sharedMesh = mesh;
         }
 
         private void CheckStuck()
