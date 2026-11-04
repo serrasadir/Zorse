@@ -939,6 +939,7 @@ namespace BlobSurvivor.EditorTools
                 else if (item.mesh.StartsWith("P_"))
                 {
                     ApplyNavBlocker(root, colliderBounds, humanoidOnly: true);
+                    ApplyPropObstacle(root, colliderBounds);
                 }
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
@@ -953,6 +954,49 @@ namespace BlobSurvivor.EditorTools
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
             return prefab;
+        }
+
+        // 2026-11-04 (Serra: "yayalar bir şeylerin içinden geçiyor"): sokak eşyalarına (P_) yürüyüş engeli.
+        // Ayrı "PropObstacle" katmanı (19): sadece sürü polisi ve yayaların yürüyüş sorguları görür — mermi,
+        // silah görüşü, kamera saydamlığı Environment'a baktığı için etkilenmez. Katman hiçbir şeyle çarpışmaz
+        // (fizik maliyeti yok, sadece sorgu). Eşya yenince child'ıyla birlikte kapanır, engel de kalkar.
+        internal const string PropObstacleLayerName = "PropObstacle";
+        internal const int PropObstacleLayer = 19;
+        private const float PropObstacleMaxHeight = 2f; // sorgular gövde boyunda; kanopiyi saymaya gerek yok
+
+        internal static void ApplyPropObstacle(GameObject root, Bounds footprint)
+        {
+            Transform existing = root.transform.Find("PropObstacle");
+            if (existing != null) UnityEngine.Object.DestroyImmediate(existing.gameObject);
+
+            GameObject obstacle = new GameObject("PropObstacle") { layer = PropObstacleLayer };
+            obstacle.transform.SetParent(root.transform, false);
+            BoxCollider box = obstacle.AddComponent<BoxCollider>();
+            float height = Mathf.Min(footprint.size.y, PropObstacleMaxHeight);
+            box.center = new Vector3(footprint.center.x, footprint.min.y + height * 0.5f, footprint.center.z);
+            box.size = new Vector3(footprint.size.x, height, footprint.size.z);
+        }
+
+        // Katmanı (TagManager) adlandırır ve çarpışma matrisinde her şeyle çarpışmasını kapatır. Tekrar çalıştırmak güvenli.
+        internal static void EnsurePropObstacleLayer()
+        {
+            SerializedObject tags = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
+            SerializedProperty layers = tags.FindProperty("layers");
+            SerializedProperty slot = layers.GetArrayElementAtIndex(PropObstacleLayer);
+            if (slot.stringValue != PropObstacleLayerName)
+            {
+                if (!string.IsNullOrEmpty(slot.stringValue))
+                    throw new InvalidOperationException($"Katman {PropObstacleLayer} dolu: '{slot.stringValue}'");
+                slot.stringValue = PropObstacleLayerName;
+                tags.ApplyModifiedPropertiesWithoutUndo();
+            }
+
+            for (int i = 0; i < 32; i++)
+                Physics.IgnoreLayerCollision(PropObstacleLayer, i, true);
+            SerializedObject dynamics = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/DynamicsManager.asset")[0]);
+            dynamics.Update(); // IgnoreLayerCollision'ın yazdığı matrisi diske kaydetmek için
+            EditorUtility.SetDirty(dynamics.targetObject);
+            AssetDatabase.SaveAssets();
         }
 
         private static BoxCollider AddObstacle(GameObject root, Bounds bounds)

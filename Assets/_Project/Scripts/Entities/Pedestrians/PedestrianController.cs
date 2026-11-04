@@ -27,7 +27,7 @@ namespace BlobSurvivor.Entities.Pedestrians
         // olmadığı için (trigger consumable collider'ı bu işe uygun değil) küçük bir sabit kullanılıyor.
         [SerializeField] private float _bodyRadius = 0.4f;
 
-        private static int s_environmentMask = -1;
+        private static int s_walkMask = -1;
 
         private Transform _blobTransform;
         private BlobGrowth _blobGrowth;
@@ -134,8 +134,8 @@ namespace BlobSurvivor.Entities.Pedestrians
 
         private Vector3 ComputeAvoidance()
         {
-            if (s_environmentMask < 0)
-                s_environmentMask = LayerMask.GetMask("Environment");
+            if (s_walkMask < 0)
+                s_walkMask = LayerMask.GetMask("Environment", "PropObstacle", "Hazard"); // 2026-11-04: sokak eşyaları + arabalar da
 
             Vector3 forward = _fleeing && _blobTransform != null
                 ? transform.position - _blobTransform.position
@@ -145,7 +145,7 @@ namespace BlobSurvivor.Entities.Pedestrians
             forward.Normalize();
 
             // Gövde kalınlığında süpürme: ince ışın bina köşesini ıskalıyor, gövde ise çarpıp kilitleniyordu.
-            if (!Physics.SphereCast(transform.position, _bodyRadius, forward, out RaycastHit hit, _avoidanceLookahead, s_environmentMask))
+            if (!Physics.SphereCast(transform.position, _bodyRadius, forward, out RaycastHit hit, _avoidanceLookahead, s_walkMask))
                 return Vector3.zero;
 
             Vector3 away = Vector3.Cross(Vector3.up, hit.normal);
@@ -203,14 +203,14 @@ namespace BlobSurvivor.Entities.Pedestrians
         // Yaya hedefe düz yürüyor (NavMesh yolu kullanmıyor) — arada bina olan hedef seçilmez.
         private bool HasClearPath(Vector3 target)
         {
-            if (s_environmentMask < 0)
-                s_environmentMask = LayerMask.GetMask("Environment");
+            if (s_walkMask < 0)
+                s_walkMask = LayerMask.GetMask("Environment", "PropObstacle", "Hazard"); // 2026-11-04: sokak eşyaları + arabalar da
 
             Vector3 to = target - transform.position;
             to.y = 0f;
             float distance = to.magnitude;
             if (distance < 0.01f) return true;
-            return !Physics.SphereCast(transform.position, _bodyRadius, to / distance, out _, distance, s_environmentMask);
+            return !Physics.SphereCast(transform.position, _bodyRadius, to / distance, out _, distance, s_walkMask);
         }
 
         private void Move()
@@ -263,14 +263,14 @@ namespace BlobSurvivor.Entities.Pedestrians
             // ComputeAvoidance() de aynı lazy-init'i yapıyor ama throttle tick'ine bağlı — Move() her
             // frame çalıştığı için (ilk pedestrian'ın ilk tick'inden ÖNCE de) burada bağımsız garanti
             // ediliyor, aksi halde -1 (tüm layer'lar) mask'iyle yanlışlıkla her şeye çarpardı.
-            if (s_environmentMask < 0)
-                s_environmentMask = LayerMask.GetMask("Environment");
+            if (s_walkMask < 0)
+                s_walkMask = LayerMask.GetMask("Environment", "PropObstacle", "Hazard"); // 2026-11-04: sokak eşyaları + arabalar da
 
             float stepDist = step.magnitude;
-            if (stepDist < 0.0001f || s_environmentMask == 0) return step;
+            if (stepDist < 0.0001f || s_walkMask == 0) return step;
 
             Vector3 dir = step / stepDist;
-            if (!Physics.SphereCast(transform.position, _bodyRadius, dir, out RaycastHit hit, stepDist, s_environmentMask))
+            if (!Physics.SphereCast(transform.position, _bodyRadius, dir, out RaycastHit hit, stepDist, s_walkMask))
                 return step;
 
             // Duvara kadar git, kalan adımı duvar boyunca kaydır (eskiden adım sıfırlanıyor, köşede kilitleniyordu).
@@ -286,7 +286,7 @@ namespace BlobSurvivor.Entities.Pedestrians
             if (slideDist < 0.0001f) return toWall;
 
             Vector3 slideDir = slide / slideDist;
-            if (Physics.SphereCast(transform.position + toWall, _bodyRadius, slideDir, out RaycastHit slideHit, slideDist, s_environmentMask))
+            if (Physics.SphereCast(transform.position + toWall, _bodyRadius, slideDir, out RaycastHit slideHit, slideDist, s_walkMask))
                 slide = slideDir * Mathf.Max(0f, slideHit.distance - EnvironmentSkin); // iç köşe: ikinci duvarda dur
 
             return toWall + slide;

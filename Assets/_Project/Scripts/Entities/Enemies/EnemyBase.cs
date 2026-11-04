@@ -21,6 +21,9 @@ namespace BlobSurvivor.Entities.Enemies
 
         private const float AIUpdateInterval = 0.15f;
         private static int s_environmentMask = -1;
+        // 2026-11-04: sürü polisinin yürüyüş sorguları (düz yol, kaçınma, duvara çarpma) binalara ek olarak sokak
+        // eşyalarını da görür (PropObstacle). Nişan/görüş/mermi sorguları s_environmentMask'te kalır.
+        private static int s_walkMask = -1;
 
         public event System.Action<EnemyBase> OnDeath;
         // B17 evrimi "Avcı Formu": silahla vurulan sürü düşmanlarını dinlemek için statik hit event'i.
@@ -148,6 +151,8 @@ namespace BlobSurvivor.Entities.Enemies
 
             if (s_environmentMask < 0)
                 s_environmentMask = LayerMask.GetMask("Environment");
+            if (s_walkMask < 0)
+                s_walkMask = LayerMask.GetMask("Environment", "PropObstacle", "Hazard"); // + arabalar (Hazard); PropObstacle yoksa atlanır
         }
 
         private void OnEnable()
@@ -331,8 +336,8 @@ namespace BlobSurvivor.Entities.Enemies
             Vector3 to = target - transform.position;
             to.y = 0f;
             float distance = to.magnitude;
-            if (distance < 0.01f || s_environmentMask == 0) return true;
-            return !Physics.SphereCast(transform.position, radius * 0.9f, to / distance, out _, distance, s_environmentMask);
+            if (distance < 0.01f || s_walkMask == 0) return true;
+            return !Physics.SphereCast(transform.position, radius * 0.9f, to / distance, out _, distance, s_walkMask);
         }
 
         // Yol izleniyorsa sıradaki köşe, değilse doğrudan hedef. Köşeye varınca bir sonrakine geçer.
@@ -355,7 +360,7 @@ namespace BlobSurvivor.Entities.Enemies
 
         private Vector3 ComputeAvoidance()
         {
-            if (s_environmentMask == 0) return Vector3.zero;
+            if (s_walkMask == 0) return Vector3.zero;
 
             Vector3 forward = _hasSteerTarget ? CurrentWaypoint() - transform.position : transform.forward;
             forward.y = 0f;
@@ -364,7 +369,7 @@ namespace BlobSurvivor.Entities.Enemies
 
             // Gövde kalınlığında süpürme: ince ışın bina köşesini ıskalıyor, gövde çarpıp kilitleniyordu.
             float bodyRadius = _agent != null ? _agent.radius : 0.5f;
-            if (!Physics.SphereCast(transform.position, bodyRadius * 0.9f, forward, out RaycastHit hit, _avoidanceLookahead, s_environmentMask))
+            if (!Physics.SphereCast(transform.position, bodyRadius * 0.9f, forward, out RaycastHit hit, _avoidanceLookahead, s_walkMask))
                 return Vector3.zero;
 
             // Duvara sıkışmayı önle: engelden uzaklaştıran, hareket yönüne dik bir sapma.
@@ -407,11 +412,11 @@ namespace BlobSurvivor.Entities.Enemies
         private Vector3 ClampStepAgainstEnvironment(Vector3 step)
         {
             float stepDist = step.magnitude;
-            if (stepDist < 0.0001f || s_environmentMask == 0) return step;
+            if (stepDist < 0.0001f || s_walkMask == 0) return step;
 
             float radius = _agent != null ? _agent.radius : 0.5f;
             Vector3 dir = step / stepDist;
-            if (!Physics.SphereCast(transform.position, radius, dir, out RaycastHit hit, stepDist, s_environmentMask))
+            if (!Physics.SphereCast(transform.position, radius, dir, out RaycastHit hit, stepDist, s_walkMask))
                 return step;
 
             // 2026-11-03: duvara kadar git, kalan adımı duvar boyunca kaydır (eskiden adım sıfırlanıyordu,
@@ -428,7 +433,7 @@ namespace BlobSurvivor.Entities.Enemies
             if (slideDist < 0.0001f) return toWall;
 
             Vector3 slideDir = slide / slideDist;
-            if (Physics.SphereCast(transform.position + toWall, radius, slideDir, out RaycastHit slideHit, slideDist, s_environmentMask))
+            if (Physics.SphereCast(transform.position + toWall, radius, slideDir, out RaycastHit slideHit, slideDist, s_walkMask))
                 slide = slideDir * Mathf.Max(0f, slideHit.distance - EnvironmentSkin);
 
             return toWall + slide;

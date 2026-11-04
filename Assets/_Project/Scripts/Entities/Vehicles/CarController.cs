@@ -4,6 +4,7 @@ using BlobSurvivor.Core;
 using BlobSurvivor.Data;
 using BlobSurvivor.Entities;
 using BlobSurvivor.Entities.Blob;
+using BlobSurvivor.Entities.Enemies;
 using BlobSurvivor.Systems;
 
 namespace BlobSurvivor.Entities.Vehicles
@@ -44,6 +45,17 @@ namespace BlobSurvivor.Entities.Vehicles
 
         private readonly Collider[] _pushHits = new Collider[16];
 
+        // 2026-11-04 (Serra: "yayalar bir şeylerin içinden geçiyor"): önündeki kontrol eskiden ince, maskesiz tek
+        // ışındı ve sadece arabayı tanıyordu (yayanın, polisin içinden geçiyordu). Artık kendi şeridi genişliğinde
+        // süpürme: önünde araba, yaya ya da (yerde yürüyen) polis varsa durur. Karşı şerit (2 birim yanda) ve
+        // kaldırım süpürmeye girmez. Yarıçap dar tutuldu ki yan kaldırımdaki yaya yüzünden durmasın.
+        private const float AheadSweepRadius = 0.5f;
+        private const float StopMargin = 2f; // 6 hız / 15 fren ≈ 1.2 duruş mesafesi + pay
+        // Hazard(15, arabalar) + Enemy(14) + ConsumableTier1-5(9-13, yayalar bu katmanlarda)
+        private const int AheadMask = (1 << 15) | (1 << 14) | (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13);
+        private readonly RaycastHit[] _aheadHits = new RaycastHit[8];
+        private float _halfLength = 1f;
+
         // 2026-11-04 (Serra: "elit polisler bir şeylerin içinden geçmemeli"): NavMeshAgent'lı düşmanlar (elit,
         // boss) fizik collider'larına bakmaz, hareketli araba NavMesh'e bake edilemez. Oymayan (carve=false)
         // NavMeshObstacle: ajanların yerel kaçınması arabanın etrafından dolanır, NavMesh yeniden hesaplanmaz (ucuz).
@@ -51,6 +63,7 @@ namespace BlobSurvivor.Entities.Vehicles
         private void Awake()
         {
             BoxCollider box = GetComponentInChildren<BoxCollider>();
+            if (box != null) _halfLength = box.size.z * box.transform.lossyScale.z * 0.5f;
             if (box == null || box.GetComponent<UnityEngine.AI.NavMeshObstacle>() != null) return;
 
             UnityEngine.AI.NavMeshObstacle obstacle = box.gameObject.AddComponent<UnityEngine.AI.NavMeshObstacle>();
@@ -143,10 +156,23 @@ namespace BlobSurvivor.Entities.Vehicles
             _state = (_cachedIsCarAhead || _cachedIsBlobDangerous) ? CarState.Stopped : CarState.Moving;
         }
 
+        // Önde araba, yaya ya da polis var mı (isim tarihsel — artık sadece araba değil).
         private bool IsCarAhead()
         {
-            if (Physics.Raycast(transform.position, transform.forward, out RaycastHit hit, _data.CarDetectionDistance))
-                return hit.collider.GetComponent<CarController>() != null;
+            float distance = Mathf.Max(_data.CarDetectionDistance, _halfLength + StopMargin);
+            Vector3 origin = transform.position + Vector3.up * 0.5f;
+            int count = Physics.SphereCastNonAlloc(origin, AheadSweepRadius, transform.forward, _aheadHits, distance,
+                AheadMask, QueryTriggerInteraction.Collide);
+            for (int i = 0; i < count; i++)
+            {
+                Collider c = _aheadHits[i].collider;
+                if (c == null || c.transform.IsChildOf(transform)) continue;
+                CarController car = c.GetComponentInParent<CarController>();
+                if (car != null && car != this) return true;
+                if (c.GetComponentInParent<Pedestrians.PedestrianController>() != null) return true;
+                EnemyBase enemy = c.GetComponentInParent<EnemyBase>();
+                if (enemy != null && enemy.AirborneHeight <= 0f) return true; // helikopterin altından geçer
+            }
             return false;
         }
 

@@ -47,6 +47,7 @@ namespace BlobSurvivor.EditorTools
         private static string Apply()
         {
             StringBuilder log = new StringBuilder();
+            CityKitPipeline.EnsurePropObstacleLayer();
 
             foreach (string guid in AssetDatabase.FindAssets("t:Prefab B_", new[] { "Assets/_Project/Prefabs/City" }))
             {
@@ -115,7 +116,10 @@ namespace BlobSurvivor.EditorTools
                     if (mesh.StartsWith("B_"))
                         CityKitPipeline.ApplyNavBlocker(contents, bounds);
                     else if (mesh.StartsWith("P_"))
+                    {
                         CityKitPipeline.ApplyNavBlocker(contents, bounds, humanoidOnly: true); // elit dolanır, tank ezer
+                        CityKitPipeline.ApplyPropObstacle(contents, bounds);                   // yaya/sürü polisi dolanır
+                    }
                 }
 
                 PrefabUtility.SaveAsPrefabAsset(contents, path);
