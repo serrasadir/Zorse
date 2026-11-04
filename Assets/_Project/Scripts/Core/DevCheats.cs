@@ -11,6 +11,7 @@ namespace BlobSurvivor.Core
     //   M  +500 kütle (XP vermez, kart ekranı açılmaz) — helikopteri yutacak boya hızlı gelmek için
     //   B  aktif final boss'a canının %25'i kadar hasar — irtifa kademelerini hızlı görmek için
     //   H  canı doldur
+    //   N  sıradaki boss aşamasını hemen çıkar (aktif boss ödülsüz kalkar) — miniboss → miniboss 2 → helikopter
     public class DevCheats : MonoBehaviour
     {
         private const float MassStep = 500f;
@@ -23,7 +24,7 @@ namespace BlobSurvivor.Core
         {
             GameObject go = new GameObject("DevCheats (Editor)") { hideFlags = HideFlags.DontSave };
             go.AddComponent<DevCheats>();
-            Debug.Log("[DevCheats] M: +500 kütle · B: final boss −%25 can · H: canı doldur (sadece Editor)");
+            Debug.Log("[DevCheats] M: +500 kütle · B: final boss −%25 can · H: canı doldur · N: sıradaki boss (sadece Editor)");
         }
 
         private void Update()
@@ -52,6 +53,9 @@ namespace BlobSurvivor.Core
                     Debug.Log($"[DevCheats] Final boss can {enemy.CurrentHealth:F0}/{enemy.MaxHealth:F0}");
                 }
             }
+
+            if (keyboard.nKey.wasPressedThisFrame && BossSpawner.Instance != null)
+                Debug.Log("[DevCheats] " + BossSpawner.Instance.DebugSpawnNextStage());
 
             if (keyboard.hKey.wasPressedThisFrame && _health != null)
                 _health.Heal(_health.MaxHealth);

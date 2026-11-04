@@ -35,6 +35,10 @@ namespace BlobSurvivor.Entities.Blob
         // Eşik = taban + seviye × artış + seviye² × bu değer. Erken oyunu az, geç oyunu çok yavaşlatır.
         [SerializeField] private float _xpQuadraticPerLevel = 2f;
 
+        // Genel büyüme hızı: yenen her şeyin kütlesi (= XP) bununla çarpılır. 1 = eski hız.
+        [Header("Genel Büyüme Hızı")]
+        [SerializeField, Range(0.2f, 1.5f)] private float _globalGainScale = 0.7f;
+
         public float CurrentMass { get; private set; }
         public BlobTier CurrentTier { get; private set; } = BlobTier.Tiny;
         public float CurrentXP { get; private set; }
@@ -77,7 +81,7 @@ namespace BlobSurvivor.Entities.Blob
 
         public void AddMass(float amount)
         {
-            float adjusted = amount * _massGainMultiplier;
+            float adjusted = amount * _massGainMultiplier * _globalGainScale;
             CurrentMass += adjusted;
             RecalculateTier();
             AddXP(adjusted);
@@ -85,14 +89,13 @@ namespace BlobSurvivor.Entities.Blob
 
         public void IncreaseMassGainMultiplier(float amount) => _massGainMultiplier += amount;
 
-#if UNITY_EDITOR
-        // DevCheats (sadece Editor): kütle ekler ama XP vermez — test sırasında kart ekranı yağmuru olmasın.
+        // DevCheats (Editor) ve PerfOverlay (telefonda performans testi): kütle ekler ama XP vermez — kart ekranı yağmuru olmasın.
+        // Build'de de derlenir; çağıran PerfOverlay yayın öncesi kapatılır (PerfOverlay.Enabled).
         public void DebugAddMassWithoutXP(float amount)
         {
             CurrentMass += amount;
             RecalculateTier();
         }
-#endif
 
         // M22: GameManager.ApplyMetaProgression her run başında (fresh start + restart) çağırır —
         // overwrite (increment değil), böylece bir önceki run'ın Sindirim skill birikimi de temizlenmiş olur.

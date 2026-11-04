@@ -22,6 +22,7 @@ namespace BlobSurvivor.EditorTools
         private static readonly string[] GhostSources =
         {
             CityKitPipeline.ArtRoot + "/Mat_CityPalette.mat",
+            CityKitPipeline.PaletteV2MaterialPath,
             "Assets/_Project/Art/Buildings/Restaurant/Mat_Restaurant.mat",
         };
 

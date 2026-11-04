@@ -43,7 +43,7 @@
 
 1. **Lobi:** karakter seç (Topik, Mıknato, Mermo), Market'e gir.
 2. Şehirde başlarsın; yerdeki çöpleri, sokak eşyalarını, yayaları yiyerek büyürsün. Senden büyük şeyler seni durdurur (katı), hazard'lar hasar verir.
-3. Kütle = XP. Level atlayınca oyun durur, **3 karttan 1** seçilir. Aynı skill tekrar seçilirse seviye atlar (en fazla 8).
+3. Kütle = XP; yenen her şeyin kütlesi genel büyüme hızıyla (×0.7, `BlobGrowth._globalGainScale`) çarpılır. Level atlayınca oyun durur, **3 karttan 1** seçilir. Aynı skill tekrar seçilirse seviye atlar (en fazla 8).
 4. Polisler gelir, zamanla ve büyüdükçe baskı artar; boss'lar belirli dakikalarda gelir.
 5. Run iki şekilde biter:
    - **Ölüm** → "Game Over!" ekranı, coin'in %50'si krediye.
@@ -61,7 +61,7 @@
 | **6. dk** | 1. Miniboss (polis tankı) |
 | **9. dk** | 2. Miniboss (güçlü tank) |
 | 10. dk | Düşman yoğunluğu ×2 |
-| **12. dk** | **Final boss: polis helikopteri** |
+| **12. dk** | **Final boss: polis helikopteri** (miniboss hâlâ sahnedeyse çekilir; aynı anda tek boss) |
 | 15. dk | Düşman hızı ×1.15 |
 | 20. dk | Düşman hasarı ×3 |
 
@@ -165,9 +165,10 @@ Kademeli statlar sınırsız alınabilir. Kayıt yerel JSON'da (`meta_progressio
 - **Dokunmatik:** görünmez sürükleme — parmağın bastığı yerden sürüklediğin yön ve mesafe hareket olur (80 px = tam hız). UI butonuna basınca hareket başlamaz. **Klavye:** WASD / ok tuşları.
 - **Kamera:** üstten 60° eğik; blob büyüdükçe yavaş uzaklaşır (en fazla ×4); hasar alınca kısa sarsıntı; final boss gelince ikisini birden kadraja alır.
 - **Geri bildirim:** yemede hafif titreşim (iOS haptic), hasarda kırmızı parlama, kalkan vuruşunda kalkan parlar.
-- **HUD:** can barı + altında kalkan barı (Zırh varsa), XP barı, seviye, tier, skor, coin, süre, aktif skill rozetleri, boss can barı.
+- **HUD:** barlar (can + altında kalkan barı (Zırh varsa), XP, boss can barı); sol üstte süre, sağ üstte skor + coin, XP barının solunda seviye, üstünde tier. Skill rozeti / karakter ikonu yok.
+- **Duraklatma:** tuşu üst satırda süre kutusunun yanında. Panel tüm ekranı kaplar (çentik ve alt şerit dahil): Devam / Yeniden Başla / Ana Menü. Ana Menü run'ı terk eder (coin kredisi yok, run sayılmaz).
 - **Haber bandı** (üstte, Plague Inc. tarzı): 30 sn'de bir yeni başlık; blob büyüdükçe haberler onunla ilgili olur. Metinler `NewsHeadlines.asset`'te.
-- **Duraklatma:** sağ üst buton; uygulama arka plana atılınca otomatik duraklar.
+- Uygulama arka plana atılınca oyun otomatik duraklar.
 - **Ekranlar:** Lobi, Market, kart seçimi (3 kart, "YENİ" / "Sv. x/8", seviyeye özel açıklama), Game Over / KAZANDIN.
 - Ses yok (henüz).
 

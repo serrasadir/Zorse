@@ -49,6 +49,13 @@ namespace BlobSurvivor.UI
             RefreshCharacterButtons();
         }
 
+        // Duraklatma menüsünden "Ana Menü": HUD kapanır, lobi açılır. Run'ın temizliği karakter seçilince StartGame'de.
+        public void ShowFromRun()
+        {
+            if (_hud != null) _hud.SetActive(false);
+            Show();
+        }
+
         // Kilitler: Mıknato Market'te 500 krediyle (RequiresMarketUnlock), Mermo 3 run bitirince
         // (RequiredCompletedRuns, ölüm de sayılır). Kilitliyken buton kapalı, isim altında koşul yazar.
         private void RefreshCharacterButtons()

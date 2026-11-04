@@ -33,7 +33,7 @@ Kullanıcı bir asset ister ("çöp kutusu", "kafe binası" gibi). Sen:
 Unity'de çarpışma kutusu otomatik hesaplanır: **modelin alttan 0.6 birimlik kısmının yerdeki izi** engeldir. Daha yüksekteki her şeyin altından blob geçebilir.
 
 Bu yüzden:
-- ✅ Çıkıntılar **havada** olsun: ağaç yaprakları, tente, lamba kolu, durak çatısı, balkon. En alt noktaları **0.8 birimin üstünde** başlasın.
+- ✅ Çıkıntılar **havada** olsun: ağaç yaprakları, tente, lamba kolu, durak çatısı, balkon. En alt noktaları **0.8 birimin üstünde** başlasın. 0.6'nın altına inen her parça (alçak çalı, yere sarkan tente) duvar sayılır, altından geçilemez.
 - ✅ Yerdeki kısım üstten bakınca da görünsün ve objenin "katı" kısmı olsun: ağaç gövdesi, bina duvarı, direk.
 - ❌ Yere yakın geniş ama ince ya da üstten görünmeyen parçalar: ağaç kökleri, geniş kaide, etek, zemin plakası, çim tabanı.
 - ❌ Yerde **şeffaf** parçalar (cam duvar, cam vitrin tabanı): blob görünmez bir duvara çarpmış gibi hisseder.
@@ -49,7 +49,8 @@ Bu yüzden:
 | Eksen | Y yukarı |
 | Yön | Binaların girişi, araçların önü, insanların yüzü **hep aynı yöne** (kameraya bakan ön cephe). Hangi yön olduğu bir kez belirlenir, hepsinde aynı kalır |
 | Dosya | Her FBX'te **tek obje**. Zemin, plaka, arka plan, sahne yok |
-| Format | FBX, tek mesh tercih edilir |
+| Format | FBX, **tek mesh zorunlu**: parçalar (gövde + yaprak, direk + lamba) Blender'da Join (Ctrl+J) ile birleştirilir. Unity çarpışma kutusunu sadece ilk mesh'ten hesaplar, ayrı parça varsa diğerleri yok sayılır |
+| Transform | Dışa aktarmadan önce Apply All Transforms (ölçek 1, dönüş 0) |
 | Doku | Sadece **base color** (albedo). Normal, roughness, metallic, AO haritası **yok** |
 | Doku boyutu | Sokak eşyası / insan: 512 px · Araç: 512–1024 px · Bina: 1024 px |
 | Renk | Az sayıda düz renk, gradyan ya da gürültü yok. Böylece ileride tek bir renk atlasına taşınabilir |
@@ -208,5 +209,7 @@ Negatif prompt: (standart) + sidewalk, street, people, signs with text
 ## 9. Unity tarafı (bilgi için)
 
 - Modeller `Assets/_Project/Art/City/<DosyaAdı>.fbx` altına konur. Geliştirici import ayarlarını (doku sıkıştırma, ölçek, yön) ve prefab'ı pipeline ile otomatik kurar.
-- Çarpışma kutusu, Bölüm 2'deki kurala göre otomatik hesaplanır; elle collider gerekmez.
+- Çarpışma kutusu, Bölüm 2'deki kurala göre otomatik hesaplanır; elle collider gerekmez. Kurulum: `Tools → Blob.io → Şehir Kur` ardından `Şehir Görsel Düzeltmeleri` (collider, NavMesh engelleri, yürüme engelleri).
+- Ön ekler kuralı belirler: `B_` bina (herkesi engeller), `P_` sokak eşyası (yayayı ve polisi engeller, tank ezer), `V_` araç, `H_` insan.
+- Şehir objeleri sabittir (static batching): oyun sırasında yerinden oynatılamaz, oynatılırsa görüntü yerinde kalır ama collider kayar. Bu yüzden arabalar ve fizik şehir objelerini itmez; sadece yerdeki küçük yiyecekler savrulur. Hareket etmesi gereken bir obje şehir kiti dışında, ayrı prefab olarak yapılır.
 - Yön veya ölçek tutarsızsa düzeltilebilir, ama **bütün set içinde tutarlı** olması gerekir.

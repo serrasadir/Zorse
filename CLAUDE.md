@@ -94,6 +94,8 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 | Tank NavMesh'ini Kur | "Tank" ajan tipi + ikinci NavMeshSurface |
 | Yaya Varyantlarını Bağla | PedestrianData varyant listeleri + spawner havuzu |
 | Sandık Modelini Uygula | `Art/City/C_Chest.fbx` (Blender: `build_chest.py`) → Chest.prefab modeli |
+| **Şehir Kur (v2)** | Yeni şehir: `Art/City/Kit2/city_v2.json` (Blender: `build_kit2.py --export` binalar, `build_props2.py --export` eşya + blok zeminleri, `build_city2.py --export` mahalle yerleşimi). Yollar/kaldırım/yaya/araba/NavMesh büyük şehirle aynı. Sonra Şehir Görsel Düzeltmeleri + Cmd+S |
+| Şehir Kur (Kit2 Deneme) | Büyük şehir + bina noktalarına şehir kiti v2 binaları (`Art/City/Kit2`, Blender: `build_kit2.py --export`). Performans denemesi; eski şehre dönmek için Şehir Kur (Büyük). Sonra Şehir Görsel Düzeltmeleri |
 | Karakter Görünümlerini Uygula | `Art/City/Characters/CH_*.fbx` (Blender: `build_topik.py`, tier başına `CH_Topik_T1..T5`) → `Prefabs/Blob/BlobVisual_*` (+ `BlobTierMeshes`) + `CharacterData._blobVisualPrefab`. Runtime'da `BlobVisual` takar, gidiş yönüne çevirir; boş = varsayılan küre |
 | Yerdeki Yiyecekleri Kur | `Art/City/Litter/J_*.fbx` (Blender: `build_litter.py`) → prefab + ConsumableData, ConsumableSpawner havuzunu bunlarla değiştirir. GameScene açıkken; sonra Cmd+S |
 | Kalp Prefab'ını Kur · Haber Bandını Kur · Duraklatma Menüsünü Kur | İlgili sahne/prefab kurulumu |
@@ -102,7 +104,9 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 | TestFlight Xcode Projesi Üret | Release iOS build, TestFlight için (build no +1) |
 | iOS Xcode Projesi Üret | Geliştirme build'i, cihaza doğrudan kurmak için |
 
-**Editor test tuşları** (`DevCheats`, sadece Editor): **M** +500 kütle (XP'siz) · **B** final boss −%25 can · **H** can doldur.
+**Performans göstergesi** (`PerfOverlay`, telefonda da): 3 parmakla dokun (Editor'da F3) → FPS, en kötü kare, +500 kütle düğmesi. **Yayın öncesi `PerfOverlay.Enabled = false`.**
+
+**Editor test tuşları** (`DevCheats`, sadece Editor): **M** +500 kütle (XP'siz) · **B** final boss −%25 can · **H** can doldur · **N** sıradaki boss aşamasını hemen çıkar (aktif boss kalkar).
 
 ## iOS / TestFlight
 

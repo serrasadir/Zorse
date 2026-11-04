@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e5d2fd3fea44742bb673b7ccf0e379, type: 3}
+  m_Name: City_P_Carousel
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
+  _displayName: P_Carousel
+  _prefab: {fileID: 6377250887721541840, guid: bc6e063859e304a07a52fc3a0f19dc22, type: 3}
+  _scoreValue: 10
+  _massValue: 10
+  _requiredTier: 3
+  _isHazard: 0
+  _hazardAmount: 0
+  _spawnYOffset: 0.15

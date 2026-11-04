@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -27,14 +26,8 @@ namespace BlobSurvivor.UI
         [SerializeField] private Slider _xpBar;
         [SerializeField] private TMP_Text _levelText;
 
-        [Header("Skill Badges")]
+        // Eski rozet kabı sahnede duruyor; rozetler kaldırıldı, kap gizlenir.
         [SerializeField] private Transform _skillBadgeContainer;
-        [SerializeField] private GameObject _skillBadgePrefab;
-
-        [Header("Character")]
-        [SerializeField] private Image _characterIcon;
-
-        private readonly Dictionary<UpgradeData, GameObject> _badges = new Dictionary<UpgradeData, GameObject>();
         private float _survivalTime;
         // 2026-09-06 (Serra): timer sadece görüntülenen saniye değeri değişince string oluştursun diye
         // (CLAUDE.md: "her frame string allocation... sadece değer değişince güncelle").
@@ -53,10 +46,8 @@ namespace BlobSurvivor.UI
 
         private void Awake()
         {
-            EnsureRuntimeHudElements();
+            LayoutHud();
             CreateShieldBar();
-            if (_characterIcon != null)
-                _characterIcon.gameObject.SetActive(false);
             if (_bossHealthContainer != null)
                 _bossHealthContainer.SetActive(false);
         }
@@ -70,10 +61,7 @@ namespace BlobSurvivor.UI
             GameEvents.OnBlobTierChanged += OnTierChanged;
             GameEvents.OnXPChanged += OnXPChanged;
             GameEvents.OnLevelUp += OnLevelUp;
-            GameEvents.OnUpgradeApplied += OnUpgradeApplied;
             GameEvents.OnCharacterSelected += OnCharacterSelected;
-            GameEvents.OnGameOver += ClearBadges;
-            GameEvents.OnGameOver += ClearCharacterIcon;
             GameEvents.OnBossHealthChanged += OnBossHealthChanged;
         }
 
@@ -86,10 +74,7 @@ namespace BlobSurvivor.UI
             GameEvents.OnBlobTierChanged -= OnTierChanged;
             GameEvents.OnXPChanged -= OnXPChanged;
             GameEvents.OnLevelUp -= OnLevelUp;
-            GameEvents.OnUpgradeApplied -= OnUpgradeApplied;
             GameEvents.OnCharacterSelected -= OnCharacterSelected;
-            GameEvents.OnGameOver -= ClearBadges;
-            GameEvents.OnGameOver -= ClearCharacterIcon;
             GameEvents.OnBossHealthChanged -= OnBossHealthChanged;
             if (_blobHealth != null) _blobHealth.OnShieldChanged -= OnShieldChanged;
         }
@@ -170,7 +155,7 @@ namespace BlobSurvivor.UI
         private void OnCoinsChanged(int coins)
         {
             if (_coinText != null)
-                _coinText.text = $"Coins: {coins:N0}";
+                _coinText.text = $"{coins:N0} coin";
         }
 
         private void OnSurvivalTimeUpdated(float time)
@@ -208,36 +193,8 @@ namespace BlobSurvivor.UI
                 _levelText.text = $"Lv.{level}";
         }
 
-        // 2026-11-03: rozet sadece seviyesi değişen skill için güncellenir. Eskiden sahnedeki ikinci bir skill
-        // listesini (_allUpgrades, UpgradeSystem'deki listenin kopyası) her seçimde baştan tarıyordu.
-        private void OnUpgradeApplied(UpgradeData data, int level) => RenderSkillBadge(data, level);
-
-        private void RenderSkillBadge(UpgradeData data, int level)
-        {
-            if (data == null) return;
-
-            if (!_badges.TryGetValue(data, out GameObject badge))
-            {
-                badge = Instantiate(_skillBadgePrefab, _skillBadgeContainer);
-                _badges[data] = badge;
-                ConfigureSkillBadge(badge);
-
-                var iconImage = badge.GetComponentInChildren<Image>();
-                if (iconImage != null)
-                {
-                    iconImage.sprite = data.Icon;
-                    iconImage.color = data.Icon != null ? Color.white : new Color(0.18f, 0.65f, 1f, 0.85f);
-                }
-            }
-
-            var levelText = badge.GetComponentInChildren<TMP_Text>();
-            if (levelText != null)
-                levelText.text = level.ToString();
-        }
-
         private void OnCharacterSelected(CharacterData data)
         {
-            ClearBadges(); // skill seviyeleri run başında sıfırlanıyor (RunComplete sonrası restart'ta da)
             _blobGrowth = FindAnyObjectByType<Entities.Blob.BlobGrowth>();
 
             // Run başına bir kez: kalkan event'ine bağlan (restart'ta aynı blob — çift abonelik olmasın).
@@ -248,160 +205,113 @@ namespace BlobSurvivor.UI
                 _blobHealth.OnShieldChanged += OnShieldChanged;
                 OnShieldChanged(_blobHealth.ShieldCurrent, _blobHealth.ShieldMax);
             }
-
-            if (_characterIcon == null) return;
-
-            _characterIcon.sprite = data != null ? data.Icon : null;
-            _characterIcon.color = data != null && data.Icon == null ? new Color(0.25f, 0.75f, 1f, 1f) : Color.white;
-            _characterIcon.gameObject.SetActive(data != null);
         }
 
-        private void ClearBadges()
+        // 2026-11-04 (Serra: "HUD çok karışık, ikon/rozet tasarımı yok, kaldıralım. Barlar kalsın"): barlara dokunulmaz;
+        // yazılar çalışma zamanında yerleşir (sahne kurulumu yok). Sol üst süre, sağ üst skor + coin, seviye/tier XP barının yanında.
+        // Hepsi HUD'un altında kalır: lobi HUD'u kapatınca onlar da kapanır.
+        private static readonly Color PanelColor = new Color(0.05f, 0.05f, 0.17f, 0.55f);
+        private static readonly Color CoinColor = new Color(1f, 0.82f, 0.25f, 1f);
+        private static readonly Color SubtleColor = new Color(1f, 1f, 1f, 0.85f);
+        private const float TopOffset = 104f; // haber bandının (y -30, 58 yüksek) altı
+        private const float Edge = 24f;
+
+        private void LayoutHud()
         {
-            foreach (var kv in _badges)
-                if (kv.Value != null) Destroy(kv.Value);
-            _badges.Clear();
-        }
+            if (_skillBadgeContainer != null) _skillBadgeContainer.gameObject.SetActive(false);
 
-        private void ClearCharacterIcon()
-        {
-            if (_characterIcon == null) return;
-            _characterIcon.sprite = null;
-            _characterIcon.gameObject.SetActive(false);
-        }
+            RectTransform layout = CreateLayoutRoot();
+            if (layout == null) return;
 
-        private void EnsureRuntimeHudElements()
-        {
-            RectTransform overlay = GetRuntimeOverlay();
-            if (overlay == null) return;
+            RectTransform timerPanel = CreatePanel("TimerPanel", layout, new Vector2(0f, 1f), new Vector2(Edge, -TopOffset), new Vector2(190f, 72f));
+            PlaceText(_timerText, timerPanel, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 50f, TextAlignmentOptions.Center, Color.white);
 
-            ConfigureSkillBadgeContainer(overlay);
-            EnsureCoinText(overlay);
+            RectTransform scorePanel = CreatePanel("ScorePanel", layout, new Vector2(1f, 1f), new Vector2(-Edge, -TopOffset), new Vector2(240f, 104f));
+            PlaceText(_scoreText, scorePanel, new Vector2(0f, 1f), Vector2.one, new Vector2(16f, -60f), new Vector2(-16f, -6f), 44f,
+                TextAlignmentOptions.Right, Color.white);
+            if (_coinText == null) _coinText = CreateText("CoinText", scorePanel, "0 coin");
+            PlaceText(_coinText, scorePanel, Vector2.zero, new Vector2(1f, 0f), new Vector2(16f, 8f), new Vector2(-16f, 44f), 28f,
+                TextAlignmentOptions.Right, CoinColor);
 
-            if (_characterIcon == null)
+            // Seviye XP barının solunda, tier XP barının üstünde: barla birlikte hareket eder.
+            RectTransform xp = _xpBar != null ? _xpBar.GetComponent<RectTransform>() : null;
+            if (xp != null)
             {
-                GameObject iconObject = new GameObject("CharacterIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-                iconObject.transform.SetParent(overlay, false);
-                _characterIcon = iconObject.GetComponent<Image>();
-                _characterIcon.preserveAspect = true;
-
-                RectTransform iconRect = iconObject.GetComponent<RectTransform>();
-                iconRect.anchorMin = new Vector2(0f, 1f);
-                iconRect.anchorMax = new Vector2(0f, 1f);
-                iconRect.pivot = new Vector2(0f, 1f);
-                iconRect.anchoredPosition = new Vector2(16f, -16f);
-                iconRect.sizeDelta = new Vector2(42f, 42f);
+                PlaceText(_levelText, xp, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(-150f, -14f), new Vector2(-12f, 14f), 30f,
+                    TextAlignmentOptions.Right, Color.white);
+                PlaceText(_tierText, xp, new Vector2(0f, 1f), Vector2.one, new Vector2(0f, 4f), new Vector2(0f, 38f), 24f,
+                    TextAlignmentOptions.Right, SubtleColor);
             }
         }
 
-        private RectTransform GetRuntimeOverlay()
+        // HUD'un kendi rect'i sahnede daraltılmış (barlar onun köşelerine göre konumlu); yazılar için güvenli alanı
+        // kaplayan bir child açılır — HUD'un daralma/kaymasının tersi uygulanır.
+        private RectTransform CreateLayoutRoot()
         {
-            Transform parent = transform.parent != null ? transform.parent : transform;
-            Transform existing = parent.Find("HUDRuntimeOverlay");
-            if (existing != null)
-                return existing as RectTransform;
+            RectTransform hud = transform as RectTransform;
+            if (hud == null) return null;
 
-            GameObject overlayObject = new GameObject("HUDRuntimeOverlay", typeof(RectTransform));
-            overlayObject.transform.SetParent(parent, false);
-            overlayObject.transform.SetAsLastSibling();
+            Transform existing = hud.Find("HUDLayout");
+            if (existing != null) return existing as RectTransform;
 
-            RectTransform overlay = overlayObject.GetComponent<RectTransform>();
-            overlay.anchorMin = Vector2.zero;
-            overlay.anchorMax = Vector2.one;
-            overlay.offsetMin = Vector2.zero;
-            overlay.offsetMax = Vector2.zero;
-            overlay.pivot = new Vector2(0.5f, 0.5f);
-            return overlay;
+            GameObject go = new GameObject("HUDLayout", typeof(RectTransform));
+            go.layer = gameObject.layer;
+            RectTransform rect = (RectTransform)go.transform;
+            rect.SetParent(hud, false);
+            rect.SetAsFirstSibling(); // barların altında çizilsin
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.sizeDelta = -hud.sizeDelta;
+            rect.anchoredPosition = -hud.anchoredPosition;
+            return rect;
         }
 
-        private void EnsureCoinText(RectTransform overlay)
+        private static RectTransform CreatePanel(string name, RectTransform parent, Vector2 corner, Vector2 position, Vector2 size)
         {
-            if (_coinText != null) return;
-
-            GameObject coinObject = new GameObject("CoinText", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
-            coinObject.transform.SetParent(overlay, false);
-
-            _coinText = coinObject.GetComponent<TMP_Text>();
-            _coinText.text = "Coins: 0";
-            _coinText.fontSize = 18f;
-            _coinText.alignment = TextAlignmentOptions.TopRight;
-            _coinText.color = new Color(1f, 0.82f, 0.25f, 1f);
-
-            RectTransform rect = coinObject.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(1f, 1f);
-            rect.anchorMax = new Vector2(1f, 1f);
-            rect.pivot = new Vector2(1f, 1f);
-            rect.anchoredPosition = new Vector2(-16f, -96f);
-            rect.sizeDelta = new Vector2(180f, 30f);
+            GameObject go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            go.layer = parent.gameObject.layer;
+            RectTransform rect = (RectTransform)go.transform;
+            rect.SetParent(parent, false);
+            rect.anchorMin = rect.anchorMax = rect.pivot = corner;
+            rect.anchoredPosition = position;
+            rect.sizeDelta = size;
+            Image image = go.GetComponent<Image>();
+            image.color = PanelColor;
+            image.raycastTarget = false;
+            return rect;
         }
 
-        private void ConfigureSkillBadgeContainer(RectTransform overlay)
+        private static TMP_Text CreateText(string name, RectTransform parent, string text)
         {
-            if (_skillBadgeContainer == null) return;
-
-            _skillBadgeContainer.SetParent(overlay, false);
-
-            RectTransform rect = _skillBadgeContainer as RectTransform;
-            if (rect != null)
-            {
-                rect.anchorMin = new Vector2(1f, 1f);
-                rect.anchorMax = new Vector2(1f, 1f);
-                rect.pivot = new Vector2(1f, 1f);
-                rect.anchoredPosition = new Vector2(-16f, -16f);
-                rect.sizeDelta = new Vector2(220f, 44f);
-            }
-
-            HorizontalLayoutGroup layout = _skillBadgeContainer.GetComponent<HorizontalLayoutGroup>();
-            if (layout != null)
-            {
-                layout.childAlignment = TextAnchor.UpperRight;
-                layout.spacing = 6f;
-                layout.childControlWidth = false;
-                layout.childControlHeight = false;
-                layout.childForceExpandWidth = false;
-                layout.childForceExpandHeight = false;
-            }
+            GameObject go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+            go.layer = parent.gameObject.layer;
+            go.transform.SetParent(parent, false);
+            TMP_Text label = go.GetComponent<TMP_Text>();
+            label.text = text;
+            return label;
         }
 
-        private static void ConfigureSkillBadge(GameObject badge)
+        private static void PlaceText(TMP_Text text, RectTransform parent, Vector2 anchorMin, Vector2 anchorMax,
+            Vector2 offsetMin, Vector2 offsetMax, float fontSize, TextAlignmentOptions alignment, Color color)
         {
-            RectTransform badgeRect = badge.GetComponent<RectTransform>();
-            if (badgeRect != null)
-                badgeRect.sizeDelta = new Vector2(34f, 34f);
-
-            LayoutElement layoutElement = badge.GetComponent<LayoutElement>();
-            if (layoutElement == null)
-                layoutElement = badge.AddComponent<LayoutElement>();
-
-            layoutElement.minWidth = 34f;
-            layoutElement.minHeight = 34f;
-            layoutElement.preferredWidth = 34f;
-            layoutElement.preferredHeight = 34f;
-            layoutElement.flexibleWidth = 0f;
-            layoutElement.flexibleHeight = 0f;
-
-            Image[] images = badge.GetComponentsInChildren<Image>(true);
-            foreach (var image in images)
-            {
-                RectTransform rect = image.rectTransform;
-                rect.anchorMin = Vector2.zero;
-                rect.anchorMax = Vector2.one;
-                rect.offsetMin = Vector2.zero;
-                rect.offsetMax = Vector2.zero;
-                image.preserveAspect = true;
-            }
-
-            TMP_Text levelText = badge.GetComponentInChildren<TMP_Text>(true);
-            if (levelText != null)
-            {
-                levelText.fontSize = 16f;
-                levelText.alignment = TextAlignmentOptions.BottomRight;
-                RectTransform textRect = levelText.rectTransform;
-                textRect.anchorMin = Vector2.zero;
-                textRect.anchorMax = Vector2.one;
-                textRect.offsetMin = new Vector2(2f, 1f);
-                textRect.offsetMax = new Vector2(-2f, -1f);
-            }
+            if (text == null) return;
+            RectTransform rect = text.rectTransform;
+            rect.SetParent(parent, false);
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.offsetMin = offsetMin;
+            rect.offsetMax = offsetMax;
+            rect.localScale = Vector3.one;
+            text.fontSize = fontSize;
+            text.enableAutoSizing = false;
+            text.fontStyle = FontStyles.Bold;
+            text.alignment = alignment;
+            text.color = color;
+            text.enableWordWrapping = false;
+            text.overflowMode = TextOverflowModes.Overflow;
+            text.raycastTarget = false;
         }
     }
 }

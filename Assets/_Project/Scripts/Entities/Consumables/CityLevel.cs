@@ -4,7 +4,7 @@ using UnityEngine;
 namespace BlobSurvivor.Entities
 {
     // Restart sahneyi yeniden yüklemiyor (bkz. GameManager.ApplyCharacter), bu yüzden yenen şehir
-    // objeleri run bitince burada geri açılır.
+    // objeleri run bitince ve run başında (duraklatmadan yeniden başla / ana menü) burada geri açılır.
     public class CityLevel : MonoBehaviour
     {
         private CityConsumable[] _consumables;
@@ -18,15 +18,18 @@ namespace BlobSurvivor.Entities
         {
             GameEvents.OnGameOver += RestoreAll;
             GameEvents.OnRunComplete += HandleRunComplete;
+            GameEvents.OnCharacterSelected += HandleRunStarted;
         }
 
         private void OnDisable()
         {
             GameEvents.OnGameOver -= RestoreAll;
             GameEvents.OnRunComplete -= HandleRunComplete;
+            GameEvents.OnCharacterSelected -= HandleRunStarted;
         }
 
         private void HandleRunComplete(RunEndReason reason) => RestoreAll();
+        private void HandleRunStarted(Data.CharacterData _) => RestoreAll();
 
         private void RestoreAll()
         {

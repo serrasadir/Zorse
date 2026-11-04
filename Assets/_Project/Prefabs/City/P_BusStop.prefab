@@ -102,6 +102,7 @@ GameObject:
   - component: {fileID: 5460246428456185038}
   - component: {fileID: 781899822469221233}
   - component: {fileID: 489148118594064276}
+  - component: {fileID: 5527187400504233849}
   m_Layer: 11
   m_Name: P_BusStop
   m_TagString: Untagged
@@ -123,7 +124,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8618682527303358489}
-  - {fileID: 1396354231192179500}
+  - {fileID: 3231913462350248142}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &5460246428456185038
@@ -178,7 +179,27 @@ MonoBehaviour:
   m_Center: {x: 0.00000074505806, y: 0.785, z: -0.16499934}
   m_Area: 1
   m_AffectedAgents: 00000000
---- !u!1 &5793072746994237720
+--- !u!114 &5527187400504233849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1551944618903740950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifier
+  m_SerializedVersion: 0
+  m_OverrideArea: 0
+  m_Area: 0
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 1
+  m_ApplyToChildren: 1
+  m_AffectedAgents: f2652fae
+--- !u!1 &4202337189869871827
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -186,8 +207,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1396354231192179500}
-  - component: {fileID: 1389743588829139294}
+  - component: {fileID: 3231913462350248142}
+  - component: {fileID: 2003350676685402243}
   m_Layer: 19
   m_Name: PropObstacle
   m_TagString: Untagged
@@ -195,13 +216,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1396354231192179500
+--- !u!4 &3231913462350248142
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5793072746994237720}
+  m_GameObject: {fileID: 4202337189869871827}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -210,13 +231,13 @@ Transform:
   m_Children: []
   m_Father: {fileID: 9016390143614721224}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &1389743588829139294
+--- !u!65 &2003350676685402243
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5793072746994237720}
+  m_GameObject: {fileID: 4202337189869871827}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2

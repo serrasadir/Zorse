@@ -98,30 +98,59 @@ namespace BlobSurvivor.Entities.Enemies
 
         private void HandleRestart(CharacterData _)
         {
-            if (_activeBoss != null)
-            {
-                _activeBoss.OnDeath -= HandleBossDeath;
-                if (_pools.TryGetValue(_activeBoss.Data, out ObjectPool<EnemyBase> pool))
-                    pool.Return(_activeBoss);
-                GameEvents.RaiseBossHealthChanged(0f, 0f);
-            }
-
+            DismissActiveBoss();
             _nextStageIndex = 0;
-            _activeBoss = null;
             _lastReportedHealth = -1f;
         }
 
+        // Aktif boss'u ödülsüz havuza döndürür (restart, final boss gelişi, DevCheats).
+        private void DismissActiveBoss()
+        {
+            if (_activeBoss == null) return;
+            _activeBoss.OnDeath -= HandleBossDeath;
+            if (_pools.TryGetValue(_activeBoss.Data, out ObjectPool<EnemyBase> pool))
+                pool.Return(_activeBoss);
+            _activeBoss = null;
+            GameEvents.RaiseBossHealthChanged(0f, 0f);
+        }
+
+        // Her aşama kendi süresinde çıkar; süresi geçmiş önceki aşamalar atlanır (sadece en sonuncusu çıkar).
+        // Aynı anda tek boss: ara aşama aktif boss'u bekler, son aşama (final boss) beklemez — aktif boss çekilir.
         private void CheckSpawnTrigger(float survivalTime)
         {
-            if (_bossData?.Stages == null || _nextStageIndex >= _bossData.Stages.Length) return;
-            if (_activeBoss != null) return; // aynı anda tek boss
+            BossStage[] stages = _bossData?.Stages;
+            if (stages == null || _nextStageIndex >= stages.Length) return;
 
+            int due = -1;
+            for (int i = _nextStageIndex; i < stages.Length; i++)
+                if (survivalTime >= stages[i].SpawnTime) due = i;
+            if (due < 0) return;
+
+            bool isFinal = due == stages.Length - 1;
+            if (_activeBoss != null)
+            {
+                if (!isFinal) return;
+                DismissActiveBoss();
+            }
+
+            SpawnStage(stages[due]);
+            _nextStageIndex = due + 1;
+        }
+
+#if UNITY_EDITOR
+        // DevCheats N: aktif boss'u ödülsüz kaldırır, sıradaki aşamayı hemen çıkarır.
+        public string DebugSpawnNextStage()
+        {
+            if (_bossData?.Stages == null || _nextStageIndex >= _bossData.Stages.Length)
+                return "Çıkacak boss aşaması kalmadı.";
+
+            DismissActiveBoss();
             BossStage stage = _bossData.Stages[_nextStageIndex];
-            if (survivalTime < stage.SpawnTime) return;
-
             SpawnStage(stage);
             _nextStageIndex++;
+            return $"Aşama {_nextStageIndex}/{_bossData.Stages.Length}: {stage.EnemyData?.DisplayName}";
         }
+#endif
 
         private void SpawnStage(BossStage stage)
         {

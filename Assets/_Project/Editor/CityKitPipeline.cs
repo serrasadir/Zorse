@@ -58,6 +58,11 @@ namespace BlobSurvivor.EditorTools
         private const string LayoutPath = ArtRoot + "/level01.json";
         private const string PalettePath = ArtRoot + "/CityPalette.png";
         private const string PaletteMaterialPath = ArtRoot + "/Mat_CityPalette.mat";
+        // Şehir kiti v2 (zorse-blender/build_kit2.py): kendi paleti (CityPaletteV2, 8x8) ve materyali. Eski kitle yan yana
+        // durur; mesh adı Art/City/Kit2'de varsa v2 sayılır (LoadSourceMesh oradan okur, yükseklik sıkıştırması yok).
+        internal const string Kit2Root = ArtRoot + "/Kit2";
+        private const string PaletteV2Path = Kit2Root + "/CityPaletteV2.png";
+        internal const string PaletteV2MaterialPath = Kit2Root + "/Mat_CityPaletteV2.mat";
         private const string RestaurantMaterialPath = "Assets/_Project/Art/Buildings/Restaurant/Mat_Restaurant.mat";
         private const string PedestrianPrefabPath = "Assets/_Project/Prefabs/Consumables/Pedestrian.prefab";
         private const string PedestrianDataPath = "Assets/_Project/ScriptableObjects/Pedestrians/PedestrianData.asset";
@@ -114,7 +119,20 @@ namespace BlobSurvivor.EditorTools
             {
                 case "P_Trash":
                 case "P_Hydrant":
+                case "P_Hydrant2":     // kit2 eşyaları
+                case "P_Bin2":
+                case "P_Bush":
                     return (BlobTier.Tiny, 2);
+                case "P_GasPump":
+                case "P_Bench2":
+                case "P_Lamp2":
+                case "P_PhoneBooth":
+                case "P_SimitCart":
+                case "P_PopcornCart":
+                case "P_TrafficLight2":
+                case "P_Hoop":
+                case "P_Slide":
+                case "P_ParkingBooth":
                 case "P_Bench":
                 case "P_Lamp":
                 case "P_TrafficLight":
@@ -122,6 +140,15 @@ namespace BlobSurvivor.EditorTools
                 case "P_TreeGreen":   // 2026-11-02 (Serra): ağaçlar Medium
                 case "P_TreeYellow":
                 case "P_BusStop":
+                case "P_GasCanopy":
+                case "P_BusStop2":
+                case "P_TreeRound":
+                case "P_TreeAutumn":
+                case "P_TreePine":
+                case "P_ParkedCarRed":
+                case "P_ParkedCarBlue":
+                case "P_ParkedCarYellow":
+                case "P_Carousel":
                 case "V_CarRed":
                 case "V_CarBlue":
                 case "V_CarGreen":
@@ -137,6 +164,14 @@ namespace BlobSurvivor.EditorTools
                 case "B_Burger":
                 case "B_Restaurant":
                 case "B_Police":
+                case "B_Bakery":        // kit2 küçük dükkânlar
+                case "B_Pizzeria":
+                case "B_Barber":
+                case "B_PoliceStation":
+                case "B_Cafe":
+                case "B_Bookstore":
+                case "B_GasShop":
+                case "P_Fountain":
                     return (BlobTier.Large, 25);
                 default:
                     return (BlobTier.Giant, 50); // apartman, kule, ofis, otel, banka, süpermarket
@@ -150,7 +185,37 @@ namespace BlobSurvivor.EditorTools
         [MenuItem("Tools/Blob.io/Şehir Kur (Büyük)")]
         private static void BuildLarge() => BuildCity(true);
 
-        private static void BuildCity(bool large)
+        // 2026-11-04: performans denemesi. Büyük şehri kurar, bina noktalarına kit2 binalarını koyar (restoran kalır).
+        // Eski şehre dönmek: Şehir Kur (Büyük). Yerleşim geçici: v2 mahalle sistemi gelince bu menü kalkar.
+        // 2026-11-04: şehir v2 (zorse-blender/build_city2.py --export → Kit2/city_v2.json). Mahalle sistemi: yollar, kaldırımlar,
+        // yaya/araba/NavMesh büyük şehirle aynı; blokların içi tamamen kit2 (bina, eşya, blok zemini). Eski şehre dönmek: Şehir Kur (Büyük).
+        [MenuItem("Tools/Blob.io/Şehir Kur (v2)")]
+        private static void BuildV2() => BuildCity(true, v2: true);
+
+        [MenuItem("Tools/Blob.io/Şehir Kur (Kit2 Deneme)")]
+        private static void BuildKit2Test() => BuildCity(true, kit2Test: true);
+
+        private static readonly string[] Kit2Small =
+        {
+            "B_Bakery", "B_Pizzeria", "B_Barber", "B_AptSage", "B_AptBlue", "B_AptBrick", "B_Cafe", "B_Bookstore",
+            "B_AptCumba", "B_AptPink",
+        };
+        private static readonly string[] Kit2Large = { "B_GrandHotel", "B_PoliceStation", "B_Hospital", "B_Cinema", "B_Lokanta" };
+
+        internal static bool IsKit2(string mesh) => AssetDatabase.LoadAssetAtPath<GameObject>($"{Kit2Root}/{mesh}.fbx") != null;
+
+        // Konumdan deterministik seçim (her kurulumda aynı). Geniş eski binaların yerine geniş v2 binası.
+        private static CityItem SwapToKit2(CityItem item)
+        {
+            if (!item.mesh.StartsWith("B_") || item.mesh == RestaurantMesh) return item;
+            string[] pool = item.sx >= 4.4f ? Kit2Large : Kit2Small;
+            int hash = Mathf.Abs(Mathf.RoundToInt(item.x * 7.31f) * 73856093 ^ Mathf.RoundToInt(item.z * 3.17f) * 19349663);
+            return new CityItem { mesh = pool[hash % pool.Length], x = item.x, y = item.y, z = item.z, yaw = 0f };
+        }
+
+        private const string V2LayoutPath = Kit2Root + "/city_v2.json";
+
+        private static void BuildCity(bool large, bool kit2Test = false, bool v2 = false)
         {
             AssetDatabase.Refresh();
 
@@ -187,7 +252,7 @@ namespace BlobSurvivor.EditorTools
                     continue;
                 }
 
-                if (prefabs.ContainsKey(item.mesh)) continue;
+                if (prefabs.ContainsKey(item.mesh) || v2) continue; // v2: şehir eşyaları yerleşimde gerektikçe kurulur
                 GameObject prefab = BuildPrefab(item, item.mesh == RestaurantMesh ? restaurant : palette);
                 if (prefab == null) return;
                 prefabs.Add(item.mesh, prefab);
@@ -206,9 +271,34 @@ namespace BlobSurvivor.EditorTools
             root.AddComponent<CityLevel>();
 
             IEnumerable<CityItem> placed = large ? CityExpansion.Compose(layout.items) : (IEnumerable<CityItem>)layout.items;
-            foreach (CityItem item in placed)
+            if (v2)
             {
-                if (IsVehicle(item.mesh)) continue; // araçlar sahnede durmaz, CarSpawner havuzundan gelir
+                TextAsset v2Json = AssetDatabase.LoadAssetAtPath<TextAsset>(V2LayoutPath);
+                if (v2Json == null)
+                {
+                    Debug.LogError($"[CityKitPipeline] {V2LayoutPath} yok: önce build_city2.py --export.");
+                    return;
+                }
+                placed = JsonUtility.FromJson<CityLayout>(v2Json.text).items;
+            }
+            Material paletteV2 = kit2Test || v2 ? GetPaletteV2Material() : null;
+            if ((kit2Test || v2) && paletteV2 == null)
+            {
+                Debug.LogError($"[CityKitPipeline] {PaletteV2Path} yok: önce build_kit2.py --export.");
+                return;
+            }
+            int swapped = 0;
+            foreach (CityItem source in placed)
+            {
+                if (IsVehicle(source.mesh)) continue; // araçlar sahnede durmaz, CarSpawner havuzundan gelir
+                CityItem item = kit2Test ? SwapToKit2(source) : source;
+                if (item != source) swapped++;
+                if (!prefabs.ContainsKey(item.mesh))
+                {
+                    GameObject built = BuildPrefab(item, IsKit2(item.mesh) ? paletteV2 : palette);
+                    if (built == null) return;
+                    prefabs.Add(item.mesh, built);
+                }
 
                 GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefabs[item.mesh], root.transform);
                 instance.transform.localPosition = new Vector3(item.x, item.y, item.z);
@@ -232,7 +322,8 @@ namespace BlobSurvivor.EditorTools
 
             EditorSceneManager.MarkSceneDirty(root.scene);
             Selection.activeGameObject = root;
-            Debug.Log($"[CityKitPipeline] Şehir kuruldu: {root.transform.childCount} obje, {cars.Count} araç tipi. NavMesh bake bitince sahneyi kaydet (Cmd+S).");
+            Debug.Log($"[CityKitPipeline] Şehir kuruldu: {root.transform.childCount} obje, {cars.Count} araç tipi" +
+                      (kit2Test ? $", {swapped} bina kit2 ile değişti" : "") + ". NavMesh bake bitince sahneyi kaydet (Cmd+S).");
         }
 
         // Kapsül görselini modelle değiştirir; collider, NavMeshAgent ve EnemyBase ayarlarına dokunmaz.
@@ -783,6 +874,19 @@ namespace BlobSurvivor.EditorTools
                 AssetDatabase.CreateFolder(parent, name);
         }
 
+        internal static Material GetPaletteV2Material()
+        {
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(PaletteV2MaterialPath);
+            if (material != null) return material;
+            Material city = GetPaletteMaterial();
+            Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(PaletteV2Path);
+            if (city == null || texture == null) return null;
+            material = new Material(city) { name = "Mat_CityPaletteV2" }; // aynı shader/ayarlar, sadece doku
+            material.SetTexture("_BaseMap", texture);
+            AssetDatabase.CreateAsset(material, PaletteV2MaterialPath);
+            return material;
+        }
+
         private static Material GetPaletteMaterial()
         {
             Material material = AssetDatabase.LoadAssetAtPath<Material>(PaletteMaterialPath);
@@ -801,7 +905,7 @@ namespace BlobSurvivor.EditorTools
 
         internal static MeshFilter LoadSourceMesh(string mesh)
         {
-            string modelPath = $"{ArtRoot}/{mesh}.fbx";
+            string modelPath = IsKit2(mesh) ? $"{Kit2Root}/{mesh}.fbx" : $"{ArtRoot}/{mesh}.fbx";
             GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
             MeshFilter source = model != null ? model.GetComponentInChildren<MeshFilter>(true) : null;
             if (source == null)
@@ -861,17 +965,47 @@ namespace BlobSurvivor.EditorTools
             agents.arraySize = 1;
             agents.GetArrayElementAtIndex(0).intValue = humanoidOnly ? 0 : -1; // -1 = tüm ajan tipleri
             so.ApplyModifiedPropertiesWithoutUndo();
+
+            // Hacim tankı etkilemese de eşyanın render mesh'i tank NavMesh'inde hâlâ delik açıyordu (v2'de park
+            // arabaları/çalılar sokakları tank için kapattı). Tank bake'inde eşya geometrisi hiç sayılmaz.
+            NavMeshModifier ignore = root.GetComponent<NavMeshModifier>();
+            // Ajan tipi ID'leri negatif olabilir (Tank = -1372625422): bulunamadı ayrı bayrakla.
+            if (!humanoidOnly || !TryFindAgentTypeID(TankAgentName, out int tankID))
+            {
+                if (ignore != null) UnityEngine.Object.DestroyImmediate(ignore, true);
+                return;
+            }
+            if (ignore == null) ignore = root.AddComponent<NavMeshModifier>();
+            ignore.ignoreFromBuild = true;
+            ignore.applyToChildren = true;
+            SerializedObject mso = new SerializedObject(ignore);
+            SerializedProperty mAgents = mso.FindProperty("m_AffectedAgents");
+            mAgents.arraySize = 1;
+            mAgents.GetArrayElementAtIndex(0).intValue = tankID;
+            mso.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        internal static bool TryFindAgentTypeID(string name, out int id)
+        {
+            for (int i = 0; i < UnityEngine.AI.NavMesh.GetSettingsCount(); i++)
+            {
+                id = UnityEngine.AI.NavMesh.GetSettingsByIndex(i).agentTypeID;
+                if (UnityEngine.AI.NavMesh.GetSettingsNameFromID(id) == name) return true;
+            }
+            id = 0;
+            return false;
         }
 
         // Model child'ının dönüşü/ölçeği: FBX kökü + yön düzeltmesi + yüksek binalarda basıklık.
         internal static void ApplyModelTransform(Transform model, MeshFilter source, string mesh)
         {
-            bool facesBackward = mesh.StartsWith("H_") || mesh.StartsWith("V_") || mesh.StartsWith("B_");
+            // Kit2 (B_/P_/L_ hepsi): 180° ile Blender (x, y) = Unity (x, z) olur; city_v2.json yerleşimi buna göre.
+            bool facesBackward = mesh.StartsWith("H_") || mesh.StartsWith("V_") || mesh.StartsWith("B_") || IsKit2(mesh);
             model.localRotation = facesBackward ? FacingFix * source.transform.rotation : source.transform.rotation;
 
             Vector3 scale = source.transform.lossyScale;
             float height = source.sharedMesh.bounds.size.y * scale.y;
-            if (mesh.StartsWith("B_"))
+            if (mesh.StartsWith("B_") && !IsKit2(mesh)) // v2 binaları oyun boyunda modellendi, ezilmez
                 scale.y *= TallBuildingYScale(height);
             if (mesh == "H_Police")
                 scale *= PoliceModelScale;
@@ -895,9 +1029,23 @@ namespace BlobSurvivor.EditorTools
             return renderer;
         }
 
+        // Geçici kök sahnede oluşur; hata olursa sahnede kalıp kaydedilmesin (2026-11-04: GetConsumableData patlayınca
+        // haritanın ortasında çarpışmasız bir B_ApartmentRed kalmıştı).
         private static GameObject BuildPrefab(CityItem item, Material material)
         {
             GameObject root = new GameObject(item.mesh);
+            try
+            {
+                return BuildPrefabContents(root, item, material);
+            }
+            finally
+            {
+                if (root != null) UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        private static GameObject BuildPrefabContents(GameObject root, CityItem item, Material material)
+        {
             MeshRenderer renderer = AddModel(root, item.mesh, material);
             if (renderer == null)
             {
@@ -909,7 +1057,7 @@ namespace BlobSurvivor.EditorTools
             Vector3 expected = new Vector3(item.sx, item.sy, item.sz);
             if (item.mesh.StartsWith("B_"))
                 expected.y *= TallBuildingYScale(item.sy);
-            if ((bounds.size - expected).magnitude > expected.magnitude * 0.1f)
+            if (!IsKit2(item.mesh) && (bounds.size - expected).magnitude > expected.magnitude * 0.1f)
                 Debug.LogWarning($"[CityKitPipeline] {item.mesh}: boyut {bounds.size}, beklenen {expected}. Eksen/ölçek hatalı olabilir.");
 
             const StaticEditorFlags staticFlags = StaticEditorFlags.NavigationStatic | StaticEditorFlags.BatchingStatic;
@@ -1024,7 +1172,6 @@ namespace BlobSurvivor.EditorTools
             so.FindProperty("_displayName").stringValue = mesh;
             so.FindProperty("_scoreValue").intValue = mass;
             so.FindProperty("_massValue").floatValue = mass;
-            so.FindProperty("_objectSize").floatValue = (int)tier;
             so.FindProperty("_requiredTier").intValue = (int)tier;
             so.ApplyModifiedPropertiesWithoutUndo();
             return data;

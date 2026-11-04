@@ -244,6 +244,15 @@ namespace BlobSurvivor.Core
             if (CurrentState == GameState.Paused) ResumeGame();
         }
 
+        // Duraklatma menüsünden "Ana Menü": run terk edilir (ödül/coin kredisi yok, ölüm sayılmaz). Dünya donuk kalır
+        // (timeScale 0) — lobi arkasında düşman vurmasın; karakter seçilince StartGame her şeyi sıfırlar.
+        public void ReturnToMenu()
+        {
+            if (CurrentState != GameState.Paused) return;
+            ChangeState(GameState.Menu);
+            Time.timeScale = 0f;
+        }
+
         // 2026-11-02: seviye atlama eskiden PauseGame kullanıyordu; artık duraklatma menüsü OnGamePaused'u
         // dinlediği için kart ekranının üstüne açılmasın diye ayrı bir state. OnGamePaused ateşlenmez.
         public void BeginLevelUp()
