@@ -150,7 +150,7 @@ Mass kazanmak = XP kazanmak (tek sistem, ayrı XP kaynağı yok — Karar 7'nin 
 |---|---|---|
 | Saldırı | **Silah Gücü** | Karakter silahının hasar/atış hızı ↑ |
 | Savunma | **Rejenerasyon** | +0.5 HP/sn |
-| Savunma | **Zırh** | Alınan hasar ↓ (Kalkan iptal — aynı iş) |
+| Savunma | **Zırh** | ~~Alınan hasar ↓~~ → **REVİZE (4 Kas 2026, Serra): kalkan havuzu** — hasarı önce kalkan yer, son hasardan 4 sn (Sv.5+: 3 sn) sonra 2 sn'de dolar; +10 kalkan/seviye (Sv.8: 100). Sv.3 dikenler, Sv.6 güçlü dikenler, Sv.8 kırılınca şok dalgası. Görsel: blob'un önünde sokak eşyası kalkan, seviyeyle form değişir (çöp kapağı → girilmez tabelası → menhol → altın menhol). Gerekçe: %7/seviye hasar azaltma hiç hissedilmiyordu. Ayrı bir "Kalkan" skilli yok, Zırh'ın kendisi kalkan oldu. Ayrıntı: `SKILLS.md` |
 | Pasif | **Maksimum Can** | Base 100, +10 |
 | Hareket | **Hız** | Kalıcı hareket hızı ↑ (Hızlanma/Dash iptal — aynı iş, Karar 2026-08-11 §16) |
 | Destek | **Attract** | Çekim yarıçapı + çekim hızı ↑ (Magnet+Vakum birleşti — Karar 9) |
@@ -422,7 +422,7 @@ Neyin neden değiştiğinin hızlı referansı. Gerekçelerin tamamı eskiden `A
 | **Çekme mekanikleri** | Mıknatıs + Vakum ayrı skiller + Mıknato pasifi (3 örtüşen sistem) | **Tek "Attract" hattı**; Mıknato pasifi onu güçlendirir |
 | **Mermo pasifi** | Mermiyle parçalama (fragman maliyeti belirsiz) | **Korundu ve netleşti**: `ConsumeAndSplit` alt-tier havuzundan saçar, sıfır asset vergisi (10 Tem revizesi) |
 | **Mermo unlock** | 3 farklı haritada oturum tamamla | **Toplam 3 oturum tamamla** (lansmanda 1 harita var) |
-| **Kalkan skilli** | Listede | **İptal** (Zırh ile aynı iş — Sprint 1 kararı) |
+| **Kalkan skilli** | Listede | **İptal** (Zırh ile aynı iş — Sprint 1 kararı). **4 Kas 2026 güncellemesi:** ayrı skill olarak geri gelmedi ama Zırh'ın mekaniği kalkan havuzuna çevrildi (bkz. §5) |
 | **Skill havuzu** | 8 jenerik skill | **9 skill**: +Sindirim, +Yutuş, +Yırtıcı Çene (yeme-temalı); Score Multiplier iptal edildi (2026-09-06) |
 | **Evrim** | Bahsedilmiş, tanımsız (GDD'de boş satır) | **Lansmanda 2 tanımlı evrim** (Kara Delik, Avcı Formu — playtest'te doğrulanacak) |
 | **Haritalar** | Modern Şehir + Medieval (+ Park/Liman/Endüstri) | **Lansmanda 1** (Modern Şehir); Medieval ilk içerik güncellemesi |

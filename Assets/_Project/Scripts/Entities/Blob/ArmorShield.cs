@@ -5,52 +5,80 @@ namespace BlobSurvivor.Entities.Blob
 {
     // 2026-11-04 (Serra: "zırh çalışıyor mu emin olamadım, görsel olarak destekleyelim"): Zırh skill'inin görseli
     // ve dikenleri. Kalkan havuzunun kendisi BlobHealth'te; bu bileşen onun event'lerini dinler.
-    // - Baloncuk: blob'un çevresinde kameraya dönük saydam halka (billboard quad — tepeden bakan kamerada
-    //   küreden daha iyi okunur, tek quad). Kalkan doldukça belirginleşir, vuruşta parlar, kırılınca patlayıp
-    //   kaybolur, yenilenince geri gelir.
-    // - Dikenler (Sv.3+): kalkan sağlamken baloncuğa değen düşmanlara 0.5 sn'de bir hasar.
+    // - Görsel (2026-11-04 revize, Serra): baloncuk kalktı → blob'un önünde süzülen, gidiş yönüne dönen
+    //   "sokak eşyası" kalkan. Seviyeyle form değişir, her form yeni bir mekanikle aynı anda gelir:
+    //     Form 0 Sv.1-2 çöp kutusu kapağı · Form 1 Sv.3-5 dikenli girilmez tabelası (dikenler) ·
+    //     Form 2 Sv.6-7 dikenli menhol kapağı (güçlü dikenler) · Form 3 Sv.8 altın menhol (şok dalgası)
+    //   Modeller: zorse-blender/build_armor_shields.py → Resources/FX/Shield (tek palet materyali).
+    //   Kalkan azaldıkça koyulaşır, vuruşta parlar ve şişer, kırılınca dönerek küçülüp kaybolur,
+    //   dolmaya başlayınca geri "pop" eder. Kesin değer HUD'daki kalkan barında.
+    // - Dikenler (Sv.3+): kalkan sağlamken blob'a değen düşmanlara 0.5 sn'de bir hasar.
     // - Şok dalgası (Sv.8): kalkan kırılınca çevredeki düşmanlara tek seferlik hasar.
-    // ArmorEffect ekler/ayarlar; restart'ta GameManager siler (baloncuk da gider).
+    // ArmorEffect ekler/ayarlar; restart'ta GameManager siler (kalkan modeli de gider).
     [RequireComponent(typeof(BlobHealth))]
     public class ArmorShield : MonoBehaviour
     {
         private const float ThornInterval = 0.5f;
-        private const float BubbleRadiusFactor = 1.3f; // blob gövde yarıçapına göre (tetikleyici 0.6'nın biraz dışı)
+        private const float ThornRadiusFactor = 1.3f; // blob gövde yarıçapına göre (tetikleyici 0.6'nın biraz dışı)
         private const float ShockwaveExtraRadius = 2f;
         private const int EnemyLayerMask = 1 << 14;
-        private const string MaterialPath = "FX/Mat_ArmorBubble";
+
+        private const string ShieldFolder = "FX/Shield/";
+        private const string MaterialPath = ShieldFolder + "Mat_ShieldPalette";
+        private static readonly string[] FormMeshes =
+        {
+            "FX_Shield1_TrashLid", "FX_Shield2_Sign", "FX_Shield3_Manhole", "FX_Shield4_Gold",
+        };
+
+        // Yerleşim (blob yerel uzayı, gövde yarıçapı 0.5): gövdenin hemen önünde, yüzü kameraya doğru hafif yukarı eğik.
+        private static readonly Vector3 ShieldOffset = new Vector3(0f, 0.05f, 0.62f);
+        private const float ShieldTilt = -20f;         // X ekseni; eksi = yüz yukarı bakar
+        private const float TurnSpeed = 10f;           // yöne dönme yumuşaklığı
+        private const float MinTurnSpeedSqr = 0.3f * 0.3f;
+        private const float BobAmplitude = 0.03f;
+        private const float BobFrequency = 1.6f;
 
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
-        private static readonly Color BubbleColor = new Color(0.55f, 0.82f, 1f, 1f);
-        private static Texture2D s_ringTexture;
+        private static Mesh[] s_meshes;
+        private static Material s_material;
 
         private readonly Collider[] _hits = new Collider[16];
         private BlobHealth _health;
+        private Rigidbody _rigidbody;
         private float _bodyRadius = 0.5f; // blob'un katı collider'ı (yerel)
         private float _thornDamagePerTick;
         private float _shockwaveDamage;
         private float _thornTimer;
 
-        private Transform _bubble;
-        private Renderer _bubbleRenderer;
-        private Material _bubbleMaterial;
-        private Transform _camera;
-        private float _fill;       // 0..1 kalkan doluluğu
-        private float _flash;      // vuruş parlaması, sönümlenir
+        private Transform _pivot;   // blob merkezinde, gidiş yönüne döner
+        private Transform _shield;  // pivot'un önünde, modeli taşır
+        private MeshFilter _shieldFilter;
+        private Renderer _shieldRenderer;
+        private MaterialPropertyBlock _block;
+        private int _form = -1;
+        private float _fill;        // 0..1 kalkan doluluğu
+        private float _flash;       // vuruş parlaması, sönümlenir
+        private float _punch;       // ölçek şişmesi (vuruş / form değişimi)
+        private float _shown;       // 0 gizli .. 1 tam görünür
         private float _breakTime = -1f;
+        private float _bobPhase;
+        private Color _lastColor = new Color(-1f, 0f, 0f, 0f);
 
-        public void Configure(float thornDamagePerSecond, float shockwaveDamage)
+        // form: 0..3 (bkz. sınıf yorumu). ArmorEffect seviyeye göre hesaplar.
+        public void Configure(float thornDamagePerSecond, float shockwaveDamage, int form)
         {
             _thornDamagePerTick = thornDamagePerSecond * ThornInterval;
             _shockwaveDamage = shockwaveDamage;
+            SetForm(form);
         }
 
         private void Awake()
         {
             _health = GetComponent<BlobHealth>();
+            _rigidbody = GetComponent<Rigidbody>();
             foreach (SphereCollider c in GetComponents<SphereCollider>())
                 if (!c.isTrigger) { _bodyRadius = c.radius; break; }
-            CreateBubble();
+            CreateShield();
         }
 
         private void OnEnable()
@@ -70,21 +98,25 @@ namespace BlobSurvivor.Entities.Blob
 
         private void OnDestroy()
         {
-            if (_bubble != null) Destroy(_bubble.gameObject);
-            if (_bubbleMaterial != null) Destroy(_bubbleMaterial);
+            if (_pivot != null) Destroy(_pivot.gameObject);
         }
 
         private void HandleShieldChanged(float current, float max) => _fill = max > 0f ? current / max : 0f;
-        private void HandleShieldHit(float absorbed) => _flash = 1f;
+
+        private void HandleShieldHit(float absorbed)
+        {
+            _flash = 1f;
+            _punch = Mathf.Max(_punch, 0.12f);
+        }
 
         private void HandleShieldBroken()
         {
             _breakTime = 0f;
             if (_shockwaveDamage > 0f)
-                DamageEnemiesInRadius(BubbleWorldRadius() + ShockwaveExtraRadius, _shockwaveDamage);
+                DamageEnemiesInRadius(ThornWorldRadius() + ShockwaveExtraRadius, _shockwaveDamage);
         }
 
-        private float BubbleWorldRadius() => transform.localScale.x * _bodyRadius * BubbleRadiusFactor;
+        private float ThornWorldRadius() => transform.localScale.x * _bodyRadius * ThornRadiusFactor;
 
         private void Update()
         {
@@ -93,9 +125,12 @@ namespace BlobSurvivor.Entities.Blob
             _thornTimer -= Time.deltaTime;
             if (_thornTimer > 0f) return;
             _thornTimer = ThornInterval;
-            // Baloncuğa değen (merkezi değil, collider'ı) düşmanlar — OverlapSphere collider yüzeyine bakar.
-            if (DamageEnemiesInRadius(BubbleWorldRadius() + 0.15f, _thornDamagePerTick) > 0)
+            // Blob'a değen (merkezi değil, collider'ı) düşmanlar — OverlapSphere collider yüzeyine bakar.
+            if (DamageEnemiesInRadius(ThornWorldRadius() + 0.15f, _thornDamagePerTick) > 0)
+            {
                 _flash = Mathf.Max(_flash, 0.6f);
+                _punch = Mathf.Max(_punch, 0.08f);
+            }
         }
 
         private int DamageEnemiesInRadius(float radius, float damage)
@@ -114,95 +149,119 @@ namespace BlobSurvivor.Entities.Blob
 
         // --- Görsel ---
 
-        private void CreateBubble()
+        private static bool LoadAssets()
         {
-            Material source = Resources.Load<Material>(MaterialPath);
-            if (source == null)
+            if (s_meshes != null) return s_material != null;
+            s_material = Resources.Load<Material>(MaterialPath);
+            s_meshes = new Mesh[FormMeshes.Length];
+            for (int i = 0; i < FormMeshes.Length; i++)
             {
-                Debug.LogWarning($"[ArmorShield] Resources/{MaterialPath} bulunamadı — baloncuk görünmeyecek.");
-                return;
+                s_meshes[i] = Resources.Load<Mesh>(ShieldFolder + FormMeshes[i]);
+                if (s_meshes[i] == null)
+                    Debug.LogWarning($"[ArmorShield] Resources/{ShieldFolder}{FormMeshes[i]} bulunamadı.");
             }
+            if (s_material == null)
+                Debug.LogWarning($"[ArmorShield] Resources/{MaterialPath} bulunamadı — kalkan görünmeyecek.");
+            return s_material != null;
+        }
 
-            GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            DestroyImmediate(quad.GetComponent<Collider>()); // blob rigidbody'sinin parçası olmasın, bir kare bile
-            quad.name = "ArmorBubble";
-            quad.layer = gameObject.layer;
-            _bubble = quad.transform;
-            _bubble.SetParent(transform, false);
-            float diameter = _bodyRadius * BubbleRadiusFactor * 2f;
-            _bubble.localScale = new Vector3(diameter, diameter, 1f);
+        private void CreateShield()
+        {
+            if (!LoadAssets()) return;
 
-            _bubbleMaterial = new Material(source);
-            _bubbleMaterial.SetTexture("_BaseMap", GetRingTexture());
-            _bubbleRenderer = quad.GetComponent<Renderer>();
-            _bubbleRenderer.sharedMaterial = _bubbleMaterial;
-            _bubbleRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            _bubbleRenderer.receiveShadows = false;
+            _pivot = new GameObject("ArmorShieldPivot").transform;
+            _pivot.SetParent(transform, false);
 
-            if (Camera.main != null) _camera = Camera.main.transform;
+            // Collider eklenmez: blob rigidbody'sinin parçası olmasın.
+            var go = new GameObject("ArmorShield");
+            go.layer = gameObject.layer;
+            _shield = go.transform;
+            _shield.SetParent(_pivot, false);
+            _shield.localPosition = ShieldOffset;
+            _shield.localRotation = Quaternion.Euler(ShieldTilt, 0f, 0f);
+            _shieldFilter = go.AddComponent<MeshFilter>();
+            var mr = go.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = s_material;
+            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            mr.receiveShadows = false;
+            _shieldRenderer = mr;
+            _block = new MaterialPropertyBlock();
+            _bobPhase = Random.Range(0f, Mathf.PI * 2f);
+            _shield.localScale = Vector3.zero;
+            _shieldRenderer.enabled = false;
+        }
+
+        private void SetForm(int form)
+        {
+            if (_shieldFilter == null) return;
+            form = Mathf.Clamp(form, 0, FormMeshes.Length - 1);
+            if (form == _form) return;
+            bool upgrade = _form >= 0;
+            _form = form;
+            _shieldFilter.sharedMesh = s_meshes[form];
+            if (upgrade)
+            {
+                _punch = 0.35f; // yeni form "pop" ile gelsin
+                _flash = 1f;
+            }
         }
 
         private void LateUpdate()
         {
-            if (_bubble == null) return;
+            if (_shield == null) return;
+            float dt = Time.deltaTime;
 
-            if (_camera != null) _bubble.rotation = _camera.rotation; // hep kameraya dönük
-            float diameter = _bodyRadius * BubbleRadiusFactor * 2f;
-
-            // Kırılma: büyüyüp söner (0.25 sn), sonra kalkan dolana kadar gizli.
-            float breakScale = 1f, breakAlpha = 1f;
-            if (_breakTime >= 0f)
+            // Gidiş yönüne dön (yatay hız); dururken son yönde kal.
+            if (_rigidbody != null)
             {
-                _breakTime += Time.deltaTime;
-                float k = _breakTime / 0.25f;
-                if (k >= 1f) _breakTime = -1f;
-                else
+                Vector3 v = _rigidbody.linearVelocity;
+                v.y = 0f;
+                if (v.sqrMagnitude > MinTurnSpeedSqr)
                 {
-                    breakScale = 1f + 0.35f * k;
-                    breakAlpha = 1f - k;
+                    Quaternion target = Quaternion.LookRotation(v, Vector3.up);
+                    _pivot.rotation = Quaternion.Slerp(_pivot.rotation, target, 1f - Mathf.Exp(-TurnSpeed * dt));
                 }
             }
 
+            // Kırılma: 0.3 sn'de dönerek küçülür, sonra kalkan dolmaya başlayana kadar gizli.
+            float breakSpin = 0f;
             bool breaking = _breakTime >= 0f;
-            bool visible = breaking || _fill > 0.01f;
-            if (_bubbleRenderer.enabled != visible) _bubbleRenderer.enabled = visible;
+            if (breaking)
+            {
+                _breakTime += dt;
+                float k = _breakTime / 0.3f;
+                if (k >= 1f) { _breakTime = -1f; _shown = 0f; breaking = false; }
+                else { _shown = 1f - k; breakSpin = k * 360f; }
+            }
+            else
+            {
+                float target = _fill > 0.01f ? 1f : 0f;
+                _shown = Mathf.MoveTowards(_shown, target, dt * 5f);
+            }
+
+            bool visible = _shown > 0.001f;
+            if (_shieldRenderer.enabled != visible) _shieldRenderer.enabled = visible;
             if (!visible) return;
 
-            _flash = Mathf.MoveTowards(_flash, 0f, Time.deltaTime * 6f);
-            float alpha = breaking ? breakAlpha : Mathf.Lerp(0.35f, 0.75f, _fill) + _flash * 0.25f;
-            float punch = 1f + _flash * 0.06f;
-            _bubble.localScale = new Vector3(diameter, diameter, 1f) * (breakScale * punch);
+            _flash = Mathf.MoveTowards(_flash, 0f, dt * 5f);
+            _punch = Mathf.MoveTowards(_punch, 0f, dt * 1.5f);
+            _bobPhase += BobFrequency * Mathf.PI * 2f * dt;
 
-            Color color = Color.Lerp(BubbleColor, Color.white, _flash * 0.6f);
-            color.a = Mathf.Clamp01(alpha);
-            _bubbleMaterial.SetColor(BaseColorId, color);
-        }
+            // Pop-in'de hafif taşma (overshoot), vuruşta şişme.
+            float pop = breaking ? _shown : 1f - Mathf.Pow(1f - _shown, 3f) + Mathf.Sin(_shown * Mathf.PI) * 0.15f;
+            _shield.localScale = Vector3.one * (pop * (1f + _punch));
+            _shield.localPosition = ShieldOffset + new Vector3(0f, Mathf.Sin(_bobPhase) * BobAmplitude, 0f);
+            _shield.localRotation = Quaternion.Euler(ShieldTilt, 0f, breakSpin);
 
-        // Kameraya dönük "baloncuk": içi hafif dolu, kenarı belirgin halka, sol üstte parlak bir yansıma.
-        private static Texture2D GetRingTexture()
-        {
-            if (s_ringTexture != null) return s_ringTexture;
-
-            const int size = 128;
-            s_ringTexture = new Texture2D(size, size, TextureFormat.RGBA32, true) { wrapMode = TextureWrapMode.Clamp, name = "ArmorBubbleRing" };
-            Color[] pixels = new Color[size * size];
-            for (int py = 0; py < size; py++)
-            for (int px = 0; px < size; px++)
+            // Doluluk: azaldıkça koyulaşır; vuruşta parlar (HDR > 1 dokuyu açar).
+            float shade = Mathf.Lerp(0.55f, 1f, _fill) + _flash * 0.8f;
+            Color color = new Color(shade, shade, shade, 1f);
+            if (color != _lastColor)
             {
-                float x = (px + 0.5f) / size * 2f - 1f;
-                float y = (py + 0.5f) / size * 2f - 1f;
-                float r = Mathf.Sqrt(x * x + y * y);
-                float outside = Mathf.SmoothStep(0.96f, 1f, r);
-                float inner = 0.12f + 0.25f * r * r;                       // kenara doğru koyulaşan iç
-                float rim = Mathf.SmoothStep(0.78f, 0.95f, r);             // belirgin kenar
-                float hx = x + 0.38f, hy = y - 0.38f;
-                float highlight = 1f - Mathf.SmoothStep(0.05f, 0.2f, Mathf.Sqrt(hx * hx + hy * hy));
-                float alpha = Mathf.Max(inner + rim * 0.75f, highlight * 0.9f) * (1f - outside);
-                pixels[py * size + px] = new Color(1f, 1f, 1f, Mathf.Clamp01(alpha));
+                _lastColor = color;
+                _block.SetColor(BaseColorId, color);
+                _shieldRenderer.SetPropertyBlock(_block);
             }
-            s_ringTexture.SetPixels(pixels);
-            s_ringTexture.Apply(true, true);
-            return s_ringTexture;
         }
     }
 }

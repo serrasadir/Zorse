@@ -48,23 +48,23 @@
 ## 2. Skiller (9 adet)
 
 ### 🛡️ Zırh (kalkan) — 2026-11-04'te yeniden tasarlandı
-- **Ne yapar:** Blob'un çevresinde bir **kalkan baloncuğu** oluşur. Gelen her hasarı (polis vuruşu, elit/tank/helikopter mermisi, araba çarpması, hazard, polis ısırığı) **önce kalkan yer**; kalkan bitince can azalır. Kalkanın yuttuğu hasarda kırmızı parlama ve kamera sarsıntısı olmaz, baloncuk parlar.
+- **Ne yapar:** Blob'un önünde bir **kalkan** belirir. Gelen her hasarı (polis vuruşu, elit/tank/helikopter mermisi, araba çarpması, hazard, polis ısırığı) **önce kalkan yer**; kalkan bitince can azalır. Kalkanın yuttuğu hasarda kırmızı parlama ve kamera sarsıntısı olmaz, kalkan parlar.
 - **Yenilenme:** Son hasardan **4 sn** sonra (Sv.5'ten itibaren **3 sn**) kalkan **2 sn içinde** tamamen dolar. Her yeni hasar sayacı baştan başlatır.
 - **Seviye atlayınca:** Kalkan büyür ve **hemen dolar**.
 - **Seviye başına:** +10 kalkan · **Max:** 8 · **Ağırlık:** 10
-- **Kod:** `ArmorEffect` (eski adı `DamageReductionEffect`) → havuz `BlobHealth.SetShield`, görsel + dikenler `ArmorShield`
+- **Kod:** `ArmorEffect` (eski adı `DamageReductionEffect`) → havuz `BlobHealth.SetShield`, kalkan modeli + dikenler `ArmorShield`
 
 | Seviye | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
 |---|---|---|---|---|---|---|---|---|
 | Kalkan | 20 | 30 | 40 | 50 | 60 | 70 | 80 | **100** |
 | Yeni | — | — | ⭐ **Dikenler** sn'de 6 | — | ⭐ Yenilenme 3 sn | ⭐ Dikenler sn'de **10** | — | ⭐ **Son form:** kırılınca şok dalgası |
 
-- **Dikenler (Sv.3+):** Kalkan sağlamken baloncuğa değen her düşman 0.5 sn'de bir hasar alır (Sv.3: sn'de 6, Sv.6: sn'de 10). Seni kovalayıp yakın dövüşe giren polis kendini yorar. Kalkan kırıkken dikenler çalışmaz.
-- **Şok dalgası (Sv.8):** Kalkan kırıldığı an baloncuğun 2 birim dışına kadar tüm düşmanlara **25 hasar**.
+- **Dikenler (Sv.3+):** Kalkan sağlamken blob'a değen her düşman 0.5 sn'de bir hasar alır (Sv.3: sn'de 6, Sv.6: sn'de 10). Seni kovalayıp yakın dövüşe giren polis kendini yorar. Kalkan kırıkken dikenler çalışmaz.
+- **Şok dalgası (Sv.8):** Kalkan kırıldığı an blob'un 2 birim dışına kadar tüm düşmanlara **25 hasar**.
 - **HUD:** Can barının hemen altında ince mavi kalkan barı (Zırh alınana kadar gizli).
-- **Görsel:** Blob'un çevresinde kameraya dönük mavimsi saydam baloncuk (kenarı belirgin, sol üstte parlak yansıma). Kalkan doldukça belirginleşir, vuruşta parlar ve hafifçe şişer, kırılınca büyüyüp söner, dolunca geri gelir.
+- **Görsel:** Blob'un önünde süzülen, gidiş yönüne dönen **sokak eşyası kalkan** (baloncuk kaldırıldı, 2026-11-04). Form seviyeyle, yeni mekanikle aynı anda değişir: **Sv.1-2** çöp kutusu kapağı → **Sv.3-5** dikenli "girilmez" tabelası (dikenler) → **Sv.6-7** dikenli menhol kapağı (güçlü dikenler) → **Sv.8** altın menhol kapağı + kızıl mücevher (şok dalgası). Kalkan azaldıkça koyulaşır, vuruşta parlar ve şişer, kırılınca dönerek küçülüp kaybolur, dolmaya başlayınca geri "pop" eder; yeni form da pop ile gelir. Modeller `zorse-blender/build_armor_shields.py` → `Resources/FX/Shield` (148–220 üçgen).
 
-**Örnek:** Sv.3, kalkan 40. Bir polis seni 10'ar vuruyor: ilk 4 vuruşu kalkan yer, canın hiç azalmaz. Bu sürede polis baloncuğa değdiği için saniyede 6 hasar alır (50 canlı polis ~8 sn'de düşer). 4 sn kaçarsan kalkan 2 sn'de geri dolar.
+**Örnek:** Sv.3, kalkan 40. Bir polis seni 10'ar vuruyor: ilk 4 vuruşu kalkan yer, canın hiç azalmaz. Bu sürede polis sana değdiği için saniyede 6 hasar alır (50 canlı polis ~8 sn'de düşer). 4 sn kaçarsan kalkan 2 sn'de geri dolar.
 **Örnek:** Helikopterin 36 hasarlık serisini Sv.4'teki 50'lik kalkan tamamen yer.
 **Not:** Eski Zırh hasarı seviye başına %7 azaltıyordu (Sv.8'de %44 alırdın). Çalışıyordu ama hiç hissedilmiyordu; o mekanik tamamen kaldırıldı.
 

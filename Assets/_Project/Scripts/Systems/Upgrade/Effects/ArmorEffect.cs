@@ -6,7 +6,7 @@ namespace BlobSurvivor.Systems
 {
     // 2026-11-04 (Serra): Zırh yeniden tasarlandı — eskiden gelen hasarı seviye başına %7 azaltıyordu (çalışıyordu
     // ama hiç hissedilmiyordu). Artık kalkan havuzu: hasarı önce kalkan yer, son hasardan birkaç sn sonra dolar.
-    // Görsel baloncuk + dikenler ArmorShield'da, havuz BlobHealth'te. (Eski adı DamageReductionEffect; guid aynı,
+    // Görsel kalkan modeli (4 form) + dikenler ArmorShield'da, havuz BlobHealth'te. (Eski adı DamageReductionEffect; guid aynı,
     // FX_DamageReduction.asset bu script'i kullanmaya devam ediyor.)
     //   Kalkan: 10 + PerLevelValue(10) × seviye → Sv.1 20 ... Sv.7 80, Sv.8 100
     //   Sv.3 dikenler (sn'de 6) · Sv.5 yenilenme 4 → 3 sn · Sv.6 dikenler sn'de 10 · Sv.8 kalkan 100 + kırılınca şok dalgası
@@ -41,7 +41,9 @@ namespace BlobSurvivor.Systems
 
             ArmorShield armor = blobRoot.GetComponent<ArmorShield>();
             if (armor == null) armor = blobRoot.AddComponent<ArmorShield>();
-            armor.Configure(thorns, shockwave);
+            // Kalkan modeli formu mekanikle birlikte değişir: kapak → dikenli tabela → menhol → altın menhol.
+            int form = level >= _shockwaveLevel ? 3 : level >= _strongThornLevel ? 2 : level >= _thornLevel ? 1 : 0;
+            armor.Configure(thorns, shockwave, form);
             health.SetShield(shield, delay);
         }
     }
