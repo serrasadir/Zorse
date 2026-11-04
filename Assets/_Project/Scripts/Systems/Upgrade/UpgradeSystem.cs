@@ -82,6 +82,12 @@ namespace BlobSurvivor.Systems
 
         private void OnLevelUp(int level)
         {
+            // 2026-11-04 (Serra: "final boss'u yiyince üst üste skill aldırdı, oyun bitmedi"): helikopteri yutmak
+            // önce run'ı bitiriyor, hemen ardından 300 mass XP olarak eklenip birkaç level atlatıyordu — kartlar
+            // run bitmiş ekranın üstünde açılıyordu. Run bittiyse (ölüm ya da tamamlandı) level-up yok sayılır.
+            GameState state = GameManager.Instance != null ? GameManager.Instance.CurrentState : GameState.Playing;
+            if (state == GameState.GameOver || state == GameState.RunComplete) return;
+
             if (_awaitingChoice)
             {
                 _pendingLevelUps++;

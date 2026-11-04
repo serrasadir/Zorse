@@ -82,6 +82,15 @@ namespace BlobSurvivor.Entities.Blob
 
         public void IncreaseMassGainMultiplier(float amount) => _massGainMultiplier += amount;
 
+#if UNITY_EDITOR
+        // DevCheats (sadece Editor): kütle ekler ama XP vermez — test sırasında kart ekranı yağmuru olmasın.
+        public void DebugAddMassWithoutXP(float amount)
+        {
+            CurrentMass += amount;
+            RecalculateTier();
+        }
+#endif
+
         // M22: GameManager.ApplyMetaProgression her run başında (fresh start + restart) çağırır —
         // overwrite (increment değil), böylece bir önceki run'ın Sindirim skill birikimi de temizlenmiş olur.
         public void ApplyMetaBonuses(float massGainBonus, float xpBonus)

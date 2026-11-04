@@ -15,15 +15,26 @@ namespace BlobSurvivor.UI
         [SerializeField] private TMP_Text _newRecordText;
         [SerializeField] private Button _restartButton;
 
+        // 2026-11-04: "run tamamlandı" (final boss yutuldu) ekranı hiç yapılmamıştı — A17 sadece event'i kurmuştu,
+        // OnRunComplete'i hiçbir ekran dinlemiyordu; oyun arka planda bitip ekranda bir şey görünmüyordu.
+        // Aynı panel kullanılır, başlık ve özet değişir (sahnedeki "Game Over!" başlığı çalışma zamanında bulunur).
+        private TMP_Text _titleText;
+        private string _defaultTitle;
+
         private void OnEnable()
         {
-            GameEvents.OnGameOver += Show;
+            GameEvents.OnGameOver += ShowGameOver;
+            GameEvents.OnRunComplete += ShowRunComplete;
         }
 
         private void OnDisable()
         {
-            GameEvents.OnGameOver -= Show;
+            GameEvents.OnGameOver -= ShowGameOver;
+            GameEvents.OnRunComplete -= ShowRunComplete;
         }
+
+        private void ShowGameOver() => Show(false);
+        private void ShowRunComplete(RunEndReason reason) => Show(true);
 
         private void Start()
         {
@@ -34,12 +45,17 @@ namespace BlobSurvivor.UI
             EnsureSummaryFields();
         }
 
-        private void Show()
+        private void Show(bool won)
         {
             if (_panel != null)
                 _panel.SetActive(true);
 
             EnsureSummaryFields();
+            if (_titleText != null)
+            {
+                _titleText.text = won ? "KAZANDIN!" : _defaultTitle;
+                _titleText.color = won ? new Color(1f, 0.82f, 0.25f, 1f) : _defaultTitleColor;
+            }
 
             ScoreSystem score = FindAnyObjectByType<ScoreSystem>();
             if (score == null) return;
@@ -58,6 +74,7 @@ namespace BlobSurvivor.UI
                 string highScoreState = score.HasNewHighScore ? "yeni rekor" : "kirilamadi";
 
                 _summaryText.text =
+                    (won ? "Helikopteri yuttun!\n" : "") +
                     $"Coin: {score.Coins:N0}\n" +
                     $"Sure: {minutes:00}:{seconds:00}\n" +
                     $"Onceki Rekor: {score.PreviousHighScore:N0} ({highScoreState})";
@@ -77,9 +94,24 @@ namespace BlobSurvivor.UI
                 _panel.SetActive(false);
         }
 
+        private Color _defaultTitleColor = Color.white;
+
         private void EnsureSummaryFields()
         {
             if (_panel == null) return;
+
+            if (_titleText == null)
+            {
+                foreach (TMP_Text text in _panel.GetComponentsInChildren<TMP_Text>(true))
+                {
+                    if (text == _scoreText || text == _highScoreText || text == _summaryText || text == _newRecordText) continue;
+                    if (!text.text.StartsWith("Game Over")) continue;
+                    _titleText = text;
+                    _defaultTitle = text.text;
+                    _defaultTitleColor = text.color;
+                    break;
+                }
+            }
 
             ConfigureBoundText(_scoreText, new Vector2(0f, 10f), 20f);
             ConfigureBoundText(_highScoreText, new Vector2(0f, -22f), 16f);
@@ -99,7 +131,7 @@ namespace BlobSurvivor.UI
                 rect.anchorMax = new Vector2(0.5f, 0.5f);
                 rect.pivot = new Vector2(0.5f, 0.5f);
                 rect.anchoredPosition = new Vector2(0f, -150f);
-                rect.sizeDelta = new Vector2(360f, 90f);
+                rect.sizeDelta = new Vector2(360f, 115f); // kazanınca 4 satır
             }
 
             if (_newRecordText == null)
