@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using BlobSurvivor.Entities.Blob;
+using BlobSurvivor.Entities.Enemies;
 
 namespace BlobSurvivor.Core
 {
@@ -29,6 +30,17 @@ namespace BlobSurvivor.Core
         [Header("Hasar Sarsıntısı")]
         [SerializeField] private float _hitShakeAmplitude = 0.12f;
         [SerializeField] private float _hitShakeDuration = 0.15f;
+
+        // 2026-11-04 (Serra: "helikopter gelince kamera bir anda uzaklaşsın, helikopteri de blobu da göreyim"):
+        // final boss sahnedeyken kamera ikisini birden kadraja alır — takip noktası aralarına kayar, yükseklik
+        // helikopterin irtifası + aradaki yatay mesafeye göre artar. Geçiş normal zoom'dan hızlı; boss ölünce döner.
+        [Header("Final Boss Çerçeveleme")]
+        [SerializeField] private float _bossFramingSmoothing = 3f;
+        [SerializeField, Range(0f, 1f)] private float _bossFocusWeight = 0.35f; // 0 = blob, 1 = helikopter
+        [SerializeField] private float _bossFramingPadding = 6f;
+        [SerializeField] private float _bossZoomBoost = 1.3f;
+        [SerializeField] private float _bossMaxHeightMultiplier = 3.5f;
+        [SerializeField] private float _bossFramingMaxDistance = 40f; // bundan uzaktaki boss'u kadraja alma
 
         [Header("Bounds")]
         [SerializeField] private bool _useBounds;
@@ -84,9 +96,16 @@ namespace BlobSurvivor.Core
         {
             if (_target == null) return;
 
-            UpdateZoom();
+            FinalBossController boss = FinalBossController.Active;
+            Vector3 focus = _target.position;
+            if (boss != null && IsBossFramable(boss))
+                focus = Vector3.Lerp(_target.position, boss.BodyCenter, _bossFocusWeight);
+            else
+                boss = null;
 
-            Vector3 desiredPos = CalculatePosition(_target.position);
+            UpdateZoom(boss);
+
+            Vector3 desiredPos = CalculatePosition(focus);
             _followPosition = Vector3.Lerp(_followPosition, desiredPos, Time.deltaTime * _followSmoothing);
             transform.position = _followPosition + ShakeOffset();
         }
@@ -106,14 +125,34 @@ namespace BlobSurvivor.Core
             return Random.insideUnitSphere * (_hitShakeAmplitude * _heightMultiplier * k);
         }
 
-        private void UpdateZoom()
+        private bool IsBossFramable(FinalBossController boss)
+        {
+            Vector3 d = boss.BodyCenter - _target.position;
+            d.y = 0f;
+            return d.sqrMagnitude <= _bossFramingMaxDistance * _bossFramingMaxDistance;
+        }
+
+        private void UpdateZoom(FinalBossController boss)
         {
             float target = 1f;
             if (_growth != null && _growth.BaseScale > 0f)
                 target = Mathf.Min(_maxHeightMultiplier, Mathf.Pow(_growth.SmoothScale / _growth.BaseScale, _zoomExponent));
 
+            float smoothing = _zoomSmoothing;
+            if (boss != null)
+            {
+                Vector3 bossPos = boss.BodyCenter;
+                Vector3 flat = bossPos - _target.position;
+                flat.y = 0f;
+                // Helikopterin irtifası + aralarındaki mesafe + pay kadar yükseklik; kamera helikopterin altına düşmesin.
+                // Boss gelince en az _bossZoomBoost kat uzaklaşır ("bir anda" hissi), üst sınır blob zoom'unu kısmaz.
+                float needed = Mathf.Max(target * _bossZoomBoost, (bossPos.y + flat.magnitude + _bossFramingPadding) / _baseHeight);
+                target = Mathf.Min(Mathf.Max(_bossMaxHeightMultiplier, target), needed);
+                smoothing = _bossFramingSmoothing;
+            }
+
             float previous = _heightMultiplier;
-            _heightMultiplier = Mathf.Lerp(_heightMultiplier, target, Time.deltaTime * _zoomSmoothing);
+            _heightMultiplier = Mathf.Lerp(_heightMultiplier, target, Time.deltaTime * smoothing);
 
             // Gölge mesafesi sadece belirgin değişimde güncellenir (asset property'si, her kare dokunmaya gerek yok).
             if (_urpAsset != null && _baseShadowDistance >= 0f && Mathf.Abs(_heightMultiplier - previous) > 0.001f)

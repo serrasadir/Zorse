@@ -19,9 +19,13 @@ namespace BlobSurvivor.Systems
         // Environment(16) + ConsumableTier1-5(9-13); trigger'lar (yenebilir objeler, pickup'lar) sayılmaz.
         private const int BlockingMask = (1 << 16) | (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13);
 
+        // 2026-11-04: sahnede iki NavMesh var (Humanoid + tank'ın geniş "Tank" ajan tipi). Filtresiz sorgu
+        // ("AllAreas") Unity'nin "hangi ajan tipi?" uyarısını veriyordu — tüm genel sorgular varsayılan ajana bağlı.
+        public static NavMeshQueryFilter HumanoidFilter => new NavMeshQueryFilter { agentTypeID = 0, areaMask = NavMesh.AllAreas };
+
         public static bool TryFindNavMeshPosition(Vector3 candidate, float yOverride, float sampleRadius, out Vector3 result)
         {
-            if (NavMesh.SamplePosition(candidate, out NavMeshHit hit, sampleRadius, NavMesh.AllAreas)
+            if (NavMesh.SamplePosition(candidate, out NavMeshHit hit, sampleRadius, HumanoidFilter)
                 && hit.position.y <= MaxGroundY
                 && IsClear(hit.position))
             {

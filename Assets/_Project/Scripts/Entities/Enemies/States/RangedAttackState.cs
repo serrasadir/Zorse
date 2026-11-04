@@ -47,7 +47,7 @@ namespace BlobSurvivor.Entities.Enemies
         {
             _phase = Phase.Tracking;
             _timer = 0f;
-            _aimDirection = enemy.DirectionToBlob();
+            _aimDirection = enemy.AttackDirectionToBlob();
             _aimLength = enemy.ComputeAimLength(_aimDirection);
         }
 
@@ -70,8 +70,8 @@ namespace BlobSurvivor.Entities.Enemies
                 return;
             }
 
-            _aimDirection = enemy.DirectionToBlob();
-            enemy.FaceTowards(_aimDirection);
+            _aimDirection = enemy.AttackDirectionToBlob();
+            enemy.FaceTowards(enemy.DirectionToBlob());
             if (aiTick) _aimLength = enemy.ComputeAimLength(_aimDirection);
             enemy.ShowAimLine(_aimDirection, _aimLength, TrackingLineWidth);
 
@@ -85,7 +85,9 @@ namespace BlobSurvivor.Entities.Enemies
 
         private void UpdateLocked(EnemyBase enemy)
         {
-            enemy.FaceTowards(_aimDirection);
+            // Kilitli yöne bakar (havadaki düşmanın aşağı eğik yönü yataya indirilir, kök eğilmesin).
+            Vector3 face = new Vector3(_aimDirection.x, 0f, _aimDirection.z);
+            if (face.sqrMagnitude > 0.0001f) enemy.FaceTowards(face);
             enemy.ShowAimLine(_aimDirection, _aimLength, LockedLineWidth);
 
             _timer += Time.deltaTime;
@@ -115,7 +117,7 @@ namespace BlobSurvivor.Entities.Enemies
         private static bool CanKeepAiming(EnemyBase enemy)
         {
             float leaveRange = enemy.EffectiveAttackRange() * LeaveRangeMultiplier;
-            float sqrDist = (enemy.transform.position - enemy.BlobTransform.position).sqrMagnitude;
+            float sqrDist = enemy.FlatSqrDistanceToBlob();
             return sqrDist <= leaveRange * leaveRange && enemy.HasLineOfSightToBlob();
         }
     }

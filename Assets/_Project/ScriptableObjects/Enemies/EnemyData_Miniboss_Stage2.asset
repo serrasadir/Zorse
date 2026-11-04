@@ -12,17 +12,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 429f33fc55f6f440f894712573415325, type: 3}
   m_Name: EnemyData_Miniboss_Stage2
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
-  _displayName: Miniboss (8. dk)
+  _displayName: Miniboss (9. dk)
   _prefab: {fileID: 2072016075202350378, guid: eb24b0619c2b648b48f533c3c5b08137, type: 3}
   _maxHealth: 600
-  _damage: 22
+  _damage: 20
   _moveSpeed: 3.2
-  _attackRange: 3.5
+  _attackRange: 8
   _attackCooldown: 2.2
   _requiredConsumeTier: 5
   _scoreValue: 250
   _isElite: 1
-  _attackHitCount: 4
-  _attackHitInterval: 0.35
+  _attackHitCount: 2
+  _attackHitInterval: 0.45
+  _attackType: 1
+  _projectilePrefab: {fileID: 7310000000000000005, guid: 0f57b239e0464234a4d4299800c4b89e, type: 3}
+  _aimLineMaterial: {fileID: 2100000, guid: 5db4a71ce5b8412fb29916ee1504ee4f, type: 2}
+  _projectileSpeed: 10
+  _projectileMaxDistance: 14
+  _aimDuration: 0.9
+  _aimLockDuration: 0.35
   _massReward: 0
   _preventConsumption: 1
+  _crushesObstacles: 1

@@ -1,17 +1,17 @@
 # Left No Crumbs: Skill, Karakter ve Boss Rehberi
 
-> Son güncelleme: 2026-11-03. Değerler koddan ve asset'lerden okundu (`Assets/_Project/Data/Upgrades/`, `Data/Characters/`, `ScriptableObjects/Enemies/`).
+> Son güncelleme: 2026-11-04 (miniboss tank topu). Değerler koddan ve asset'lerden okundu (`Assets/_Project/Data/Upgrades/`, `Data/Characters/`, `ScriptableObjects/Enemies/`).
 > Değer değiştirmek için ilgili `Upgrade_*.asset` dosyasındaki `Max Level` / `Per Level Value` alanlarını Inspector'dan düzenle; kod gerekmez.
 > GDD karşılığı: `GDD_v2.md` §5.
 
 ## ⭐ Toplantı için öne çıkanlar
 
-1. **Final boss tek seride öldürüyor:** 5 × 28 = 140 hasar; başlangıç canı 100. Zırh/Can Artışı almamış oyuncu tek saldırıda ölür. (Bölüm 6, madde 10)
-2. **Final boss'a yetişmek zor:** 12. dk'da geliyor, run 15. dk'da bitiyor. Silah Gücü almamış oyuncu onu yenebilir faza ~3.75 dk'da indirir, yetişemez. (madde 11)
+1. ~~**Final boss tek seride öldürüyor**~~ ✅ 2026-11-04: helikopter makineli serisi 36 hasar, kaçılabilir.
+2. ~~**Final boss'a yetişmek zor**~~ ✅ 2026-11-04: 15. dk sınırı kaldırıldı, savaş istediği kadar sürer.
 3. **Düşman sayıları belgelerle uyuşmuyor:** Sahnede aynı anda 30 düşman / 10 elit (10. dk'dan sonra 60); GDD ve CLAUDE.md 15 / 4 diyor. Hangisi geçerli? (madde 16)
 4. **Yırtıcı Çene neredeyse değersiz:** polis yutmak 3 mass veriyor, 5 can ısırıyor. Öneri: polis mass'ı 15–20 + ısırıksız. (Bölüm 2 Yırtıcı Çene; Bölüm 6, madde 1)
 5. **Mermo'nun kilidi yok:** GDD "3 oturum tamamla" diyor, oyunda baştan açık. (madde 8)
-6. **Avcı Formu final boss'u Giant olmadan yutturabiliyor:** ödül mü, açık mı? (madde 14)
+6. ~~**Avcı Formu final boss'u Giant olmadan yutturabiliyor**~~ ✅ 2026-11-04: helikopter havada, ona fiziksel olarak uzanmak gerekiyor.
 7. **Bosslar sandık da düşürüyor** ve zaman çarpanlarıyla güçlenmiyor: bilinçli mi? (madde 12–13)
 
 
@@ -47,17 +47,26 @@
 
 ## 2. Skiller (9 adet)
 
-### 🛡️ Zırh
-- **Ne yapar:** Aldığın tüm hasarı yüzdesel azaltır (polis ısırığı, elit mermisi, araba çarpması, hazard).
-- **Seviye başına:** −%7 hasar · **Max:** 8 · **Ağırlık:** 10
-- **Kod:** `DamageReductionEffect` → `BlobHealth._armorMultiplier`
+### 🛡️ Zırh (kalkan) — 2026-11-04'te yeniden tasarlandı
+- **Ne yapar:** Blob'un çevresinde bir **kalkan baloncuğu** oluşur. Gelen her hasarı (polis vuruşu, elit/tank/helikopter mermisi, araba çarpması, hazard, polis ısırığı) **önce kalkan yer**; kalkan bitince can azalır. Kalkanın yuttuğu hasarda kırmızı parlama ve kamera sarsıntısı olmaz, baloncuk parlar.
+- **Yenilenme:** Son hasardan **4 sn** sonra (Sv.5'ten itibaren **3 sn**) kalkan **2 sn içinde** tamamen dolar. Her yeni hasar sayacı baştan başlatır.
+- **Seviye atlayınca:** Kalkan büyür ve **hemen dolar**.
+- **Seviye başına:** +10 kalkan · **Max:** 8 · **Ağırlık:** 10
+- **Kod:** `ArmorEffect` (eski adı `DamageReductionEffect`) → havuz `BlobHealth.SetShield`, görsel + dikenler `ArmorShield`
 
-| Seviye | 1 | 2 | 4 | 6 | 8 |
-|---|---|---|---|---|---|
-| Alınan hasar | %93 | %86 | %72 | %58 | **%44** |
+| Seviye | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|---|---|---|---|---|---|---|---|---|
+| Kalkan | 20 | 30 | 40 | 50 | 60 | 70 | 80 | **100** |
+| Yeni | — | — | ⭐ **Dikenler** sn'de 6 | — | ⭐ Yenilenme 3 sn | ⭐ Dikenler sn'de **10** | — | ⭐ **Son form:** kırılınca şok dalgası |
 
-**Örnek:** Elit mermisi 10 hasar. Zırh 8'de 4.4 hasar alırsın. Polis ısırığı 5'ten 2.2'ye iner.
-**Not:** Azalmalar toplanır, çarpılmaz (seviye 8 = 1 − 0.56).
+- **Dikenler (Sv.3+):** Kalkan sağlamken baloncuğa değen her düşman 0.5 sn'de bir hasar alır (Sv.3: sn'de 6, Sv.6: sn'de 10). Seni kovalayıp yakın dövüşe giren polis kendini yorar. Kalkan kırıkken dikenler çalışmaz.
+- **Şok dalgası (Sv.8):** Kalkan kırıldığı an baloncuğun 2 birim dışına kadar tüm düşmanlara **25 hasar**.
+- **HUD:** Can barının hemen altında ince mavi kalkan barı (Zırh alınana kadar gizli).
+- **Görsel:** Blob'un çevresinde kameraya dönük mavimsi saydam baloncuk (kenarı belirgin, sol üstte parlak yansıma). Kalkan doldukça belirginleşir, vuruşta parlar ve hafifçe şişer, kırılınca büyüyüp söner, dolunca geri gelir.
+
+**Örnek:** Sv.3, kalkan 40. Bir polis seni 10'ar vuruyor: ilk 4 vuruşu kalkan yer, canın hiç azalmaz. Bu sürede polis baloncuğa değdiği için saniyede 6 hasar alır (50 canlı polis ~8 sn'de düşer). 4 sn kaçarsan kalkan 2 sn'de geri dolar.
+**Örnek:** Helikopterin 36 hasarlık serisini Sv.4'teki 50'lik kalkan tamamen yer.
+**Not:** Eski Zırh hasarı seviye başına %7 azaltıyordu (Sv.8'de %44 alırdın). Çalışıyordu ama hiç hissedilmiyordu; o mekanik tamamen kaldırıldı.
 
 ---
 
@@ -284,38 +293,43 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 | **Ödül** | 3 mass, 1 coin, %5 kalp | 20 mass, 5–10 coin, **sandık**, %100 kalp |
 
 ### 👹 Miniboss: "Polis Tankı"
-Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Ayrı bir davranış kodu yok; elit makinesini kullanır (yol bulma + yakın saldırı serisi).
+Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Ayrı bir davranış kodu yok; elit polisin tabanca akışını kullanır, ama top mermisiyle (2026-11-04).
 
 | | 1. Miniboss | 2. Miniboss |
 |---|---|---|
-| **Geliş** | **6. dk** | **8. dk** (ilki hâlâ yaşıyorsa o ölene kadar bekler) |
+| **Geliş** | **6. dk** | **9. dk** (ilki hâlâ yaşıyorsa o ölene kadar bekler) |
 | **Can** | 300 | 600 |
-| **Saldırı** | 3 vuruşluk seri × 15 = **45 hasar**, 2.5 sn'de bir, menzil 3 | 4 vuruşluk seri × 22 = **88 hasar**, 2.2 sn'de bir, menzil 3.5 |
-| **Hız** | 1.8 (blob'dan yavaş, kaçılabilir) | 2.0 |
+| **Saldırı** | Tank topu: 1.1 sn nişan lazeri (son 0.4 sn kilit) → **1 mermi × 25 hasar**, sonra 2.5 sn bekleme. Menzil 8, mermi hızı 9 | 0.9 sn nişan (son 0.35 sn kilit) → **2 mermi × 20 = 40 hasar** (0.45 sn arayla), 2.2 sn bekleme. Menzil 8, mermi hızı 10 |
+| **Hız** | 2.9. Ekran dışında ve 25 birimden uzaktaysa **×2** (yetişme), ekrana girince normale döner | 3.2, yetişme aynı |
 | **Algı** | Tüm harita: oyuncuyu her yerden bulur | Tüm harita |
 | **Yutulma** | **Hiçbir şekilde yutulamaz**, silahla ölür | Aynı |
 | **Ödül** | 150 skor + 5–10 coin + sandık + **15–25 bonus coin** | 250 skor + 5–10 coin + sandık + **25–40 bonus coin** |
 
 - **Silahla öldürme süresi:** 1. Miniboss: temel silahla ~30 sn, Silah Gücü 8 ile ~10 sn. 2. Miniboss: ~60 sn / ~20 sn.
 - **Ekranda:** Boss can barı HUD'da görünür.
-- **Görsel:** Polis tankı modeli. Saldırırken ileri atılır (hamle animasyonu).
+- **Görsel:** Polis tankı modeli, **2 kat büyük** (`CityKitPipeline.MinibossScale`). Ateş edince geri teper.
+- **Kaçış:** Kilit anında (lazer kalınlaşınca) yana kaçan oyuncu mermiyi atlatır. Arada bina varsa ateş etmez, yürür. Menzil oyuncu silahıyla eşit (8): o sana ateş edebiliyorsa sen de ona edebilirsin.
+- **Ölçek:** 6. dk'da can ~120-150 iken tek isabet canın ~1/5'i; 5-6 isabet öldürür.
 
-### 💀 Final Boss
-GDD Karar 1+8: **"Vurarak son faza getirirsin, yutarak bitirirsin."**
+### 🚁 Final Boss: "Polis Helikopteri" (2026-11-04)
+**"Vur, alçalt, büyü, yut."** Helikopter havada uçar; vurdukça alçalır, sen de ona uzanacak kadar büyüyüp yutarsın.
 
 | | Final Boss |
 |---|---|
 | **Geliş** | **12. dk** (bir miniboss yaşıyorsa o ölene kadar bekler) |
-| **Can** | 3000 |
-| **Saldırı** | 5 vuruşluk seri × 28 = **140 hasar**, 2 sn'de bir, menzil 4 |
-| **Hız** | 2.2 |
+| **Can** | 3000. **Silahla ölmez** (can 1'in altına inmez) |
+| **İrtifa** (kızakların yerden yüksekliği) | Başta **8** → can %75'te **7** → %50'de **6** → %25'te **5**. Yumuşak iner, geri yükselmez |
+| **Saldırı** | Makineli tüfek, yukarıdan: 1 sn nişan lazeri (son 0.4 sn kilit) → **6 mermi × 6 = 36 hasar** (0.12 sn arayla), 2 sn bekleme. Menzil 10 (yatay). Arada bina varsa ateş etmez |
+| **Hız** | 3.5. Ekran dışında ve uzaktaysa ×2 (yetişme) |
 | **Algı** | Tüm harita |
-| **Faz 1** | Silahla vurulur ama **silahla ölmez**: can 1'in altına inmez |
-| **Faz 2 ("yenebilir")** | Can **%25'in altına** (750) inince yutulabilir hale gelir. Blob **Giant** olmalı (ya da Avcı Formu, bkz. Bölüm 6) |
+| **Yutulma** | Blob'un tepesi helikoptere **değdiği an**, hangi irtifada olursa olsun. Çok büyüyen oyuncu daha erken bitirir |
 | **Ödül** | Yutulunca **run "tamamlandı" olarak biter** (ölümden ayrı ekran), 300 mass, 600 skor, **60–100 bonus coin**, tam kredi (ölümde %50) |
 
-- **Faz 2'ye indirme süresi:** 2250 hasar gerekir. Temel silahla ~225 sn (3.75 dk), Silah Gücü 8 ile ~75 sn (tek hedef).
-- **Zaman sınırı:** Final boss yutulamazsa run **15. dk'da** "hayatta kaldın" olarak biter (güvenlik eşiği).
+- **Ne kadar büyümek gerekir** (blob tepesi ≈ 1.1 × ölçek): irtifa 5 ≈ **1340 mass** (Giant'ın biraz üstü), 6 ≈ 1950, 7 ≈ 2700, 8 ≈ 3600.
+- **Oyuncu silahı yukarı ateş eder:** Havadaki hedefe nişan otomatik 3D (skill gerekmez). Menzil yatay ölçülür; helikopterin altına yaklaşman yeter. Yerdeki düşmanlarda davranış değişmedi.
+- **Kamera:** Helikopter gelince hızlıca uzaklaşıp ikinizi birden kadraja alır; boss ölünce normale döner.
+- **Görsel:** Rotorlar döner, havada süzülür, gittiği yöne eğilir. Son irtifada rotor yavaşlar ("hasarlı").
+- **Zaman sınırı yok:** Run sadece ölümle ya da helikopter yutulunca biter (15. dk sınırı 2026-11-04'te kaldırıldı).
 
 ### Zorluk zaman çizelgesi
 | Dakika | Olay |
@@ -325,10 +339,10 @@ GDD Karar 1+8: **"Vurarak son faza getirirsin, yutarak bitirirsin."**
 | **Medium** (en geç 4) | Elit polis dalgası (aynı anda en fazla 10 elit, toplam 30'un içinde) |
 | 5 | Düşman hasarı ×1.2 |
 | 6 | 1. Miniboss |
-| 8 | 2. Miniboss |
+| 9 | 2. Miniboss |
 | 10 | Düşman yoğunluğu ×2 (aynı anda en fazla 60) |
 | 12 | Final Boss |
-| 15 | Run biter |
+| 15 | Düşman hızı artar (run bitmez; sadece ölüm ya da helikopteri yutmak bitirir) |
 
 ---
 
@@ -348,10 +362,10 @@ GDD Karar 1+8: **"Vurarak son faza getirirsin, yutarak bitirirsin."**
 9. Karakter ikonları boş (#47).
 
 **Bosslar**
-10. **Final boss tek seride öldürüyor:** 140 hasar, başlangıç canı 100. Zırh ve Can Artışı almamış oyuncu tek saldırıda ölür. Bilinçli mi?
-11. **Final boss'a yetişmek zor olabilir:** 12. dk'da geliyor, run 15. dk'da bitiyor. Silah Gücü almamış oyuncu faz 2'ye ~3.75 dk'da iner, yani yetişemez. Ya boss daha erken gelmeli, ya canı düşmeli, ya da süre uzamalı.
+10. ~~**Final boss tek seride öldürüyor**~~ ✅ 2026-11-04: helikopter, 6 × 6 = 36 hasarlık kaçılabilir seri.
+11. ~~**Final boss'a yetişmek zor olabilir**~~ ✅ 2026-11-04: zaman sınırı kaldırıldı.
 12. **Boss hasarı zamanla artmıyor:** Polislere uygulanan ×1.2 / ×2 zorluk çarpanları bosslara uygulanmıyor (değerler zaten sabit yüksek). Bilinçli mi?
 13. **Bosslar sandık da düşürüyor:** Elit sayıldıkları için ölünce bonus coin'in yanında bir sandık (ekstra skill seçimi) ve 5–10 coin daha veriyorlar.
-14. **Avcı Formu final boss'u erken yutturabilir:** Avcı Formu'nun "vurulan düşman 3 sn tier'a bakmadan yenir" kuralı, faz 2'deki final boss'a da işliyor; Giant olmadan bitirilebilir. Ödül mü, açık mı?
-15. **Miniboss'u ayırt eden bir mekanik yok:** GDD alan saldırısı öngörüyor, şu an elit gibi yakın dövüş serisi (#58).
+14. ~~**Avcı Formu final boss'u erken yutturabilir**~~ ✅ 2026-11-04: helikoptere fiziksel olarak uzanmak gerekiyor, Avcı Formu bunu atlatamaz.
+15. ~~**Miniboss'u ayırt eden bir mekanik yok**~~ ✅ 2026-11-04: tank topu (menzilli, ağır, kaçılabilir) + 2 kat boy. GDD'nin alan saldırısı (patlama) hâlâ yok (#58).
 16. **Düşman tavanları belgelerle uyuşmuyor:** Sahnede aynı anda 30 düşman / 10 elit var (10. dk'dan sonra 60). GDD ve CLAUDE.md 15 polis / 4 elit diyor (#50). Hangisi geçerli?

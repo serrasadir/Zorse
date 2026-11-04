@@ -15,7 +15,19 @@ namespace BlobSurvivor.Entities.Blob
         public float MaxHealth => _maxHealth;
         public bool IsAlive => CurrentHealth > 0f;
 
-        private float _armorMultiplier = 1f;
+        // 2026-11-04 (Serra): Zırh skill'i artık yüzdesel azaltma değil, kalkan havuzu — hasarı önce kalkan yer,
+        // biterse can. Son hasardan _shieldRechargeDelay sn sonra _shieldRechargeDuration sn'de dolar.
+        // Görseli ve dikenleri ArmorShield (Zırh seçilince eklenir) bu event'leri dinleyerek yapar.
+        private const float ShieldRechargeDuration = 2f;
+        private float _shieldMax;
+        private float _shieldRechargeDelay = 4f;
+        private float _lastHitTime = -999f;
+        public float ShieldCurrent { get; private set; }
+        public float ShieldMax => _shieldMax;
+        public event System.Action<float, float> OnShieldChanged; // current, max
+        public event System.Action<float> OnShieldHit;            // kalkanın yuttuğu hasar
+        public event System.Action OnShieldBroken;
+
         private float _regenTimer;
         private bool _regenEnabled;
         private float _baseMaxHealth;
@@ -45,7 +57,9 @@ namespace BlobSurvivor.Entities.Blob
         {
             _maxHealth = _baseMaxHealth;
             CurrentHealth = _maxHealth;
-            _armorMultiplier = 1f;
+            _shieldMax = 0f;
+            ShieldCurrent = 0f;
+            OnShieldChanged?.Invoke(0f, 0f);
             // 2026-11-03: sadece kapatmak yetmiyordu — hız kalıyordu, sonraki run'ın ilk Rejenerasyon
             // seçimi önceki run'ın birikimi üstüne ekleniyordu.
             _regenRate = _baseRegenRate;
@@ -55,7 +69,9 @@ namespace BlobSurvivor.Entities.Blob
 
         private void Update()
         {
-            if (!_regenEnabled || !IsAlive) return;
+            if (!IsAlive) return;
+            UpdateShieldRecharge();
+            if (!_regenEnabled) return;
 
             _regenTimer += Time.deltaTime;
             if (_regenTimer >= _regenInterval)
@@ -65,11 +81,40 @@ namespace BlobSurvivor.Entities.Blob
             }
         }
 
+        private void UpdateShieldRecharge()
+        {
+            if (_shieldMax <= 0f || ShieldCurrent >= _shieldMax) return;
+            if (Time.time - _lastHitTime < _shieldRechargeDelay) return;
+
+            ShieldCurrent = Mathf.Min(_shieldMax, ShieldCurrent + _shieldMax / ShieldRechargeDuration * Time.deltaTime);
+            OnShieldChanged?.Invoke(ShieldCurrent, _shieldMax);
+        }
+
+        // Zırh seçilince/seviye atlayınca: havuz büyür ve hemen dolar.
+        public void SetShield(float max, float rechargeDelay)
+        {
+            _shieldMax = Mathf.Max(0f, max);
+            _shieldRechargeDelay = rechargeDelay;
+            ShieldCurrent = _shieldMax;
+            OnShieldChanged?.Invoke(ShieldCurrent, _shieldMax);
+        }
+
         public void TakeDamage(float amount, DamageType type = DamageType.Physical)
         {
-            if (!IsAlive) return;
+            if (!IsAlive || amount <= 0f) return;
 
-            float remainingDamage = amount * _armorMultiplier;
+            _lastHitTime = Time.time; // her hasar (kalkana ya da cana) yenilenmeyi erteler
+            float remainingDamage = amount;
+
+            if (ShieldCurrent > 0f)
+            {
+                float absorbed = Mathf.Min(ShieldCurrent, remainingDamage);
+                ShieldCurrent -= absorbed;
+                remainingDamage -= absorbed;
+                OnShieldHit?.Invoke(absorbed);
+                OnShieldChanged?.Invoke(ShieldCurrent, _shieldMax);
+                if (ShieldCurrent <= 0f) OnShieldBroken?.Invoke();
+            }
 
             if (remainingDamage > 0f)
             {
@@ -89,10 +134,7 @@ namespace BlobSurvivor.Entities.Blob
             GameEvents.RaiseHealthChanged(CurrentHealth, _maxHealth);
         }
 
-        public float GetArmorMultiplier() => _armorMultiplier;
         public float GetRegenRate() => _regenRate;
-
-        public void SetArmorMultiplier(float multiplier) => _armorMultiplier = Mathf.Clamp01(multiplier);
 
         public void IncreaseMaxHealth(float amount)
         {

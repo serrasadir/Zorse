@@ -12,18 +12,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 429f33fc55f6f440f894712573415325, type: 3}
   m_Name: EnemyData_FinalBoss
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
-  _displayName: Final Boss (12. dk)
+  _displayName: Final Boss - Polis Helikopteri (12. dk)
   _prefab: {fileID: 2072016075202350378, guid: e55e570b097534c299337932d151eb22, type: 3}
   _maxHealth: 3000
-  _damage: 28
-  _moveSpeed: 2.2
-  _attackRange: 4
+  _damage: 6
+  _moveSpeed: 3.5
+  _attackRange: 10
   _attackCooldown: 2
   _requiredConsumeTier: 5
   _scoreValue: 600
   _isElite: 1
-  _attackHitCount: 5
-  _attackHitInterval: 0.3
+  _attackHitCount: 6
+  _attackHitInterval: 0.12
+  _attackType: 1
+  _projectilePrefab: {fileID: 7310000000000000005, guid: 72ea09cc756c4a21b9f53362ab72701a, type: 3}
+  _aimLineMaterial: {fileID: 2100000, guid: 5db4a71ce5b8412fb29916ee1504ee4f, type: 2}
+  _projectileSpeed: 14
+  _projectileMaxDistance: 20
+  _aimDuration: 1
+  _aimLockDuration: 0.4
   _massReward: 300
   _preventConsumption: 1
   _requiresConsumptionToDie: 1

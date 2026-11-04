@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using BlobSurvivor.Core;
 using BlobSurvivor.Data;
 using BlobSurvivor.Entities;
+using BlobSurvivor.Entities.Enemies;
 using BlobSurvivor.Entities.Pedestrians;
 using BlobSurvivor.Entities.Vehicles;
 using Unity.AI.Navigation;
@@ -75,13 +76,23 @@ namespace BlobSurvivor.EditorTools
         // yaw'ları 0 veya hareketle belirlendiği için modele 180° eklemek yeterli. P_ eşyaları ve L_ zemin bilinçli
         // olarak dışarıda: yaw'lı yerleşimleri var, doğrulanmadan çevrilmedi.
         private static readonly Quaternion FacingFix = Quaternion.Euler(0f, 180f, 0f);
-        internal const float TallBuildingHeight = 5f;
-        internal const float TallBuildingHeightScale = 0.75f;
+        // 2026-11-04 (Serra: "çok uzun binalar, blob o kadar büyümüyor, yemesi garip"): sabit ×0.75 yerine
+        // sıkıştırma eğrisi — diz noktasının üstündeki boy TallBuildingExcessScale ile kısalır, uzun bina daha çok kısalır,
+        // sıralama korunur. Orijinal boy → yeni: kule 10.9→6.4, ofis 9.1→5.8, otel 7.8→5.3, apartman 6.7→4.9.
+        internal const float TallBuildingHeight = 4f;
+        internal const float TallBuildingExcessScale = 0.35f;
+
+        internal static float TallBuildingYScale(float height) =>
+            height > TallBuildingHeight
+                ? (TallBuildingHeight + (height - TallBuildingHeight) * TallBuildingExcessScale) / height
+                : 1f;
         // 2026-11-03 (Serra): polis yayalarla (1.16) neredeyse aynı boydaydı (1.20), kalabalıkta tehdit okunmuyordu.
         // ×1.15 ≈ 1.38: yayadan belirgin büyük, elitten (~1.58) belirgin küçük. Sadece görsel; kapsül zaten 2 birim.
         // 2026-11-03 (Serra): polis 1.15 → ×1.15 daha (1.3225), elit ×1.10. Sadece görsel; kapsül/oynanış aynı.
         internal const float PoliceModelScale = 1.3225f;
         internal const float EliteModelScale = 1.1f;
+        // 2026-11-04 (Serra): miniboss "çok küçük", en az 2 kat. Değiştirince collider/agent de ölçeklenir.
+        internal const float MinibossScale = 2f;
 
         [Serializable]
         internal class CityItem
@@ -263,17 +274,287 @@ namespace BlobSurvivor.EditorTools
 
             GameObject contents = PrefabUtility.LoadPrefabContents(prefabPath);
             contents.transform.localScale = Vector3.one;
+            Transform model = contents.transform.Find("Model");
+            if (model != null) model.localScale *= MinibossScale; // taban -1'de (zemin), ölçek tabandan büyür
             CapsuleCollider capsule = contents.GetComponent<CapsuleCollider>();
             if (capsule != null)
             {
-                capsule.radius = 0.95f;        // tank 1.8 x 2.5 (namlu hariç)
-                capsule.height = 2f;
-                capsule.center = Vector3.zero; // -1..1: zeminden kule tepesine
+                capsule.radius = 0.95f * MinibossScale;        // tank 1.8 x 2.5 (namlu hariç)
+                capsule.height = 2f * MinibossScale;
+                capsule.center = new Vector3(0f, MinibossScale - 1f, 0f); // zeminden (-1) kule tepesine
+            }
+            UnityEngine.AI.NavMeshAgent agent = contents.GetComponent<UnityEngine.AI.NavMeshAgent>();
+            if (agent != null)
+            {
+                agent.radius = 0.65f * MinibossScale;
+                agent.height = 2.6f * MinibossScale;
             }
             PrefabUtility.SaveAsPrefabAsset(contents, prefabPath);
             PrefabUtility.UnloadPrefabContents(contents);
             AssetDatabase.SaveAssets();
             return true;
+        }
+
+        // 2026-11-04 (Serra): final boss = polis helikopteri. Hiyerarşi:
+        //   Enemy_FinalBoss (kök: EnemyBase + NavMeshAgent + FinalBossController + kapsül; yerde)
+        //     Model (EnemyBase'in atış geri tepmesi bunu oynatır; y = -baseOffset = zemin)
+        //       Heli (HelicopterVisual: irtifa/süzülme/eğilme; yön düzeltmesi + HeliScale)
+        //         Body, MainRotorPivot/Mesh, TailRotorPivot/Mesh
+        // Rotorlar pivot'a takılır: FBX'in kök dönüşü ne olursa olsun pivot'un Y/X ekseni dünyaya göre doğru.
+        // Kapsül gövdeye göre irtifa 0'da kurulur; FinalBossController çalışırken irtifa kadar yukarı taşır.
+        internal const float HeliScale = 1.5f;
+        // build_police_heli.py çıktısı ("Unity local pos"): ana rotor göbeği (0, 1.74, 0.05), kuyruk (0.16, 1.32, -2.6)
+        // — burun +Z olacak şekilde. Ham FBX'te yön ters olabilir; kuyruk tarafı gövdenin uzun ucundan bulunur.
+        private static readonly Vector3 HeliMainHub = new Vector3(0f, 1.74f, 0.05f);
+        private static readonly Vector3 HeliTailHub = new Vector3(0.16f, 1.32f, -2.6f);
+
+        [MenuItem("Tools/Blob.io/Final Boss Helikopterini Uygula")]
+        private static void ApplyFinalBossHelicopterMenu()
+        {
+            AssetDatabase.Refresh();
+            Debug.Log($"[CityKitPipeline] Final boss helikopteri uygulandı: {ApplyFinalBossHelicopter()}.");
+        }
+
+        internal static bool ApplyFinalBossHelicopter()
+        {
+            const string prefabPath = "Assets/_Project/Prefabs/Enemies/Enemy_FinalBoss.prefab";
+            Material palette = GetPaletteMaterial();
+            MeshFilter bodySrc = LoadSourceMesh("V_PoliceHeli");
+            MeshFilter mainSrc = LoadSourceMesh("V_PoliceHeliRotor");
+            MeshFilter tailSrc = LoadSourceMesh("V_PoliceHeliTailRotor");
+            if (palette == null || bodySrc == null || mainSrc == null || tailSrc == null)
+            {
+                Debug.LogError("[CityKitPipeline] Helikopter: palet ya da V_PoliceHeli*.fbx bulunamadı.");
+                return false;
+            }
+
+            Material shadowBody = EnsureShadowMaterial("HeliShadowBody", 128, ShadowBodyAlpha);
+            Material shadowRotor = EnsureShadowMaterial("HeliShadowRotor", 256, ShadowRotorAlpha);
+            s_shadowBody = shadowBody;
+            s_shadowRotor = shadowRotor;
+
+            GameObject contents = PrefabUtility.LoadPrefabContents(prefabPath);
+            try
+            {
+                Transform oldModel = contents.transform.Find("Model");
+                if (oldModel != null) UnityEngine.Object.DestroyImmediate(oldModel.gameObject);
+                Transform oldShadow = contents.transform.Find("Shadow");
+                if (oldShadow != null) UnityEngine.Object.DestroyImmediate(oldShadow.gameObject);
+                MeshRenderer oldRenderer = contents.GetComponent<MeshRenderer>();
+                if (oldRenderer != null) UnityEngine.Object.DestroyImmediate(oldRenderer);
+                MeshFilter oldFilter = contents.GetComponent<MeshFilter>();
+                if (oldFilter != null) UnityEngine.Object.DestroyImmediate(oldFilter);
+                contents.transform.localScale = Vector3.one; // eski kapsül (1.8, 1.5, 1) ölçekliydi
+
+                UnityEngine.AI.NavMeshAgent agent = contents.GetComponent<UnityEngine.AI.NavMeshAgent>();
+                float rootY = agent != null ? agent.baseOffset : EliteRootY;
+                int layer = contents.layer;
+
+                Transform model = NewChild(contents.transform, "Model", new Vector3(0f, -rootY, 0f), layer);
+                Transform heli = NewChild(model, "Heli", Vector3.zero, layer);
+
+                MeshRenderer body = AddMeshChild(heli, "Body", bodySrc, palette, Vector3.zero, layer);
+
+                // Ham modelde kuyruk +Z'deyse (Blender export'u ön cepheyi -Z'ye çeviriyor, bkz. FacingFix) 180° çevir.
+                Bounds raw = body.bounds; // Heli henüz birim/dönüşsüz, kök orijinde: prefab-yerel
+                float rel = model.position.z;
+                bool tailAtPlusZ = raw.max.z - rel > rel - raw.min.z;
+                heli.localRotation = tailAtPlusZ ? FacingFix : Quaternion.identity;
+                // Göbek konumları burun +Z çerçevesinde verildi; Heli'nin dönüşü ham çerçeveye taşır.
+                Vector3 mainHub = Quaternion.Inverse(heli.localRotation) * HeliMainHub;
+                Vector3 tailHub = Quaternion.Inverse(heli.localRotation) * HeliTailHub;
+
+                Transform mainPivot = NewChild(heli, "MainRotorPivot", mainHub, layer);
+                AddMeshChild(mainPivot, "Mesh", mainSrc, palette, Vector3.zero, layer);
+                Transform tailPivot = NewChild(heli, "TailRotorPivot", tailHub, layer);
+                AddMeshChild(tailPivot, "Mesh", tailSrc, palette, Vector3.zero, layer);
+
+                heli.localScale = Vector3.one * HeliScale;
+
+                // Kapsül: gövde boyunca (Z), irtifa 0'da. Rotor diski dahil değil (kalabalıkta çok geniş isabet alanı olurdu).
+                Bounds b = body.bounds;
+                CapsuleCollider capsule = contents.GetComponent<CapsuleCollider>();
+                if (capsule == null) capsule = contents.AddComponent<CapsuleCollider>();
+                capsule.direction = 2;
+                capsule.radius = Mathf.Max(b.extents.x, b.extents.y);
+                capsule.height = Mathf.Max(b.size.z, capsule.radius * 2f);
+                capsule.center = b.center - contents.transform.position;
+
+                // Gerçek gölge kapalı: sahte yer gölgesi (HeliShadow) tam altında, güneşle kayık ikinci gölge olmasın.
+                foreach (MeshRenderer r in heli.GetComponentsInChildren<MeshRenderer>())
+                    r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                MeshRenderer mainRotorRenderer = mainPivot.GetComponentInChildren<MeshRenderer>();
+                BuildHeliShadow(contents.transform, body.bounds, mainRotorRenderer != null ? mainRotorRenderer.bounds : body.bounds,
+                    mainPivot, rootY, layer);
+
+                HelicopterVisual visual = heli.gameObject.AddComponent<HelicopterVisual>();
+                SerializedObject so = new SerializedObject(visual);
+                so.FindProperty("_mainRotor").objectReferenceValue = mainPivot;
+                so.FindProperty("_tailRotor").objectReferenceValue = tailPivot;
+                so.ApplyModifiedPropertiesWithoutUndo();
+
+                if (contents.GetComponent<FinalBossController>() == null)
+                    contents.AddComponent<FinalBossController>();
+
+                PrefabUtility.SaveAsPrefabAsset(contents, prefabPath);
+                Debug.Log($"[CityKitPipeline] Helikopter: kuyruk ham +Z={tailAtPlusZ}, kapsül r={capsule.radius:F2} h={capsule.height:F2} c={capsule.center}.");
+                return true;
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(contents);
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        // --- Helikopter yer gölgesi (HeliShadow) ---
+        private const string FxArtFolder = "Assets/_Project/Art/FX";
+        private const float ShadowGroundY = 0.15f; // kaldırım (0.12) üstü, z-fighting olmasın
+        private static Material s_shadowBody;
+        private static Material s_shadowRotor;
+
+        private static void BuildHeliShadow(Transform root, Bounds body, Bounds rotor, Transform rotorPivot, float rootY, int layer)
+        {
+            Transform shadow = NewChild(root, "Shadow", new Vector3(0f, -rootY + ShadowGroundY, 0f), layer);
+            Vector3 rootPos = root.position;
+
+            // Gövde lekesi: gövdenin yerdeki izi kadar elips (helikopterle birlikte döner — kökün çocuğu).
+            Transform bodyQuad = NewQuad(shadow, "Body", s_shadowBody, layer);
+            bodyQuad.localPosition = new Vector3(body.center.x - rootPos.x, 0f, body.center.z - rootPos.z);
+            bodyQuad.localScale = new Vector3(body.size.x * 1.4f, body.size.z * 1.05f, 1f);
+
+            // Pervane gölgesi: rotor diski çapında, göbeğin altında; açıyı HeliShadow her kare rotordan kopyalar.
+            Transform rotorQuad = NewQuad(shadow, "Rotor", s_shadowRotor, layer);
+            Vector3 hub = rotorPivot.position - rootPos;
+            rotorQuad.localPosition = new Vector3(hub.x, 0.01f, hub.z);
+            float diameter = Mathf.Max(rotor.size.x, rotor.size.z);
+            rotorQuad.localScale = new Vector3(diameter, diameter, 1f);
+
+            HeliShadow component = shadow.gameObject.AddComponent<HeliShadow>();
+            SerializedObject so = new SerializedObject(component);
+            so.FindProperty("_body").objectReferenceValue = bodyQuad.GetComponent<Renderer>();
+            so.FindProperty("_rotor").objectReferenceValue = rotorQuad.GetComponent<Renderer>();
+            so.FindProperty("_rotorSource").objectReferenceValue = rotorPivot;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static Transform NewQuad(Transform parent, string name, Material material, int layer)
+        {
+            GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            UnityEngine.Object.DestroyImmediate(quad.GetComponent<Collider>());
+            quad.name = name;
+            quad.layer = layer;
+            quad.transform.SetParent(parent, false);
+            quad.transform.localRotation = Quaternion.Euler(90f, 0f, 0f); // yere yatık, yüzü yukarı
+            MeshRenderer renderer = quad.GetComponent<MeshRenderer>();
+            renderer.sharedMaterial = material;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+            return quad.transform;
+        }
+
+        private delegate float ShadowAlpha(float x, float y); // -1..1 doku koordinatı → 0..1 opaklık
+
+        // Merkezden kenara yumuşak sönen leke.
+        private static float ShadowBodyAlpha(float x, float y)
+        {
+            float r = Mathf.Sqrt(x * x + y * y);
+            return 1f - Mathf.SmoothStep(0.45f, 1f, r);
+        }
+
+        // 4 kanatlı pervane + göbek; kenarlar yumuşak, uçlara doğru hafif incelir.
+        private static float ShadowRotorAlpha(float x, float y)
+        {
+            float r = Mathf.Sqrt(x * x + y * y);
+            if (r > 1f) return 0f;
+            float hub = 1f - Mathf.SmoothStep(0.06f, 0.1f, r);
+
+            float angle = Mathf.Atan2(y, x);
+            float sector = Mathf.PI * 0.5f;
+            float local = Mathf.Repeat(angle + sector * 0.5f, sector) - sector * 0.5f; // en yakın kanada açı
+            float distance = Mathf.Abs(Mathf.Sin(local)) * r;                           // kanat eksenine dik mesafe
+            float halfWidth = Mathf.Lerp(0.05f, 0.035f, r);
+            float blade = (1f - Mathf.SmoothStep(halfWidth * 0.6f, halfWidth, distance))
+                        * (1f - Mathf.SmoothStep(0.9f, 1f, r))
+                        * (Mathf.Cos(local) > 0f ? 1f : 0f);
+            return Mathf.Max(hub, blade);
+        }
+
+        // Doku (PNG) + URP Unlit saydam materyal; varsa yeniden üretir. Materyal prefab'da referanslı olduğu için
+        // saydam shader varyantı build'de ayıklanmaz (bkz. ShaderStripGuard / ghost materyaller).
+        private static Material EnsureShadowMaterial(string name, int size, ShadowAlpha alphaAt)
+        {
+            if (!AssetDatabase.IsValidFolder(FxArtFolder))
+                AssetDatabase.CreateFolder("Assets/_Project/Art", "FX");
+
+            string texturePath = $"{FxArtFolder}/{name}.png";
+            Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            Color[] pixels = new Color[size * size];
+            for (int py = 0; py < size; py++)
+            for (int px = 0; px < size; px++)
+            {
+                float x = (px + 0.5f) / size * 2f - 1f;
+                float y = (py + 0.5f) / size * 2f - 1f;
+                pixels[py * size + px] = new Color(1f, 1f, 1f, Mathf.Clamp01(alphaAt(x, y)));
+            }
+            texture.SetPixels(pixels);
+            texture.Apply();
+            System.IO.File.WriteAllBytes(texturePath, texture.EncodeToPNG());
+            UnityEngine.Object.DestroyImmediate(texture);
+            AssetDatabase.ImportAsset(texturePath);
+
+            TextureImporter importer = (TextureImporter)AssetImporter.GetAtPath(texturePath);
+            importer.textureType = TextureImporterType.Default;
+            importer.alphaIsTransparency = true;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.mipmapEnabled = true;
+            importer.maxTextureSize = size;
+            importer.SaveAndReimport();
+            Texture2D imported = AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
+
+            string materialPath = $"{FxArtFolder}/Mat_{name}.mat";
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+            if (material == null)
+            {
+                material = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+                AssetDatabase.CreateAsset(material, materialPath);
+            }
+            material.SetTexture("_BaseMap", imported);
+            material.SetColor("_BaseColor", new Color(0f, 0f, 0f, 0.6f));
+            material.SetFloat("_Surface", 1f);
+            material.SetFloat("_Blend", 0f);
+            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            material.SetFloat("_SrcBlendAlpha", (float)UnityEngine.Rendering.BlendMode.One);
+            material.SetFloat("_DstBlendAlpha", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            material.SetFloat("_ZWrite", 0f);
+            material.SetOverrideTag("RenderType", "Transparent");
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static Transform NewChild(Transform parent, string name, Vector3 localPosition, int layer)
+        {
+            GameObject go = new GameObject(name) { layer = layer };
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = localPosition;
+            return go.transform;
+        }
+
+        // FBX'in kök dönüşü/ölçeği korunur (AddModel ile aynı), yön düzeltmesi üst objede yapılır.
+        private static MeshRenderer AddMeshChild(Transform parent, string name, MeshFilter source, Material material,
+            Vector3 localPosition, int layer)
+        {
+            Transform child = NewChild(parent, name, localPosition, layer);
+            child.localRotation = source.transform.rotation;
+            child.localScale = source.transform.lossyScale;
+            child.gameObject.AddComponent<MeshFilter>().sharedMesh = source.sharedMesh;
+            MeshRenderer renderer = child.gameObject.AddComponent<MeshRenderer>();
+            renderer.sharedMaterial = material;
+            return renderer;
         }
 
         // Kök ölçeği 1 yapılır: eski küpün 0.2 ölçeği modeli de toplama alanını da küçültürdü.
@@ -403,16 +684,97 @@ namespace BlobSurvivor.EditorTools
             data.ApplyModifiedPropertiesWithoutUndo();
         }
 
+        // 2026-11-04: tank NavMesh'i ayrı bir surface — sahnedeki tüm surface'ler birlikte bake edilir.
         internal static void BakeNavMesh()
         {
-            NavMeshSurface surface = UnityEngine.Object.FindAnyObjectByType<NavMeshSurface>();
-            if (surface == null)
+            NavMeshSurface[] surfaces = UnityEngine.Object.FindObjectsByType<NavMeshSurface>(FindObjectsSortMode.None);
+            if (surfaces.Length == 0)
             {
                 Debug.LogWarning("[CityKitPipeline] NavMeshSurface bulunamadı, bake atlandı.");
                 return;
             }
 
-            NavMeshAssetManager.instance.StartBakingSurfaces(new UnityEngine.Object[] { surface });
+            NavMeshAssetManager.instance.StartBakingSurfaces(surfaces);
+        }
+
+        // 2026-11-04 (Serra: "miniboss binaların köşelerine giriyor, çarpmasın"): NavMesh 0.5 yarıçaplı ajana
+        // bake'li, tank 2 kat büyüdükten sonra ~1.8 yarı genişlikte — yol bulma onu bina kenarına 0.5'e kadar
+        // sokuyordu. Tank için ayrı ajan tipi + aynı ayarlarla ikinci NavMeshSurface. Bina-bina arası en az
+        // ~5.2 (4 sokak + iki kaldırım payı), tank 3.6 geniş: tüm sokaklar açık kalır. Tekrar çalıştırmak güvenli.
+        internal const string TankAgentName = "Tank";
+        internal const float TankAgentRadius = 1.8f;
+        private const float TankAgentHeight = 2.5f;
+
+        [MenuItem("Tools/Blob.io/Tank NavMesh'ini Kur")]
+        private static void SetupTankNavMeshMenu() => Debug.Log(SetupTankNavMesh());
+
+        internal static string SetupTankNavMesh()
+        {
+            int agentTypeID = EnsureAgentType(TankAgentName, TankAgentRadius, TankAgentHeight);
+
+            NavMeshSurface[] surfaces = UnityEngine.Object.FindObjectsByType<NavMeshSurface>(FindObjectsSortMode.None);
+            NavMeshSurface main = Array.Find(surfaces, x => x.agentTypeID == 0);
+            if (main == null) return "[CityKitPipeline] Tank NavMesh: ana (Humanoid) NavMeshSurface bulunamadı.";
+
+            NavMeshSurface tank = Array.Find(surfaces, x => x.agentTypeID == agentTypeID);
+            if (tank == null) tank = Undo.AddComponent<NavMeshSurface>(main.gameObject);
+            tank.agentTypeID = agentTypeID;
+            tank.collectObjects = main.collectObjects;
+            tank.size = main.size;
+            tank.center = main.center;
+            tank.layerMask = main.layerMask;
+            tank.useGeometry = main.useGeometry;
+            tank.defaultArea = main.defaultArea;
+            tank.ignoreNavMeshAgent = main.ignoreNavMeshAgent;
+            tank.ignoreNavMeshObstacle = main.ignoreNavMeshObstacle;
+            tank.overrideTileSize = main.overrideTileSize;
+            tank.tileSize = main.tileSize;
+            tank.overrideVoxelSize = main.overrideVoxelSize;
+            tank.voxelSize = main.voxelSize;
+            tank.minRegionArea = main.minRegionArea;
+            tank.buildHeightMesh = main.buildHeightMesh;
+            EditorUtility.SetDirty(tank);
+
+            const string prefabPath = "Assets/_Project/Prefabs/Enemies/Enemy_Miniboss.prefab";
+            GameObject contents = PrefabUtility.LoadPrefabContents(prefabPath);
+            UnityEngine.AI.NavMeshAgent agent = contents.GetComponent<UnityEngine.AI.NavMeshAgent>();
+            if (agent != null) agent.agentTypeID = agentTypeID;
+            PrefabUtility.SaveAsPrefabAsset(contents, prefabPath);
+            PrefabUtility.UnloadPrefabContents(contents);
+            AssetDatabase.SaveAssets();
+
+            EditorSceneManager.MarkSceneDirty(main.gameObject.scene);
+            BakeNavMesh();
+            return $"[CityKitPipeline] Tank NavMesh kuruldu: ajan tipi {agentTypeID} (r={TankAgentRadius}), miniboss bağlandı={agent != null}. " +
+                   "Bake bitince sahneyi kaydet (Cmd+S).";
+        }
+
+        // Proje NavMesh ajan tiplerinde adıyla arar, yoksa oluşturur; yarıçap/yükseklik her seferinde ayarlanır.
+        private static int EnsureAgentType(string name, float radius, float height)
+        {
+            UnityEngine.Object projectSettings = Unsupported.GetSerializedAssetInterfaceSingleton("NavMeshProjectSettings");
+            SerializedObject so = new SerializedObject(projectSettings);
+            SerializedProperty settings = so.FindProperty("m_Settings");
+            SerializedProperty names = so.FindProperty("m_SettingNames");
+
+            int index = -1;
+            for (int i = 0; i < names.arraySize; i++)
+                if (names.GetArrayElementAtIndex(i).stringValue == name) { index = i; break; }
+
+            if (index < 0)
+            {
+                UnityEngine.AI.NavMesh.CreateSettings();
+                so.Update();
+                index = settings.arraySize - 1;
+                if (names.arraySize < settings.arraySize) names.arraySize = settings.arraySize;
+                names.GetArrayElementAtIndex(index).stringValue = name;
+            }
+
+            SerializedProperty entry = settings.GetArrayElementAtIndex(index);
+            entry.FindPropertyRelative("agentRadius").floatValue = radius;
+            entry.FindPropertyRelative("agentHeight").floatValue = height;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return entry.FindPropertyRelative("agentTypeID").intValue;
         }
 
         private static void EnsureFolder(string parent, string name)
@@ -501,8 +863,8 @@ namespace BlobSurvivor.EditorTools
 
             Vector3 scale = source.transform.lossyScale;
             float height = source.sharedMesh.bounds.size.y * scale.y;
-            if (mesh.StartsWith("B_") && height > TallBuildingHeight)
-                scale.y *= TallBuildingHeightScale;
+            if (mesh.StartsWith("B_"))
+                scale.y *= TallBuildingYScale(height);
             if (mesh == "H_Police")
                 scale *= PoliceModelScale;
             else if (mesh == "H_Elite")
@@ -537,8 +899,8 @@ namespace BlobSurvivor.EditorTools
 
             Bounds bounds = renderer.bounds;
             Vector3 expected = new Vector3(item.sx, item.sy, item.sz);
-            if (item.mesh.StartsWith("B_") && item.sy > TallBuildingHeight)
-                expected.y *= TallBuildingHeightScale;
+            if (item.mesh.StartsWith("B_"))
+                expected.y *= TallBuildingYScale(item.sy);
             if ((bounds.size - expected).magnitude > expected.magnitude * 0.1f)
                 Debug.LogWarning($"[CityKitPipeline] {item.mesh}: boyut {bounds.size}, beklenen {expected}. Eksen/ölçek hatalı olabilir.");
 

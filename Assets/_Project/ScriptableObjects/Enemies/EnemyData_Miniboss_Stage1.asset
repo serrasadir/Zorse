@@ -15,14 +15,22 @@ MonoBehaviour:
   _displayName: Miniboss (6. dk)
   _prefab: {fileID: 2072016075202350378, guid: eb24b0619c2b648b48f533c3c5b08137, type: 3}
   _maxHealth: 300
-  _damage: 15
+  _damage: 25
   _moveSpeed: 2.9
-  _attackRange: 3
+  _attackRange: 8
   _attackCooldown: 2.5
   _requiredConsumeTier: 5
   _scoreValue: 150
   _isElite: 1
-  _attackHitCount: 3
+  _attackHitCount: 1
   _attackHitInterval: 0.4
+  _attackType: 1
+  _projectilePrefab: {fileID: 7310000000000000005, guid: 0f57b239e0464234a4d4299800c4b89e, type: 3}
+  _aimLineMaterial: {fileID: 2100000, guid: 5db4a71ce5b8412fb29916ee1504ee4f, type: 2}
+  _projectileSpeed: 9
+  _projectileMaxDistance: 14
+  _aimDuration: 1.1
+  _aimLockDuration: 0.4
   _massReward: 0
   _preventConsumption: 1
+  _crushesObstacles: 1

@@ -6,8 +6,7 @@ namespace BlobSurvivor.Entities.Weapons
     {
         protected override void Fire(Transform target)
         {
-            Vector3 direction = target.position - transform.position;
-            direction.y = 0f;
+            Vector3 direction = GetAimDirection(target, lead: false);
 
             Projectile projectile = SpawnProjectile(direction);
             if (projectile is HomingProjectile homing)

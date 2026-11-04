@@ -16,11 +16,12 @@ namespace BlobSurvivor.Core
         RunComplete
     }
 
-    // A17 (GDD_v2.md Karar 1): run'ın GameOver'dan (oyuncu ölümü) ayrı, "başarıyla" kapandığı iki yol.
+    // A17 (GDD_v2.md Karar 1): run'ın GameOver'dan (oyuncu ölümü) ayrı, "başarıyla" kapandığı yol.
+    // 2026-11-04 (Serra): 15. dk zaman sınırı (TimeSurvived) kaldırıldı — boss savaşı uzayabilir;
+    // run sadece ölümle ya da final boss yutulunca biter.
     public enum RunEndReason
     {
-        FinalBossConsumed,
-        TimeSurvived
+        FinalBossConsumed
     }
 
     public class GameManager : MonoBehaviour
@@ -30,11 +31,6 @@ namespace BlobSurvivor.Core
         public static GameManager Instance { get; private set; }
 
         [SerializeField] private CharacterData _defaultCharacter;
-
-        // A17: final boss (12. dk) yenilemese bile run'ın sonsuza kadar sürmemesi için güvenlik eşiği —
-        // GDD'nin "12-15 dk" run vizyonunun üst sınırı. WaveController'a dokunmadan (dev-a domaini,
-        // ayrı dosya) sadece burada, run'ın ne zaman kapanacağına dair kararı tutar.
-        [SerializeField] private float _runTimeoutSeconds = 900f;
 
         private CharacterData _lastCharacter;
         // 2026-09-06 (Serra): RaiseSurvivalTimeUpdated her frame ateşleniyordu — HUD (her frame string
@@ -89,9 +85,6 @@ namespace BlobSurvivor.Core
                 _survivalTimeEventTimer = SurvivalTimeEventInterval;
                 GameEvents.RaiseSurvivalTimeUpdated(SurvivalTime);
             }
-
-            if (SurvivalTime >= _runTimeoutSeconds)
-                TriggerRunComplete(RunEndReason.TimeSurvived);
         }
 
         private void HandleFinalBossConsumed() => TriggerRunComplete(RunEndReason.FinalBossConsumed);
@@ -169,6 +162,7 @@ namespace BlobSurvivor.Core
             RemoveComponent<HealOnConsumeComponent>(blob);
             RemoveComponent<BlackHoleComponent>(blob);
             RemoveComponent<AvciFormuComponent>(blob);
+            RemoveComponent<ArmorShield>(blob); // Zırh baloncuğu + dikenler (kalkan havuzunu ResetHealth sıfırlar)
 
             blob.GetComponent<BlobGrowth>()?.ResetGrowth();
             blob.GetComponent<BlobHealth>()?.ResetHealth();

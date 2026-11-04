@@ -24,6 +24,9 @@ namespace BlobSurvivor.Entities.Weapons
         // mermi yatay uçuyor — Giant'ta merkez ~2 birimde, polis kapsülü ~1.65'e kadar, mermiler kafaların üstünden
         // geçiyordu. Mermi blob boyundan bağımsız, polisin göğüs hizasından çıkar.
         private const float MuzzleHeight = 0.7f; // sık ateş + çoklu hedef: oyun içinde Instantiate olmasın
+        // 2026-11-04 (final boss helikopter): menzil yatay ölçülür — blob'un üstünde bu yüksekliğe kadar
+        // uçan hedef de menzilde sayılır (dikey silindir). Yerdeki düşmanlar için eski küreyle aynı sonuç.
+        private const float VerticalReach = 14f;
 
         private readonly Collider[] _hits = new Collider[16];
         private readonly Transform[] _targets = new Transform[MaxTargets];
@@ -69,20 +72,23 @@ namespace BlobSurvivor.Entities.Weapons
         // En yakın N düşmanı _targets'a yakından uzağa doldurur (N ≤ 3, küçük ekleme sıralaması).
         private int FindNearestEnemies(int wanted)
         {
-            int hitCount = Physics.OverlapSphereNonAlloc(transform.position, _range, _hits, EnemyLayerMask);
-            int found = 0;
             Vector3 origin = transform.position;
+            int hitCount = Physics.OverlapCapsuleNonAlloc(origin, origin + Vector3.up * VerticalReach, _range, _hits, EnemyLayerMask);
+            int found = 0;
 
             for (int i = 0; i < hitCount; i++)
             {
                 Transform t = _hits[i].transform;
-                float sqr = (t.position - origin).sqrMagnitude;
+                Vector3 flat = t.position - origin;
+                flat.y = 0f;
+                float sqr = flat.sqrMagnitude;
 
                 int slot = found;
                 while (slot > 0 && _targetSqr[slot - 1] > sqr) slot--;
                 if (slot >= wanted) continue;
                 // Görüş hattı sadece listeye girecek adaylar için sorgulanır (en fazla birkaç Linecast).
-                if (Physics.Linecast(origin, t.position, WallMask, QueryTriggerInteraction.Ignore)) continue;
+                // Collider merkezi: havadaki gövdeye (helikopter) çizgi çekilir, kökü yerde kalıyor.
+                if (Physics.Linecast(origin, _hits[i].bounds.center, WallMask, QueryTriggerInteraction.Ignore)) continue;
 
                 int last = Mathf.Min(found, wanted - 1);
                 for (int j = last; j > slot; j--)
@@ -104,17 +110,34 @@ namespace BlobSurvivor.Entities.Weapons
         // uçuş süresine göre "önden kesiliyor".
         protected Vector3 GetPredictedAimPoint(Transform target)
         {
-            Vector3 targetPos = target.position;
-            if (_projectilePrefab == null) return targetPos;
-
             EnemyBase enemy = target.GetComponent<EnemyBase>();
-            if (enemy == null) return targetPos;
+            Vector3 targetPos = AimPointOf(target, enemy);
+            if (_projectilePrefab == null || enemy == null) return targetPos;
 
             float projectileSpeed = _projectilePrefab.Speed;
             if (projectileSpeed <= 0f) return targetPos;
 
             float timeToImpact = Vector3.Distance(transform.position, targetPos) / projectileSpeed;
             return targetPos + enemy.CurrentVelocity * timeToImpact;
+        }
+
+        // Hedefin nişan noktası: havadaki düşmanda gövde merkezi, yerdekilerde kök (eski davranış).
+        public static Vector3 AimPointOf(Transform target, EnemyBase enemy) =>
+            enemy != null ? enemy.AimPoint : target.position;
+
+        public static bool IsAirborne(EnemyBase enemy) => enemy != null && enemy.AirborneHeight > 0f;
+
+        // Ateş yönü: yerdeki hedefe yatay (eski davranış), havadaki hedefe namludan 3D — oyuncu yukarı ateş eder.
+        protected Vector3 GetAimDirection(Transform target, bool lead)
+        {
+            EnemyBase enemy = target.GetComponent<EnemyBase>();
+            Vector3 aimPoint = lead ? GetPredictedAimPoint(target) : AimPointOf(target, enemy);
+            if (IsAirborne(enemy))
+                return aimPoint - new Vector3(transform.position.x, MuzzleHeight, transform.position.z);
+
+            Vector3 direction = aimPoint - transform.position;
+            direction.y = 0f;
+            return direction;
         }
 
         protected Projectile SpawnProjectile(Vector3 direction, float damageScale = 1f)

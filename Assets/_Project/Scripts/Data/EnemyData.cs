@@ -55,6 +55,8 @@ namespace BlobSurvivor.Data
         [Header("Final Boss (A16 — Karar 1+8)")]
         [Tooltip("true ise bu düşman silah hasarıyla asla ölmez (HP 1'de kilitlenir) — sadece FinalBossController'ın açtığı consumable override ile yutularak ölür.")]
         [SerializeField] private bool _requiresConsumptionToDie;
+        [Tooltip("Tank: üstünden geçtiği arabaları ve küçük şehir eşyalarını ezer (TankCrusher). Binalar hariç.")]
+        [SerializeField] private bool _crushesObstacles;
 
         public string DisplayName => _displayName;
         public GameObject Prefab => _prefab;
@@ -81,5 +83,6 @@ namespace BlobSurvivor.Data
         public HeartPickup HeartPrefab => _heartPrefab;
         public float HeartDropChance => _heartDropChance;
         public bool RequiresConsumptionToDie => _requiresConsumptionToDie;
+        public bool CrushesObstacles => _crushesObstacles;
     }
 }

@@ -11,8 +11,7 @@ namespace BlobSurvivor.Entities.Weapons
 
         protected override void Fire(Transform target)
         {
-            Vector3 direction = GetPredictedAimPoint(target) - transform.position;
-            direction.y = 0f;
+            Vector3 direction = GetAimDirection(target, lead: true);
 
             if (!UltimateActive || _ultimatePellets <= 1)
             {

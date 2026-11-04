@@ -14,10 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
   _id: damage_reduction
   _displayName: "Z\u0131rh"
-  _description: "Polislerden ka\xE7arken bir z\u0131rh fena olmaz, ne dersin?"
+  _description: "Etraf\u0131nda hasar\u0131 senin yerine yiyen bir kalkan. Vurulmazsan birka\u00e7 saniyede dolar."
   _icon: {fileID: 0}
   _category: 0
   _weight: 10
   _effect: {fileID: 11400000, guid: 667ab0fb0eab54ea080ad181997e94cb, type: 2}
   _maxLevel: 8
-  _perLevelValue: 0.07
+  _perLevelValue: 10
+  _levelDescriptions:
+  - "Kalkan: 20 hasar\u0131 senin yerine al\u0131r. 4 sn vurulmazsan dolar."
+  - "Kalkan 30."
+  - "Kalkan 40. D\u0130KENLER: kalkana de\u011fen d\u00fc\u015fman saniyede 6 hasar al\u0131r."
+  - "Kalkan 50."
+  - "Kalkan 60. Daha h\u0131zl\u0131 dolar: 3 sn."
+  - "Kalkan 70. Dikenler saniyede 10 hasar."
+  - "Kalkan 80."
+  - "SON FORM: Kalkan 100. K\u0131r\u0131l\u0131nca \u015fok dalgas\u0131: \u00e7evredeki d\u00fc\u015fmanlara 25 hasar."

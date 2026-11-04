@@ -210,6 +210,12 @@ namespace BlobSurvivor.Entities.Vehicles
             }
         }
 
+        // TankCrusher: miniboss tankı üstünden geçince araba havuza döner (OnConsumed → CarSpawner).
+        public void Crush()
+        {
+            if (_isActive) Consume();
+        }
+
         private void Consume()
         {
             _isActive = false;

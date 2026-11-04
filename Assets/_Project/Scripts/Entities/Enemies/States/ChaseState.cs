@@ -15,7 +15,7 @@ namespace BlobSurvivor.Entities.Enemies
             if (aiTick)
                 enemy.SetDestination(enemy.BlobTransform.position);
 
-            float sqrDist = (enemy.transform.position - enemy.BlobTransform.position).sqrMagnitude;
+            float sqrDist = enemy.FlatSqrDistanceToBlob();
             float attackRange = enemy.EffectiveAttackRange();
             if (sqrDist <= attackRange * attackRange)
             {

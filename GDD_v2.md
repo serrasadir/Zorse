@@ -16,7 +16,7 @@ Bu bölüm dokümanın anayasasıdır. Her karar kurulun raporlarındaki bir bul
 
 | # | Karar | Sonuç |
 |---|-------|-------|
-| 1 | Run süresi | **12–15 dakika** (20–30 dk ve 5–10 dk vizyonları iptal) |
+| 1 | Run süresi | **12–15 dakika** (20–30 dk ve 5–10 dk vizyonları iptal). **REVİZE (4 Kas 2026, Serra):** 15. dk zorunlu bitiş kaldırıldı — boss savaşı uzayabilir; run sadece ölümle ya da final boss yutulunca biter. 12–15 dk hedef süre olarak kalır, sınır değil |
 | 2 | Düşman ölçeği | ~~150–200 eşzamanlı~~ → **REVİZE (31 Ağu, Serra) — ⚠️ taslak, henüz ekip onayı yok:** gerçekçilik gerekçesiyle **maks 15 eşzamanlı polis** (ölünce yenisi spawn olur, havuz sürekli dolu) + **maks 25 yaya**; sürü = basit steering, NavMesh sadece elit/boss. Kod tarafına uygulandı ama sayılar Hüma ve Bahar ile henüz konuşulmadı — kesinleşince bu not silinecek. |
 | 3 | Platform | **Mobil önce, F2P** (kurul önerisinin tersi — bilinçli tercih). PC/Steam premium = post-launch port |
 | 4 | Sanat yönü | **2.5D stilize 3D** (16-bit pixel art vizyonu iptal); gotik palet korunur |
@@ -195,7 +195,7 @@ Her karakter top formundadır, elinde silahı vardır. Silahlar otomatik ateşle
 | **Normal polis** (sürü) | Kalabalık koşar, basit steering | Tier 3+ | Coin (düşük) |
 | **Elit polis** | Yavaş, tabancalı: durur, nişan lazeri + 3'lü mermi serisi (menzil 7,5); NavMesh | Tier 5 | **Sandık** (skill + yüksek coin) |
 | **Miniboss** | 4. ve 8. dk; aynı tasarım, artan stat; alan saldırısı | Hayır (silahla) | Yüksek coin + garanti sandık |
-| **Final Boss** | 12. dk; tek faz geçişi; son fazda **yutulur** | Son fazda | Run tamamlama ödülü |
+| **Final Boss** | ~~12. dk; tek faz geçişi; son fazda **yutulur**~~ → **REVİZE (4 Kas 2026, Serra): Polis helikopteri.** 12. dk; havada uçar, yukarıdan makineliyle saldırır, vurdukça kademe kademe alçalır (irtifa 8→5); blob ona uzanacak kadar büyüyünce **yutulur**. Oyuncu silahı havadaki hedefe otomatik yukarı nişan alır | Blob tepesi helikoptere değince | Run tamamlama ödülü |
 
 ### Ölçekleme eğrisi (12–15 dk'ya sıkıştırılmış — Karar 1)
 | Dakika | Baskı |

@@ -16,9 +16,22 @@ namespace BlobSurvivor.Entities.Weapons
         private static readonly Collider[] s_bounceHits = new Collider[16];
 
         private Transform _target;
+        private EnemyBase _targetEnemy;
         private int _bouncesLeft;
 
-        public void SetTarget(Transform target) => _target = target;
+        public void SetTarget(Transform target)
+        {
+            _target = target;
+            _targetEnemy = target != null ? target.GetComponent<EnemyBase>() : null;
+        }
+
+        // Havadaki hedefe (helikopter) 3D yönelir; yerdekilere yatay (eski davranış).
+        private Vector3 ToTarget()
+        {
+            Vector3 to = WeaponBase.AimPointOf(_target, _targetEnemy) - transform.position;
+            if (!WeaponBase.IsAirborne(_targetEnemy)) to.y = 0f;
+            return to;
+        }
 
         protected override void OnLaunched() => _bouncesLeft = IsUltimate ? _ultimateBounces : 0;
 
@@ -30,14 +43,13 @@ namespace BlobSurvivor.Entities.Weapons
 
             if (_target != null)
             {
-                Vector3 toTarget = _target.position - transform.position;
-                toTarget.y = 0f;
+                Vector3 toTarget = ToTarget();
 
                 // Dönüş hızı hedefi ıskalarsa mermi etrafında sonsuz tur atabilir (pure-pursuit
                 // homing'in klasik sorunu) — yakınlık kontrolü bunu garanti şekilde kapatır.
                 if (toTarget.sqrMagnitude <= _detonateRadius * _detonateRadius)
                 {
-                    EnemyBase enemy = _target.GetComponent<EnemyBase>();
+                    EnemyBase enemy = _targetEnemy;
                     if (enemy != null)
                     {
                         enemy.TakeDamage(Damage);
@@ -47,7 +59,7 @@ namespace BlobSurvivor.Entities.Weapons
                     if (TryBounce(enemy)) return;
                     if (enemy != null && TryPierce(enemy))
                     {
-                        _target = null; // delip düz devam eder, yolundakini base.Update'in SphereCast'i vurur
+                        SetTarget(null); // delip düz devam eder, yolundakini base.Update'in SphereCast'i vurur
                         return;
                     }
 
@@ -86,9 +98,8 @@ namespace BlobSurvivor.Entities.Weapons
             if (best == null) return false;
 
             _bouncesLeft--;
-            _target = best;
-            Vector3 dir = best.position - transform.position;
-            dir.y = 0f;
+            SetTarget(best);
+            Vector3 dir = ToTarget();
             if (dir.sqrMagnitude > 0.0001f) Direction = dir.normalized; // sekme keskin olsun, yavaş dönmesin
             return true;
         }

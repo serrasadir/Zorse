@@ -44,9 +44,17 @@ namespace BlobSurvivor.UI
         // de flag'lenip hiç düzeltilmemişti). OnCharacterSelected'da (run başına bir kere) cache'leniyor.
         private Entities.Blob.BlobGrowth _blobGrowth;
 
+        // 2026-11-04: Zırh kalkanı barı — can barının hemen altında ince mavi bar, çalışma zamanında can barından
+        // kopyalanır (sahne kurulumu yok). Kalkan yokken (Zırh alınmamış) gizli.
+        private static readonly Color ShieldFillColor = new Color(0.55f, 0.82f, 1f, 1f);
+        private static readonly Color ShieldBackgroundColor = new Color(0.08f, 0.1f, 0.2f, 0.7f);
+        private Slider _shieldBar;
+        private Entities.Blob.BlobHealth _blobHealth;
+
         private void Awake()
         {
             EnsureRuntimeHudElements();
+            CreateShieldBar();
             if (_characterIcon != null)
                 _characterIcon.gameObject.SetActive(false);
             if (_bossHealthContainer != null)
@@ -83,6 +91,50 @@ namespace BlobSurvivor.UI
             GameEvents.OnGameOver -= ClearBadges;
             GameEvents.OnGameOver -= ClearCharacterIcon;
             GameEvents.OnBossHealthChanged -= OnBossHealthChanged;
+            if (_blobHealth != null) _blobHealth.OnShieldChanged -= OnShieldChanged;
+        }
+
+        private void CreateShieldBar()
+        {
+            if (_healthBar == null) return;
+
+            RectTransform healthRect = _healthBar.GetComponent<RectTransform>();
+            GameObject copy = Instantiate(_healthBar.gameObject, healthRect);
+            copy.name = "ShieldBar";
+            _shieldBar = copy.GetComponent<Slider>();
+            _shieldBar.interactable = false;
+            if (_shieldBar.handleRect != null)
+            {
+                Destroy(_shieldBar.handleRect.gameObject);
+                _shieldBar.handleRect = null;
+            }
+
+            // Can barının hemen altına, aynı genişlikte, onun %45'i kalınlığında.
+            RectTransform rect = copy.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0f, 0f);
+            rect.anchorMax = new Vector2(1f, 0f);
+            rect.pivot = new Vector2(0.5f, 1f);
+            rect.anchoredPosition = new Vector2(0f, -3f);
+            rect.sizeDelta = new Vector2(0f, Mathf.Max(6f, healthRect.rect.height * 0.45f));
+            rect.localScale = Vector3.one;
+
+            foreach (Image image in copy.GetComponentsInChildren<Image>(true))
+            {
+                bool isFill = _shieldBar.fillRect != null && image.transform == _shieldBar.fillRect;
+                image.color = isFill ? ShieldFillColor : ShieldBackgroundColor;
+            }
+
+            copy.SetActive(false);
+        }
+
+        private void OnShieldChanged(float current, float max)
+        {
+            if (_shieldBar == null) return;
+            bool hasShield = max > 0f;
+            if (_shieldBar.gameObject.activeSelf != hasShield) _shieldBar.gameObject.SetActive(hasShield);
+            if (!hasShield) return;
+            _shieldBar.maxValue = max;
+            _shieldBar.value = current;
         }
 
         // B18: max<=0 => aktif boss yok (A15/A16 bu sözleşmeyle RaiseBossHealthChanged çağırıyor).
@@ -187,6 +239,15 @@ namespace BlobSurvivor.UI
         {
             ClearBadges(); // skill seviyeleri run başında sıfırlanıyor (RunComplete sonrası restart'ta da)
             _blobGrowth = FindAnyObjectByType<Entities.Blob.BlobGrowth>();
+
+            // Run başına bir kez: kalkan event'ine bağlan (restart'ta aynı blob — çift abonelik olmasın).
+            if (_blobHealth != null) _blobHealth.OnShieldChanged -= OnShieldChanged;
+            _blobHealth = _blobGrowth != null ? _blobGrowth.GetComponent<Entities.Blob.BlobHealth>() : null;
+            if (_blobHealth != null)
+            {
+                _blobHealth.OnShieldChanged += OnShieldChanged;
+                OnShieldChanged(_blobHealth.ShieldCurrent, _blobHealth.ShieldMax);
+            }
 
             if (_characterIcon == null) return;
 

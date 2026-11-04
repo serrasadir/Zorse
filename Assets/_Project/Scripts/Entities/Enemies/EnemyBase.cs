@@ -85,6 +85,13 @@ namespace BlobSurvivor.Entities.Enemies
         // süresi burada tutulur ki menzil kenarında girip çıkmak vuruşları hızlandırmasın.
         public float NextMeleeAttackTime { get; set; }
 
+        // 2026-11-04 (final boss helikopter): gövdenin yerden yüksekliği (0 = yerde). Kök (NavMeshAgent) yerde
+        // kalır; collider/model bu kadar yukarıda olur (FinalBossController ayarlar). Silah nişanı ve düşmanın
+        // kendi namlusu buna göre hesaplanır.
+        public float AirborneHeight { get; set; }
+        // Havadaki gövdenin merkezi — oyuncu silahı buraya nişan alır. Yerdekiler için kök pozisyonu (davranış aynı).
+        public Vector3 AimPoint => AirborneHeight > 0f ? transform.position + Vector3.up * AirborneHeight : transform.position;
+
         // 2026-09-06 (Serra): "mermiler polislerin arkasından geçip gidiyor" — Cannon/Pistol non-homing,
         // ateş anındaki pozisyona düz çizgi atıyor; polis steering'le (separation/avoidance) sürekli yön
         // değiştirdiği için mermi menzile ulaşana kadar hedef kaymış oluyordu. WeaponBase bu hızı okuyup
@@ -101,6 +108,9 @@ namespace BlobSurvivor.Entities.Enemies
         // mesafesini kullanıyor — büyüme formülü ileride tekrar ayarlanırsa (2026-09-06'dan önce zaten
         // iki kez değişti) bu sabit kalıp yeniden bozulmaz.
         private const float ContactBuffer = 0.15f;
+        // Yakın dövüşçü elit/boss için temas mesafesinin ötesine uzanan vuruş payı.
+        private const float EliteMeleeReach = 0.6f;
+        private float _bodyRadius = 0.5f;
 
         // 2026-11-03 (Serra: "polis vururken basit bir animasyon"): iskeletsiz "hamle" — Model child'ı kısa bir
         // ileri atılma + öne eğilme + basıklaşma yapar (vuruş anında), sonra yavaşça yerine döner. Elit ateş
@@ -122,6 +132,10 @@ namespace BlobSurvivor.Entities.Enemies
         private void Awake()
         {
             _agent = GetComponent<NavMeshAgent>();
+            CapsuleCollider body = GetComponent<CapsuleCollider>();
+            _bodyRadius = body != null
+                ? body.radius * Mathf.Max(transform.lossyScale.x, transform.lossyScale.z)
+                : (_agent != null ? _agent.radius : 0.5f);
             _scoreSystem = FindAnyObjectByType<ScoreSystem>();
 
             _model = transform.Find("Model");
@@ -146,6 +160,7 @@ namespace BlobSurvivor.Entities.Enemies
             _catchUpMultiplier = 1f;
             _isDead = false;
             _consumableOverride = false;
+            AirborneHeight = 0f; // FinalBossController her kare yeniden ayarlar
             _tierBypassUntil = -1f;
             _hasSteerTarget = false;
             _followingPath = false;
@@ -298,11 +313,13 @@ namespace BlobSurvivor.Entities.Enemies
             _pathTarget = _steerTarget;
             _followingPath = false;
 
-            if (!NavMesh.SamplePosition(transform.position, out NavMeshHit from, PathSampleRadius, NavMesh.AllAreas)) return;
-            if (!NavMesh.SamplePosition(_steerTarget, out NavMeshHit to, PathSampleRadius, NavMesh.AllAreas)) return;
+            // Sürü polisi Humanoid NavMesh'te yürür (tank'ın ayrı NavMesh'i var — filtresiz sorgu belirsizlik uyarısı verir).
+            NavMeshQueryFilter filter = SpawnPositionUtility.HumanoidFilter;
+            if (!NavMesh.SamplePosition(transform.position, out NavMeshHit from, PathSampleRadius, filter)) return;
+            if (!NavMesh.SamplePosition(_steerTarget, out NavMeshHit to, PathSampleRadius, filter)) return;
 
             _path ??= new NavMeshPath();
-            if (!NavMesh.CalculatePath(from.position, to.position, NavMesh.AllAreas, _path)) return;
+            if (!NavMesh.CalculatePath(from.position, to.position, filter, _path)) return;
 
             _pathCornerCount = _path.GetCornersNonAlloc(_pathCorners);
             _pathCornerIndex = 1; // 0. köşe bulunduğumuz yer
@@ -432,6 +449,16 @@ namespace BlobSurvivor.Entities.Enemies
         {
             _data = data;
             _currentHealth = data.MaxHealth;
+            // Havuzlu örnek başına bir kez eklenir (tank miniboss). Veri değişirse açık/kapalı izler.
+            if (data.CrushesObstacles || TryGetComponent(out TankCrusher _))
+            {
+                TankCrusher crusher = GetComponent<TankCrusher>();
+                if (crusher == null) crusher = gameObject.AddComponent<TankCrusher>();
+                crusher.enabled = data.CrushesObstacles;
+            }
+            // Mermi havuzunu ilk atıştan önce ısıt (atış anında toplu Instantiate olmasın).
+            if (data.ProjectilePrefab != null && PoolManager.Instance != null)
+                _projectilePool = PoolManager.Instance.CreatePool(data.ProjectilePrefab, InitialProjectilePoolSize);
             _damageMultiplier = Mathf.Max(0f, damageMultiplier);
             _speedMultiplier = Mathf.Max(0.01f, speedMultiplier);
             ApplyAgentSpeed();
@@ -460,7 +487,17 @@ namespace BlobSurvivor.Entities.Enemies
         public void WarpTo(Vector3 position)
         {
             if (_agent != null && _agent.isActiveAndEnabled)
+            {
+                // Spawn noktaları varsayılan (Humanoid) NavMesh'ten seçilir; geniş ajan (tank, kendi NavMesh'i)
+                // bina dibine düşen noktada mesh dışında kalmasın diye kendi ajan tipinin mesh'ine oturtulur.
+                if (_agent.agentTypeID != 0)
+                {
+                    NavMeshQueryFilter filter = new NavMeshQueryFilter { agentTypeID = _agent.agentTypeID, areaMask = NavMesh.AllAreas };
+                    if (NavMesh.SamplePosition(position, out NavMeshHit hit, 8f, filter))
+                        position = hit.position;
+                }
                 _agent.Warp(position);
+            }
             else
                 transform.position = position;
         }
@@ -507,11 +544,22 @@ namespace BlobSurvivor.Entities.Enemies
         public float EffectiveAttackRange()
         {
             if (_data == null) return 0f;
-            if (_data.IsElite) return _data.AttackRange;
 
-            float enemyRadius = _agent != null ? _agent.radius : 0.5f;
             float blobRadius = BlobTransform != null ? BlobTransform.localScale.x * _blobSolidRadius : 0f;
-            return enemyRadius + blobRadius + ContactBuffer;
+            float contact = _bodyRadius + blobRadius + ContactBuffer;
+            // Elit/boss sabit menzilini kullanır ama büyük blob'da gövdeler bu menzile hiç
+            // yaklaşamıyordu (miniboss blob'a yapışıp hiç vurmuyordu) — temas mesafesinin altına inmez.
+            if (_data.IsElite) return Mathf.Max(_data.AttackRange, contact + EliteMeleeReach);
+            return contact;
+        }
+
+        /// <summary>Blob'a yatay (XZ) uzaklığın karesi — Y farkı (büyük blob'un merkezi yükselir) menzile sayılmaz.</summary>
+        public float FlatSqrDistanceToBlob()
+        {
+            if (BlobTransform == null) return float.MaxValue;
+            Vector3 d = BlobTransform.position - transform.position;
+            d.y = 0f;
+            return d.sqrMagnitude;
         }
 
         public void PerformAttack()
@@ -538,16 +586,27 @@ namespace BlobSurvivor.Entities.Enemies
         {
             if (BlobTransform == null) return false;
 
+            if (AirborneHeight > 0f)
+                return !Physics.Linecast(AimPoint, BlobTransform.position, s_environmentMask, QueryTriggerInteraction.Collide);
+
             Vector3 toBlob = BlobTransform.position - transform.position;
             toBlob.y = 0f;
             return !Physics.Raycast(transform.position, toBlob.normalized, toBlob.magnitude, s_environmentMask, QueryTriggerInteraction.Collide);
+        }
+
+        // Havadaki düşman blob'a yukarıdan (3D) nişan alır; yerdekiler yatay (eski davranış).
+        public Vector3 AttackDirectionToBlob()
+        {
+            if (AirborneHeight <= 0f || BlobTransform == null) return DirectionToBlob();
+            Vector3 d = BlobTransform.position - AimPoint;
+            return d.sqrMagnitude > 0.0001f ? d.normalized : Vector3.down;
         }
 
         // Lazer merminin gerçek yolunu göstersin diye binada kesilir.
         public float ComputeAimLength(Vector3 direction)
         {
             float maxDistance = _data.ProjectileMaxDistance;
-            return Physics.Raycast(transform.position, direction, out RaycastHit hit, maxDistance, s_environmentMask, QueryTriggerInteraction.Collide)
+            return Physics.Raycast(AimPoint, direction, out RaycastHit hit, maxDistance, s_environmentMask, QueryTriggerInteraction.Collide)
                 ? hit.distance
                 : maxDistance;
         }
@@ -560,17 +619,24 @@ namespace BlobSurvivor.Entities.Enemies
                 _aimLine = new EnemyAimLine(transform, _data.AimLineMaterial);
             }
 
-            _aimLine.Show(transform.position + direction * MuzzleOffset, transform.position + direction * length, width);
+            Vector3 origin = AimPoint;
+            _aimLine.Show(origin + direction * MuzzleOffset, origin + direction * length, width);
         }
 
         public void HideAimLine() => _aimLine?.Hide();
 
         public void FireProjectile(Vector3 direction)
         {
-            if (_projectilePool == null) return;
+            // Havuz atış anında veriden çözülür: boss'larda veri spawn'dan SONRA SetData ile gelir,
+            // OnEnable'daki ısınma prefab'ın eski verisine bakar (yanlış/eksik havuz). Sözlük araması, sadece atışta.
+            if (_data.ProjectilePrefab == null || PoolManager.Instance == null) return;
+            _projectilePool = PoolManager.Instance.CreatePool(_data.ProjectilePrefab, InitialProjectilePoolSize);
 
             PlayLunge(RecoilDistance, RecoilPitch);
-            Vector3 position = transform.position + direction * MuzzleOffset;
+            // Büyük gövdede (tank) mermi gövdenin içinden değil namlu ucundan çıksın.
+            Vector3 position = AirborneHeight > 0f
+                ? AimPoint + direction * MuzzleOffset
+                : transform.position + direction * Mathf.Max(MuzzleOffset, _bodyRadius);
             EnemyProjectile projectile = _projectilePool.Get(position, Quaternion.LookRotation(direction));
             projectile.Launch(_projectilePool, _blobHealth, _blobSolidRadius, direction,
                 _data.ProjectileSpeed, _data.ProjectileMaxDistance, _data.Damage * _damageMultiplier);
