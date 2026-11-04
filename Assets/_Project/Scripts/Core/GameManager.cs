@@ -120,6 +120,11 @@ namespace BlobSurvivor.Core
             ClearPreviousRunState(blob);
             ApplyMetaProgression(blob, character);
 
+            // 2026-11-04: karaktere özel görünüm (Topik = yüzlü turuncu top); boşsa varsayılan küre.
+            BlobVisual visual = blob.GetComponent<BlobVisual>();
+            if (visual == null) visual = blob.AddComponent<BlobVisual>();
+            visual.Apply(character.BlobVisualPrefab);
+
             switch (character.PassiveType)
             {
                 case CharacterPassiveType.MoveSpeed:

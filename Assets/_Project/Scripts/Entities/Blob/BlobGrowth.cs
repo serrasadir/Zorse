@@ -143,9 +143,13 @@ namespace BlobSurvivor.Entities.Blob
         private float ThresholdFor(int level) =>
             _baseXPThreshold + level * _xpGrowthPerLevel + level * level * _xpQuadraticPerLevel;
 
+        // Her yeme anında (BlobConsumption) çağrılır. BlobTierMeshes ağız açma için dinler.
+        public event System.Action OnPunched;
+
         public void PunchScale(float punchAmount = 0.15f)
         {
             _punch = Mathf.Max(_punch, punchAmount);
+            OnPunched?.Invoke();
         }
 
         private float CalculateScale()

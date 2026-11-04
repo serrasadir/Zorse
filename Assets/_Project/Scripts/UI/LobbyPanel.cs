@@ -49,17 +49,22 @@ namespace BlobSurvivor.UI
             RefreshCharacterButtons();
         }
 
-        // #48: MiknatoCharacter satın alınana kadar RequiresMarketUnlock=true karakterler
-        // Lobby'de seçilemez görünmeli — buton disabled + isim yanında "(Kilitli)" etiketi.
+        // Kilitler: Mıknato Market'te 500 krediyle (RequiresMarketUnlock), Mermo 3 run bitirince
+        // (RequiredCompletedRuns, ölüm de sayılır). Kilitliyken buton kapalı, isim altında koşul yazar.
         private void RefreshCharacterButtons()
         {
-            bool miknatoUnlocked = MetaProgression.Instance == null || MetaProgression.Instance.MiknatoUnlocked;
+            MetaProgression meta = MetaProgression.Instance;
+            bool miknatoUnlocked = meta == null || meta.MiknatoUnlocked;
+            int completedRuns = meta != null ? meta.CompletedRuns : int.MaxValue;
 
             for (int i = 0; i < _buttons.Length; i++)
             {
                 if (i >= _characters.Length || _characters[i] == null) continue;
                 CharacterData data = _characters[i];
-                bool locked = data.RequiresMarketUnlock && !miknatoUnlocked;
+                bool marketLocked = data.RequiresMarketUnlock && !miknatoUnlocked;
+                int runsLeft = Mathf.Max(0, data.RequiredCompletedRuns - completedRuns);
+                bool locked = marketLocked || runsLeft > 0;
+                string lockReason = marketLocked ? "(Market'te açılır)" : $"({runsLeft} run sonra açılır)";
 
                 if (_buttons[i] != null)
                     _buttons[i].interactable = !locked;
@@ -68,7 +73,7 @@ namespace BlobSurvivor.UI
                     _icons[i].sprite = data.Icon;
 
                 if (_nameTexts != null && i < _nameTexts.Length && _nameTexts[i] != null)
-                    _nameTexts[i].text = locked ? $"{data.DisplayName}\n(Kilitli)" : data.DisplayName;
+                    _nameTexts[i].text = locked ? $"{data.DisplayName}\n{lockReason}" : data.DisplayName;
             }
         }
 

@@ -5,8 +5,7 @@ namespace BlobSurvivor.Entities.Blob
 {
     // 2026-11-04 (Serra: "zırh çalışıyor mu emin olamadım, görsel olarak destekleyelim"): Zırh skill'inin görseli
     // ve dikenleri. Kalkan havuzunun kendisi BlobHealth'te; bu bileşen onun event'lerini dinler.
-    // - Görsel (2026-11-04 revize, Serra): baloncuk kalktı → blob'un önünde süzülen, gidiş yönüne dönen
-    //   "sokak eşyası" kalkan. Seviyeyle form değişir, her form yeni bir mekanikle aynı anda gelir:
+    // - Görsel: blob'un sağ yanında süzülen, yüzü dışa bakan, gidiş yönüyle dönen "sokak eşyası" kalkan. Seviyeyle form değişir, her form yeni bir mekanikle aynı anda gelir:
     //     Form 0 Sv.1-2 çöp kutusu kapağı · Form 1 Sv.3-5 dikenli girilmez tabelası (dikenler) ·
     //     Form 2 Sv.6-7 dikenli menhol kapağı (güçlü dikenler) · Form 3 Sv.8 altın menhol (şok dalgası)
     //   Modeller: zorse-blender/build_armor_shields.py → Resources/FX/Shield (tek palet materyali).
@@ -30,8 +29,9 @@ namespace BlobSurvivor.Entities.Blob
             "FX_Shield1_TrashLid", "FX_Shield2_Sign", "FX_Shield3_Manhole", "FX_Shield4_Gold",
         };
 
-        // Yerleşim (blob yerel uzayı, gövde yarıçapı 0.5): gövdenin hemen önünde, yüzü kameraya doğru hafif yukarı eğik.
-        private static readonly Vector3 ShieldOffset = new Vector3(0f, 0.05f, 0.62f);
+        // Yerleşim (blob yerel uzayı, gövde yarıçapı 0.5): gövdenin sağ yanında, yüzü dışa ve hafif yukarı bakar.
+        private static readonly Vector3 ShieldOffset = new Vector3(0.62f, 0.05f, 0f);
+        private const float ShieldYaw = 90f;           // model +Z'ye bakıyor → +X (sağ) yana çevir
         private const float ShieldTilt = -20f;         // X ekseni; eksi = yüz yukarı bakar
         private const float TurnSpeed = 10f;           // yöne dönme yumuşaklığı
         private const float MinTurnSpeedSqr = 0.3f * 0.3f;
@@ -178,7 +178,7 @@ namespace BlobSurvivor.Entities.Blob
             _shield = go.transform;
             _shield.SetParent(_pivot, false);
             _shield.localPosition = ShieldOffset;
-            _shield.localRotation = Quaternion.Euler(ShieldTilt, 0f, 0f);
+            _shield.localRotation = Quaternion.Euler(ShieldTilt, ShieldYaw, 0f);
             _shieldFilter = go.AddComponent<MeshFilter>();
             var mr = go.AddComponent<MeshRenderer>();
             mr.sharedMaterial = s_material;
@@ -251,7 +251,7 @@ namespace BlobSurvivor.Entities.Blob
             float pop = breaking ? _shown : 1f - Mathf.Pow(1f - _shown, 3f) + Mathf.Sin(_shown * Mathf.PI) * 0.15f;
             _shield.localScale = Vector3.one * (pop * (1f + _punch));
             _shield.localPosition = ShieldOffset + new Vector3(0f, Mathf.Sin(_bobPhase) * BobAmplitude, 0f);
-            _shield.localRotation = Quaternion.Euler(ShieldTilt, 0f, breakSpin);
+            _shield.localRotation = Quaternion.Euler(ShieldTilt, ShieldYaw, breakSpin);
 
             // Doluluk: azaldıkça koyulaşır; vuruşta parlar (HDR > 1 dokuyu açar).
             float shade = Mathf.Lerp(0.55f, 1f, _fill) + _flash * 0.8f;

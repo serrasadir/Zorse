@@ -111,10 +111,13 @@ namespace BlobSurvivor.Entities
 
             if (!TryGetSpawnPosition(data.SpawnYOffset, out Vector3 spawnPos)) return;
 
-            ConsumableBase instance = _pools[data].Get(spawnPos, Quaternion.identity);
+            ConsumableBase instance = _pools[data].Get(spawnPos, RandomYaw());
             instance.SetData(data);
             _activeConsumables.Add(instance.gameObject);
         }
+
+        // Yerdeki yiyecek/çöp modelleri (J_*) hep aynı yöne bakıp dizilmiş gibi durmasın.
+        private static Quaternion RandomYaw() => Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
 
         private ConsumableData GetRandomDataForTier(BlobTier maxTier)
         {
@@ -175,7 +178,7 @@ namespace BlobSurvivor.Entities
                 // Parça komşu bir binanın içine saçılmasın; tutmazsa parçalanan objenin (artık boş) yerine düşer.
                 if (!SpawnPositionUtility.IsClear(spawnPos))
                     spawnPos = new Vector3(position.x, data.SpawnYOffset, position.z);
-                ConsumableBase instance = _pools[data].Get(spawnPos, Quaternion.identity);
+                ConsumableBase instance = _pools[data].Get(spawnPos, RandomYaw());
                 instance.SetData(data);
                 instance.SetMassOverride(pieceMass);
                 _activeConsumables.Add(instance.gameObject);

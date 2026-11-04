@@ -1,25 +1,12 @@
 # Left No Crumbs: Skill, Karakter ve Boss Rehberi
 
-> Son güncelleme: 2026-11-04 (miniboss tank topu). Değerler koddan ve asset'lerden okundu (`Assets/_Project/Data/Upgrades/`, `Data/Characters/`, `ScriptableObjects/Enemies/`).
-> Değer değiştirmek için ilgili `Upgrade_*.asset` dosyasındaki `Max Level` / `Per Level Value` alanlarını Inspector'dan düzenle; kod gerekmez.
-> Oyunun genel hali: `OYUN.md`.
-
-## ⭐ Toplantı için öne çıkanlar
-
-1. ~~**Final boss tek seride öldürüyor**~~ ✅ 2026-11-04: helikopter makineli serisi 36 hasar, kaçılabilir.
-2. ~~**Final boss'a yetişmek zor**~~ ✅ 2026-11-04: 15. dk sınırı kaldırıldı, savaş istediği kadar sürer.
-3. **Düşman sayıları belgelerle uyuşmuyor:** Sahnede aynı anda 30 düşman / 10 elit (10. dk'dan sonra 60); GDD ve CLAUDE.md 15 / 4 diyor. Hangisi geçerli? (madde 16)
-4. **Yırtıcı Çene neredeyse değersiz:** polis yutmak 3 mass veriyor, 5 can ısırıyor. Öneri: polis mass'ı 15–20 + ısırıksız. (Bölüm 2 Yırtıcı Çene; Bölüm 6, madde 1)
-5. **Mermo'nun kilidi yok:** GDD "3 oturum tamamla" diyor, oyunda baştan açık. (madde 8)
-6. ~~**Avcı Formu final boss'u Giant olmadan yutturabiliyor**~~ ✅ 2026-11-04: helikopter havada, ona fiziksel olarak uzanmak gerekiyor.
-7. **Bosslar sandık da düşürüyor** ve zaman çarpanlarıyla güçlenmiyor: bilinçli mi? (madde 12–13)
-
-
----
+> Skill, karakter, düşman ve boss'ların **güncel** değerleri. Değerler koddan ve asset'lerden okunur (`Assets/_Project/Data/Upgrades/`, `Data/Characters/`, `ScriptableObjects/Enemies/`); değişince burası da güncellenir, eski hali yazılmaz.
+> Skill değeri değiştirmek için ilgili `Upgrade_*.asset` dosyasında `Max Level` / `Per Level Value` alanlarını Inspector'dan düzenle.
+> Oyunun genel hali `OYUN.md`'de; açık denge soruları GitHub issue'larında.
 
 ## 1. Genel kurallar
 
-**Seviye atlama.** Yediğin her şeyin mass'ı aynı zamanda XP'dir. Bir sonraki level için gereken XP `20 + level × 15 + level² × 2`: 1. level 20 XP, 2. level 37, 3. level 58, … 10. level 317. Karesel terim geç oyunda (bina = 25–50 XP) seviye yağmurunu önler.
+**Seviye atlama.** Yediğin her şeyin mass'ı aynı zamanda XP'dir. Bir sonraki level için gereken XP `20 + level × 15 + level² × 2`: 1. level 20 XP, 2. level 37, 3. level 58, … 10. level 317. Karesel terim geç oyunda (bina = 25–50 XP) seviye atlamanın çok hızlanmasını önler.
 
 **Kart ekranı.** Level atlayınca oyun durur ve 3 kart gelir. Biri seçilir.
 - Kartlar ağırlıklı rastgele çekilir: çoğu skill ağırlık **10**, Rejenerasyon **8**, Yırtıcı Çene **6**. Ağırlığı düşük olan daha seyrek gelir.
@@ -47,12 +34,12 @@
 
 ## 2. Skiller (9 adet)
 
-### 🛡️ Zırh (kalkan) — 2026-11-04'te yeniden tasarlandı
-- **Ne yapar:** Blob'un önünde bir **kalkan** belirir. Gelen her hasarı (polis vuruşu, elit/tank/helikopter mermisi, araba çarpması, hazard, polis ısırığı) **önce kalkan yer**; kalkan bitince can azalır. Kalkanın yuttuğu hasarda kırmızı parlama ve kamera sarsıntısı olmaz, kalkan parlar.
+### 🛡️ Zırh (kalkan)
+- **Ne yapar:** Blob'un yanında bir **kalkan** belirir. Gelen her hasarı (polis vuruşu, elit/tank/helikopter mermisi, araba çarpması, hazard, polis ısırığı) **önce kalkan yer**; kalkan bitince can azalır. Kalkanın yuttuğu hasarda kırmızı parlama ve kamera sarsıntısı olmaz, kalkan parlar.
 - **Yenilenme:** Son hasardan **4 sn** sonra (Sv.5'ten itibaren **3 sn**) kalkan **2 sn içinde** tamamen dolar. Her yeni hasar sayacı baştan başlatır.
 - **Seviye atlayınca:** Kalkan büyür ve **hemen dolar**.
 - **Seviye başına:** +10 kalkan · **Max:** 8 · **Ağırlık:** 10
-- **Kod:** `ArmorEffect` (eski adı `DamageReductionEffect`) → havuz `BlobHealth.SetShield`, kalkan modeli + dikenler `ArmorShield`
+- **Kod:** `ArmorEffect` (asset `FX_DamageReduction`) → havuz `BlobHealth.SetShield`, kalkan modeli + dikenler `ArmorShield`
 
 | Seviye | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
 |---|---|---|---|---|---|---|---|---|
@@ -62,11 +49,10 @@
 - **Dikenler (Sv.3+):** Kalkan sağlamken blob'a değen her düşman 0.5 sn'de bir hasar alır (Sv.3: sn'de 6, Sv.6: sn'de 10). Seni kovalayıp yakın dövüşe giren polis kendini yorar. Kalkan kırıkken dikenler çalışmaz.
 - **Şok dalgası (Sv.8):** Kalkan kırıldığı an blob'un 2 birim dışına kadar tüm düşmanlara **25 hasar**.
 - **HUD:** Can barının hemen altında ince mavi kalkan barı (Zırh alınana kadar gizli).
-- **Görsel:** Blob'un önünde süzülen, gidiş yönüne dönen **sokak eşyası kalkan** (baloncuk kaldırıldı, 2026-11-04). Form seviyeyle, yeni mekanikle aynı anda değişir: **Sv.1-2** çöp kutusu kapağı → **Sv.3-5** dikenli "girilmez" tabelası (dikenler) → **Sv.6-7** dikenli menhol kapağı (güçlü dikenler) → **Sv.8** altın menhol kapağı + kızıl mücevher (şok dalgası). Kalkan azaldıkça koyulaşır, vuruşta parlar ve şişer, kırılınca dönerek küçülüp kaybolur, dolmaya başlayınca geri "pop" eder; yeni form da pop ile gelir. Modeller `zorse-blender/build_armor_shields.py` → `Resources/FX/Shield` (148–220 üçgen).
+- **Görsel:** Blob'un sağ yanında süzülen, yüzü dışa bakan, gidiş yönüyle dönen **sokak eşyası kalkan**. Form seviyeyle, yeni mekanikle aynı anda değişir: **Sv.1-2** çöp kutusu kapağı → **Sv.3-5** dikenli "girilmez" tabelası (dikenler) → **Sv.6-7** dikenli menhol kapağı (güçlü dikenler) → **Sv.8** altın menhol kapağı + kızıl mücevher (şok dalgası). Kalkan azaldıkça koyulaşır, vuruşta parlar ve şişer, kırılınca dönerek küçülüp kaybolur, dolmaya başlayınca geri "pop" eder; yeni form da pop ile gelir. Modeller `zorse-blender/build_armor_shields.py` → `Resources/FX/Shield` (148–220 üçgen).
 
 **Örnek:** Sv.3, kalkan 40. Bir polis seni 10'ar vuruyor: ilk 4 vuruşu kalkan yer, canın hiç azalmaz. Bu sürede polis sana değdiği için saniyede 6 hasar alır (50 canlı polis ~8 sn'de düşer). 4 sn kaçarsan kalkan 2 sn'de geri dolar.
 **Örnek:** Helikopterin 36 hasarlık serisini Sv.4'teki 50'lik kalkan tamamen yer.
-**Not:** Eski Zırh hasarı seviye başına %7 azaltıyordu (Sv.8'de %44 alırdın). Çalışıyordu ama hiç hissedilmiyordu; o mekanik tamamen kaldırıldı.
 
 ---
 
@@ -134,7 +120,7 @@
 - **Ne yapar:** Silahını güçlendirir. Her seviye "+hasar" değil: kilometre taşı seviyelerinde yeni bir yetenek açılır. Kart, o seviyede ne kazanacağını yazar.
 - **Max:** 8 · **Ağırlık:** 10
 - **Kod:** `WeaponUpgradeEffect` (kilometre taşı seviyeleri burada, Inspector'dan değiştirilebilir) → `WeaponBase`. Kart metinleri `Upgrade_Weapon.asset` → Level Descriptions.
-- **Temel silah (3 karakter aynı):** saniyede **2.5 atış × 4 hasar** (saniye başına 10), menzil 8. Mermiler küçük ve hızlı. (2026-11-03'e kadar saniyede 1 × 10'du.)
+- **Temel silah (3 karakter aynı):** saniyede **2.5 atış × 4 hasar** (saniye başına 10), menzil 8. Mermiler küçük ve hızlı.
 
 | Sv. | Kazanılan | Mermi hasarı | Hedef başına sn. hasar |
 |---|---|---|---|
@@ -156,7 +142,7 @@
 | Mermo | Pistol (düz, en hızlı) | **Pompalı:** her atış 40°'lik yelpazede 5 saçma (saçma başına hasarın %60'ı). Yakında 3 kat hasar |
 
 **Örnek:** Sv. 7'de 3 polis sana koşuyor: her biri saniyede 2.5 mermi yer; delme sayesinde arkalarındakiler de vurulur. Polis (50 can) tek hedefe 12 hasarla ~2 saniyede düşer.
-**Not:** Tek bir elite (250 can) karşı Sv. 8'de saniyede 30 hasar = ~8 saniye. Eski sistemde 50 hasar/sn ile 5 saniyeydi. Güç artık kalabalığa karşı; tek güçlü düşmanda biraz daha yavaş.
+**Not:** Tek bir elite (250 can) karşı Sv. 8'de saniyede 30 hasar = ~8 saniye. Güç kalabalığa karşı; tek güçlü düşmanda daha yavaş.
 
 ---
 
@@ -198,20 +184,7 @@ Polis normalde **Medium** blob ister.
 
 **Isırık bedeli:** Polis yutulurken ısırır. Hasar, (efektif) tier'ın eşiğin ne kadar üstünde olduğuna göre değişir: eşitse 5, 1 tier üstteyse 2.5, 2+ tier üstteyse 0. Yırtıcı Çene ile erken yediğin polis hep tam ısırır.
 
-**Kaçış (2026-11-03):** Polisler, blob onları yiyebilecek boydayken (efektif tier ≥ Medium) blob'u görünce kaçar. Yırtıcı Çene efektif tier'ı yükselttiği için polisler **daha erken kaçmaya başlar**, yani skill "erken av" ile birlikte "erken kovalamaca" da getirir.
-
-#### ⚠️ Neden saçma hissettiriyor
-1. **Ödülü yok denecek kadar az.** Polis yutunca **3 mass** veriyor; Small'dan Medium'a geçmek 150 mass ister. Bir polis yutmak bir kaç küçük consumable'dan az kazandırıyor. Üstüne 5 can ısırık yiyorsun.
-2. **Polisler zaten silahla ölüyor.** Silah 1 sn'de 10 hasar veriyor; polis 50 canla birkaç saniyede ölüyor ve coin düşürüyor. Yutmanın öldürmeye üstünlüğü yok.
-3. **Medium'dan sonra hiçbir şey yapmıyor.** Oyunun ikinci yarısında boş bir kart.
-4. **Tek değeri evrime giriş.** Avcı Formu'nun girdisi olduğu için alınıyor.
-
-#### Değişiklik fikirleri (karar senin)
-- **A) Polisin ödülünü büyüt:** polis mass'ını 3 → 15-20 yap. Skill otomatik anlam kazanır, polis yemek "erken büyüme" stratejisi olur. Tek asset değişikliği (`EnemyData_Police._massReward`).
-- **B) Isırığı kaldır:** Yırtıcı Çene ile yutulan polis ısırmasın. Skill güvenli bir avlanma aracı olur.
-- **C) Kapsamı genişlet:** consumable/yaya eşiğini de 1 tier düşürsün ("lokman senden büyük olabilir" açıklamasına uygun). En güçlü seçenek, büyüme hızını belirgin artırır; ağırlığı düşük tutmak gerekir.
-- **D) Yeniden tasarla:** "Yuttuğun polis X saniye boyunca etrafındakileri korkutur" gibi bambaşka bir etki.
-- **Benim önerim:** A + B. En küçük değişiklik, en net "polis avla, büyü" fantezisi.
+**Kaçış:** Polisler, blob onları yiyebilecek boydayken (efektif tier ≥ Medium) blob'u görünce kaçar. Yırtıcı Çene efektif tier'ı yükselttiği için polisler **daha erken kaçmaya başlar**, yani skill "erken av" ile birlikte "erken kovalamaca" da getirir.
 
 ---
 
@@ -237,7 +210,7 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 
 ### ★ Avcı Formu
 - **Gereken:** Yırtıcı Çene 2 + Silah Gücü 8 (toplam 10 seçim)
-- **Ne yapar:** Silahınla vurduğun düşman **3 saniye boyunca, tier'a bakmadan** yutulabilir olur. **Elitler de dahil.** Miniboss ve final boss hariç (onlar zaten yutulamaz; final boss kendi son fazında yutulur).
+- **Ne yapar:** Silahınla vurduğun düşman **3 saniye boyunca, tier'a bakmadan** yutulabilir olur. **Elitler de dahil.** Boss'lar hariç (miniboss yutulamaz; helikopter sadece ona uzanarak yutulur).
 - **Kod:** `AvciFormuEffect` → `AvciFormuComponent` → `EnemyBase.MarkTemporarilyConsumable`
 
 **Örnek:** Small blob'sun, bir elit polis sana ateş ediyor. Silahın ona bir kez isabet ettiği anda 3 saniyelik pencere açılır. O sürede ona dokunursan yutarsın: 20 mass, 5-10 coin ve sandık. Normalde bunun için Giant (1000 mass) olman gerekirdi.
@@ -247,11 +220,17 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 
 ## 4. Karakterler (3 adet)
 
+**Açılma koşulları:**
+- **Topik:** baştan açık.
+- **Mıknato:** Market'te **500 kredi** ile satın alınır (kalıcı). Kredi run sonunda coin'den gelir: kazanınca coin'in %100'ü, ölünce %50'si.
+- **Mermo:** toplam **3 run** bitirince kendiliğinden açılır. Ölümle biten run da, kazanılan run da sayılır. Sayı kalıcı kayıtta tutulur (`MetaProgression.CompletedRuns`), koşul `Char_Mermo.asset` → `Required Completed Runs`.
+- Kilitli karakter Lobby'de seçilemez; isminin altında koşul yazar: "(Market'te açılır)" ya da "(2 run sonra açılır)".
+
 Üç karakter de aynı blob'dur; farkları **başlangıç silahı** ve **pasif yetenektir**. Temel silah değerleri üçünde aynı: saniyede 2.5 atış × 4 hasar, menzil 8. Silah Gücü yolu (Bölüm 2) üçünde de aynı ilerler, sadece **Sv. 8 son formu** karaktere özeldir.
 
 | | 🟠 Topik | 🧲 Mıknato | 🔫 Mermo |
 |---|---|---|---|
-| **Kilit** | Başlangıçta açık | Market'te **500 kredi** | Kodda açık (GDD: "3 oturum tamamla", bkz. Bölüm 6) |
+| **Kilit** | Başlangıçta açık | Market'te **500 kredi** ile satın alınır | **3 run bitirince** açılır (ölümle biten run da sayılır) |
 | **Silah** | Top: yay çizerek uçar, çarptığı yerde patlar | Metal bilye: güdümlü, hedefe kıvrılır | Tabanca: düz ve en hızlı mermi |
 | **Mermi hızı / ömrü** | 14 / 0.9 sn | 12 / 1.5 sn | 18 / 0.7 sn |
 | **Silah özelliği** | 2 birim yarıçapta **alan hasarı** (vurulan dışındakilere de tam hasar) | **Iskalamaz** (sürekli hedefe döner) | Bir boy büyük objeyi **parçalar** (pasif) |
@@ -263,7 +242,7 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 - **Pasif:** Hız çarpanı +0.25 (Hız Artışı skiliyle toplanır: Hız 8 ile ×2.05). Ayrıca büyüme yavaşlaması üssü 0.30 → 0.27. Giant'ta bile çevik kalır.
 - **Silah:** Top yay çizerek uçar (0.4 birim yükseklik), ilk düşmana çarpınca patlar ve 2 birim içindeki diğer düşmanlara da tam hasar verir. Kalabalığa en etkili silah.
 - **Örnek:** Sv. 7'de 3 hedefe ateş eden, her biri 2 birimlik patlama yapan Topik, sürüyü saniyeler içinde eritir. Sv. 8'de patlama 5 birim olur.
-- **Zayıf yanı:** Top binaya çarpınca durur; patlama ince bir duvarın arkasına sızabilir (bilinçli kabul edildi).
+- **Zayıf yanı:** Top binaya çarpınca durur; patlama ince bir duvarın arkasına sızabilir.
 
 ### 🧲 Mıknato
 - **Pasif:** Oyuna Vakum skili açık başlar (3 menzil, gövde yüzeyinden). Çekim menzili ve çekme hızı ×1.25. Vakum skilini alırsa çarpan onu da büyütür (Vakum 8 → 8.75 menzil).
@@ -293,7 +272,7 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 | **Ödül** | 3 mass, 1 coin, %5 kalp | 20 mass, 5–10 coin, **sandık**, %100 kalp |
 
 ### 👹 Miniboss: "Polis Tankı"
-Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Ayrı bir davranış kodu yok; elit polisin tabanca akışını kullanır, ama top mermisiyle (2026-11-04).
+Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Elit polisin nişan-kilit-ateş akışını top mermisiyle kullanır; üstünden geçtiği arabaları ve sokak eşyalarını ezer.
 
 | | 1. Miniboss | 2. Miniboss |
 |---|---|---|
@@ -311,7 +290,7 @@ Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Ayrı bir davranış kodu
 - **Kaçış:** Kilit anında (lazer kalınlaşınca) yana kaçan oyuncu mermiyi atlatır. Arada bina varsa ateş etmez, yürür. Menzil oyuncu silahıyla eşit (8): o sana ateş edebiliyorsa sen de ona edebilirsin.
 - **Ölçek:** 6. dk'da can ~120-150 iken tek isabet canın ~1/5'i; 5-6 isabet öldürür.
 
-### 🚁 Final Boss: "Polis Helikopteri" (2026-11-04)
+### 🚁 Final Boss: "Polis Helikopteri"
 **"Vur, alçalt, büyü, yut."** Helikopter havada uçar; vurdukça alçalır, sen de ona uzanacak kadar büyüyüp yutarsın.
 
 | | Final Boss |
@@ -326,10 +305,10 @@ Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Ayrı bir davranış kodu
 | **Ödül** | Yutulunca **run "tamamlandı" olarak biter** (ölümden ayrı ekran), 300 mass, 600 skor, **60–100 bonus coin**, tam kredi (ölümde %50) |
 
 - **Ne kadar büyümek gerekir** (blob tepesi ≈ 1.1 × ölçek): irtifa 5 ≈ **1340 mass** (Giant'ın biraz üstü), 6 ≈ 1950, 7 ≈ 2700, 8 ≈ 3600.
-- **Oyuncu silahı yukarı ateş eder:** Havadaki hedefe nişan otomatik 3D (skill gerekmez). Menzil yatay ölçülür; helikopterin altına yaklaşman yeter. Yerdeki düşmanlarda davranış değişmedi.
+- **Oyuncu silahı yukarı ateş eder:** Havadaki hedefe nişan otomatik 3D (skill gerekmez). Menzil yatay ölçülür; helikopterin altına yaklaşman yeter.
 - **Kamera:** Helikopter gelince hızlıca uzaklaşıp ikinizi birden kadraja alır; boss ölünce normale döner.
 - **Görsel:** Rotorlar döner, havada süzülür, gittiği yöne eğilir. Son irtifada rotor yavaşlar ("hasarlı").
-- **Zaman sınırı yok:** Run sadece ölümle ya da helikopter yutulunca biter (15. dk sınırı 2026-11-04'te kaldırıldı).
+- **Zaman sınırı yok:** Run sadece ölümle ya da helikopter yutulunca biter.
 
 ### Zorluk zaman çizelgesi
 | Dakika | Olay |
@@ -342,30 +321,5 @@ Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Ayrı bir davranış kodu
 | 9 | 2. Miniboss |
 | 10 | Düşman yoğunluğu ×2 (aynı anda en fazla 60) |
 | 12 | Final Boss |
-| 15 | Düşman hızı artar (run bitmez; sadece ölüm ya da helikopteri yutmak bitirir) |
-
----
-
-## 6. Açık sorular / ileride bakılacaklar
-
-**Skiller**
-1. **Yırtıcı Çene'nin değeri** (bkz. yukarıdaki A–D).
-2. ~~Vakum yarıçapı blob boyutuyla ölçeklenmeli mi?~~ ✅ 2026-11-03: menzil artık gövde yüzeyinden ölçülüyor.
-3. ~~Mıknato pasifi hissedilmiyor~~ ✅ 2026-11-03: ×1.25 menzil ve çekme hızı (GDD Karar 9).
-4. **Yutuş, Rejenerasyon'dan çok güçlü**, sürekli yiyen oyuncu için 4 katı iyileşme veriyor.
-5. **Araba yemek Yutuş'u tetiklemiyor**: araba kendi çarpışma yolunu kullanıyor, bilinçli mi?
-6. **Kara Delik'e ulaşmak 16 seçim**: 15 dakikalık run'da ortalama kaç level atlandığına bakılıp gerçekçi mi değerlendirilmeli.
-7. Tüm skill ikonları hâlâ boş (sanat TODO'su).
-
-**Karakterler**
-8. **Mermo'nun kilidi yok:** GDD "toplam 3 oturum tamamla" diyor, kodda başlangıçta açık.
-9. Karakter ikonları boş (#47).
-
-**Bosslar**
-10. ~~**Final boss tek seride öldürüyor**~~ ✅ 2026-11-04: helikopter, 6 × 6 = 36 hasarlık kaçılabilir seri.
-11. ~~**Final boss'a yetişmek zor olabilir**~~ ✅ 2026-11-04: zaman sınırı kaldırıldı.
-12. **Boss hasarı zamanla artmıyor:** Polislere uygulanan ×1.2 / ×2 zorluk çarpanları bosslara uygulanmıyor (değerler zaten sabit yüksek). Bilinçli mi?
-13. **Bosslar sandık da düşürüyor:** Elit sayıldıkları için ölünce bonus coin'in yanında bir sandık (ekstra skill seçimi) ve 5–10 coin daha veriyorlar.
-14. ~~**Avcı Formu final boss'u erken yutturabilir**~~ ✅ 2026-11-04: helikoptere fiziksel olarak uzanmak gerekiyor, Avcı Formu bunu atlatamaz.
-15. ~~**Miniboss'u ayırt eden bir mekanik yok**~~ ✅ 2026-11-04: tank topu (menzilli, ağır, kaçılabilir) + 2 kat boy. GDD'nin alan saldırısı (patlama) hâlâ yok (#58).
-16. **Düşman tavanları belgelerle uyuşmuyor:** Sahnede aynı anda 30 düşman / 10 elit var (10. dk'dan sonra 60). GDD ve CLAUDE.md 15 polis / 4 elit diyor (#50). Hangisi geçerli?
+| 15 | Düşman hızı ×1.15 |
+| 20 | Düşman hasarı ×3 |

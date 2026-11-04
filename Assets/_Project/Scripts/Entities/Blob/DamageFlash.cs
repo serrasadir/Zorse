@@ -23,8 +23,18 @@ namespace BlobSurvivor.Entities.Blob
         private void Awake()
         {
             _health = GetComponent<BlobHealth>();
-            _renderer = GetComponent<Renderer>();
             _block = new MaterialPropertyBlock();
+            SetRenderer(GetComponent<Renderer>());
+        }
+
+        // BlobVisual karakter görünümünü (child model) takınca parlama o renderer'a geçer.
+        public void SetRenderer(Renderer target)
+        {
+            if (_renderer != null && _renderer != target) _renderer.SetPropertyBlock(null);
+            _renderer = target;
+            _time = -1f;
+            _colorProperty = BaseColorId;
+            _baseColor = Color.white;
 
             Material material = _renderer != null ? _renderer.sharedMaterial : null;
             if (material != null)

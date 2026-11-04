@@ -7769,6 +7769,7 @@ MonoBehaviour:
   _scaleSmoothing: 2
   _baseXPThreshold: 20
   _xpGrowthPerLevel: 15
+  _xpQuadraticPerLevel: 2
   _punchDecay: 8
 --- !u!114 &276010511
 MonoBehaviour:
@@ -27547,7 +27548,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.ConsumableSpawner
   _consumablePool:
-  - {fileID: 11400000, guid: f064fd33bb55d41bda6b234ca0048460, type: 2}
+  - {fileID: 11400000, guid: dd640204e8d7c41d28a80004aec39d9b, type: 2}
+  - {fileID: 11400000, guid: 66eea5a334d8e4eb39df726075822685, type: 2}
+  - {fileID: 11400000, guid: c29814281a29a4d3aa3914d2debe10fe, type: 2}
+  - {fileID: 11400000, guid: d9f3c5c5629144e3fbaee8c5cea8cb8c, type: 2}
+  - {fileID: 11400000, guid: 76a9128ad9f3546538840bcf418bd204, type: 2}
+  - {fileID: 11400000, guid: f124dcfe9edc6499f988a455cb44b7c4, type: 2}
+  - {fileID: 11400000, guid: f1e5d7d30918a4dc0becfe25ca2a4c3b, type: 2}
+  - {fileID: 11400000, guid: 5a8d7019bdf4a49f591848fa71b4497d, type: 2}
+  - {fileID: 11400000, guid: 07a5848ce2a55448aa4566ac3e782286, type: 2}
+  - {fileID: 11400000, guid: 5b2357a0af7364d45a27cabf04453f1f, type: 2}
+  - {fileID: 11400000, guid: 7a422c57382fe42c297416c82c589e23, type: 2}
+  - {fileID: 11400000, guid: a1b716829d8d94b3a9fbf990a2f40f22, type: 2}
   _maxActive: 80
   _spawnRadius: 30
   _minSpawnDistance: 5

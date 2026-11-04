@@ -20,22 +20,28 @@ namespace BlobSurvivor.Data
         [Header("Başlangıç Silahı")]
         [SerializeField] private GameObject _startingWeaponPrefab;
 
+        [Header("Görünüm")]
+        [Tooltip("Blob'un child'ı olarak takılan model (yüz +Z'de, çap 1, pivot merkez). Boş = varsayılan küre.")]
+        [SerializeField] private GameObject _blobVisualPrefab;
+
         [Header("Pasif")]
         [SerializeField] private CharacterPassiveType _passiveType;
         [SerializeField] private float _passiveValue;
 
-        // M23 takip (#48): true ise LobbyPanel bu karakteri MetaProgression.MiknatoUnlocked
-        // satın alınana kadar kilitli gösterir. Şu an lansımda Market'ten unlock edilen tek
-        // karakter Mıknato olduğu için ayrı bir unlock-tipi alanı gerekmiyor.
-        [Header("Kilit (Market)")]
+        // Kilit: true ise Market'te MiknatoCharacter satın alınana kadar kilitli (sadece Mıknato).
+        [Header("Kilit")]
         [SerializeField] private bool _requiresMarketUnlock;
+        [Tooltip("Bu kadar run bitirilince açılır (ölümle biten run da sayılır). 0 = koşul yok. Mermo: 3.")]
+        [SerializeField] private int _requiredCompletedRuns;
 
         public string DisplayName => _displayName;
         public Sprite Icon => _icon;
         public string Description => _description;
         public GameObject StartingWeaponPrefab => _startingWeaponPrefab;
+        public GameObject BlobVisualPrefab => _blobVisualPrefab;
         public CharacterPassiveType PassiveType => _passiveType;
         public float PassiveValue => _passiveValue;
         public bool RequiresMarketUnlock => _requiresMarketUnlock;
+        public int RequiredCompletedRuns => _requiredCompletedRuns;
     }
 }

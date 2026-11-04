@@ -101,7 +101,7 @@ Ayrıntı ve tüm sayılar **`SKILLS.md`**'de. Özet:
 - **3 karakter**, hepsi top formunda, silahlar otomatik ateşler:
   - **Topik** — top (yay çizen, küçük patlamalı); pasif: hız. Baştan açık.
   - **Mıknato** — metal bilye (hedefe bükülen); pasif: Attract ×1.25. Market'te 500 kredi.
-  - **Mermo** — tabanca (hızlı, düz); pasif: kendinden 1 tier büyük objeyi vurup 3 yenebilir parçaya böler. Şu an baştan açık (kilit yok — issue #68).
+  - **Mermo** — tabanca (hızlı, düz); pasif: kendinden 1 tier büyük objeyi vurup 3 yenebilir parçaya böler. **3 run bitirince** açılır (ölüm de sayılır).
 - Silah havadaki hedefe (helikopter) otomatik yukarı nişan alır; menzil yatay ölçülür.
 
 ---
@@ -117,7 +117,7 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 | **Miniboss: Polis Tankı** (6. ve 9. dk) | 2 kat büyük; nişan lazeri + kilit + tank topu. Üstünden geçtiği arabaları ve sokak eşyalarını ezer, binaların etrafından dolanır. Uzaktaysa yetişmek için hızlanır | Sadece silahla, yutulamaz |
 | **Final Boss: Polis Helikopteri** (12. dk) | Havada uçar, yukarıdan makineliyle seri atar. Vurdukça kademe kademe alçalır (irtifa 8 → 7 → 6 → 5), yerde koyulaşan gölgesi ve dönen pervane gölgesi var. Gelince kamera ikinizi kadraja alır | **Silahla ölmez.** Blob'un tepesi helikoptere değdiği an yutulur, hangi irtifada olursa olsun (irtifa 5 ≈ 1340 kütle). Yutunca run kazanılır |
 
-- **Eşzamanlı:** sahnede en fazla 30 düşman / 10 elit (belgelerde 15 / 4 hedefi var — karar issue #50).
+- **Eşzamanlı:** en fazla 30 düşman (10. dk'dan sonra 60), bunların en fazla 10'u elit; 25 yaya.
 - **Ödüller:** her düşman coin düşürür; elit ve boss'lar sandık (ekstra kart + coin); boss'lar bonus coin. Kalp: polis %5, elit %100 (+20 can).
 - Coin 20 sn sonra kaybolur (son 3 sn yanıp söner).
 

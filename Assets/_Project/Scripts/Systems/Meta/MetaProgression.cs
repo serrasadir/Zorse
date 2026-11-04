@@ -25,6 +25,7 @@ namespace BlobSurvivor.Systems.Meta
         public int massGainLevel;
         public int coinGainLevel;
         public bool xpMultiplierPurchased;
+        public int completedRuns; // ölümle ya da kazanarak biten run sayısı (Mermo kilidi)
     }
 
     // M20 (GDD_v2.md §8, Karar 7): run içi coin'in kalıcı Market kredisine dönüşmesi + satın alınan
@@ -60,6 +61,7 @@ namespace BlobSurvivor.Systems.Meta
 
         public int Credit => _data.credit;
         public bool MiknatoUnlocked => _data.miknatoUnlocked;
+        public int CompletedRuns => _data.completedRuns;
         public int SpeedLevel => _data.speedLevel;
         public int MaxHealthLevel => _data.maxHealthLevel;
         public int MassGainLevel => _data.massGainLevel;
@@ -102,15 +104,16 @@ namespace BlobSurvivor.Systems.Meta
         }
 
         // Ölümde %50, tamamlanan run'da %100 (GDD §8).
-        private void HandleGameOver() => ConvertCoinsToCredit(0.5f);
-        private void HandleRunComplete(RunEndReason reason) => ConvertCoinsToCredit(1f);
+        // Her biten run (ölüm de) sayılır — Mermo 3 run sonra açılır (CharacterData.RequiredCompletedRuns).
+        private void HandleGameOver() => FinishRun(0.5f);
+        private void HandleRunComplete(RunEndReason reason) => FinishRun(1f);
 
-        private void ConvertCoinsToCredit(float fraction)
+        private void FinishRun(float creditFraction)
         {
+            _data.completedRuns++;
             ScoreSystem scoreSystem = FindAnyObjectByType<ScoreSystem>();
-            if (scoreSystem == null || scoreSystem.Coins <= 0) return;
-
-            _data.credit += Mathf.RoundToInt(scoreSystem.Coins * fraction);
+            if (scoreSystem != null && scoreSystem.Coins > 0)
+                _data.credit += Mathf.RoundToInt(scoreSystem.Coins * creditFraction);
             Save();
         }
 
