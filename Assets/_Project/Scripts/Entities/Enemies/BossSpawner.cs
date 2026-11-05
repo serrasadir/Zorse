@@ -37,9 +37,13 @@ namespace BlobSurvivor.Entities.Enemies
         private float _lastReportedHealth = -1f;
         private readonly Dictionary<EnemyData, ObjectPool<EnemyBase>> _pools = new Dictionary<EnemyData, ObjectPool<EnemyBase>>();
 
+        private BossDeathEffect _deathEffect;
+
         private void Awake()
         {
             Instance = this;
+            _deathEffect = GetComponent<BossDeathEffect>();
+            if (_deathEffect == null) _deathEffect = gameObject.AddComponent<BossDeathEffect>();
         }
 
         private void Start()
@@ -187,6 +191,12 @@ namespace BlobSurvivor.Entities.Enemies
 #if UNITY_EDITOR
             Debug.Log($"[BossSpawner] Öldü/yutuldu: {boss.Data.DisplayName}");
 #endif
+
+            // Miniboss'un ölüm sahnesi (görüntü kopyası). Final boss'un yutulma anı FinalBossController'da.
+            if (boss.GetComponent<FinalBossController>() == null)
+                _deathEffect.Play(boss, boss.Data.Prefab);
+            else
+                _deathEffect.PlaySwallow(boss, boss.Data.Prefab, GameEvents.RaiseFinalBossConsumed);
 
             if (_pools.TryGetValue(boss.Data, out ObjectPool<EnemyBase> pool))
                 pool.Return(boss);

@@ -53,6 +53,8 @@ namespace BlobSurvivor.Core
         // Sarsıntı yumuşak takibe karışmasın diye takip pozisyonu ayrı tutulur, sarsıntı üstüne eklenir.
         private Vector3 _followPosition;
         private float _shakeTime = -1f;
+        // Final boss yutulma sahnesi: <1 = blob'a yaklaş. Yavaş çekimde de akıcı olsun diye ölçeksiz zamanla yumuşar.
+        public float CinematicZoom { get; set; } = 1f;
         private float _shakeAmplitude, _shakeDuration;
 
         // Kamera uzaklaşınca gölge mesafesi (URP asset'inde, kameradan ölçülür) blob'a yetmez olur ve gölgeler
@@ -162,7 +164,10 @@ namespace BlobSurvivor.Core
             }
 
             float previous = _heightMultiplier;
-            _heightMultiplier = Mathf.Lerp(_heightMultiplier, target, Time.deltaTime * smoothing);
+            bool cinematic = !Mathf.Approximately(CinematicZoom, 1f);
+            if (cinematic) target *= CinematicZoom;
+            float dt = cinematic ? Time.unscaledDeltaTime * 2f : Time.deltaTime;
+            _heightMultiplier = Mathf.Lerp(_heightMultiplier, target, dt * smoothing);
 
             // Gölge mesafesi sadece belirgin değişimde güncellenir (asset property'si, her kare dokunmaya gerek yok).
             if (_urpAsset != null && _baseShadowDistance >= 0f && Mathf.Abs(_heightMultiplier - previous) > 0.001f)

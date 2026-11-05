@@ -14,6 +14,8 @@ namespace BlobSurvivor.Entities.Blob
         public float CurrentHealth { get; private set; }
         public float MaxHealth => _maxHealth;
         public bool IsAlive => CurrentHealth > 0f;
+        // Final boss yutulma sahnesinde (BossDeathEffect) hasar alınmaz; run başında sıfırlanır.
+        public bool Invulnerable { get; set; }
 
         // 2026-11-04 (Serra): Zırh skill'i artık yüzdesel azaltma değil, kalkan havuzu — hasarı önce kalkan yer,
         // biterse can. Son hasardan _shieldRechargeDelay sn sonra _shieldRechargeDuration sn'de dolar.
@@ -57,6 +59,7 @@ namespace BlobSurvivor.Entities.Blob
         {
             _maxHealth = _baseMaxHealth;
             CurrentHealth = _maxHealth;
+            Invulnerable = false;
             _shieldMax = 0f;
             ShieldCurrent = 0f;
             OnShieldChanged?.Invoke(0f, 0f);
@@ -101,7 +104,7 @@ namespace BlobSurvivor.Entities.Blob
 
         public void TakeDamage(float amount, DamageType type = DamageType.Physical)
         {
-            if (!IsAlive || amount <= 0f) return;
+            if (!IsAlive || amount <= 0f || Invulnerable) return;
 
             _lastHitTime = Time.time; // her hasar (kalkana ya da cana) yenilenmeyi erteler
             float remainingDamage = amount;

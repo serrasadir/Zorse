@@ -84,7 +84,7 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 - **Saydam/özel materyaller** build'de ayıklanmasın diye prefab'da referanslı ya da `Resources/` altında olmalı; runtime'da shader'dan materyal üretme.
 - Final boss'un collider'ı havada (`EnemyBase.AirborneHeight`/`AimPoint`); kök yerde NavMesh'te.
 - UnityEvent (OnClick) slotuna Project penceresinden script değil, **Hierarchy'den GameObject** sürüklenir.
-- Proje `~/Developer/zorse`'ta (iCloud dışı). `../zorse-ios-build` ve `~/Developer/zorse-blender` (model kaynakları, `build_*.py`) yan yana durmalı.
+- Proje `~/Developer/zorse`'ta (iCloud dışı). `../zorse-ios-build` ve `~/Developer/zorse-blender` (model kaynakları, `build_*.py`; ayrı private repo `serrasadir/zorse-blender`, `.blend`/render'lar git'e girmez) yan yana durmalı. Script değişince o repo da commit'lenir.
 - graphify repo kökünde çalıştırılır (`graphify-out/` gitignore'da).
 
 ## Editör araçları (`Tools → Blob.io → ...`)
@@ -99,7 +99,7 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 | Sandık Modelini Uygula | `Art/City/C_Chest.fbx` (Blender: `build_chest.py`) → Chest.prefab modeli |
 | **Şehir Kur (v2)** | Yeni şehir: `Art/City/Kit2/city_v2.json` (Blender: `build_kit2.py --export` binalar, `build_props2.py --export` eşya + blok zeminleri, `build_city2.py --export` mahalle yerleşimi). Yollar/kaldırım/yaya/araba/NavMesh büyük şehirle aynı. Sonra Şehir Görsel Düzeltmeleri + Cmd+S |
 | Şehir Kur (Kit2 Deneme) | Büyük şehir + bina noktalarına şehir kiti v2 binaları (`Art/City/Kit2`, Blender: `build_kit2.py --export`). Performans denemesi; eski şehre dönmek için Şehir Kur (Büyük). Sonra Şehir Görsel Düzeltmeleri |
-| Karakter Görünümlerini Uygula | `Art/City/Characters/CH_*.fbx` (Blender: `build_topik.py`, tier başına `CH_Topik_T1..T5`) → `Prefabs/Blob/BlobVisual_*` (+ `BlobTierMeshes`) + `CharacterData._blobVisualPrefab`. Runtime'da `BlobVisual` takar, gidiş yönüne çevirir; boş = varsayılan küre |
+| Karakter Görünümlerini Uygula | `Art/City/Characters/CH_*.fbx` (Blender: `build_blobs.py`, karakter ve tier başına `CH_<Karakter>_T1..T5`) → `Prefabs/Blob/BlobVisual_*` (+ `BlobTierMeshes`) + `CharacterData._blobVisualPrefab`. Runtime'da `BlobVisual` takar, gidiş yönüne çevirir; boş = varsayılan küre |
 | Yerdeki Yiyecekleri Kur | `Art/City/Litter/J_*.fbx` (Blender: `build_litter.py`) → prefab + ConsumableData, ConsumableSpawner havuzunu bunlarla değiştirir. GameScene açıkken; sonra Cmd+S |
 | Kalp Prefab'ını Kur · Haber Bandını Kur · Duraklatma Menüsünü Kur | İlgili sahne/prefab kurulumu |
 | Görsel Ayarları Uygula | Post-processing, ışık, ortam |

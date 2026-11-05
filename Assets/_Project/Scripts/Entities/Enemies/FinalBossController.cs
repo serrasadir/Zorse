@@ -9,7 +9,8 @@ namespace BlobSurvivor.Entities.Enemies
     // - Silahla ölmez (EnemyData.RequiresConsumptionToDie, HP 1'de kilitlenir).
     // - Yutulmanın tek koşulu UZANMAK: blob'un tepesi helikoptere değdiği an, hangi kademede olursa olsun
     //   yutulur (Giant tier şartı EnemyData'da, uzanabilen blob zaten Giant). Çok büyüyen oyuncu erken bitirir.
-    // Yutulunca GameEvents.RaiseFinalBossConsumed → GameManager run'ı "tamamlandı" olarak kapatır.
+    // Yutulunca BossDeathEffect yutulma sahnesini oynatır, bitince GameEvents.RaiseFinalBossConsumed →
+    // GameManager run'ı "tamamlandı" olarak kapatır.
     [RequireComponent(typeof(EnemyBase))]
     public class FinalBossController : MonoBehaviour
     {
@@ -109,9 +110,9 @@ namespace BlobSurvivor.Entities.Enemies
         private void HandleDeath(EnemyBase boss)
         {
 #if UNITY_EDITOR
-            Debug.Log("[FinalBossController] Final boss yutuldu — OnFinalBossConsumed ateşleniyor.");
+            Debug.Log("[FinalBossController] Final boss yutuldu — yutulma sahnesi (BossDeathEffect), sonra OnFinalBossConsumed.");
 #endif
-            GameEvents.RaiseFinalBossConsumed();
+            // Run'ı bitiren olay sahne bitince BossSpawner → BossDeathEffect.PlaySwallow'dan ateşlenir.
         }
     }
 }
