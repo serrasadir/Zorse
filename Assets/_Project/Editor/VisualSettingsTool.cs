@@ -117,7 +117,7 @@ namespace BlobSurvivor.EditorTools
         private static bool SetupSun()
         {
             Light sun = null;
-            foreach (Light light in Object.FindObjectsByType<Light>(FindObjectsSortMode.None))
+            foreach (Light light in Object.FindObjectsByType<Light>())
             {
                 if (light.type != LightType.Directional) continue;
                 sun = light;

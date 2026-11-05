@@ -9,8 +9,8 @@ namespace BlobSurvivor.EditorTools
     internal static class TierRules
     {
         public const float Tolerance = 1.05f;
-        public static readonly float[] Thresholds = { 0f, 50f, 200f, 650f, 1100f, 1650f }; // Tiny..Colossal
-        public static readonly float[] MassByTier = { 2f, 4f, 10f, 25f, 50f, 80f };       // şehir objeleri
+        public static readonly float[] Thresholds = { 0f, 15f, 50f, 200f, 650f, 1100f, 1650f }; // Tiny..Colossal
+        public static readonly float[] MassByTier = { 2f, 3f, 4f, 10f, 25f, 50f, 80f };        // şehir objeleri
 
         // BlobGrowth: ölçek = 0.5 × (1 + kütle × 0.1) ^ 0.45; gövde çapı = ölçek.
         private const float BaseScale = 0.5f, GrowthFactor = 0.1f, GrowthExponent = 0.45f;

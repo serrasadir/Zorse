@@ -21,4 +21,4 @@ MonoBehaviour:
   _spawnRate: 2.5
   _waveName: PoliceElite
   _unlockByBlobTier: 1
-  _unlockTier: 3
+  _unlockTier: 4

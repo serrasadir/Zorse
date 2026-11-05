@@ -57,7 +57,7 @@ namespace BlobSurvivor.Entities.Blob
         private void Show(Mesh[] meshes)
         {
             if (_target == null || meshes == null || meshes.Length == 0) return;
-            int index = Mathf.Clamp((int)_tier - 1, 0, meshes.Length - 1);
+            int index = Mathf.Clamp(TierLayers.LegacyIndex(_tier), 0, meshes.Length - 1);
             if (meshes[index] != null) _target.sharedMesh = meshes[index];
         }
     }

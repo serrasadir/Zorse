@@ -42,7 +42,7 @@ namespace BlobSurvivor.Entities.Loot
         private void OnEnable()
         {
             // Coin ile aynı: ConsumableTier1 layer'ını paylaşır, Blob bu layer'la her zaman çarpışır.
-            gameObject.layer = LayerMask.NameToLayer("ConsumableTier1");
+            gameObject.layer = TierLayers.For(BlobTier.Tiny);
             _age = 0f;
             if (_model != null) _model.gameObject.SetActive(true);
             GameEvents.OnCharacterSelected += HandleRestart;

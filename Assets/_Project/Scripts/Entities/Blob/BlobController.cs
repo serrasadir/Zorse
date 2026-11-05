@@ -65,7 +65,7 @@ namespace BlobSurvivor.Entities.Blob
         private float SpeedScaleModifier()
         {
             if (_blobGrowth == null) return 1f;
-            return 1f / Mathf.Pow((float)_blobGrowth.CurrentTier, _tierSlowdownExponent);
+            return 1f / Mathf.Pow(TierLayers.SlowdownRank(_blobGrowth.CurrentTier), _tierSlowdownExponent);
         }
     }
 }

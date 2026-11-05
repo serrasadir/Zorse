@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
   _displayName: P_Bench2
   _prefab: {fileID: 3758254031485736960, guid: aa9b6474a350e451fa3c0d7ec8ad2989, type: 3}
-  _scoreValue: 4
-  _massValue: 4
+  _scoreValue: 3
+  _massValue: 3
   _requiredTier: 2
   _isHazard: 0
   _hazardAmount: 0

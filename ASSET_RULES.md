@@ -1,30 +1,20 @@
-# Left No Crumbs: 3B Asset Üretim Kuralları (AI için)
+# Left No Crumbs: 3B Asset Üretim Kuralları
 
-> Bu dosya bir AI asistanına (Claude vb.) bağlam olarak verilir. Görevi, Meshy AI için tutarlı prompt'lar yazmak ve üretilen modelleri bu kurallara göre kontrol etmektir.
-> Son güncelleme: 2026-11-03. Kaynak: Unity projesindeki mevcut şehir kiti ve çarpışma/import pipeline'ı.
-
----
-
-## 0. Görevin
-
-Kullanıcı bir asset ister ("çöp kutusu", "kafe binası" gibi). Sen:
-1. Aşağıdaki kurallara uyan bir **Meshy prompt'u** ve **negatif prompt** yazarsın (İngilizce).
-2. Hedef ölçü, üçgen sayısı, doku boyutu ve dosya adını verirsin.
-3. Kurallarla çelişen bir istek varsa (yerde geniş kaide, cam duvar, aşırı detay gibi) uyarırsın ve alternatif önerirsin.
-4. Kullanıcı üretilen modelin görselini ya da bilgisini paylaşırsa **Bölüm 7'deki kontrol listesiyle** denetlersin.
-
-Çıktı formatı her asset için **Bölüm 8**'deki gibidir.
+> Bütün 3B modeller **Blender script'leriyle** üretilir (`~/Developer/zorse-blender/build_*.py`, Claude yazar). Elle modelleme ya da dış araç (Meshy vb.) yok.
+> Bu dosya yeni bir model yazarken uyulacak kuralları anlatır. Ortak kütüphane `kit2.py`; kurallar oradaki kontrollerle (`collision_report`) otomatik denetlenir.
 
 ---
 
-## 1. Oyun bağlamı
+## 1. Akış
 
-- **Oyun:** "Left No Crumbs". Mobil (iOS/Android), top-down 2.5D, stilize low-poly 3B.
-- **Oynanış:** Oyuncu yerde yuvarlanan bir **blob**'dur. Kendinden küçük her şeyi yiyerek büyür (Katamari / Hole.io benzeri). Şehirdeki her obje ileride yenebilir bir lokmadır.
-- **Kamera:** Yukarıdan, 60° eğik bakar. Oyuncu objelerin en çok **üst yüzeyini ve ön cephesini** görür.
-- **Harita:** ~136×136 birimlik bir şehir. 8×8 birimlik bloklar, aralarında 4 birim genişliğinde sokaklar.
-- **Birim:** 1 birim ≈ 1 metre gibi düşün. Blob en küçükken 0.5 birim çapında, en büyükken ~4 birim.
-- **Performans:** Hedef 30 FPS, orta seviye telefonlar. Her model hafif olmalı.
+1. İstenen obje için ilgili script'e bir `def <obje>()` fonksiyonu eklenir (eşya/zemin `build_props2.py`, bina `build_kit2.py`, insan `build_people.py`, yerdeki yiyecek `build_litter.py`, karakter `build_topik.py`, tekil modeller kendi script'inde: `build_chest.py`, `build_police_heli.py`, `build_armor_shields.py`).
+2. Önce **önizleme render'ı** alınır (oyun açısı 60° + yakın plan) ve görsel kontrol edilir. Script'i tek eşyayla çalıştırmak `props2.blend`'i o eşyayla ezer; tek modelin önizlemesi için geçici bir script kullanılır.
+3. Beğenilince `--export` ile FBX `Assets/_Project/Art/City/...` altına yazılır.
+4. Şehirde yer alacaksa yerleşim `build_city2.py`'a eklenir → `city_v2.json`. **Rastgele sayı tüketmeden** ekle (sabit konum, sayaç); aksi hâlde seed kayar ve bütün şehir değişir.
+5. Unity: `Tools → Blob.io → Şehir Kur (v2)` → `Şehir Görsel Düzeltmeleri` → Cmd+S. Tier ve kütle boydan otomatik gelir (Bölüm 5).
+6. Unity'de görsel kontrol: `Temp/snapshot.request` ile sahne görüntüsü (bkz. CLAUDE.md).
+
+Çalıştırma: `/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup --python build_X.py -- [--export]`
 
 ---
 
@@ -32,12 +22,11 @@ Kullanıcı bir asset ister ("çöp kutusu", "kafe binası" gibi). Sen:
 
 Unity'de çarpışma kutusu otomatik hesaplanır: **modelin alttan 0.6 birimlik kısmının yerdeki izi** engeldir. Daha yüksekteki her şeyin altından blob geçebilir.
 
-Bu yüzden:
-- ✅ Çıkıntılar **havada** olsun: ağaç yaprakları, tente, lamba kolu, durak çatısı, balkon. En alt noktaları **0.8 birimin üstünde** başlasın. 0.6'nın altına inen her parça (alçak çalı, yere sarkan tente) duvar sayılır, altından geçilemez.
-- ✅ Yerdeki kısım üstten bakınca da görünsün ve objenin "katı" kısmı olsun: ağaç gövdesi, bina duvarı, direk.
-- ❌ Yere yakın geniş ama ince ya da üstten görünmeyen parçalar: ağaç kökleri, geniş kaide, etek, zemin plakası, çim tabanı.
-- ❌ Yerde **şeffaf** parçalar (cam duvar, cam vitrin tabanı): blob görünmez bir duvara çarpmış gibi hisseder.
-- ❌ Yere yayılan ince detaylar (kablolar, zincirler, ayaklık).
+- ✅ Çıkıntılar **havada**: ağaç yaprakları, tente, lamba kolu, saçak. En alt noktaları **0.8'in üstünde** (ağaç yaprakları 0.85+).
+- ✅ Yerdeki kısım objenin görünür, katı kısmı olsun: gövde, duvar, direk.
+- ❌ Yere yakın geniş ama ince parçalar (kök, kaide, etek, zemin plakası). Kaide gövdeden taşarsa çarpışma kutusu büyür.
+- ❌ Yerde şeffaf parça (cam duvar): görünmez duvar hissi verir.
+- `kit2.collision_report` 0.6–0.8 arasında ayak izinden sarkan parçayı ve bütçe aşımını uyarır; uyarı kalmamalı.
 
 ---
 
@@ -45,27 +34,21 @@ Bu yüzden:
 
 | Konu | Kural |
 |---|---|
-| Pivot / orijin | Tabanın tam ortası. Model y=0'da yere oturur |
-| Eksen | Y yukarı |
-| Yön | Binaların girişi, araçların önü, insanların yüzü **hep aynı yöne** (kameraya bakan ön cephe). Hangi yön olduğu bir kez belirlenir, hepsinde aynı kalır |
-| Dosya | Her FBX'te **tek obje**. Zemin, plaka, arka plan, sahne yok |
-| Format | FBX, **tek mesh zorunlu**: parçalar (gövde + yaprak, direk + lamba) Blender'da Join (Ctrl+J) ile birleştirilir. Unity çarpışma kutusunu sadece ilk mesh'ten hesaplar, ayrı parça varsa diğerleri yok sayılır |
-| Transform | Dışa aktarmadan önce Apply All Transforms (ölçek 1, dönüş 0) |
-| Doku | Sadece **base color** (albedo). Normal, roughness, metallic, AO haritası **yok** |
-| Doku boyutu | Sokak eşyası / insan: 512 px · Araç: 512–1024 px · Bina: 1024 px |
-| Renk | Az sayıda düz renk, gradyan ya da gürültü yok. Böylece ileride tek bir renk atlasına taşınabilir |
-| Animasyon | Yok. İnsanlar da animasyonsuz (kodla yukarı-aşağı sallanıyorlar) |
+| Birim | 1 birim = Unity birimi (≈ 1 m). Blender z yukarı |
+| Pivot | Tabanın tam ortası, z=0 (istisna: havada dönen sandık = merkez; karakter = küre merkezi) |
+| Yön | Şehir kiti (B_/P_/L_/V_): ön cephe **-Y**; Unity'de 180° düzeltilir, Blender (x, y) = Unity (x, z). İnsan/karakter: yüz +Y (kendi script notlarına bak) |
+| Mesh | Her obje **tek mesh**, transform uygulanmış (`M` sınıfı doğrudan dünya koordinatında kurar). Ayrı dönen parça gerekiyorsa (helikopter rotoru) ayrı mesh, pivot = göbek |
+| Doku | **Tek palet dokusu** `CityPaletteV2.png` (8×8 = 64 renk, **dolu**). Yeni renk eklemek için önce bir rengi değiştir; satır/sütun sayısı değişirse bütün UV'ler kayar. Renkler `kit2.PAL` adlarıyla kullanılır |
+| Malzeme | Normal/roughness/metallic haritası yok, tek materyal (şehirle aynı batch'e girer) |
+| Animasyon | Yok. Hareket hissi koddan (yaya süzülme, rotor dönüşü) |
 
-### Üçgen bütçesi (Remesh hedefi)
-| Tür | Üçgen |
-|---|---|
-| Küçük sokak eşyası (musluk, çöp kutusu, bank) | 200–500 |
-| Büyük sokak eşyası (ağaç, durak, lamba) | 400–800 |
-| Araç | 800–1500 |
-| İnsan / polis | 1000–2000 |
-| Bina | 1500–3000 |
-
-⚠️ Meshy'nin "low poly" çıktısı bile çok ağır olabiliyor (önceki bir binada 210.000 üçgen). Her modelde **Remesh (triangle topology)** ile yukarıdaki hedefe indirilmeli.
+### Üçgen bütçesi (`collision_report` denetler)
+| Tür | Üst sınır | Örnek |
+|---|---|---|
+| Sokak eşyası `P_` | 800 | dondurma kamyoneti 326, bank ~150 |
+| Araç `V_` | 1500 | |
+| İnsan / polis `H_` | 2000 | |
+| Bina `B_` | 3000 | |
 
 ---
 
@@ -74,142 +57,60 @@ Bu yüzden:
 | Önek | Tür | Örnek |
 |---|---|---|
 | `B_` | Bina | `B_Bakery` |
-| `P_` | Sokak eşyası (prop) | `P_Mailbox` |
-| `V_` | Araç | `V_IceCreamTruck` |
-| `H_` | İnsan / polis | `H_OldLady` |
-| `C_` | Toplanabilir (coin, kalp) | `C_Gem` |
+| `P_` | Sabit sokak eşyası (park etmiş araç dahil) | `P_IceCreamTruck`, `P_ParkedCarRed` |
+| `L_` | Blok zemini (8×8, çarpışma yok) | `L_Park` |
+| `V_` | Hareketli araç / boss aracı | `V_PoliceHeli` |
+| `H_` | İnsan / polis | `H_Man` |
+| `J_` | Yerdeki yiyecek (Tiny) | `J_Simit` |
+| `CH_` | Karakter görünümü | `CH_Topik_T3` |
+| `C_` | Toplanabilir (sandık, coin) | `C_Chest` |
 
-PascalCase, Türkçe karakter yok, boşluk yok.
+PascalCase, Türkçe karakter ve boşluk yok. Eski kitle aynı adı kullanma: `CityVisualFixes` prefab'ları adla eşleştirir.
 
 ---
 
-## 5. Hedef ölçüler (en × yükseklik × derinlik, birim)
+## 5. Boy = tier (yenme sırası)
 
-Mevcut şehirdeki karşılıkları. Yeni asset'ler bu aralıklarda kalmalı.
+Tier elle verilmez, Unity boydan hesaplar (`Editor/TierRules.cs`): obje, blob o tier'a girdiğindeki çapından en fazla %5 büyükse o tier'da yenir. Boy = kenarların geometrik ortalaması; ince uzun objelerde en uzun kenarın yarısı daha büyükse o. Yeni objenin hangi tier'a düşeceğini önceden bilmek için hedef boyu buna göre seç.
 
-**Binalar** (taban **en fazla 6 × 6**, çünkü blok 8×8 ve kaldırım payı var)
-| Örnek | Ölçü |
-|---|---|
-| Küçük dükkan / kafe | 3.6–3.8 × 3.1 × 3.65 |
-| Polis merkezi | 3.8 × 5.0 × 3.9 |
-| Restoran | 5.4 × 4.7 × 4.4 |
-| Banka | 5.4 × 6.0 × 5.2 |
-| Apartman | 3.6–4.0 × 6.2–6.7 × 3.6 |
-| Otel / ofis | 4.8–5.0 × 7.8–9.0 × 4.8–4.9 |
-| Kule | 3.6 × 10.9 × 3.6 |
-| Süpermarket | 7.0 × 3.4 × 5.1 (en geniş) |
+| Tier | Blob çapı | Boy (≈) | Mevcut örnekler |
+|---|---|---|---|
+| Tiny | 0.5 | ≤ 0.52 | yerdeki yiyecek 0.27–0.49, hidrant 0.40, çöp kutusu 0.50 |
+| Little | 0.76 | ≤ 0.80 | zayıf yaya 0.69–0.77, bank 0.65, çalı 0.64 |
+| Small | 1.1 | ≤ 1.18 | iri yaya 1.01, telefon kulübesi 0.99, seyyar araba 1.17, trafik ışığı 1.10 |
+| Medium | 2.0 | ≤ 2.07 | ağaç 1.72, araba 1.21, lamba 1.33, kamyon 1.94, dondurma kamyoneti 1.93 |
+| Large | 3.3 | ≤ 3.45 | otobüs 2.32, fıskiye 2.49, berber 3.42, atlıkarınca 3.11 |
+| Giant | 4.1 | ≤ 4.36 | kafe 3.99, kitapçı 4.06, apartmanlar 4.16–4.33 |
+| Dev | 5.0 | ≤ 5.45 | büyük apartmanlar 4.5, hastane 4.87, sinema 5.16, otel 5.20 |
 
-**Sokak eşyaları**
-| Obje | Ölçü |
-|---|---|
-| Ağaç | 1.8 × 2.3 × 1.3 · gövde ~0.25 kalınlık, yapraklar 0.8 üstünde başlar |
-| Sokak lambası | direk ~0.1 · boy 2.3 · kol tepede |
-| Trafik lambası | 0.2 × 2.05 × 0.16 |
-| Otobüs durağı | 2.0 × 1.6 × 0.8 · çatı tepede, yerde sadece direkler ve bank |
-| Bank | 1.0 × 0.55 × 0.3 |
-| Çöp kutusu | 0.45 × 0.56 × 0.4 |
-| Yangın musluğu | 0.2 × 0.5 × 0.2 |
-
-**Araçlar**
-| Obje | Ölçü |
-|---|---|
-| Otomobil / taksi / polis arabası | 1.0 × 0.9–1.0 × 2.1 |
-| Minibüs | 1.15 × 1.45 × 2.7 |
-| Kamyon | 1.2 × 1.85 × 3.3 |
-| Otobüs | 1.3 × 1.55 × 4.6 |
-
-**İnsanlar:** ~1.1 boy, tıknaz, sevimli oranlar (büyük kafa, kısa bacak).
+Ölçüleri görmek için `Tools → Blob.io → Yenebilir Boyut Raporu` (`Temp/tier_sizes.txt`). Bina tabanı en fazla 6×6 (blok 8×8, kaldırım payı).
 
 ---
 
 ## 6. Görsel stil
 
-- **Stilize low-poly**, oyuncak gibi, yuvarlatılmış tıknaz formlar. Gerçekçi değil.
-- **Düz renkler**, yumuşak pastel ağırlıklı şehir paleti: lavanta/mor asfalt, krem kaldırımlar; binalarda kırmızı, teal, mavi, sarı vurgular.
-- **Okunabilir silüet:** Obje yukarıdan bir bakışta tanınmalı. Detay çatıya ve ön cepheye.
-- **Boyut = tehlike/ödül:** Oyuncu objenin ne kadar büyük olduğunu, yani ne zaman yiyebileceğini, siluetinden anlamalı. Aynı kategorideki objeler benzer boyutta kalmalı.
-- Yazı, logo, marka yok (tabelalar düz renk ya da basit ikon).
-
-### Tutarlılık stratejisi
-1. Önce tek bir "referans" asset üret, beğenilene kadar düzelt.
-2. Sonraki asset'lerde Meshy'nin **image-to-3D** modunu bu referansın görüntüsüyle kullan, ya da prompt'a hep aynı stil cümlesini ekle (Bölüm 8).
-3. Yalnızca metinle üretim her seferinde farklı bir tarz çıkarabilir.
+- **Stilize low-poly**, oyuncak gibi, tıknaz formlar; düz renkler, pastel ağırlıklı palet.
+- **Okunabilir silüet:** 60° tepeden bir bakışta tanınmalı; detay çatıya ve ön cepheye.
+- **Boy = tehlike/ödül:** oyuncu ne zaman yiyebileceğini silüetten anlamalı; aynı kategori benzer boyda.
+- Yazı, logo, marka yok.
+- Çocuk yaya yok (OYUN.md İlkeler).
 
 ---
 
-## 7. Kontrol listesi (üretilen modeli denetlerken)
+## 7. Kontrol listesi
 
-- [ ] Tek obje, zemin/plaka/kaide yok
-- [ ] Pivot tabanın ortasında, model yere oturuyor
-- [ ] Ön cephe belirlenen yöne bakıyor
-- [ ] Ölçü Bölüm 5'teki aralıkta (gerekirse Unity'de ölçeklenir ama oranlar doğru olmalı)
-- [ ] Alttan 0.6 birimlik kısım = gerçekten katı ve görünür kısım (Bölüm 2)
-- [ ] Yerde şeffaf parça yok
-- [ ] Üçgen sayısı bütçede (Remesh yapıldı)
-- [ ] Sadece base color dokusu, boyutu doğru
-- [ ] Renkler düz, az sayıda
-- [ ] Dosya adı doğru önekle
+- [ ] `collision_report` uyarısız (sarkan parça yok, bütçe içinde)
+- [ ] Pivot taban ortası, model z=0'a oturuyor
+- [ ] Ön cephe doğru yöne bakıyor (önizlemede ve Unity görüntüsünde)
+- [ ] Sadece palet renkleri, yeni renk yok
+- [ ] Boy beklenen tier'a düşüyor (Bölüm 5)
+- [ ] Şehre eklendiyse yerleşim rastgele sayı tüketmiyor, `city_v2.json` farkı sadece yeni obje
+- [ ] Unity'de diğer objelerle iç içe geçmiyor (ağaç yaprağı, bina)
 
 ---
 
-## 8. Çıktı formatı (her asset için)
+## 8. Unity tarafı (bilgi için)
 
-```
-### <Dosya adı>   (örn. P_Mailbox)
-Tür: Sokak eşyası · Hedef ölçü: 0.4 × 1.1 × 0.35 · Üçgen: 200–400 · Doku: 512 px
-
-Meshy prompt:
-low poly stylized <obje ve 3-6 kelimelik tarif>, mobile game asset, chunky simple toy-like shapes,
-flat pastel colors, clean silhouette readable from a top-down camera, single isolated object,
-centered, standing upright, front facing, no ground, no base plate, no background
-
-Negatif prompt:
-ground plane, pedestal, base, platform, grass base, roots, text, logo, realistic, photorealistic,
-high detail, noise, gradient texture, multiple objects, transparent parts
-
-Ayarlar: Remesh → triangle, hedef <üçgen>; PBR haritaları kapalı; simetri açık (binalar, araçlar)
-
-Çarpışma notu: <yerde ne katı, havada ne var; Bölüm 2'ye uyuyor mu>
-```
-
-### Örnekler
-
-```
-### P_TreeRound
-Tür: Sokak eşyası · Hedef ölçü: 1.8 × 2.3 × 1.3 · Üçgen: 400–700 · Doku: 512 px
-
-Meshy prompt:
-low poly stylized round tree, thin straight brown trunk, fluffy rounded green canopy starting high
-above the ground, mobile game asset, chunky simple toy-like shapes, flat pastel colors, clean
-silhouette readable from a top-down camera, single isolated object, centered, standing upright,
-no ground, no base plate, no background
-
-Negatif prompt: (standart) + exposed roots, grass patch, flower bed
-
-Çarpışma notu: Yerde sadece gövde (~0.25) katı; yapraklar 0.8 üstünde başlamalı, altından geçilebilir.
-```
-
-```
-### B_Bakery
-Tür: Bina · Hedef ölçü: 4.0 × 3.5 × 3.8 · Üçgen: 1500–2500 · Doku: 1024 px
-
-Meshy prompt:
-low poly stylized small bakery shop building, two floors, cream walls, red striped awning above the
-door, big front window, simple flat roof with a chimney, mobile game asset, chunky simple toy-like
-shapes, flat pastel colors, clean silhouette readable from a top-down camera, single isolated
-building, centered, front facing, no ground, no sidewalk, no base plate, no background
-
-Negatif prompt: (standart) + sidewalk, street, people, signs with text
-
-Çarpışma notu: Duvarlar katı; tente kapı üstünde (0.8+ yükseklikte) olmalı. Vitrin camı yerden yükseltilmiş, altı duvar.
-```
-
----
-
-## 9. Unity tarafı (bilgi için)
-
-- Modeller `Assets/_Project/Art/City/<DosyaAdı>.fbx` altına konur. Geliştirici import ayarlarını (doku sıkıştırma, ölçek, yön) ve prefab'ı pipeline ile otomatik kurar.
-- Çarpışma kutusu, Bölüm 2'deki kurala göre otomatik hesaplanır; elle collider gerekmez. Kurulum: `Tools → Blob.io → Şehir Kur` ardından `Şehir Görsel Düzeltmeleri` (collider, NavMesh engelleri, yürüme engelleri).
-- Ön ekler kuralı belirler: `B_` bina (herkesi engeller), `P_` sokak eşyası (yayayı ve polisi engeller, tank ezer), `V_` araç, `H_` insan.
-- Şehir objeleri sabittir (static batching): oyun sırasında yerinden oynatılamaz, oynatılırsa görüntü yerinde kalır ama collider kayar. Bu yüzden arabalar ve fizik şehir objelerini itmez; sadece yerdeki küçük yiyecekler savrulur. Hareket etmesi gereken bir obje şehir kiti dışında, ayrı prefab olarak yapılır.
-- Yön veya ölçek tutarsızsa düzeltilebilir, ama **bütün set içinde tutarlı** olması gerekir.
+- Ön ekler davranışı belirler: `B_` herkesi engeller (Environment engeli), `P_` yaya/polisi engeller, tank ezer; `L_` zemin.
+- Şehir objeleri static batching'de: oyun sırasında taşınamaz (görüntü kalır, collider kayar). Hareket etmesi gereken obje şehir kiti dışında ayrı prefab olur (hareketli arabalar gibi).
+- Saydam/özel materyaller build'de ayıklanmasın diye prefab'da referanslı ya da `Resources/` altında olmalı.

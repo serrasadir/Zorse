@@ -16,6 +16,7 @@ namespace BlobSurvivor.Entities.Blob
         [SerializeField] private TierThreshold[] _tierThresholds = new TierThreshold[]
         {
             new TierThreshold { Tier = BlobTier.Tiny,   MassRequired = 0f   },
+            new TierThreshold { Tier = BlobTier.Little,   MassRequired = 15f   },
             new TierThreshold { Tier = BlobTier.Small,    MassRequired = 50f   },
             new TierThreshold { Tier = BlobTier.Medium,   MassRequired = 200f  },
             new TierThreshold { Tier = BlobTier.Large,    MassRequired = 650f  },

@@ -15,19 +15,19 @@ TagManager:
   - 
   - 
   - Blob
-  - ConsumableTier1
-  - ConsumableTier2
-  - ConsumableTier3
-  - ConsumableTier4
-  - ConsumableTier5
+  - ConsumableTiny
+  - ConsumableSmall
+  - ConsumableMedium
+  - ConsumableLarge
+  - ConsumableGiant
   - Enemy
   - Hazard
   - Environment
   - Ground
   - Projectile
   - PropObstacle
-  - ConsumableTier6
-  - 
+  - ConsumableColossal
+  - ConsumableLittle
   - 
   - 
   - 

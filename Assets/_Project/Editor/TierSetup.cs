@@ -13,7 +13,7 @@ using BlobSurvivor.Entities.Vehicles;
 
 namespace BlobSurvivor.EditorTools
 {
-    // 6 tier'lık sistemi kurar: ConsumableTier6 katmanı (20) + çarpışma satırı, sahnedeki tier eşikleri,
+    // 7 tier'lık sistemi kurar: katman adları + Little (21) / Colossal (20) çarpışma satırları, sahnedeki tier eşikleri,
     // tüm yenebilirlerin tier'ı boydan (TierRules). Polis/elit tasarım gereği EnemyData'da kalır.
     // GameScene açıkken çalıştır, sonra Cmd+S. Tekrar çalıştırmak güvenli.
     [InitializeOnLoad]
@@ -21,7 +21,6 @@ namespace BlobSurvivor.EditorTools
     {
         private const string RequestPath = "Temp/tier_setup.request";
         private const string ResultPath = "Temp/tier_setup.txt";
-        private const int SourceLayer = 13; // ConsumableTier5'in çarpışma satırı kopyalanır
         private static double s_nextPoll;
 
         static TierSetup() => EditorApplication.update += Poll;
@@ -50,21 +49,32 @@ namespace BlobSurvivor.EditorTools
             Debug.Log($"[TierSetup] Bitti, sahneyi kaydet (Cmd+S). Ayrıntı: {Path.GetFullPath(ResultPath)}");
         }
 
+        // Katman adları tier adıyla; sonradan eklenen katmanların çarpışma satırı komşu tier'dan kopyalanır.
+        private static readonly (int layer, string name)[] LayerNames =
+        {
+            (9, "ConsumableTiny"), (TierLayers.LittleLayer, "ConsumableLittle"), (10, "ConsumableSmall"), (11, "ConsumableMedium"),
+            (12, "ConsumableLarge"), (13, "ConsumableGiant"), (TierLayers.ColossalLayer, "ConsumableColossal"),
+        };
+        private static readonly Dictionary<int, int> CopyRowFrom = new Dictionary<int, int>
+        {
+            { TierLayers.ColossalLayer, 13 }, { TierLayers.LittleLayer, 10 },
+        };
+
         private static void SetupLayer(StringBuilder log)
         {
             var tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
-            var layer = tagManager.FindProperty("layers").GetArrayElementAtIndex(TierLayers.Tier6Layer);
-            if (layer.stringValue != "ConsumableTier6")
-            {
-                layer.stringValue = "ConsumableTier6";
-                tagManager.ApplyModifiedPropertiesWithoutUndo();
-            }
-            for (int j = 0; j < 32; j++)
-            {
-                int other = j == TierLayers.Tier6Layer ? SourceLayer : j;
-                Physics.IgnoreLayerCollision(TierLayers.Tier6Layer, j, Physics.GetIgnoreLayerCollision(SourceLayer, other));
-            }
-            log.AppendLine($"Katman {TierLayers.Tier6Layer} = ConsumableTier6, çarpışmalar {SourceLayer} ile aynı.");
+            var layers = tagManager.FindProperty("layers");
+            foreach (var (layer, name) in LayerNames)
+                layers.GetArrayElementAtIndex(layer).stringValue = name;
+            tagManager.ApplyModifiedPropertiesWithoutUndo();
+
+            foreach (var kv in CopyRowFrom)
+                for (int j = 0; j < 32; j++)
+                {
+                    int src = CopyRowFrom.TryGetValue(j, out int s) ? s : j;
+                    Physics.IgnoreLayerCollision(kv.Key, j, Physics.GetIgnoreLayerCollision(kv.Value, src));
+                }
+            log.AppendLine("Katmanlar: " + string.Join(", ", LayerNames.Select(l => $"{l.layer}={l.name}")));
         }
 
         private static void SetupThresholds(StringBuilder log)

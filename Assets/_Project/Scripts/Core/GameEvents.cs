@@ -60,20 +60,37 @@ namespace BlobSurvivor.Core
     public enum BlobTier
     {
         Tiny = 1,
-        Small = 2,
-        Medium = 3,
-        Large = 4,
-        Giant = 5,
-        Colossal = 6 // oyunda "Dev"; katmanı 20 (14 Enemy dolu), bkz. TierLayers
+        Little = 2,  // Tiny ile Small arası; katmanı 21
+        Small = 3,
+        Medium = 4,
+        Large = 5,
+        Giant = 6,
+        Colossal = 7 // oyunda "Dev"; katmanı 20 (14 Enemy dolu)
     }
 
     public static class TierLayers
     {
         public const BlobTier MaxTier = BlobTier.Colossal;
-        public const int Tier6Layer = 20;
-        // ConsumableTier1-5 (9-13) + ConsumableTier6 (20)
-        public const int ConsumableMask = (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13) | (1 << Tier6Layer);
+        public const int ColossalLayer = 20;
+        public const int LittleLayer = 21;
+        // Tiny 9, Small 10, Medium 11, Large 12, Giant 13, Colossal 20, Little 21 (sonradan eklenenler boş katmanlarda)
+        public const int ConsumableMask = (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13) | (1 << ColossalLayer) | (1 << LittleLayer);
 
-        public static int For(BlobTier tier) => tier == BlobTier.Colossal ? Tier6Layer : 8 + (int)tier;
+        public static int For(BlobTier tier)
+        {
+            switch (tier)
+            {
+                case BlobTier.Little: return LittleLayer;
+                case BlobTier.Colossal: return ColossalLayer;
+                case BlobTier.Tiny: return 9;
+                default: return 7 + (int)tier; // Small 10 .. Giant 13
+            }
+        }
+
+        // Büyüme yavaşlaması (hız = 1 / sıra ^ üs) Little eklenmeden önceki sıralamayla: denge değişmesin.
+        public static float SlowdownRank(BlobTier tier) => tier == BlobTier.Tiny ? 1f : tier == BlobTier.Little ? 1.5f : (int)tier - 1;
+
+        // Tier'a göre dizilerde (karakter yüzü) Little, Tiny'ninkini kullanır.
+        public static int LegacyIndex(BlobTier tier) => tier <= BlobTier.Little ? 0 : (int)tier - 2;
     }
 }

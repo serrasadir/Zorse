@@ -32,7 +32,7 @@ MonoBehaviour:
   _aimLockDuration: 0.2
   _massReward: 20
   _preventConsumption: 0
-  _requiredConsumeTier: 5
+  _requiredConsumeTier: 6
   _consumeDamage: 0
   _heartPrefab: {fileID: 7633646316503275560, guid: 0bd1dfcaa907047789043c4bbd111054, type: 3}
   _heartDropChance: 1

@@ -22,4 +22,4 @@ MonoBehaviour:
   _damageCooldown: 0.5
   _massValue: 15
   _scoreValue: 50
-  _consumableFromTier: 3
+  _consumableFromTier: 4

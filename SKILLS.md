@@ -25,6 +25,7 @@
 | Tier | Gereken mass | Görsel ölçek | Gövde yarıçapı |
 |---|---|---|---|
 | Tiny | 0 | 0.5 | 0.25 |
+| Little | 15 | ~0.76 | ~0.38 |
 | Small | 50 | ~1.1 | ~0.55 |
 | Medium | 200 | ~2.0 | ~1.0 |
 | Large | 650 | ~3.3 | ~1.65 |
@@ -179,7 +180,8 @@ Polis normalde **Medium** blob ister.
 
 | Blob | Yırtıcı Çene yok | Sv. 1 | Sv. 2 |
 |---|---|---|---|
-| Tiny | ❌ | ❌ | ✅ |
+| Tiny | ❌ | ❌ | ❌ |
+| Little | ❌ | ❌ | ✅ |
 | Small | ❌ | ✅ | ✅ |
 | Medium+ | ✅ | ✅ | ✅ |
 

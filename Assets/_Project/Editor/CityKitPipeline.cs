@@ -712,7 +712,7 @@ namespace BlobSurvivor.EditorTools
         // 2026-11-04: tank NavMesh'i ayrı bir surface — sahnedeki tüm surface'ler birlikte bake edilir.
         internal static void BakeNavMesh()
         {
-            NavMeshSurface[] surfaces = UnityEngine.Object.FindObjectsByType<NavMeshSurface>(FindObjectsSortMode.None);
+            NavMeshSurface[] surfaces = UnityEngine.Object.FindObjectsByType<NavMeshSurface>();
             if (surfaces.Length == 0)
             {
                 Debug.LogWarning("[CityKitPipeline] NavMeshSurface bulunamadı, bake atlandı.");
@@ -737,7 +737,7 @@ namespace BlobSurvivor.EditorTools
         {
             int agentTypeID = EnsureAgentType(TankAgentName, TankAgentRadius, TankAgentHeight);
 
-            NavMeshSurface[] surfaces = UnityEngine.Object.FindObjectsByType<NavMeshSurface>(FindObjectsSortMode.None);
+            NavMeshSurface[] surfaces = UnityEngine.Object.FindObjectsByType<NavMeshSurface>();
             NavMeshSurface main = Array.Find(surfaces, x => x.agentTypeID == 0);
             if (main == null) return "[CityKitPipeline] Tank NavMesh: ana (Humanoid) NavMeshSurface bulunamadı.";
 

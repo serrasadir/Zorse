@@ -45,7 +45,7 @@ MonoBehaviour:
     pastas\u0131na h\xE2l\xE2 y\xFCr\xFCyor"
   - "Teyzeler bankta topland\u0131, \u015Fehrin t\xFCm s\u0131rlar\u0131 \xE7\xF6z\xFCld\xFC"
   _blobNews:
-  - Tier: 2
+  - Tier: 3
     Headlines:
     - "Parkta \"sinirli bir top\" g\xF6r\xFCld\xFC\u011F\xFC iddia edildi"
     - "Vatanda\u015F: \"\xC7\xF6p\xFCm\xFC bir top yedi.\" Polis: \"Tabii, tabii.\""
@@ -60,7 +60,7 @@ MonoBehaviour:
     - "Emniyet \"sinirli top\" ihbarlar\u0131n\u0131 ilk kez ciddiye ald\u0131"
     - "Polis, kay\u0131p \xE7\xF6p kutular\u0131 i\xE7in \"yuvarlak bir \u015F\xFCpheli\"
       ar\u0131yor"
-  - Tier: 3
+  - Tier: 4
     Headlines:
     - "Polis yuvarlak \u015F\xFCpheliyi ar\u0131yor: \"K\u0131rm\u0131z\u0131, sinirli,
       a\xE7\""
@@ -75,7 +75,7 @@ MonoBehaviour:
     - "\xD6zel Harek\xE2t komutan\u0131: \"Kariyerimde ilk kez bir topu koval\u0131yoruz\""
     - "\xD6zel Harek\xE2t, topa kar\u015F\u0131 yeni taktik deniyor: \"Biz de yuvarlanaca\u011F\u0131z\""
     - "SON DAK\u0130KA: Top arabalar\u0131 yemeye ba\u015Flad\u0131"
-  - Tier: 4
+  - Tier: 5
     Headlines:
     - "SON DAK\u0130KA: Dev top d\xFCkk\xE2nlar\u0131 yemeye ba\u015Flad\u0131"
     - "Sigorta \u015Firketleri \"top hasar\u0131\"n\u0131 poli\xE7elerden \xE7\u0131kard\u0131"
@@ -84,7 +84,7 @@ MonoBehaviour:
     - "Bilim insanlar\u0131: \"Top b\xFCy\xFCmeye devam ederse... b\xFCy\xFCmeye
       devam edecek\""
     - "Halk evlerine kapand\u0131, marketlerde ekmek kalmad\u0131"
-  - Tier: 5
+  - Tier: 6
     Headlines:
     - "SON DAK\u0130KA: Top binalar\u0131 yiyor"
     - "Saray a\xE7\u0131klama yapt\u0131: Ku\u011Fuyu da o yemi\u015F"
@@ -99,7 +99,7 @@ MonoBehaviour:
     - "A\u015F\xE7\u0131lar seferber oldu: \"Ne pi\u015Firsek yetmiyor, taba\u011F\u0131
       da yiyor\""
     - "Bilim insanlar\u0131: \"Topun midesi yok, sadece i\u015Ftah\u0131 var\""
-  - Tier: 6
+  - Tier: 7
     Headlines:
     - "SON DAK\u0130KA: Top art\u0131k apartman de\u011Fil, mahalle yiyor"
     - "Hastane bo\u015Falt\u0131ld\u0131. Hastane de yendi"
@@ -109,6 +109,7 @@ MonoBehaviour:
     - "Emlak\xE7\u0131lar: \"Kiralar d\xFC\u015Ft\xFC, \xE7\xFCnk\xFC ev yok\""
   _blobNewsChanceByTier:
   - 0
+  - 0.1
   - 0.2
   - 0.45
   - 0.7

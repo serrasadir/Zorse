@@ -17,7 +17,7 @@ namespace BlobSurvivor.Entities.Loot
 
         private void OnEnable()
         {
-            gameObject.layer = LayerMask.NameToLayer("ConsumableTier1");
+            gameObject.layer = TierLayers.For(BlobTier.Tiny);
         }
 
         private void Update()

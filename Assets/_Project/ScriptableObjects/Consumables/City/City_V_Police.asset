@@ -16,7 +16,7 @@ MonoBehaviour:
   _prefab: {fileID: 5186682487922047320, guid: 18055a85b79154d80943b22e66ab8820, type: 3}
   _scoreValue: 10
   _massValue: 10
-  _requiredTier: 3
+  _requiredTier: 4
   _isHazard: 0
   _hazardAmount: 0
   _spawnYOffset: 0.15

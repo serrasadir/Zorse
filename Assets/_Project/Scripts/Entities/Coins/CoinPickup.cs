@@ -1,3 +1,4 @@
+using BlobSurvivor.Core;
 using System;
 using UnityEngine;
 using BlobSurvivor.Systems;
@@ -30,7 +31,7 @@ namespace BlobSurvivor.Entities.Coins
         private void OnEnable()
         {
             // ConsumableTier1 layer'ını paylaşır — Blob zaten bu layer'la her zaman çarpışır (Collision Matrix).
-            gameObject.layer = LayerMask.NameToLayer("ConsumableTier1");
+            gameObject.layer = TierLayers.For(BlobTier.Tiny);
             _age = 0f;
             _visible = false; // önceki ömrün yanıp sönmesinden kapalı kalmış olabilir — zorla aç
             SetVisible(true);
