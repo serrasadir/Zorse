@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace BlobSurvivor.EditorTools
 {
-    // Karakter blob görünümleri (Blender: zorse-blender/build_topik.py → Art/City/Characters/CH_*.fbx + CharPalette.png).
+    // Karakter blob görünümleri (Blender: zorse-blender/build_blobs.py → Art/City/Characters/CH_*.fbx + CharPalette.png).
     // Görünüm prefab'ını kurar ve CharacterData._blobVisualPrefab'a bağlar. Runtime'da BlobVisual takar.
     // Tekrar çalıştırmak güvenli. Sahne değişmez (sadece asset), Cmd+S gerekmez.
     public static class CharacterVisualSetup
@@ -17,10 +17,12 @@ namespace BlobSurvivor.EditorTools
         private const string PrefabFolder = "Assets/_Project/Prefabs/Blob";
         private const string CharacterFolder = "Assets/_Project/Data/Characters";
 
-        // mesh öneki → CH_Topik_T1..T5 (tier başına ifade). T1 varsayılan, BlobTierMeshes tier'a göre değiştirir.
+        // mesh öneki → CH_<Kar>_T1..T5 (tier başına ifade). T1 varsayılan, BlobTierMeshes tier'a göre değiştirir.
         private static readonly (string mesh, string character)[] Visuals =
         {
             ("CH_Topik", "Char_Topik"),
+            ("CH_Mermo", "Char_Mermo"),
+            ("CH_Miknato", "Char_Miknato"),
         };
         private const int TierCount = 5;
 
