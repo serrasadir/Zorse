@@ -120,7 +120,7 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 
 ## iOS / TestFlight
 
-1. Sürüm Player Settings'te elle: `0.1.<build>` (canlıya çıkana kadar major 0). File → Save Project.
+1. Sürüm otomatik: TestFlight aracı build no'yu +1 yapar ve sürümü `0.1.<build>` yazar (`TestFlightBuildTool.VersionPrefix`; canlıya çıkınca önek değişir). Elle girilmez.
 2. `Tools → Blob.io → TestFlight Xcode Projesi Üret` → log `[TestFlightBuildTool] Succeeded ... version=... build=...` ve `[ShaderStripGuard] OK`. Guard build'i durdurursa (gri ekran riski) Unity'yi yeniden başlatıp tekrar al.
 3. Arşiv:
    `cd ../zorse-ios-build && xcodebuild -project Unity-iPhone.xcodeproj -scheme Unity-iPhone -configuration Release -destination generic/platform=iOS -archivePath ~/Library/Developer/Xcode/Archives/<tarih>/LeftNoCrumbs-<sürüm>-<build>.xcarchive -derivedDataPath ~/Library/Developer/Xcode/DerivedData/zorse-dd -allowProvisioningUpdates archive`

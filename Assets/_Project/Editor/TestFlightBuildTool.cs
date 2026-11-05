@@ -10,7 +10,8 @@ using UnityEngine;
 namespace BlobSurvivor.EditorTools
 {
     // 2026-11-02: TestFlight'a yüklenecek Xcode projesini üretir (Development değil, Release).
-    // Her çalıştırmada iOS build numarasını 1 artırır — App Store Connect aynı numarayı ikinci kez kabul etmez.
+    // Her çalıştırmada iOS build numarasını 1 artırır — App Store Connect aynı numarayı ikinci kez kabul etmez —
+    // ve sürümü VersionPrefix + build no yapar (0.1.13 = build 13).
     // Arşiv + yükleme Unity dışında xcodebuild ile yapılır (bkz. CLAUDE.md, Editor Araçları).
     // Temp/testflight.request varsa script yüklemesinde kendiliğinden başlar, sonucu Temp/testflight.result'a yazar.
     // Not: istek sadece bir script derlemesinden sonra okunur; derleme yoksa menüden çalıştır.
@@ -22,6 +23,8 @@ namespace BlobSurvivor.EditorTools
         private const string BundleId = "com.zorsestudio.leftnocrumbs";
         private const string TeamId = "66ZS86R987";
         private const string IconPath = "Assets/_Project/Art/AppIcon/AppIcon_Placeholder.png";
+        // Sürüm = önek + build no (0.1.12 = build 12). Canlıya çıkınca önek değişir (ör. "1.0."); elle girilmez.
+        private const string VersionPrefix = "0.1.";
 
         [InitializeOnLoadMethod]
         private static void RunPendingRequest()
@@ -64,6 +67,7 @@ namespace BlobSurvivor.EditorTools
 
             int.TryParse(PlayerSettings.iOS.buildNumber, out int build);
             PlayerSettings.iOS.buildNumber = (build + 1).ToString();
+            PlayerSettings.bundleVersion = VersionPrefix + (build + 1); // 2026-11-05: elle güncellemek unutuluyordu
 
             ApplyIcon();
         }
