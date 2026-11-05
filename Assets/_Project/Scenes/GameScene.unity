@@ -10569,9 +10569,11 @@ MonoBehaviour:
   - Tier: 3
     MassRequired: 200
   - Tier: 4
-    MassRequired: 500
+    MassRequired: 650
   - Tier: 5
-    MassRequired: 1000
+    MassRequired: 1100
+  - Tier: 6
+    MassRequired: 1650
   _baseScale: 0.5
   _growthFactor: 0.1
   _growthExponent: 0.45
@@ -10579,6 +10581,7 @@ MonoBehaviour:
   _baseXPThreshold: 20
   _xpGrowthPerLevel: 15
   _xpQuadraticPerLevel: 2
+  _globalGainScale: 0.7
   _punchDecay: 8
 --- !u!114 &276010511
 MonoBehaviour:
@@ -24854,8 +24857,6 @@ MonoBehaviour:
   _xpBar: {fileID: 1692331371}
   _levelText: {fileID: 1263365441}
   _skillBadgeContainer: {fileID: 1619216244}
-  _skillBadgePrefab: {fileID: 4382811280191361900, guid: 75fb581a2b1494d308da482982b9934f, type: 3}
-  _characterIcon: {fileID: 0}
 --- !u!1001 &615959860
 PrefabInstance:
   m_ObjectHideFlags: 0

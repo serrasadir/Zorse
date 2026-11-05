@@ -205,6 +205,7 @@ namespace BlobSurvivor.EditorTools
                     "Özel Harekât göreve çağrıldı: Hedef yuvarlak, kırmızı ve çok aç",
                     "Özel Harekât komutanı: \"Kariyerimde ilk kez bir topu kovalıyoruz\"",
                     "Özel Harekât, topa karşı yeni taktik deniyor: \"Biz de yuvarlanacağız\"",
+                    "SON DAKİKA: Top arabaları yemeye başladı",
                 },
             },
             new NewsHeadlines.TierHeadlines
@@ -212,7 +213,7 @@ namespace BlobSurvivor.EditorTools
                 Tier = BlobTier.Large,
                 Headlines = new[]
                 {
-                    "SON DAKİKA: Dev top arabaları yemeye başladı",
+                    "SON DAKİKA: Dev top dükkânları yemeye başladı",
                     "Sigorta şirketleri \"top hasarı\"nı poliçelerden çıkardı",
                     "Belediye başkanı: \"Topla müzakere masasına oturmaya hazırız\"",
                     "Elit polis birlikleri sahada, top hâlâ aç",
@@ -235,6 +236,19 @@ namespace BlobSurvivor.EditorTools
                     "Şehirde yiyecek bir şey kalmadı, top hâlâ aç",
                     "Aşçılar seferber oldu: \"Ne pişirsek yetmiyor, tabağı da yiyor\"",
                     "Bilim insanları: \"Topun midesi yok, sadece iştahı var\"",
+                },
+            },
+            new NewsHeadlines.TierHeadlines
+            {
+                Tier = BlobTier.Colossal,
+                Headlines = new[]
+                {
+                    "SON DAKİKA: Top artık apartman değil, mahalle yiyor",
+                    "Hastane boşaltıldı. Hastane de yendi",
+                    "Belediye imar planını iptal etti: \"Planlayacak şehir kalmadı\"",
+                    "Sinema kapandı, son film: \"Top\"",
+                    "Uzay ajansı: Top uzaydan çıplak gözle görülüyor",
+                    "Emlakçılar: \"Kiralar düştü, çünkü ev yok\"",
                 },
             },
         };

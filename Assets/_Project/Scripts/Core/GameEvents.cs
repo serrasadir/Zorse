@@ -63,6 +63,17 @@ namespace BlobSurvivor.Core
         Small = 2,
         Medium = 3,
         Large = 4,
-        Giant = 5
+        Giant = 5,
+        Colossal = 6 // oyunda "Dev"; katmanı 20 (14 Enemy dolu), bkz. TierLayers
+    }
+
+    public static class TierLayers
+    {
+        public const BlobTier MaxTier = BlobTier.Colossal;
+        public const int Tier6Layer = 20;
+        // ConsumableTier1-5 (9-13) + ConsumableTier6 (20)
+        public const int ConsumableMask = (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13) | (1 << Tier6Layer);
+
+        public static int For(BlobTier tier) => tier == BlobTier.Colossal ? Tier6Layer : 8 + (int)tier;
     }
 }

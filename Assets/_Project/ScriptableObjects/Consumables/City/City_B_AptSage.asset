@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
   _displayName: B_AptSage
   _prefab: {fileID: 6725905436584797410, guid: ea655e503d5454ac5bc6f215a448dbf8, type: 3}
-  _scoreValue: 50
-  _massValue: 50
-  _requiredTier: 5
+  _scoreValue: 80
+  _massValue: 80
+  _requiredTier: 6
   _isHazard: 0
   _hazardAmount: 0
   _spawnYOffset: 0.15

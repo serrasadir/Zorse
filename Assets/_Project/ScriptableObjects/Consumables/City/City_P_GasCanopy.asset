@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
   _displayName: P_GasCanopy
   _prefab: {fileID: 8710632956085349139, guid: a020d01be25f94cae8a1ce68618c71c8, type: 3}
-  _scoreValue: 10
-  _massValue: 10
-  _requiredTier: 3
+  _scoreValue: 25
+  _massValue: 25
+  _requiredTier: 4
   _isHazard: 0
   _hazardAmount: 0
   _spawnYOffset: 0.15

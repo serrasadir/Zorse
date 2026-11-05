@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
   _displayName: P_Hoop
   _prefab: {fileID: 6049939938773532761, guid: ce593d5219bd242a6988ec5f4a613907, type: 3}
-  _scoreValue: 4
-  _massValue: 4
-  _requiredTier: 2
+  _scoreValue: 10
+  _massValue: 10
+  _requiredTier: 3
   _isHazard: 0
   _hazardAmount: 0
   _spawnYOffset: 0.15

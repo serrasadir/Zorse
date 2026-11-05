@@ -95,6 +95,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: abdadd2d435f14db1897d4d853aa7824, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Vehicles.CarController
+  _tierOverride: 0
+  _massOverride: 0
 --- !u!1 &6472821304245088705
 GameObject:
   m_ObjectHideFlags: 0

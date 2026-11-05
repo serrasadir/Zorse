@@ -16,7 +16,7 @@
 | **Tür** | Roguelite / bullet-heaven / survival; "yiyerek büyü" |
 | **Platform** | iOS (TestFlight'ta, sürüm 0.1.x — canlıya çıkana kadar 0, son hane = build no). Android sonra; PC/Steam port post-launch |
 | **Motor** | Unity 6, URP, New Input System, AI Navigation |
-| **Run süresi** | Hedef 12–15 dk; zaman sınırı yok |
+| **Run süresi** | Sabit hedef ve zaman sınırı yok; final boss 12. dk'da gelir, ne zaman yutulursa run o zaman biter |
 | **İş modeli** | F2P + kozmetik IAP + rewarded reklam, **sıfır pay-to-win** (henüz kodda yok) |
 | **Referanslar** | Vampire Survivors · Katamari Damacy · Hole.io · Brotato |
 
@@ -71,18 +71,21 @@ Boss'lar sırayla ve tek tek gelir: biri yaşıyorsa sonraki onun ölmesini bekl
 
 ## 4. Büyüme, Tier ve Yeme
 
-- **Ölçek:** `0.5 × (1 + kütle × 0.1) ^ 0.45` — Giant (1000 kütle) ≈ 4 birim çap. Yeme anında kısa şişme (punch).
-- **Hız:** `1 / tier ^ 0.3` × karakter/skill/meta çarpanları (Giant'ta ~%62).
-- **XP eşiği:** `20 + seviye × 15 + seviye² × 2` (geç oyunda bina yerken seviye yağmuru olmasın diye karesel; `BlobGrowth._xpQuadraticPerLevel`). Giant (1000 kütle) ≈ 9. seviye, 4000 kütle ≈ 15.
+- **Ölçek:** `0.5 × (1 + kütle × 0.1) ^ 0.45` = blob'un çapı (birim). Yeme anında kısa şişme (punch).
+- **Hız:** `1 / tier ^ 0.3` × karakter/skill/meta çarpanları.
+- **XP eşiği:** `20 + seviye × 15 + seviye² × 2` (geç oyunda bina yerken seviye yağmuru olmasın diye karesel; `BlobGrowth._xpQuadraticPerLevel`).
 
-| Tier | Kütle | Kabaca ne yer |
-|---|---|---|
-| 1 Tiny | 0 | Çöp, küçük eşyalar |
-| 2 Small | 50 | Sokak eşyaları, yayalar |
-| 3 Medium | 200 | **Normal polis**, iri yayalar |
-| 4 Large | 500 | Arabalar, küçük binalar |
-| 5 Giant | 1000 | Büyük binalar, **elit polis** |
+| Tier | Kütle | Blob çapı | Ne yer |
+|---|---|---|---|
+| 1 Tiny | 0 | 0.5 | Çöp, hidrant, çöp kutusu |
+| 2 Small | 50 | 1.1 | Yayalar (iri yaya dahil), bank, çalı, telefon kulübesi, seyyar arabalar, trafik ışığı |
+| 3 Medium | 200 | 2.0 | **Normal polis**, ağaçlar, park etmiş ve hareketli arabalar, kamyon, minibüs, lamba, kaydırak, pota |
+| 4 Large | 650 | 3.3 | Otobüs, fıskiye, berber, benzinlik, atlıkarınca, dönme dolap |
+| 5 Giant | 1100 | 4.1 | **Elit polis**, kafe, kitapçı, fırın, pizzacı, mavi/pembe/tuğla apartman |
+| 6 Dev (kodda `Colossal`) | 1650 | 5.0 | Cumbalı/adaçayı apartman, karakol, lokanta, hastane, sinema, büyük otel |
 
+- **Tier boydan gelir** (`Editor/TierRules.cs`): obje, blob o tier'a yeni girdiğindeki çapından en fazla %5 büyükse o tier'da yenir. Boy = kenarların geometrik ortalaması; uzun ince objelerde en uzun kenarın yarısı daha büyükse o. Şehir kurulumu bunu otomatik uygular; elle ayar için `Tools → Blob.io → Tier'ları Boya Göre Kur`. Polis ve elit istisna: tier'ları tasarım gereği `EnemyData`'da.
+- **Şehir objesi kütlesi tier'a göre:** 2 / 4 / 10 / 25 / 50 / 80. Hareketli araba 15 (otobüs 25), yaya 1 (iri 3), yerdeki yiyecek 1–3.
 - **Yeme temasla olur.** Tier'ın yetmediği obje katıdır (çarparsın, içinden geçemezsin); yetince içinden geçip yersin.
 - **Polis yutulurken ısırır:** tier tam yetiyorsa 5, bir tier üstündeysen 2.5, daha büyüksen 0 hasar.
 - **Polis kaçar:** blob onu yiyebilecek boydayken görünce kaçar.
@@ -125,8 +128,8 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 
 ## 7. Şehrin Canlıları
 
-- **Yayalar** (en fazla 25): Erkek (11 görünüm), Kadın (8), İri (işçi/kurye/taşıyıcı, 3 görünüm — yavaş, Medium'da yenir, 3× kütle). Rastgele dolaşır, yiyebileceğin boydaysan kaçar, eşyalara ve arabalara çarpar. Animasyonsuz (yukarı-aşağı süzülme). Vakumla çekilmez.
-- **Arabalar** (en fazla 6): oyuncunun yakınındaki blokların etrafında sağ şeritte döner, uzaklaşınca havuza döner. Önlerinde araba, yaya ya da polis varsa durur. Large'dan itibaren yenir; küçükken çarpınca hasar verir. Yanından geçtiği küçük çöpleri iter.
+- **Yayalar** (en fazla 25): Erkek (11 görünüm), Kadın (8), İri (işçi/kurye/taşıyıcı, 3 görünüm — yavaş, 3× kütle). Rastgele dolaşır, yiyebileceğin boydaysan kaçar, eşyalara ve arabalara çarpar. Animasyonsuz (yukarı-aşağı süzülme). Vakumla çekilmez.
+- **Arabalar** (en fazla 6): oyuncunun yakınındaki blokların etrafında sağ şeritte döner, uzaklaşınca havuza döner. Önlerinde araba, yaya ya da polis varsa durur. Medium'dan itibaren yenir (otobüs Large); küçükken çarpınca hasar verir. Yanından geçtiği küçük çöpleri iter.
 - **Sokak eşyaları** (ağaç, lamba, durak, bank, hidrant, çöp kutusu, trafik ışığı) ve **binalar** yenebilir; yenen her şey run sonunda geri gelir.
 - Yenebilir küçük objeler (en fazla 80) oyuncunun çevresinde sürekli yenilenir.
 

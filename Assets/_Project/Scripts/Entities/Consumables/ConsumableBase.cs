@@ -61,7 +61,7 @@ namespace BlobSurvivor.Entities
         private void AssignLayer()
         {
             if (_data == null) return;
-            int layerIndex = 8 + (int)_data.RequiredTier;
+            int layerIndex = TierLayers.For(_data.RequiredTier);
             gameObject.layer = layerIndex;
         }
 

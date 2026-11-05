@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
   _displayName: B_AptCumba
   _prefab: {fileID: 854071732450203086, guid: 5d149abac9fb4473094b953d4abe101c, type: 3}
-  _scoreValue: 50
-  _massValue: 50
-  _requiredTier: 5
+  _scoreValue: 80
+  _massValue: 80
+  _requiredTier: 6
   _isHazard: 0
   _hazardAmount: 0
   _spawnYOffset: 0.15

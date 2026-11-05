@@ -16,6 +16,11 @@ namespace BlobSurvivor.Entities.Vehicles
         private enum CarState { Moving, Stopped }
 
         private CarData _data;
+        // Araç tipine göre tier/kütle (boya göre "Tier'ları Boya Göre Kur" yazar); 0 = CarData'daki değer.
+        [SerializeField] private int _tierOverride;
+        [SerializeField] private float _massOverride;
+        private BlobTier ConsumeTier => _tierOverride > 0 ? (BlobTier)_tierOverride : _data.ConsumableFromTier;
+        private float MassValue => _massOverride > 0f ? _massOverride : _data.MassValue;
         // 2026-11-03: rota artık Transform değil nokta listesi — CarSpawner büyük şehrin sokak ızgarasından
         // runtime'da üretiyor. Araba kendi tamponunu tutar, spawner'ın geçici dizisi yeniden kullanılabilir.
         private Vector3[] _waypoints = new Vector3[0];
@@ -52,7 +57,7 @@ namespace BlobSurvivor.Entities.Vehicles
         private const float AheadSweepRadius = 0.5f;
         private const float StopMargin = 2f; // 6 hız / 15 fren ≈ 1.2 duruş mesafesi + pay
         // Hazard(15, arabalar) + Enemy(14) + ConsumableTier1-5(9-13, yayalar bu katmanlarda)
-        private const int AheadMask = (1 << 15) | (1 << 14) | (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13);
+        private const int AheadMask = (1 << 15) | (1 << 14) | TierLayers.ConsumableMask;
         private readonly RaycastHit[] _aheadHits = new RaycastHit[8];
         private float _halfLength = 1f;
 
@@ -182,7 +187,7 @@ namespace BlobSurvivor.Entities.Vehicles
             float distSq = (transform.position - _blobTransform.position).sqrMagnitude;
             float radiusSq = _data.BlobDetectionRadius * _data.BlobDetectionRadius;
             if (distSq > radiusSq) return false;
-            return _blobGrowth.CurrentTier >= _data.ConsumableFromTier;
+            return _blobGrowth.CurrentTier >= ConsumeTier;
         }
 
         private void UpdateSpeed()
@@ -208,7 +213,7 @@ namespace BlobSurvivor.Entities.Vehicles
                 _currentWaypointIndex = (_currentWaypointIndex + 1) % _waypointCount;
         }
 
-        private const int ConsumableMask = (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13);
+        private const int ConsumableMask = TierLayers.ConsumableMask;
 
         // Önündeki küçük objeleri yana savurur (ConsumableKnock kayarak taşır). Şehir objeleri static
         // batching'de, yayalar kendi yürür — ikisi de IsVacuumable=false, itilmez.
@@ -239,9 +244,9 @@ namespace BlobSurvivor.Entities.Vehicles
             BlobGrowth blobGrowth = collision.gameObject.GetComponentInParent<BlobGrowth>();
             if (blobGrowth == null) return;
 
-            if (blobGrowth.CurrentTier >= _data.ConsumableFromTier)
+            if (blobGrowth.CurrentTier >= ConsumeTier)
             {
-                blobGrowth.AddMass(_data.MassValue);
+                blobGrowth.AddMass(MassValue);
                 _scoreSystem?.AddScore(_data.ScoreValue);
                 Consume();
             }

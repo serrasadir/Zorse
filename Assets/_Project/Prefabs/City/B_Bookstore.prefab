@@ -155,7 +155,7 @@ GameObject:
   - component: {fileID: 2428109996616844276}
   - component: {fileID: 7111596207099558683}
   - component: {fileID: 8982008319198289721}
-  m_Layer: 12
+  m_Layer: 13
   m_Name: B_Bookstore
   m_TagString: Untagged
   m_Icon: {fileID: 0}

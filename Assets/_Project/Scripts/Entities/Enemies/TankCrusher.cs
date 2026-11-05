@@ -1,3 +1,4 @@
+using BlobSurvivor.Core;
 using UnityEngine;
 using BlobSurvivor.Entities.Vehicles;
 
@@ -15,7 +16,7 @@ namespace BlobSurvivor.Entities.Enemies
         // Tank gövdesinden biraz küçük: kenara sürtünen eşya ezilmesin, gerçekten altına giren ezilsin.
         private const float RadiusFactor = 0.85f;
         // ConsumableTier1-5 (9-13, şehir eşyaları) + Hazard (15, arabalar)
-        private const int CrushMask = (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13) | (1 << 15);
+        private const int CrushMask = TierLayers.ConsumableMask | (1 << 15);
 
         private readonly Collider[] _hits = new Collider[16];
         private CapsuleCollider _body;

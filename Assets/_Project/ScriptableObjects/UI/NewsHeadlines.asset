@@ -74,9 +74,10 @@ MonoBehaviour:
       ve \xE7ok a\xE7"
     - "\xD6zel Harek\xE2t komutan\u0131: \"Kariyerimde ilk kez bir topu koval\u0131yoruz\""
     - "\xD6zel Harek\xE2t, topa kar\u015F\u0131 yeni taktik deniyor: \"Biz de yuvarlanaca\u011F\u0131z\""
+    - "SON DAK\u0130KA: Top arabalar\u0131 yemeye ba\u015Flad\u0131"
   - Tier: 4
     Headlines:
-    - "SON DAK\u0130KA: Dev top arabalar\u0131 yemeye ba\u015Flad\u0131"
+    - "SON DAK\u0130KA: Dev top d\xFCkk\xE2nlar\u0131 yemeye ba\u015Flad\u0131"
     - "Sigorta \u015Firketleri \"top hasar\u0131\"n\u0131 poli\xE7elerden \xE7\u0131kard\u0131"
     - "Belediye ba\u015Fkan\u0131: \"Topla m\xFCzakere masas\u0131na oturmaya haz\u0131r\u0131z\""
     - "Elit polis birlikleri sahada, top h\xE2l\xE2 a\xE7"
@@ -98,9 +99,18 @@ MonoBehaviour:
     - "A\u015F\xE7\u0131lar seferber oldu: \"Ne pi\u015Firsek yetmiyor, taba\u011F\u0131
       da yiyor\""
     - "Bilim insanlar\u0131: \"Topun midesi yok, sadece i\u015Ftah\u0131 var\""
+  - Tier: 6
+    Headlines:
+    - "SON DAK\u0130KA: Top art\u0131k apartman de\u011Fil, mahalle yiyor"
+    - "Hastane bo\u015Falt\u0131ld\u0131. Hastane de yendi"
+    - "Belediye imar plan\u0131n\u0131 iptal etti: \"Planlayacak \u015Fehir kalmad\u0131\""
+    - "Sinema kapand\u0131, son film: \"Top\""
+    - "Uzay ajans\u0131: Top uzaydan \xE7\u0131plak g\xF6zle g\xF6r\xFCl\xFCyor"
+    - "Emlak\xE7\u0131lar: \"Kiralar d\xFC\u015Ft\xFC, \xE7\xFCnk\xFC ev yok\""
   _blobNewsChanceByTier:
   - 0
   - 0.2
   - 0.45
   - 0.7
   - 0.9
+  - 0.95

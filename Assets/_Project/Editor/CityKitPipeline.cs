@@ -112,72 +112,6 @@ namespace BlobSurvivor.EditorTools
             public CityItem[] items;
         }
 
-        // GDD §9 ölçeği: çöp → eşya → araç → yapı. Eşikler: Small 10, Medium 30, Large 60, Giant 100 mass.
-        private static (BlobTier tier, int mass) Balance(string mesh)
-        {
-            switch (mesh)
-            {
-                case "P_Trash":
-                case "P_Hydrant":
-                case "P_Hydrant2":     // kit2 eşyaları
-                case "P_Bin2":
-                case "P_Bush":
-                    return (BlobTier.Tiny, 2);
-                case "P_GasPump":
-                case "P_Bench2":
-                case "P_Lamp2":
-                case "P_PhoneBooth":
-                case "P_SimitCart":
-                case "P_PopcornCart":
-                case "P_TrafficLight2":
-                case "P_Hoop":
-                case "P_Slide":
-                case "P_ParkingBooth":
-                case "P_Bench":
-                case "P_Lamp":
-                case "P_TrafficLight":
-                    return (BlobTier.Small, 4);
-                case "P_TreeGreen":   // 2026-11-02 (Serra): ağaçlar Medium
-                case "P_TreeYellow":
-                case "P_BusStop":
-                case "P_GasCanopy":
-                case "P_BusStop2":
-                case "P_TreeRound":
-                case "P_TreeAutumn":
-                case "P_TreePine":
-                case "P_ParkedCarRed":
-                case "P_ParkedCarBlue":
-                case "P_ParkedCarYellow":
-                case "P_Carousel":
-                case "V_CarRed":
-                case "V_CarBlue":
-                case "V_CarGreen":
-                case "V_Taxi":
-                case "V_Police":
-                    return (BlobTier.Medium, 10);
-                case "V_VanWhite":
-                case "V_Truck":
-                case "V_Bus":
-                case "B_ShopBlue":
-                case "B_ShopRed":
-                case "B_Coffee":
-                case "B_Burger":
-                case "B_Restaurant":
-                case "B_Police":
-                case "B_Bakery":        // kit2 küçük dükkânlar
-                case "B_Pizzeria":
-                case "B_Barber":
-                case "B_PoliceStation":
-                case "B_Cafe":
-                case "B_Bookstore":
-                case "B_GasShop":
-                case "P_Fountain":
-                    return (BlobTier.Large, 25);
-                default:
-                    return (BlobTier.Giant, 50); // apartman, kule, ofis, otel, banka, süpermarket
-            }
-        }
-
         [MenuItem("Tools/Blob.io/Şehir Kur (Level01)")]
         private static void Build() => BuildCity(false);
 
@@ -1066,7 +1000,7 @@ namespace BlobSurvivor.EditorTools
 
             string prefabPath = $"{PrefabRoot}/{item.mesh}.prefab";
             bool isGround = item.mesh.StartsWith("L_");
-            ConsumableData data = isGround ? null : GetConsumableData(item.mesh);
+            ConsumableData data = isGround ? null : GetConsumableData(item.mesh, root.transform);
             if (!isGround)
             {
                 Bounds colliderBounds = ComputeColliderBounds(renderer);
@@ -1075,7 +1009,7 @@ namespace BlobSurvivor.EditorTools
                 body.size = colliderBounds.size;
 
                 CityConsumable consumable = root.AddComponent<CityConsumable>();
-                root.layer = 8 + (int)data.RequiredTier;
+                root.layer = TierLayers.For(data.RequiredTier);
 
                 SerializedObject so = new SerializedObject(consumable);
                 so.FindProperty("_data").objectReferenceValue = data;
@@ -1157,7 +1091,8 @@ namespace BlobSurvivor.EditorTools
             return box;
         }
 
-        private static ConsumableData GetConsumableData(string mesh)
+        // Tier ve kütle boydan gelir (TierRules); elle tablo yok, yeni asset kurala kendiliğinden uyar.
+        private static ConsumableData GetConsumableData(string mesh, Transform measured)
         {
             string path = $"{DataRoot}/City_{mesh}.asset";
             ConsumableData data = AssetDatabase.LoadAssetAtPath<ConsumableData>(path);
@@ -1167,7 +1102,8 @@ namespace BlobSurvivor.EditorTools
                 AssetDatabase.CreateAsset(data, path);
             }
 
-            (BlobTier tier, int mass) = Balance(mesh);
+            BlobTier tier = TierRules.TryMeasure(measured, out Vector3 size) ? TierRules.TierForSize(TierRules.SizeOf(size)) : BlobTier.Medium;
+            int mass = (int)TierRules.MassFor(tier);
             SerializedObject so = new SerializedObject(data);
             so.FindProperty("_displayName").stringValue = mesh;
             so.FindProperty("_scoreValue").intValue = mass;

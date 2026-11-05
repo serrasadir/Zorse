@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
   _displayName: B_PoliceStation
   _prefab: {fileID: 3492871145853763394, guid: 08342337658a2422492f5b6670934bd5, type: 3}
-  _scoreValue: 25
-  _massValue: 25
-  _requiredTier: 4
+  _scoreValue: 80
+  _massValue: 80
+  _requiredTier: 6
   _isHazard: 0
   _hazardAmount: 0
   _spawnYOffset: 0.15

@@ -539,7 +539,7 @@ namespace BlobSurvivor.Entities.Enemies
         private bool ComputeEdibleByBlob()
         {
             if (!UsesSteering || _data == null || _data.PreventConsumption || BlobTransform == null) return false;
-            int effectiveTier = Mathf.Min((int)BlobTier.Giant, (int)GameEvents.CurrentBlobTier + ConsumptionBonusComponent.ActiveTierBonus);
+            int effectiveTier = Mathf.Min((int)TierLayers.MaxTier, (int)GameEvents.CurrentBlobTier + ConsumptionBonusComponent.ActiveTierBonus);
             return effectiveTier >= (int)_data.RequiredConsumeTier;
         }
 

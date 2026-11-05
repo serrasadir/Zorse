@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
   _displayName: P_FerrisWheel
   _prefab: {fileID: 5034159000303225720, guid: 9e7c95b47dd8d430cb38d464a95536bb, type: 3}
-  _scoreValue: 50
-  _massValue: 50
-  _requiredTier: 5
+  _scoreValue: 25
+  _massValue: 25
+  _requiredTier: 4
   _isHazard: 0
   _hazardAmount: 0
   _spawnYOffset: 0.15

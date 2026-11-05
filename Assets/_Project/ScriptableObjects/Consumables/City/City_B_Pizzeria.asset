@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
   _displayName: B_Pizzeria
   _prefab: {fileID: 6684446253442412400, guid: d8d70cc73293d422a8827f7f92beefca, type: 3}
-  _scoreValue: 25
-  _massValue: 25
-  _requiredTier: 4
+  _scoreValue: 50
+  _massValue: 50
+  _requiredTier: 5
   _isHazard: 0
   _hazardAmount: 0
   _spawnYOffset: 0.15

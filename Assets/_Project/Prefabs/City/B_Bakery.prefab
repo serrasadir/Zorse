@@ -65,7 +65,7 @@ GameObject:
   - component: {fileID: 282590078086010510}
   - component: {fileID: 9170621604981165246}
   - component: {fileID: 2479820660531547301}
-  m_Layer: 12
+  m_Layer: 13
   m_Name: B_Bakery
   m_TagString: Untagged
   m_Icon: {fileID: 0}

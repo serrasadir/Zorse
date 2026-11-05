@@ -27,8 +27,9 @@
 | Tiny | 0 | 0.5 | 0.25 |
 | Small | 50 | ~1.1 | ~0.55 |
 | Medium | 200 | ~2.0 | ~1.0 |
-| Large | 500 | ~2.9 | ~1.5 |
-| Giant | 1000 | ~4.0 | ~2.0 |
+| Large | 650 | ~3.3 | ~1.65 |
+| Giant | 1100 | ~4.1 | ~2.05 |
+| Dev (`Colossal`) | 1650 | ~5.0 | ~2.5 |
 
 ---
 
@@ -213,7 +214,7 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 - **Ne yapar:** Silahınla vurduğun düşman **3 saniye boyunca, tier'a bakmadan** yutulabilir olur. **Elitler de dahil.** Boss'lar hariç (miniboss yutulamaz; helikopter sadece ona uzanarak yutulur).
 - **Kod:** `AvciFormuEffect` → `AvciFormuComponent` → `EnemyBase.MarkTemporarilyConsumable`
 
-**Örnek:** Small blob'sun, bir elit polis sana ateş ediyor. Silahın ona bir kez isabet ettiği anda 3 saniyelik pencere açılır. O sürede ona dokunursan yutarsın: 20 mass, 5-10 coin ve sandık. Normalde bunun için Giant (1000 mass) olman gerekirdi.
+**Örnek:** Small blob'sun, bir elit polis sana ateş ediyor. Silahın ona bir kez isabet ettiği anda 3 saniyelik pencere açılır. O sürede ona dokunursan yutarsın: 20 mass, 5-10 coin ve sandık. Normalde bunun için Giant (1100 mass) olman gerekirdi.
 **Not:** Elit "yutulduğunda" ısırmaz (elit ısırık hasarı 0).
 
 ---
@@ -253,7 +254,7 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 ### 🔫 Mermo
 - **Pasif:** Mermisi blob'un **tam bir boy büyüğü** olan objeye (şehir binaları dahil) çarparsa onu 3 parçaya böler. Parçalar blob'un yiyebileceği boyda ve toplamda objenin mass'ı kadar verir. Daha büyük objelerde mermi durur; dev binaları silemez. Yayalar ve hazard'lar parçalanmaz.
 - **Silah:** En hızlı, düz giden mermi. Nişan, polisin hareketine göre önden kesilir.
-- **Örnek:** Medium blob, Large bir binaya (25 mass) ateş eder → 3 × 8.3 mass'lık parça. Normalde Large olmadan yenemeyeceği lokmayı erken yer.
+- **Örnek:** Large blob, Giant bir binaya (50 mass) ateş eder → 3 × 16.7 mass'lık parça. Normalde Giant olmadan yenemeyeceği lokmayı erken yer.
 - **Son form:** Pompalı yakın mesafede çok güçlü (5 saçma × %60 = 3 kat hasar).
 
 ---
@@ -304,7 +305,7 @@ Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Elit polisin nişan-kilit
 | **Yutulma** | Blob'un tepesi helikoptere **değdiği an**, hangi irtifada olursa olsun. Çok büyüyen oyuncu daha erken bitirir |
 | **Ödül** | Yutulunca **run "tamamlandı" olarak biter** (ölümden ayrı ekran), 300 mass, 600 skor, **60–100 bonus coin**, tam kredi (ölümde %50) |
 
-- **Ne kadar büyümek gerekir** (blob tepesi ≈ 1.1 × ölçek): irtifa 5 ≈ **1340 mass** (Giant'ın biraz üstü), 6 ≈ 1950, 7 ≈ 2700, 8 ≈ 3600.
+- **Ne kadar büyümek gerekir** (blob tepesi ≈ 1.1 × ölçek): irtifa 5 ≈ **1340 mass** (Giant ile Dev arası; Dev olmak gerekmez), 6 ≈ 1950, 7 ≈ 2700, 8 ≈ 3600.
 - **Oyuncu silahı yukarı ateş eder:** Havadaki hedefe nişan otomatik 3D (skill gerekmez). Menzil yatay ölçülür; helikopterin altına yaklaşman yeter.
 - **Kamera:** Helikopter gelince hızlıca uzaklaşıp ikinizi birden kadraja alır; boss ölünce normale döner.
 - **Görsel:** Rotorlar döner, havada süzülür, gittiği yöne eğilir. Son irtifada rotor yavaşlar ("hasarlı").

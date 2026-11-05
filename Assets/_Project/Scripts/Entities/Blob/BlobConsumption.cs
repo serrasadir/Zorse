@@ -45,7 +45,7 @@ namespace BlobSurvivor.Entities.Blob
                 ConsumptionBonusComponent bonus = GetComponent<ConsumptionBonusComponent>();
                 // 2026-11-03: Yırtıcı Çene elitleri kapsamaz — Small blob elit yiyordu. Elit yemek Avcı Formu'nun işi.
                 if (bonus != null && enemy.Data != null && !enemy.Data.IsElite)
-                    effectiveTier = (BlobTier)Mathf.Min((int)BlobTier.Giant, (int)effectiveTier + bonus.TierBonus);
+                    effectiveTier = (BlobTier)Mathf.Min((int)TierLayers.MaxTier, (int)effectiveTier + bonus.TierBonus);
 
                 // TryConsumeByBlob düşmanı havuza döndürür; hasar ondan önce okunur.
                 float biteDamage = enemy.GetConsumeDamage(effectiveTier);

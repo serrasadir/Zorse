@@ -1,3 +1,4 @@
+using BlobSurvivor.Core;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -17,7 +18,7 @@ namespace BlobSurvivor.Systems
         private const float ClearanceRadius = 0.35f;
         private const float ClearanceCheckY = 0.5f;
         // Environment(16) + ConsumableTier1-5(9-13); trigger'lar (yenebilir objeler, pickup'lar) sayılmaz.
-        private const int BlockingMask = (1 << 16) | (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13);
+        private const int BlockingMask = (1 << 16) | TierLayers.ConsumableMask;
 
         // 2026-11-04: sahnede iki NavMesh var (Humanoid + tank'ın geniş "Tank" ajan tipi). Filtresiz sorgu
         // ("AllAreas") Unity'nin "hangi ajan tipi?" uyarısını veriyordu — tüm genel sorgular varsayılan ajana bağlı.

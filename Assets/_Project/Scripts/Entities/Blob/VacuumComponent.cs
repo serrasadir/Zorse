@@ -1,3 +1,4 @@
+using BlobSurvivor.Core;
 using System.Collections.Generic;
 using UnityEngine;
 using BlobSurvivor.Entities;
@@ -61,8 +62,7 @@ namespace BlobSurvivor.Entities.Blob
 
             if (s_consumableMask < 0)
             {
-                s_consumableMask = LayerMask.GetMask(
-                    "ConsumableTier1", "ConsumableTier2", "ConsumableTier3", "ConsumableTier4", "ConsumableTier5");
+                s_consumableMask = TierLayers.ConsumableMask;
             }
         }
 

@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
   _displayName: P_ParkingBooth
   _prefab: {fileID: 1673671455240045446, guid: 5a3e4c2bc3edb43fdbb696ecad7d6706, type: 3}
-  _scoreValue: 4
-  _massValue: 4
-  _requiredTier: 2
+  _scoreValue: 10
+  _massValue: 10
+  _requiredTier: 3
   _isHazard: 0
   _hazardAmount: 0
   _spawnYOffset: 0.15

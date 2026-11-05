@@ -19,3 +19,4 @@ MonoBehaviour:
   _requiredTier: 1
   _isHazard: 0
   _hazardAmount: 0
+  _spawnYOffset: 0.15

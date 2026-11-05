@@ -16,11 +16,12 @@ namespace BlobSurvivor.Entities.Blob
         [SerializeField] private TierThreshold[] _tierThresholds = new TierThreshold[]
         {
             new TierThreshold { Tier = BlobTier.Tiny,   MassRequired = 0f   },
-            new TierThreshold { Tier = BlobTier.Small,  MassRequired = 10f  },
-            new TierThreshold { Tier = BlobTier.Medium, MassRequired = 30f  },
-            new TierThreshold { Tier = BlobTier.Large,  MassRequired = 60f  },
-            new TierThreshold { Tier = BlobTier.Giant,  MassRequired = 100f },
-        };
+            new TierThreshold { Tier = BlobTier.Small,    MassRequired = 50f   },
+            new TierThreshold { Tier = BlobTier.Medium,   MassRequired = 200f  },
+            new TierThreshold { Tier = BlobTier.Large,    MassRequired = 650f  },
+            new TierThreshold { Tier = BlobTier.Giant,    MassRequired = 1100f },
+            new TierThreshold { Tier = BlobTier.Colossal, MassRequired = 1650f },
+        }; // sahnedeki değerleri "Tier'ları Boya Göre Kur" menüsü yazar (TierRules.Thresholds)
 
         [Header("Görsel Büyüme")]
         [SerializeField] private float _baseScale = 0.5f;

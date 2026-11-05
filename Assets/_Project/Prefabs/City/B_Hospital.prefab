@@ -102,7 +102,7 @@ GameObject:
   - component: {fileID: 7323799584044124593}
   - component: {fileID: 9145234619166363837}
   - component: {fileID: 4665526571780086037}
-  m_Layer: 13
+  m_Layer: 20
   m_Name: B_Hospital
   m_TagString: Untagged
   m_Icon: {fileID: 0}

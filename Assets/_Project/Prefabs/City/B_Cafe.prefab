@@ -155,7 +155,7 @@ GameObject:
   - component: {fileID: 470237395034637073}
   - component: {fileID: 9067454096466794684}
   - component: {fileID: 2871037836085775315}
-  m_Layer: 12
+  m_Layer: 13
   m_Name: B_Cafe
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -20,7 +20,7 @@ namespace BlobSurvivor.Entities.Weapons
         private const int EnvironmentLayer = 16;
         // Enemy(14) + ConsumableTier1-5(9-13) + Environment(16, bina engelleri ve harita duvarı) —
         // Rigidbody/Collider gerektirmez, doğrudan spatial sorgu.
-        private const int HitMask = (1 << 14) | (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13) | (1 << EnvironmentLayer);
+        private const int HitMask = (1 << 14) | TierLayers.ConsumableMask | (1 << EnvironmentLayer);
         // Pas geçilen (ağaç, yenebilir obje) hitlerden sonra aynı karede arkadakini de görebilsin.
         private const int MaxHitsPerFrame = 3;
 

@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
   _displayName: B_Bakery
   _prefab: {fileID: 2072069156503822478, guid: 5f8d25fc664f94672acecd1a39ffa086, type: 3}
-  _scoreValue: 25
-  _massValue: 25
-  _requiredTier: 4
+  _scoreValue: 50
+  _massValue: 50
+  _requiredTier: 5
   _isHazard: 0
   _hazardAmount: 0
   _spawnYOffset: 0.15

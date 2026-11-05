@@ -59,13 +59,14 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 | Index | Layer | Not |
 |---|---|---|
 | 8 | Blob | Bir trigger (yeme, r 0.6) + bir katı (r 0.5) SphereCollider |
-| 9–13 | ConsumableTier1–5 | `8 + (int)RequiredTier`; yayalar da bu katmanlarda. Tier yetmezse collider katı, yetince trigger |
+| 9–13 | ConsumableTier1–5 | `TierLayers.For(tier)` (Tiny..Giant = 9..13); yayalar da bu katmanlarda. Tier yetmezse collider katı, yetince trigger. Maske için `TierLayers.ConsumableMask`, elle `1 << 9..13` yazma |
 | 14 | Enemy | |
 | 15 | Hazard | Arabalar |
 | 16 | Environment | Bina engel kutuları (`EnvironmentObstacle` child), harita duvarı. Mermi/görüş/kamera saydamlığı buna bakar |
 | 17 | Ground | |
 | 18 | Projectile | |
 | 19 | PropObstacle | Sokak eşyası yürüyüş engeli; hiçbir şeyle çarpışmaz, sadece yaya/sürü polisi yürüyüş sorguları görür |
+| 20 | ConsumableTier6 | Dev (`BlobTier.Colossal`) — 14 Enemy dolu olduğu için ayrı; çarpışma satırı 13 ile aynı |
 
 **Olay veriyolu:** `GameEvents` (statik). Önemlileri: `OnBlobTierChanged` + `CurrentBlobTier`, `OnLevelUp`, `OnUpgradeChoicesReady/Selected/Applied`, `OnHealthChanged`, `OnSurvivalTimeUpdated` (0.1 sn), `OnCharacterSelected` (= run başı/restart), `OnGameOver` (ölüm), `OnRunComplete` (final boss yutuldu), `OnBossHealthChanged` (max ≤ 0 = boss yok).
 
@@ -100,6 +101,8 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 | Yerdeki Yiyecekleri Kur | `Art/City/Litter/J_*.fbx` (Blender: `build_litter.py`) → prefab + ConsumableData, ConsumableSpawner havuzunu bunlarla değiştirir. GameScene açıkken; sonra Cmd+S |
 | Kalp Prefab'ını Kur · Haber Bandını Kur · Duraklatma Menüsünü Kur | İlgili sahne/prefab kurulumu |
 | Görsel Ayarları Uygula | Post-processing, ışık, ortam |
+| Tier'ları Boya Göre Kur | 6. tier katmanı + çarpışması, sahnedeki tier eşikleri, tüm yenebilirlerin tier'ı boydan (`TierRules`: blob çapının %5 fazlasına kadar yenir). Polis/elit hariç. Şehir kurulumu da aynı kuralı kullanır. Sonra Cmd+S |
+| Yenebilir Boyut Raporu | Yenebilir her şeyin oyundaki boyu + kurala göre tier'ı → `Temp/tier_sizes.txt` |
 | Blob Çevresini Raporla | Play'de blob çevresini `Temp/blob_probe.txt`'ye yazar (`Temp/blob_probe.request` ile de tetiklenir) |
 | TestFlight Xcode Projesi Üret | Release iOS build, TestFlight için (build no +1) |
 | iOS Xcode Projesi Üret | Geliştirme build'i, cihaza doğrudan kurmak için |

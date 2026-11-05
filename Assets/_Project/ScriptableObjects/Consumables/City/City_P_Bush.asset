@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
   _displayName: P_Bush
   _prefab: {fileID: 3028198379173333949, guid: 2669f2040b37b42dc94c95d945556baf, type: 3}
-  _scoreValue: 2
-  _massValue: 2
-  _requiredTier: 1
+  _scoreValue: 4
+  _massValue: 4
+  _requiredTier: 2
   _isHazard: 0
   _hazardAmount: 0
   _spawnYOffset: 0.15

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2263821770072704467}
   - component: {fileID: 1096294372306398934}
   - component: {fileID: 2061079001816888947}
-  m_Layer: 13
+  m_Layer: 20
   m_Name: B_GrandHotel
   m_TagString: Untagged
   m_Icon: {fileID: 0}

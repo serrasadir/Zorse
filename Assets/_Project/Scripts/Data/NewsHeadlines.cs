@@ -23,7 +23,7 @@ namespace BlobSurvivor.Data
         [SerializeField] private TierHeadlines[] _blobNews;
 
         [Tooltip("Sıradaki haberin blob'la ilgili olma ihtimali — sıra: Tiny, Small, Medium, Large, Giant.")]
-        [SerializeField] private float[] _blobNewsChanceByTier = { 0f, 0.2f, 0.45f, 0.7f, 0.9f };
+        [SerializeField] private float[] _blobNewsChanceByTier = { 0f, 0.2f, 0.45f, 0.7f, 0.9f, 0.95f };
 
         public string[] WorldNews => _worldNews;
 

@@ -65,7 +65,7 @@ GameObject:
   - component: {fileID: 1632891908706320635}
   - component: {fileID: 5079121007283289177}
   - component: {fileID: 953190795555929022}
-  m_Layer: 13
+  m_Layer: 20
   m_Name: B_Cinema
   m_TagString: Untagged
   m_Icon: {fileID: 0}

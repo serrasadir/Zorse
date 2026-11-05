@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1722484161646777071}
   - component: {fileID: 4699750540108191630}
   - component: {fileID: 7504113584394565194}
-  m_Layer: 13
+  m_Layer: 20
   m_Name: B_AptCumba
   m_TagString: Untagged
   m_Icon: {fileID: 0}

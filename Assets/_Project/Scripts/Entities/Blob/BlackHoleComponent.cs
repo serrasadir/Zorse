@@ -13,7 +13,7 @@ namespace BlobSurvivor.Entities.Blob
         [SerializeField] private float _radiusMultiplier = 2f; // gövde yarıçapının katı
         private const float CheckInterval = 0.1f;
         // ConsumableTier1-5 (9-13) — polis/çevre/zemin taranmasın
-        private const int ConsumableMask = (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13);
+        private const int ConsumableMask = TierLayers.ConsumableMask;
 
         private BlobGrowth _growth;
         private BlobConsumption _consumption;
