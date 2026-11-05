@@ -103,6 +103,7 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 | Yerdeki Yiyecekleri Kur | `Art/City/Litter/J_*.fbx` (Blender: `build_litter.py`) → prefab + ConsumableData, ConsumableSpawner havuzunu bunlarla değiştirir. GameScene açıkken; sonra Cmd+S |
 | Kalp Prefab'ını Kur · Haber Bandını Kur · Duraklatma Menüsünü Kur | İlgili sahne/prefab kurulumu |
 | Görsel Ayarları Uygula | Post-processing, ışık, ortam |
+| Helikopter Mermi Roketini Kur | Final boss mermisi: alan saldırısının roket şablonundan küçük `HeliRocketBullet` (alev titrer, değince patlar, alan hasarı) → `EnemyData_FinalBoss._projectilePrefab`. Elit polis `EnemyBullet`'ta kalır |
 | Tier'ları Boya Göre Kur | Tüketilebilir katman adları + Little/Colossal çarpışması, sahnedeki tier eşikleri, tüm yenebilirlerin tier'ı boydan (`TierRules`: blob çapının %5 fazlasına kadar yenir). Polis/elit hariç. Şehir kurulumu da aynı kuralı kullanır. Sonra Cmd+S |
 | Şehir Kıyısını Kur | Şehrin dışı: `CityShore` kökü (W_SeaWall sur parçaları + köşede W_WallTower, Blender: `build_seawall.py`), alçakta su (`WaterScroll` kaydırır), gri Ground plane'in renderer'ını kapatır (collider kalır), Ground'u ve kıyıyı NavMesh'ten çıkarır (`NavMeshModifier`; sonra Görsel Düzeltmeler bake eder), kaldırım karosunu zemine uygular. Dokular: `build_textures.py`. Sonra Cmd+S |
 | Yeme Efektini Kur | `Resources/FX/EatCrumbs` (kırıntı parçacığı + materyali) ve her yenebilirin/arabanın kırıntı renkleri (modelin palet renkleri). Şehir kurulumu renkleri kendisi de yazar. Sonra Cmd+S |

@@ -12,6 +12,10 @@ namespace BlobSurvivor.Entities.Enemies
     public class EnemyProjectile : MonoBehaviour
     {
         [SerializeField] private float _hitRadius = 0.2f;
+        // >0: roket gibi patlar (helikopter mermisi). Blob'a, yere ya da duvara değince ya da menzil bitince
+        // patlama noktası; blob yüzeyi bu yarıçap içindeyse hasar alır (ıskalayıp yakına düşen de vurur).
+        [SerializeField] private float _splashRadius;
+        private const float GroundY = 0.1f;
 
         private static int s_environmentMask = -1;
 
@@ -45,6 +49,8 @@ namespace BlobSurvivor.Entities.Enemies
             _blobTransform = blobHealth != null ? blobHealth.transform : null;
             _blobLocalRadius = blobLocalRadius;
             _direction = direction;
+            // Roket görünümlü mermide (helikopter) burun gidiş yönüne baksın; küre mermide fark etmez.
+            if (direction.sqrMagnitude > 1e-6f) transform.rotation = Quaternion.LookRotation(direction);
             _speed = speed;
             _damage = damage;
             _remainingDistance = maxDistance;
@@ -62,15 +68,39 @@ namespace BlobSurvivor.Entities.Enemies
             Vector3 end = transform.position + _direction * step;
             if (SegmentHitsBlob(transform.position, end))
             {
+                if (_splashRadius > 0f) { Explode(end); return; }
                 _blobHealth.TakeDamage(_damage);
                 ReturnToPool();
+                return;
+            }
+
+            if (_splashRadius > 0f && end.y <= GroundY && _direction.y < 0f)
+            {
+                float k = (transform.position.y - GroundY) / Mathf.Max(1e-4f, transform.position.y - end.y);
+                Explode(Vector3.Lerp(transform.position, end, Mathf.Clamp01(k)));
                 return;
             }
 
             transform.position = end;
             _remainingDistance -= step;
             if (hitWall || _remainingDistance <= 0f)
+            {
+                if (_splashRadius > 0f) { Explode(end); return; }
                 ReturnToPool();
+            }
+        }
+
+        private void Explode(Vector3 point)
+        {
+            if (_blobTransform != null && _blobHealth != null)
+            {
+                Vector3 d = _blobTransform.position - point;
+                d.y = 0f;
+                float blobRadius = _blobTransform.localScale.x * _blobLocalRadius;
+                if (d.magnitude - blobRadius <= _splashRadius) _blobHealth.TakeDamage(_damage);
+            }
+            ProjectileBlastFx.Play(new Vector3(point.x, Mathf.Max(point.y, GroundY), point.z), _splashRadius);
+            ReturnToPool();
         }
 
         private bool SegmentHitsBlob(Vector3 start, Vector3 end)

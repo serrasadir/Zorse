@@ -19,13 +19,12 @@ MonoBehaviour:
   _moveSpeed: 3.5
   _attackRange: 10
   _attackCooldown: 2
-  _requiredConsumeTier: 6
   _scoreValue: 600
   _isElite: 1
   _attackHitCount: 6
   _attackHitInterval: 0.12
   _attackType: 1
-  _projectilePrefab: {fileID: 7310000000000000005, guid: 72ea09cc756c4a21b9f53362ab72701a, type: 3}
+  _projectilePrefab: {fileID: 2790406873442634920, guid: 7bcaf9fd3a3494983a5fc1eebe1bba91, type: 3}
   _aimLineMaterial: {fileID: 2100000, guid: 5db4a71ce5b8412fb29916ee1504ee4f, type: 2}
   _projectileSpeed: 14
   _projectileMaxDistance: 20
@@ -33,4 +32,9 @@ MonoBehaviour:
   _aimLockDuration: 0.4
   _massReward: 300
   _preventConsumption: 1
+  _requiredConsumeTier: 6
+  _consumeDamage: 0
+  _heartPrefab: {fileID: 0}
+  _heartDropChance: 0
   _requiresConsumptionToDie: 1
+  _crushesObstacles: 0
