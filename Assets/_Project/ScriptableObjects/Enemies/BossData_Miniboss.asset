@@ -19,7 +19,7 @@ MonoBehaviour:
     BonusCoinMin: 15
     BonusCoinMax: 25
   - EnemyData: {fileID: 11400000, guid: 7e76105b80c246f786a47fa484bf7234, type: 2}
-    SpawnTime: 520
+    SpawnTime: 540
     BonusCoinMin: 25
     BonusCoinMax: 40
   - EnemyData: {fileID: 11400000, guid: 842b0d38c86b42e2bfa97ac4831782ec, type: 2}
