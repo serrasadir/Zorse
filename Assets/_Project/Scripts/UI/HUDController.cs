@@ -309,7 +309,7 @@ namespace BlobSurvivor.UI
             text.fontStyle = FontStyles.Bold;
             text.alignment = alignment;
             text.color = color;
-            text.enableWordWrapping = false;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
             text.overflowMode = TextOverflowModes.Overflow;
             text.raycastTarget = false;
         }
