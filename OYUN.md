@@ -88,6 +88,7 @@ Boss'lar sırayla ve tek tek gelir: biri yaşıyorsa sonraki onun ölmesini bekl
 - **Tier boydan gelir** (`Editor/TierRules.cs`): obje, blob o tier'a yeni girdiğindeki çapından en fazla %5 büyükse o tier'da yenir. Boy = kenarların geometrik ortalaması; uzun ince objelerde en uzun kenarın yarısı daha büyükse o. Şehir kurulumu bunu otomatik uygular; elle ayar için `Tools → Blob.io → Tier'ları Boya Göre Kur`. Polis ve elit istisna: tier'ları tasarım gereği `EnemyData`'da.
 - **Şehir objesi kütlesi tier'a göre:** 2 / 3 / 4 / 10 / 25 / 50 / 80. Hareketli araba 15 (otobüs 25), yaya 1 (iri 3), yerdeki yiyecek 1–3.
 - **Yeme temasla olur.** Tier'ın yetmediği obje katıdır (çarparsın, içinden geçemezsin); yetince içinden geçip yersin.
+- **Önle yenir.** Blob'un yüzü gidiş yönüne bakar; arkadaki 120°'lik dilim (popo) yemez. Arkadan değen yenebilir obje içinden geçer, yüz ona dönünce yenir; arkadan çarpan araba yenmez ve hasar da vermez. İstisnalar: vakumla çekilenler, Kara Delik, boss'lar (`BlobConsumption.RearAngle`).
 - **Polis yutulurken ısırır:** tier tam yetiyorsa 5, bir tier üstündeysen 2.5, daha büyüksen 0 hasar.
 - **Polis kaçar:** blob onu yiyebilecek boydayken görünce kaçar.
 - **Hazard'lar** (ör. araba çarpması) yiyemeyeceğin boydayken hasar verir.
@@ -139,9 +140,10 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 ## 8. Harita
 
 - **Tek harita: Modern Şehir**, 136×136 birim (11×11 blok). Ortası elle tasarlanmış Level01 mahallesi, dışı aynı kitten türetilmiş bloklar ve parklar.
-- Kenarlarda görünmez duvar.
+- Şehir bir ada: kenarlar boyunca mazgallı taş sur/rıhtım, köşelerde kuleler, dışı yavaşça kayan su (sadece görsel, yenmez). Sınırı görünmez duvar tutar.
+- Bina adalarının zemini kare karo kaldırım (4×4 birimde tekrar eden doku).
 - Binalar şehir kitinden (Blender, tek palet dokusu). Uzun binalar oynanış için kısaltılmış (en uzun kule ~6.4).
-- Kameranın önüne giren bina saydamlaşır.
+- Kameranın önüne giren bina saydamlaşır (alfa 0.18, `CityVisualFixes.GhostAlpha`).
 - Yol bulma: iki NavMesh — normal ajanlar için ve tank için (geniş). Sokak eşyaları sadece normal ajanın NavMesh'inde engel.
 
 ---
@@ -168,7 +170,7 @@ Kademeli statlar sınırsız alınabilir. Kayıt yerel JSON'da (`meta_progressio
 
 - **Dokunmatik:** görünmez sürükleme — parmağın bastığı yerden sürüklediğin yön ve mesafe hareket olur (80 px = tam hız). UI butonuna basınca hareket başlamaz. **Klavye:** WASD / ok tuşları.
 - **Kamera:** üstten 60° eğik; blob büyüdükçe yavaş uzaklaşır (en fazla ×4); hasar alınca kısa sarsıntı; final boss gelince ikisini birden kadraja alır.
-- **Geri bildirim:** yemede hafif titreşim (iOS haptic), hasarda kırmızı parlama, kalkan vuruşunda kalkan parlar.
+- **Geri bildirim:** yemede hafif titreşim (iOS haptic), hasarda kırmızı parlama, kalkan vuruşunda kalkan parlar. **Medium ve üstü lokmada** obje kaybolduğu an onun renklerinde kırıntı küpleri fışkırıp blob'a çekilir (boyla ölçekli), görünüm bir an "yutkunur"; Large/Giant'ta orta, Dev'de güçlü titreşim ve hafif kamera sarsıntısı. Kırıntı renkleri modelin palet renklerinden (`Yeme Efektini Kur`).
 - **HUD:** barlar (can + altında kalkan barı (Zırh varsa), XP, boss can barı); sol üstte süre, sağ üstte skor + coin, XP barının solunda seviye, üstünde tier. Skill rozeti / karakter ikonu yok.
 - **Duraklatma:** tuşu üst satırda süre kutusunun yanında. Panel tüm ekranı kaplar (çentik ve alt şerit dahil): Devam / Yeniden Başla / Ana Menü. Ana Menü run'ı terk eder (coin kredisi yok, run sayılmaz).
 - **Haber bandı** (üstte, Plague Inc. tarzı): 30 sn'de bir yeni başlık; blob büyüdükçe haberler onunla ilgili olur. Metinler `NewsHeadlines.asset`'te.

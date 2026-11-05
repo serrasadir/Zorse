@@ -20,3 +20,5 @@ MonoBehaviour:
   _isHazard: 0
   _hazardAmount: 0
   _spawnYOffset: 0.15
+  _crumbColorA: {r: 0.96862745, g: 0.87058824, b: 0.6039216, a: 1}
+  _crumbColorB: {r: 0.9647059, g: 0.92156863, b: 0.8392157, a: 1}

@@ -6,7 +6,8 @@ using UnityEngine;
 namespace BlobSurvivor.EditorTools
 {
     // Sahnenin bir noktasını oyun kamerası açısıyla (60°) PNG'ye çeker; Claude görsel kontrol için kullanır.
-    // Temp/snapshot.request satırı: "x z mesafe [yaw]" → Temp/snapshot.png. Düzenleme modunda çalışır.
+    // Temp/snapshot.request satırı: "x z mesafe [yaw] [eat t]" → Temp/snapshot.png. Düzenleme modunda çalışır.
+    // "eat t": (x, z)'ye en yakın Medium+ şehir objesi gizlenir, yeme kırıntıları t saniye ilerletilip çekilir.
     [InitializeOnLoad]
     internal static class SceneSnapshot
     {
@@ -24,7 +25,42 @@ namespace BlobSurvivor.EditorTools
             string[] p = File.ReadAllText(RequestPath).Split((char[])null, System.StringSplitOptions.RemoveEmptyEntries);
             File.Delete(RequestPath);
             float F(int i, float d) => p.Length > i ? float.Parse(p[i], CultureInfo.InvariantCulture) : d;
-            Capture(new Vector3(F(0, 0f), 0f, F(1, 0f)), F(2, 14f), F(3, 0f));
+            var target = new Vector3(F(0, 0f), 0f, F(1, 0f));
+            if (p.Length > 4 && p[4] == "eat") CaptureEat(target, F(2, 14f), F(3, 0f), F(5, 0.15f));
+            else Capture(target, F(2, 14f), F(3, 0f));
+        }
+
+        private static void CaptureEat(Vector3 target, float distance, float yaw, float t)
+        {
+            BlobSurvivor.Entities.CityConsumable best = null;
+            float bestD = float.MaxValue;
+            foreach (var c in Object.FindObjectsByType<BlobSurvivor.Entities.CityConsumable>())
+            {
+                if (c.RequiredTier < BlobSurvivor.Core.BlobTier.Medium) continue;
+                float d = (c.transform.position - target).sqrMagnitude;
+                if (d < bestD) { bestD = d; best = c; }
+            }
+            var prefab = Resources.Load<BlobSurvivor.Entities.Blob.EatCrumbs>("FX/EatCrumbs");
+            if (best == null || prefab == null) { Capture(target, distance, yaw); return; }
+
+            Renderer[] renderers = best.GetComponentsInChildren<Renderer>();
+            Bounds bounds = renderers[0].bounds;
+            var fx = Object.Instantiate(prefab);
+            fx.gameObject.hideFlags = HideFlags.HideAndDontSave;
+            try
+            {
+                Vector3 s = bounds.size;
+                Vector3 blob = bounds.center + new Vector3(0f, 0f, -bounds.extents.z - 2f);
+                fx.Play(bounds, best.Data.CrumbColorA, best.Data.CrumbColorB, blob, Mathf.Pow(s.x * s.y * s.z, 1f / 3f));
+                fx.GetComponent<ParticleSystem>().Simulate(t, true, false);
+                foreach (var r in renderers) r.enabled = false;
+                Capture(bounds.center, distance, yaw);
+            }
+            finally
+            {
+                foreach (var r in renderers) r.enabled = true;
+                Object.DestroyImmediate(fx.gameObject);
+            }
         }
 
         private static void Capture(Vector3 target, float distance, float yaw)

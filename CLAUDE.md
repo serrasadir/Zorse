@@ -80,6 +80,7 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 - **İki NavMesh var** (Humanoid + geniş "Tank" ajanı). Her NavMesh sorgusunda filtre ver: `SpawnPositionUtility.HumanoidFilter` — filtresiz `NavMesh.AllAreas` "hangi ajan tipi" uyarısı basar. Sokak eşyaları sadece Humanoid NavMesh'te engel (`m_AffectedAgents = [0]`), tank onları ezer.
 - **Blender çıktısı ön yüzü ters çeviriyor:** `H_`/`V_`/`B_` modellere 180° düzeltme (`CityKitPipeline.ApplyModelTransform`). Prefab model kuralları (ölçek, yön, collider) orada; `Şehir Görsel Düzeltmeleri` tekrar çalışınca ezilmez.
 - **Şehir objeleri static batching'de** — runtime'da taşınmaz (collider kayar, görsel kalır). Yenen şehir objesi gizlenir, `CityLevel` run sonunda geri açar.
+- **`Art/City` altına giren dokular** palet ayarına zorlanır (Point, Clamp, mipmap yok: `CityKitPipeline` ön işlemcisi). Tekrar eden desen dokuları `Art/City/Textures/`'a konur (Repeat + mipmap).
 - **Saydam/özel materyaller** build'de ayıklanmasın diye prefab'da referanslı ya da `Resources/` altında olmalı; runtime'da shader'dan materyal üretme.
 - Final boss'un collider'ı havada (`EnemyBase.AirborneHeight`/`AimPoint`); kök yerde NavMesh'te.
 - UnityEvent (OnClick) slotuna Project penceresinden script değil, **Hierarchy'den GameObject** sürüklenir.
@@ -103,8 +104,10 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 | Kalp Prefab'ını Kur · Haber Bandını Kur · Duraklatma Menüsünü Kur | İlgili sahne/prefab kurulumu |
 | Görsel Ayarları Uygula | Post-processing, ışık, ortam |
 | Tier'ları Boya Göre Kur | Tüketilebilir katman adları + Little/Colossal çarpışması, sahnedeki tier eşikleri, tüm yenebilirlerin tier'ı boydan (`TierRules`: blob çapının %5 fazlasına kadar yenir). Polis/elit hariç. Şehir kurulumu da aynı kuralı kullanır. Sonra Cmd+S |
+| Şehir Kıyısını Kur | Şehrin dışı: `CityShore` kökü (W_SeaWall sur parçaları + köşede W_WallTower, Blender: `build_seawall.py`), alçakta su (`WaterScroll` kaydırır), gri Ground plane'in renderer'ını kapatır (collider kalır), Ground'u ve kıyıyı NavMesh'ten çıkarır (`NavMeshModifier`; sonra Görsel Düzeltmeler bake eder), kaldırım karosunu zemine uygular. Dokular: `build_textures.py`. Sonra Cmd+S |
+| Yeme Efektini Kur | `Resources/FX/EatCrumbs` (kırıntı parçacığı + materyali) ve her yenebilirin/arabanın kırıntı renkleri (modelin palet renkleri). Şehir kurulumu renkleri kendisi de yazar. Sonra Cmd+S |
 | Yenebilir Boyut Raporu | Yenebilir her şeyin oyundaki boyu + kurala göre tier'ı → `Temp/tier_sizes.txt` |
-| (Claude) `Temp/menu.request` · `Temp/snapshot.request` | `MenuRequest`: satır başına menü yolu yazılır, sırayla çalışır → `Temp/menu.done`. `SceneSnapshot`: "x z mesafe [yaw]" → sahnenin oyun açısıyla `Temp/snapshot.png` görüntüsü (görsel kontrol) |
+| (Claude) `Temp/menu.request` · `Temp/snapshot.request` | `MenuRequest`: satır başına menü yolu yazılır, sırayla çalışır → `Temp/menu.done`. `SceneSnapshot`: "x z mesafe [yaw] [eat t]" → sahnenin oyun açısıyla `Temp/snapshot.png` (görsel kontrol; `eat t` en yakın Medium+ objenin yeme kırıntılarını t sn ilerletip çeker) |
 | Blob Çevresini Raporla | Play'de blob çevresini `Temp/blob_probe.txt`'ye yazar (`Temp/blob_probe.request` ile de tetiklenir) |
 | TestFlight Xcode Projesi Üret | Release iOS build, TestFlight için (build no +1) |
 | iOS Xcode Projesi Üret | Geliştirme build'i, cihaza doğrudan kurmak için |

@@ -17,7 +17,7 @@ namespace BlobSurvivor.EditorTools
         private const string RequestPath = "Temp/city_fixes.request";
         private const string ResultPath = "Temp/city_fixes.result";
         private const string GhostFolder = "Assets/_Project/Resources/OcclusionGhost";
-        private const float GhostAlpha = 0.3f;
+        private const float GhostAlpha = 0.18f;
 
         private static readonly string[] GhostSources =
         {

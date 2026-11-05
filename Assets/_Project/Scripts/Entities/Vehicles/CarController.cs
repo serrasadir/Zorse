@@ -19,6 +19,9 @@ namespace BlobSurvivor.Entities.Vehicles
         // Araç tipine göre tier/kütle (boya göre "Tier'ları Boya Göre Kur" yazar); 0 = CarData'daki değer.
         [SerializeField] private int _tierOverride;
         [SerializeField] private float _massOverride;
+        [SerializeField] private Color _crumbColorA = Color.white;
+        [SerializeField] private Color _crumbColorB = Color.grey;
+        private Renderer _renderer;
         private BlobTier ConsumeTier => _tierOverride > 0 ? (BlobTier)_tierOverride : _data.ConsumableFromTier;
         private float MassValue => _massOverride > 0f ? _massOverride : _data.MassValue;
         // 2026-11-03: rota artık Transform değil nokta listesi — CarSpawner büyük şehrin sokak ızgarasından
@@ -40,6 +43,9 @@ namespace BlobSurvivor.Entities.Vehicles
         // Cached references — FindAnyObjectByType'ı runtime'da çağırmamak için
         private Transform _blobTransform;
         private BlobGrowth _blobGrowth;
+        private BlobConsumption _blobConsumption;
+        private BlobHealth _blobHealth;
+        private const int BlobLayer = 8;
         private ScoreSystem _scoreSystem;
 
         // Throttle: physics sorguları her frame değil, belirli aralıkla
@@ -100,6 +106,7 @@ namespace BlobSurvivor.Entities.Vehicles
                 {
                     _blobTransform = blob.transform;
                     _blobGrowth = blob.GetComponent<BlobGrowth>();
+                    _blobConsumption = blob.GetComponent<BlobConsumption>();
                 }
             }
 
@@ -241,21 +248,39 @@ namespace BlobSurvivor.Entities.Vehicles
         {
             if (!_isActive) return;
 
-            BlobGrowth blobGrowth = collision.gameObject.GetComponentInParent<BlobGrowth>();
-            if (blobGrowth == null) return;
+            if (_blobGrowth == null || collision.gameObject.layer != BlobLayer) return;
 
-            if (blobGrowth.CurrentTier >= ConsumeTier)
+            if (_blobGrowth.CurrentTier >= ConsumeTier)
             {
-                blobGrowth.AddMass(MassValue);
-                _scoreSystem?.AddScore(_data.ScoreValue);
-                Consume();
+                TryGetEaten(collision);
             }
             else
             {
                 if (_damageTimer > 0f) return;
-                collision.gameObject.GetComponentInParent<BlobHealth>()?.TakeDamage(_data.DamageAmount);
+                if (_blobHealth == null) _blobHealth = _blobGrowth.GetComponent<BlobHealth>();
+                _blobHealth?.TakeDamage(_data.DamageAmount);
                 _damageTimer = _data.DamageCooldown;
             }
+        }
+
+        // Önle yeme: arabaya arkasıyla değen blob yemez (hasar da almaz); yüzünü dönünce yer.
+        private void OnCollisionStay(Collision collision)
+        {
+            if (!_isActive || _blobGrowth == null || collision.gameObject.layer != BlobLayer) return;
+            if (_blobGrowth.CurrentTier >= ConsumeTier) TryGetEaten(collision);
+        }
+
+        private void TryGetEaten(Collision collision)
+        {
+            if (_blobConsumption != null && collision.contactCount > 0 && !_blobConsumption.CanEatFrom(collision.GetContact(0).point))
+                return;
+            // Normal yemeyle aynı geri bildirim (şişme, ağız, titreşim) BlobConsumption'dan geçer.
+            if (_renderer == null) _renderer = GetComponentInChildren<Renderer>();
+            if (_blobConsumption != null)
+                _blobConsumption.ConsumeVehicle(MassValue, _data.ScoreValue, ConsumeTier,
+                    _renderer != null ? _renderer.bounds : new Bounds(transform.position, Vector3.one), _crumbColorA, _crumbColorB);
+            else _blobGrowth.AddMass(MassValue);
+            Consume();
         }
 
         // TankCrusher: miniboss tankı üstünden geçince araba havuza döner (OnConsumed → CarSpawner).

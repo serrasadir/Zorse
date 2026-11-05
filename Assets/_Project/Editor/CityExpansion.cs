@@ -165,11 +165,17 @@ namespace BlobSurvivor.EditorTools
 
         // Asfalt taban + her blok için kaldırım adası (üst yüz + bordür). Tek mesh, tek materyal, collider yok:
         // fizik zemini sahnedeki 'Ground' plane'i, NavMesh render mesh'lerden bake edilir.
+        // Kaldırım adalarının üstü ayrı alt-mesh: karo dokusu (T_Sidewalk, 4x4 birimde bir tekrar), dünya-UV'si.
+        internal const string SidewalkMaterialPath = CityKitPipeline.ArtRoot + "/Textures/Mat_Sidewalk.mat";
+        private const float SidewalkTile = 4f;
+
         internal static GameObject BuildGround(Transform parent, Material palette)
         {
             List<Vector3> vertices = new List<Vector3>();
             List<Vector2> uvs = new List<Vector2>();
             List<int> triangles = new List<int>();
+            List<int> sidewalkTriangles = new List<int>();
+            Material sidewalk = AssetDatabase.LoadAssetAtPath<Material>(SidewalkMaterialPath);
             float e = HalfExtent;
 
             AddFace(vertices, uvs, triangles, AsphaltUV, Vector3.up,
@@ -183,9 +189,13 @@ namespace BlobSurvivor.EditorTools
                 {
                     float x0 = gx * BlockPitch - BlockHalf, x1 = gx * BlockPitch + BlockHalf;
                     float z0 = gz * BlockPitch - BlockHalf, z1 = gz * BlockPitch + BlockHalf;
-                    AddFace(vertices, uvs, triangles, SidewalkUV, Vector3.up,
+                    int start = vertices.Count;
+                    AddFace(vertices, uvs, sidewalk != null ? sidewalkTriangles : triangles, SidewalkUV, Vector3.up,
                         new Vector3(x0, SidewalkY, z0), new Vector3(x0, SidewalkY, z1),
                         new Vector3(x1, SidewalkY, z1), new Vector3(x1, SidewalkY, z0));
+                    if (sidewalk != null)
+                        for (int i = start; i < vertices.Count; i++)
+                            uvs[i] = new Vector2(vertices[i].x / SidewalkTile, vertices[i].z / SidewalkTile);
                     AddBoxSides(vertices, uvs, triangles, CurbUV, x0, x1, z0, z1, 0f, SidewalkY);
                 }
             }
@@ -199,7 +209,9 @@ namespace BlobSurvivor.EditorTools
             mesh.Clear();
             mesh.SetVertices(vertices);
             mesh.SetUVs(0, uvs);
+            mesh.subMeshCount = sidewalk != null ? 2 : 1;
             mesh.SetTriangles(triangles, 0);
+            if (sidewalk != null) mesh.SetTriangles(sidewalkTriangles, 1);
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
             EditorUtility.SetDirty(mesh);
@@ -207,7 +219,8 @@ namespace BlobSurvivor.EditorTools
             GameObject ground = new GameObject("CityGround");
             ground.transform.SetParent(parent, false);
             ground.AddComponent<MeshFilter>().sharedMesh = mesh;
-            ground.AddComponent<MeshRenderer>().sharedMaterial = palette;
+            MeshRenderer groundRenderer = ground.AddComponent<MeshRenderer>();
+            groundRenderer.sharedMaterials = sidewalk != null ? new[] { palette, sidewalk } : new[] { palette };
             GameObjectUtility.SetStaticEditorFlags(ground, StaticEditorFlags.NavigationStatic | StaticEditorFlags.BatchingStatic);
             return ground;
         }

@@ -18,6 +18,12 @@ namespace BlobSurvivor.Entities.Blob
         private Transform _visual;
         private Quaternion _facing = Quaternion.LookRotation(Vector3.back); // başta kameraya bakar
         private Vector3 _lastPosition;
+        private float _gulpTime = -1f, _gulpAmount;
+
+        // Yüzü olan görünüm takılıysa "önle yeme" kuralı (BlobConsumption.CanEatFrom) bu yönü kullanır.
+        public bool HasFacing => _visual != null;
+        public Vector3 Forward => _facing * Vector3.forward;
+        private const float GulpDuration = 0.28f;
 
         private void Awake()
         {
@@ -37,6 +43,7 @@ namespace BlobSurvivor.Entities.Blob
 
             _facing = Quaternion.LookRotation(Vector3.back);
             _lastPosition = transform.position;
+            _gulpTime = -1f;
 
             if (prefab == null)
             {
@@ -75,6 +82,31 @@ namespace BlobSurvivor.Entities.Blob
                 _facing = Quaternion.Slerp(_facing, target, 1f - Mathf.Exp(-TurnSpeed * dt));
             }
             _visual.rotation = _facing;
+            UpdateGulp(dt);
+        }
+
+        // Büyük lokmada "yutkunma": görünüm bir an basıklaşıp yanlara şişer, geri gelir. Sadece görsel child —
+        // kök ölçeği (collider) değişmez. Varsayılan kürede (görünüm yok) çalışmaz.
+        public void Gulp(float amount)
+        {
+            if (_visual == null) return;
+            _gulpAmount = Mathf.Max(amount, _gulpTime >= 0f ? _gulpAmount : 0f);
+            _gulpTime = 0f;
+        }
+
+        private void UpdateGulp(float dt)
+        {
+            if (_gulpTime < 0f) return;
+            _gulpTime += dt;
+            float t = _gulpTime / GulpDuration;
+            if (t >= 1f)
+            {
+                _gulpTime = -1f;
+                _visual.localScale = Vector3.one;
+                return;
+            }
+            float s = Mathf.Sin(t * Mathf.PI) * (1f - t * 0.5f) * _gulpAmount;
+            _visual.localScale = new Vector3(1f + s * 0.6f, 1f - s, 1f + s * 0.6f);
         }
     }
 }

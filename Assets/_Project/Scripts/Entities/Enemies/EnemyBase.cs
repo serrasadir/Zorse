@@ -675,6 +675,17 @@ namespace BlobSurvivor.Entities.Enemies
 
         // Karar 5 (GDD_v2.md §4 — yeme birincil): sürü düşmanı Tier3+'ta, elit Tier5'te temasla yutulabilir.
         // Mass ödülü BlobGrowth.AddMass üzerinden verilmeli — mass=XP zaten birleşik (Karar 7).
+        // TryConsumeByBlob'un yan etkisiz hâli (önle yeme kontrolünden önce sorulur).
+        public bool CanBeConsumedBy(BlobTier blobTier)
+        {
+            if (_isDead || _data == null) return false;
+            if (_data.PreventConsumption && !_consumableOverride) return false;
+            return Time.time <= _tierBypassUntil || blobTier >= _data.RequiredConsumeTier;
+        }
+
+        // Boss'lar (helikopter yukarıdan, uzanarak yutulur) önle yeme kuralına girmez.
+        public bool IsBoss => _data != null && _data.PreventConsumption;
+
         public bool TryConsumeByBlob(BlobTier blobTier, out float massReward)
         {
             massReward = 0f;

@@ -37,9 +37,20 @@ namespace BlobSurvivor.EditorTools
         private void OnPreprocessTexture()
         {
             if (!assetPath.StartsWith(CityKitPipeline.ArtRoot + "/")) return;
+            TextureImporter importer = (TextureImporter)assetImporter;
+
+            // Tile'lanan desen dokuları (kaldırım karosu, su): tekrar eder, mipmap'li, sıkıştırılmış.
+            if (assetPath.StartsWith(CityKitPipeline.ArtRoot + "/Textures/"))
+            {
+                importer.wrapMode = TextureWrapMode.Repeat;
+                importer.filterMode = FilterMode.Bilinear;
+                importer.mipmapEnabled = true;
+                importer.anisoLevel = 2;
+                importer.maxTextureSize = 256;
+                return;
+            }
 
             // Palet hücreleri düz renk: filtre/mipmap/sıkıştırma hücreleri birbirine karıştırır.
-            TextureImporter importer = (TextureImporter)assetImporter;
             importer.filterMode = FilterMode.Point;
             importer.wrapMode = TextureWrapMode.Clamp;
             importer.mipmapEnabled = false;
@@ -1110,6 +1121,8 @@ namespace BlobSurvivor.EditorTools
             so.FindProperty("_massValue").floatValue = mass;
             so.FindProperty("_requiredTier").intValue = (int)tier;
             so.ApplyModifiedPropertiesWithoutUndo();
+            if (EatEffectSetup.TryCrumbColors(measured, out Color crumbA, out Color crumbB))
+                EatEffectSetup.SetColors(so, crumbA, crumbB);
             return data;
         }
 

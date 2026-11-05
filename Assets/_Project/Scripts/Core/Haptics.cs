@@ -18,6 +18,7 @@ namespace BlobSurvivor.Core
 
 #if UNITY_IOS && !UNITY_EDITOR
         [DllImport("__Internal")] private static extern void BlobHaptics_LightImpact();
+        [DllImport("__Internal")] private static extern void BlobHaptics_Impact(int style);
 #endif
 
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -29,21 +30,25 @@ namespace BlobSurvivor.Core
         private static bool _androidSupportsAmplitude;
 #endif
 
-        public static void LightTap()
+        public static void LightTap() => Impact(0);
+
+        // 0 = hafif (her yeme), 1 = orta (Large/Giant lokma), 2 = güçlü (Dev lokma). Güçlü olan seyreltmeyi deler.
+        public static void Impact(int strength)
         {
             float now = Time.unscaledTime;
-            if (now - _lastTime < MinInterval) return;
+            if (strength == 0 && now - _lastTime < MinInterval) return;
             _lastTime = now;
 
 #if UNITY_IOS && !UNITY_EDITOR
-            BlobHaptics_LightImpact();
+            if (strength == 0) BlobHaptics_LightImpact();
+            else BlobHaptics_Impact(strength);
 #elif UNITY_ANDROID && !UNITY_EDITOR
-            AndroidLightTap();
+            AndroidTap(strength);
 #endif
         }
 
 #if UNITY_ANDROID && !UNITY_EDITOR
-        private static void AndroidLightTap()
+        private static void AndroidTap(int strength)
         {
             try
             {
@@ -64,12 +69,14 @@ namespace BlobSurvivor.Core
 
                 if (_androidSupportsAmplitude)
                 {
-                    using (AndroidJavaObject effect = _effectClass.CallStatic<AndroidJavaObject>("createOneShot", AndroidDurationMs, AndroidAmplitude))
+                    long ms = AndroidDurationMs + strength * 15;
+                    int amp = Mathf.Min(255, AndroidAmplitude + strength * 80);
+                    using (AndroidJavaObject effect = _effectClass.CallStatic<AndroidJavaObject>("createOneShot", ms, amp))
                         _vibrator.Call("vibrate", effect);
                 }
                 else
                 {
-                    _vibrator.Call("vibrate", AndroidDurationMs);
+                    _vibrator.Call("vibrate", AndroidDurationMs + strength * 15);
                 }
             }
             catch (System.Exception)

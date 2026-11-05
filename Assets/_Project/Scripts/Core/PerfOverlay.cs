@@ -11,7 +11,7 @@ namespace BlobSurvivor.Core
     // YAYIN ÖNCESİ: Enabled = false (oyunculara hile düğmesi gitmesin). Kapalıyken hiç oluşmaz, maliyeti sıfır.
     public class PerfOverlay : MonoBehaviour
     {
-        public const bool Enabled = true;
+        public static readonly bool Enabled = true; // const değil: sabit dal "unreachable code" uyarısı veriyordu
 
         private const string PrefKey = "perf_overlay";
         private const float AvgWindow = 0.5f;

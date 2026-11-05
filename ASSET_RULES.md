@@ -38,6 +38,7 @@ Unity'de çarpışma kutusu otomatik hesaplanır: **modelin alttan 0.6 birimlik 
 | Pivot | Tabanın tam ortası, z=0 (istisna: havada dönen sandık = merkez; karakter = küre merkezi) |
 | Yön | Şehir kiti (B_/P_/L_/V_): ön cephe **-Y**; Unity'de 180° düzeltilir, Blender (x, y) = Unity (x, z). İnsan/karakter: yüz +Y (kendi script notlarına bak) |
 | Mesh | Her obje **tek mesh**, transform uygulanmış (`M` sınıfı doğrudan dünya koordinatında kurar). Ayrı dönen parça gerekiyorsa (helikopter rotoru) ayrı mesh, pivot = göbek |
+| Desen dokusu | Tekrar eden zemin desenleri (kaldırım karosu, su) palet dışı: `build_textures.py` (Python/PIL) → `Art/City/Textures/` (Repeat + mipmap ön işlemcide) |
 | Doku | **Tek palet dokusu** `CityPaletteV2.png` (8×8 = 64 renk, **dolu**). Yeni renk eklemek için önce bir rengi değiştir; satır/sütun sayısı değişirse bütün UV'ler kayar. Renkler `kit2.PAL` adlarıyla kullanılır |
 | Malzeme | Normal/roughness/metallic haritası yok, tek materyal (şehirle aynı batch'e girer) |
 | Animasyon | Yok. Hareket hissi koddan (yaya süzülme, rotor dönüşü) |
@@ -64,6 +65,7 @@ Unity'de çarpışma kutusu otomatik hesaplanır: **modelin alttan 0.6 birimlik 
 | `J_` | Yerdeki yiyecek (Tiny) | `J_Simit` |
 | `CH_` | Karakter görünümü | `CH_Topik_T3` |
 | `C_` | Toplanabilir (sandık, coin) | `C_Chest` |
+| `W_` | Yenmeyen çevre (sur, kule; elle yerleştirilir) | `W_SeaWall` |
 
 PascalCase, Türkçe karakter ve boşluk yok. Eski kitle aynı adı kullanma: `CityVisualFixes` prefab'ları adla eşleştirir.
 

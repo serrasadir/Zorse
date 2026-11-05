@@ -53,6 +53,7 @@ namespace BlobSurvivor.Core
         // Sarsıntı yumuşak takibe karışmasın diye takip pozisyonu ayrı tutulur, sarsıntı üstüne eklenir.
         private Vector3 _followPosition;
         private float _shakeTime = -1f;
+        private float _shakeAmplitude, _shakeDuration;
 
         // Kamera uzaklaşınca gölge mesafesi (URP asset'inde, kameradan ölçülür) blob'a yetmez olur ve gölgeler
         // kaybolur. Mesafe, kameranın uzaklaştığı kadar artırılır; oyundan çıkınca asset'in değeri geri yüklenir.
@@ -83,7 +84,7 @@ namespace BlobSurvivor.Core
 
         private void HandleDamaged(float _)
         {
-            if (_hitShakeAmplitude > 0f) _shakeTime = 0f;
+            if (_hitShakeAmplitude > 0f) Shake(_hitShakeAmplitude, _hitShakeDuration);
         }
 
         private void OnDisable()
@@ -110,19 +111,28 @@ namespace BlobSurvivor.Core
             transform.position = _followPosition + ShakeOffset();
         }
 
+        // Hasar ve büyük lokmalar (EatEffects) çağırır; süren sarsıntıdan güçlüyse onu ezer.
+        public void Shake(float amplitude, float duration)
+        {
+            if (_shakeTime >= 0f && _shakeAmplitude * (1f - _shakeTime / _shakeDuration) > amplitude) return;
+            _shakeAmplitude = amplitude;
+            _shakeDuration = Mathf.Max(0.01f, duration);
+            _shakeTime = 0f;
+        }
+
         private Vector3 ShakeOffset()
         {
             if (_shakeTime < 0f) return Vector3.zero;
 
             _shakeTime += Time.deltaTime;
-            float k = 1f - _shakeTime / _hitShakeDuration;
+            float k = 1f - _shakeTime / _shakeDuration;
             if (k <= 0f)
             {
                 _shakeTime = -1f;
                 return Vector3.zero;
             }
             // Kamera uzaklaştıkça aynı genlik ekranda küçülür — zoom ile ölçeklenir ki her boyda aynı hissettirsin.
-            return Random.insideUnitSphere * (_hitShakeAmplitude * _heightMultiplier * k);
+            return Random.insideUnitSphere * (_shakeAmplitude * _heightMultiplier * k);
         }
 
         private bool IsBossFramable(FinalBossController boss)
