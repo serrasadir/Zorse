@@ -13,7 +13,7 @@ namespace BlobSurvivor.Systems
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            if (transform.parent == null) DontDestroyOnLoad(gameObject); // child ise uyarı basar; tek sahne, gerekmiyor
         }
 
         public ObjectPool<T> CreatePool<T>(T prefab, int initialSize) where T : MonoBehaviour

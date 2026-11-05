@@ -83,6 +83,7 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 - **`Art/City` altına giren dokular** palet ayarına zorlanır (Point, Clamp, mipmap yok: `CityKitPipeline` ön işlemcisi). Tekrar eden desen dokuları `Art/City/Textures/`'a konur (Repeat + mipmap).
 - **Saydam/özel materyaller** build'de ayıklanmasın diye prefab'da referanslı ya da `Resources/` altında olmalı; runtime'da shader'dan materyal üretme.
 - Final boss'un collider'ı havada (`EnemyBase.AirborneHeight`/`AimPoint`); kök yerde NavMesh'te.
+- `FindAnyObjectByType<T>()` pasif objeleri bulmaz: lobi (`LobbyPanel`, kendi paneliyle aynı obje) run sırasında pasif. Paneli/ekranı arıyorsan `FindObjectsInactive.Include` ver.
 - UnityEvent (OnClick) slotuna Project penceresinden script değil, **Hierarchy'den GameObject** sürüklenir.
 - Proje `~/Developer/zorse`'ta (iCloud dışı). `../zorse-ios-build` ve `~/Developer/zorse-blender` (model kaynakları, `build_*.py`; ayrı private repo `serrasadir/zorse-blender`, `.blend`/render'lar git'e girmez) yan yana durmalı. Script değişince o repo da commit'lenir.
 - graphify repo kökünde çalıştırılır (`graphify-out/` gitignore'da).

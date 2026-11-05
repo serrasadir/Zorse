@@ -40,7 +40,7 @@ namespace BlobSurvivor.Entities.Enemies
         private enum Mode { None, Death, Swallow }
 
         private readonly Dictionary<GameObject, Proxy> _proxies = new Dictionary<GameObject, Proxy>();
-        private readonly MaterialPropertyBlock _block = new MaterialPropertyBlock();
+        private MaterialPropertyBlock _block; // Awake'te: alan başlatıcısında oluşturmak cihazda UnityException verir
         private EatCrumbs[] _crumbs;
         private int _nextCrumb;
         private CameraController _camera;
@@ -64,6 +64,7 @@ namespace BlobSurvivor.Entities.Enemies
 
         private void Awake()
         {
+            _block = new MaterialPropertyBlock();
             _camera = FindAnyObjectByType<CameraController>();
             EatCrumbs prefab = Resources.Load<EatCrumbs>("FX/EatCrumbs");
             if (prefab == null) return;

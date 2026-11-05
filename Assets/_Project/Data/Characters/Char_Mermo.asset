@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Char_Mermo
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.CharacterData
   _displayName: Mermo
-  _icon: {fileID: 0}
+  _icon: {fileID: 21300000, guid: 4fc5348db9ec247088268cd8c00b2e00, type: 3}
   _description: "Mermileri, bir boy b\xFCy\xFCk lokmalar\u0131 yenebilir par\xE7alara
     b\xF6ler."
   _startingWeaponPrefab: {fileID: 1195012648784995356, guid: db0808b4be58440f9b33f0b4a932cc43, type: 3}

@@ -82,7 +82,7 @@ namespace BlobSurvivor.Systems.Meta
                 return;
             }
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            if (transform.parent == null) DontDestroyOnLoad(gameObject); // child ise uyarı basar; tek sahne, gerekmiyor
             Load();
         }
 

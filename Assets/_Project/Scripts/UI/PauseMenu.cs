@@ -71,11 +71,12 @@ namespace BlobSurvivor.UI
             if (label != null) { label.text = text; label.fontSize = 46f; }
         }
 
+        // Ana Menü = giriş ekranı (TitleScreen); oradan OYNA ile lobiye geçilir. Run sıfırlanır.
         private void ReturnToMenu()
         {
             GameManager.Instance?.ReturnToMenu();
             HandleRunEnded();
-            FindAnyObjectByType<LobbyPanel>()?.ShowFromRun();
+            TitleScreen.ShowTitle();
         }
 
         // Panel SafeArea'nın içindeydi: çentik ve alt çubuk şeridi açık kalıyordu. Kök Canvas'a taşınıp tüm ekranı kaplar
@@ -121,7 +122,8 @@ namespace BlobSurvivor.UI
         private void HidePanel()
         {
             _panel.SetActive(false);
-            _pauseButton.gameObject.SetActive(true);
+            // Giriş ekranı da run sıfırlarken OnCharacterSelected atar: tuş sadece oyun sırasında görünsün.
+            _pauseButton.gameObject.SetActive(GameManager.Instance == null || GameManager.Instance.IsPlaying);
         }
 
         private void HandleRunStarted(CharacterData _) => HidePanel();

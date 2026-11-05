@@ -44,6 +44,7 @@ namespace BlobSurvivor.EditorTools
             {
                 var tierMeshes = new Mesh[TierCount];
                 var eatMeshes = new Mesh[TierCount];
+                var blinkMeshes = new Mesh[TierCount];
                 MeshFilter source = null;
                 for (int t = 0; t < TierCount; t++)
                 {
@@ -52,6 +53,9 @@ namespace BlobSurvivor.EditorTools
                     GameObject eatModel = AssetDatabase.LoadAssetAtPath<GameObject>($"{ArtFolder}/{mesh}_T{t + 1}_Eat.fbx");
                     MeshFilter eatFilter = eatModel != null ? eatModel.GetComponentInChildren<MeshFilter>(true) : null;
                     if (eatFilter != null) eatMeshes[t] = eatFilter.sharedMesh;
+                    GameObject blinkModel = AssetDatabase.LoadAssetAtPath<GameObject>($"{ArtFolder}/{mesh}_T{t + 1}_Blink.fbx");
+                    MeshFilter blinkFilter = blinkModel != null ? blinkModel.GetComponentInChildren<MeshFilter>(true) : null;
+                    if (blinkFilter != null) blinkMeshes[t] = blinkFilter.sharedMesh;
                     if (filter == null) continue;
                     tierMeshes[t] = filter.sharedMesh;
                     if (source == null) source = filter;
@@ -89,12 +93,19 @@ namespace BlobSurvivor.EditorTools
                 eatList.arraySize = TierCount;
                 for (int t = 0; t < TierCount; t++)
                     eatList.GetArrayElementAtIndex(t).objectReferenceValue = eatMeshes[t] != null ? eatMeshes[t] : tierMeshes[t];
+                SerializedProperty blinkList = tiersSo.FindProperty("_blinkMeshesByTier");
+                blinkList.arraySize = TierCount;
+                for (int t = 0; t < TierCount; t++)
+                    blinkList.GetArrayElementAtIndex(t).objectReferenceValue = blinkMeshes[t] != null ? blinkMeshes[t] : tierMeshes[t];
                 tiersSo.ApplyModifiedPropertiesWithoutUndo();
                 GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, $"{PrefabFolder}/{root.name}.prefab");
                 Object.DestroyImmediate(root);
 
                 SerializedObject so = new SerializedObject(data);
                 so.FindProperty("_blobVisualPrefab").objectReferenceValue = prefab;
+                // Lobi portresi (build_blobs.py → Art/UI/Characters/Icon_<Kar>.png, Sprite).
+                Sprite icon = AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/_Project/Art/UI/Characters/Icon_{mesh.Substring(3)}.png");
+                if (icon != null) so.FindProperty("_icon").objectReferenceValue = icon;
                 so.ApplyModifiedPropertiesWithoutUndo();
                 EditorUtility.SetDirty(data);
                 log.AppendLine($"OK {character}: {prefab.name}");

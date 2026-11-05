@@ -149,3 +149,11 @@ MonoBehaviour:
   - {fileID: 2643532930348319977, guid: 08c655a6c6a764ac48ecb0d35f343555, type: 3}
   - {fileID: -7657630009227025093, guid: 89053541f2cbe4e63b1bc6d0180f941a, type: 3}
   _eatDuration: 0.15
+  _blinkMeshesByTier:
+  - {fileID: -27115533007456445, guid: 3455ed77f78e44ca7bc3148a5a30fd3b, type: 3}
+  - {fileID: -1766307287919106281, guid: 4a9000af44cae41d28ef3011511e8a99, type: 3}
+  - {fileID: 1280558095151439324, guid: b0116f3c470fe4dffa68b97cef9f87c6, type: 3}
+  - {fileID: 7338390634049071249, guid: 86c33d839d7bf4c25bc666ea112a5ca5, type: 3}
+  - {fileID: 2415754252478587351, guid: 41fbac9fd2e9e48199a218a3a45a1f02, type: 3}
+  _blinkInterval: {x: 2.2, y: 5}
+  _blinkDuration: 0.12

@@ -64,7 +64,7 @@ namespace BlobSurvivor.UI
 
         private void HandleRunStarted(CharacterData _)
         {
-            _running = true;
+            _running = GameManager.Instance == null || GameManager.Instance.IsPlaying; // giriş ekranında akmaz
             _nextNewsTimer = _firstNewsDelay;
             _currentTier = BlobTier.Tiny;
             _lastAnnouncedTier = BlobTier.Tiny;

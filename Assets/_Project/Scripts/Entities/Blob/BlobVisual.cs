@@ -23,6 +23,9 @@ namespace BlobSurvivor.Entities.Blob
         // Yüzü olan görünüm takılıysa "önle yeme" kuralı (BlobConsumption.CanEatFrom) bu yönü kullanır.
         public bool HasFacing => _visual != null;
         public Vector3 Forward => _facing * Vector3.forward;
+
+        // Giriş ekranı: kameraya bakarken yavaşça sağa sola bakınır (ölçeksiz zaman; oyun donukken de).
+        public bool MenuIdle { get; set; }
         private const float GulpDuration = 0.28f;
 
         private void Awake()
@@ -69,6 +72,17 @@ namespace BlobSurvivor.Entities.Blob
             Vector3 delta = position - _lastPosition;
             _lastPosition = position;
             if (_visual == null) return;
+
+            if (MenuIdle)
+            {
+                float t = Time.unscaledTime;
+                // Ara ara iki yana bakıp ortaya döner; hafif kafa sallama.
+                float look = Mathf.Sin(t * 0.7f) * 32f * Mathf.SmoothStep(0f, 1f, Mathf.Abs(Mathf.Sin(t * 0.35f)));
+                float nod = Mathf.Sin(t * 1.3f) * 4f;
+                _facing = Quaternion.Euler(nod, look, 0f) * Quaternion.LookRotation(Vector3.back);
+                _visual.rotation = _facing;
+                return;
+            }
 
             float dt = Time.deltaTime;
             if (dt <= 0f) return; // duraklatma

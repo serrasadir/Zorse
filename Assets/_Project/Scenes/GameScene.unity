@@ -16341,7 +16341,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Blob.BlobController
   _baseMoveSpeed: 5
   _drag: 8
-  _tierSlowdownExponent: 0.3
+  _tierSlowdownExponent: 0.24
 --- !u!135 &276010512
 SphereCollider:
   m_ObjectHideFlags: 0

@@ -59,6 +59,14 @@ MonoBehaviour:
   - {fileID: 1794644659423061528, guid: c6743764580934f89b9c0de74e99392e, type: 3}
   - {fileID: -1773774194879969502, guid: 9d3a497332ee342ecb983382903a5cb9, type: 3}
   _eatDuration: 0.15
+  _blinkMeshesByTier:
+  - {fileID: -4745884175628289431, guid: 620b29ee4d6944ab9b4de7cc8788e7ad, type: 3}
+  - {fileID: -8835449585962437150, guid: 4a5759a48d35445e9959f335362ca02c, type: 3}
+  - {fileID: -4787442817632719989, guid: bb7fa5adaa1814730a3cced971d9aee2, type: 3}
+  - {fileID: -3855661758134639167, guid: 02c6bfbc68d3d4ed980f22d01a3f7094, type: 3}
+  - {fileID: -199974953025873958, guid: 6de3a349404824df49cb622dd135aa8b, type: 3}
+  _blinkInterval: {x: 2.2, y: 5}
+  _blinkDuration: 0.12
 --- !u!1 &920753616339990069
 GameObject:
   m_ObjectHideFlags: 0

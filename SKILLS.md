@@ -89,15 +89,15 @@
 - **Ne yapar:** İki şey yapar. (1) Hız çarpanını artırır. (2) Büyüdükçe gelen yavaşlamayı biraz hafifletir.
 - **Seviye başına:** +%10 hız, yavaşlama üssü −0.015 · **Max:** 8 · **Ağırlık:** 10
 - **Kod:** `SpeedBoostEffect` → `BlobController.SetSpeedMultiplier` + `ReduceTierSlowdownExponent`
-- **Formül:** `hız = 5 × çarpan / tier^üs`. Başlangıç üssü 0.3.
+- **Formül:** `hız = 5 × çarpan / sıra^üs` (sıra: Tiny 1 … Giant 5, Dev 6). Başlangıç üssü **0.24** (sahnede `BlobController._tierSlowdownExponent`).
 
-| Seviye | Çarpan | Üs | Tiny hızı | Giant hızı |
-|---|---|---|---|---|
-| 0 | 1.0 | 0.30 | 5.0 | 3.1 |
-| 4 | 1.4 | 0.24 | 7.0 | 4.7 |
-| 8 | **1.8** | **0.18** | 9.0 | **6.7** |
+| Seviye | Çarpan | Üs | Tiny hızı | Giant hızı | Dev hızı |
+|---|---|---|---|---|---|
+| 0 | 1.0 | 0.24 | 5.0 | 3.4 | 3.25 |
+| 4 | 1.4 | 0.18 | 7.0 | 5.2 | 5.1 |
+| 8 | **1.8** | **0.12** | 9.0 | **7.4** | 7.3 |
 
-**Örnek:** Topik'in pasifi +%25 hız ve yavaşlama üssü −0.03. Topik ile Hız 8 = çarpan 2.05, üs 0.15; Giant hızı ~8.
+**Örnek:** Topik'in pasifi +%25 hız ve yavaşlama üssü −0.03 (0.21). Topik ile Hız 8 = çarpan 2.05, üs 0.09; Giant hızı ~8.9.
 
 ---
 
@@ -242,7 +242,7 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 | **Oyun tarzı** | Hızlı, hantallaşmayan; kalabalığı patlamayla dağıtır | Toplayıcı; yemi kendine çeker, hızlı büyür | Fırsatçı; büyük lokmaları bir boy erken yer |
 
 ### 🟠 Topik
-- **Pasif:** Hız çarpanı +0.25 (Hız Artışı skiliyle toplanır: Hız 8 ile ×2.05). Ayrıca büyüme yavaşlaması üssü 0.30 → 0.27. Giant'ta bile çevik kalır.
+- **Pasif:** Hız çarpanı +0.25 (Hız Artışı skiliyle toplanır: Hız 8 ile ×2.05). Ayrıca büyüme yavaşlaması üssü 0.24 → 0.21. Giant'ta bile çevik kalır.
 - **Silah:** Top yay çizerek uçar (0.4 birim yükseklik), ilk düşmana çarpınca patlar ve 2 birim içindeki diğer düşmanlara da tam hasar verir. Kalabalığa en etkili silah.
 - **Örnek:** Sv. 7'de 3 hedefe ateş eden, her biri 2 birimlik patlama yapan Topik, sürüyü saniyeler içinde eritir. Sv. 8'de patlama 5 birim olur.
 - **Zayıf yanı:** Top binaya çarpınca durur; patlama ince bir duvarın arkasına sızabilir.

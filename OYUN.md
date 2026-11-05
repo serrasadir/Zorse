@@ -41,14 +41,16 @@
 
 ## 3. Run Akışı
 
-1. **Lobi:** karakter seç (Topik, Mıknato, Mermo), Market'e gir.
-2. Şehirde başlarsın; yerdeki çöpleri, sokak eşyalarını, yayaları yiyerek büyürsün. Senden büyük şeyler seni durdurur (katı), hazard'lar hasar verir.
-3. Kütle = XP; yenen her şeyin kütlesi genel büyüme hızıyla (×0.7, `BlobGrowth._globalGainScale`) çarpılır. Level atlayınca oyun durur, **3 karttan 1** seçilir. Aynı skill tekrar seçilirse seviye atlar (en fazla 8).
-4. Polisler gelir, zamanla ve büyüdükçe baskı artar; boss'lar belirli dakikalarda gelir.
-5. Run iki şekilde biter:
+0. **Açılış (sadece uygulama ilk açılırken):** siyah ekranda Zorse Studio logosu belirir (~2.2 sn), söner (`StudioSplash`, logo `Resources/UI/zorse-logo.png`).
+1. **Giriş ekranı:** arkada canlı şehir, kamera Topik'e yakın; Topik göz kırpar, sağa sola bakınır. Logo + OYNA. Duraklatma ve oyun sonundaki "Ana Menü" de buraya döner (run sıfırlanır).
+2. **Lobi:** OYNA'dan sonra karakter seç (Topik, Mıknato, Mermo), Market'e gir. HUD diliyle: başlık, kredi, her karakter için kart (portre `Art/UI/Characters/Icon_*.png` ← `build_blobs.py`, ad, pasif açıklaması; kilitliyse soluk + koşul rozeti), MARKET (şimdilik gri ve kapalı, "YAKINDA"; `LobbyPanel.MarketEnabled`) ve geri (giriş ekranına) tuşu. Karta dokunmak oyunu başlatır.
+3. Şehirde başlarsın; yerdeki çöpleri, sokak eşyalarını, yayaları yiyerek büyürsün. Senden büyük şeyler seni durdurur (katı), hazard'lar hasar verir.
+4. Kütle = XP; yenen her şeyin kütlesi genel büyüme hızıyla (×0.7, `BlobGrowth._globalGainScale`) çarpılır. Level atlayınca oyun durur, **3 karttan 1** seçilir. Aynı skill tekrar seçilirse seviye atlar (en fazla 8).
+5. Polisler gelir, zamanla ve büyüdükçe baskı artar; boss'lar belirli dakikalarda gelir.
+6. Run iki şekilde biter:
    - **Ölüm** → "Game Over!" ekranı, coin'in %50'si krediye.
    - **Final boss (helikopter) yutulursa** → "KAZANDIN!" ekranı, coin'in %100'ü krediye.
-6. Kredi Market'te kalıcı statlara ve Mıknato'ya harcanır.
+7. Kredi Market'te kalıcı statlara ve Mıknato'ya harcanır.
 
 ### Zaman çizelgesi
 
@@ -72,7 +74,7 @@ Boss'lar sırayla ve tek tek gelir: biri yaşıyorsa sonraki onun ölmesini bekl
 ## 4. Büyüme, Tier ve Yeme
 
 - **Ölçek:** `0.5 × (1 + kütle × 0.1) ^ 0.45` = blob'un çapı (birim). Yeme anında kısa şişme (punch).
-- **Hız:** `1 / sıra ^ 0.3` (sıra: Tiny 1, Little 1.5, Small 2 … Dev 6; `TierLayers.SlowdownRank`) × karakter/skill/meta çarpanları.
+- **Hız:** `1 / sıra ^ 0.24` (Topik 0.21; sıra: Tiny 1, Little 1.5, Small 2 … Dev 6; `TierLayers.SlowdownRank`) × karakter/skill/meta çarpanları.
 - **XP eşiği:** `20 + seviye × 15 + seviye² × 2` (geç oyunda bina yerken seviye yağmuru olmasın diye karesel; `BlobGrowth._xpQuadraticPerLevel`).
 
 | Tier | Kütle | Blob çapı | Ne yer |
@@ -175,7 +177,9 @@ Kademeli statlar sınırsız alınabilir. Kayıt yerel JSON'da (`meta_progressio
 - **Duraklatma:** tuşu üst satırda süre kutusunun yanında. Panel tüm ekranı kaplar (çentik ve alt şerit dahil): Devam / Yeniden Başla / Ana Menü. Ana Menü run'ı terk eder (coin kredisi yok, run sayılmaz).
 - **Haber bandı** (üstte, Plague Inc. tarzı): 30 sn'de bir yeni başlık; blob büyüdükçe haberler onunla ilgili olur. Metinler `NewsHeadlines.asset`'te.
 - Uygulama arka plana atılınca oyun otomatik duraklar.
-- **Ekranlar:** Lobi, Market, kart seçimi (3 kart, "YENİ" / "Sv. x/8", seviyeye özel açıklama), Game Over / KAZANDIN.
+- **Ekranlar:** Açılış logosu, giriş, lobi, kart seçimi, Game Over / KAZANDIN (Market ekranı henüz kapalı).
+- **Seviye atlama ekranı:** HUD diliyle, tüm ekran. Gölgeli altın "SEVİYE ATLADIN!" + "Bir güç seç"; 3 koyu kart: ad, sağ üstte rozet (YENİ yeşil / Sv. x/8 / EVRİM altın), seviyeye özel açıklama; evrim kartı altın tonlu. Kartlar sırayla belirir; yanlışlıkla seçilmesin diye ilk 0.4 sn dokunulmaz.
+- **Oyun sonu ekranı:** HUD diliyle (yarı saydam gece mavisi panel, kalın beyaz yazı, coin altın), tüm ekran. Başlık GAME OVER (kırmızımsı) ya da KAZANDIN! (altın) + alt satır, rekor kırıldıysa YENİ REKOR! rozeti, kart: Süre / Skor / Rekor / Coin / Kredi (+kazanılan; ölümde coin'in %50'si, kazanınca %100). Kart yumuşakça açılır, skor/coin/kredi sayarak yükselir. Butonlar: Tekrar Oyna, Ana Menü (lobiye döner, kredi zaten verilmiştir).
 - Ses yok (henüz).
 
 ---
@@ -184,8 +188,8 @@ Kademeli statlar sınırsız alınabilir. Kayıt yerel JSON'da (`meta_progressio
 
 - 2.5D stilize 3D, low-poly; şehir, insanlar, araçlar, boss'lar ve kalkanlar tek bir palet dokusunu paylaşır.
 - Yumuşak post-processing (tonemapping, hafif kontrast/doygunluk, vinyet, FXAA); bloom/SSAO yok (mobil).
-- Karakterler animasyonsuz; saldırı hissi koddan: polis hamlesi, geri tepme, hasar parlaması, kamera sarsıntısı.
-- Eksik: karakter ve skill ikonları, kalıcı uygulama ikonu, VFX (issue'larda).
+- Karakterler ara ara göz kırpar (gözler kapalı mesh'i, `BlobTierMeshes`). Animasyon yok; saldırı hissi koddan: polis hamlesi, geri tepme, hasar parlaması, kamera sarsıntısı.
+- Eksik: skill ikonları, kalıcı uygulama ikonu, son form VFX'leri (issue'larda).
 
 ---
 

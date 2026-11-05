@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text;
 using UnityEditor;
+using UnityEngine;
 
 namespace BlobSurvivor.EditorTools
 {
@@ -9,6 +10,37 @@ namespace BlobSurvivor.EditorTools
     [InitializeOnLoad]
     internal static class MenuRequest
     {
+        // "set <BileşenTipi> <_alan> <değer>": sahnedeki ilk o tipteki bileşenin sayısal/bool alanını yazar
+        // (Unity açıkken sahne dosyası dışarıdan düzenlenmez). Sonra Cmd+S.
+        private static string SetField(string args)
+        {
+            string[] p = args.Split(' ');
+            if (p.Length < 3) return "HATA\tset <Tip> <_alan> <değer>";
+            foreach (var mb in Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include))
+            {
+                if (mb.GetType().Name != p[0]) continue;
+                var so = new SerializedObject(mb);
+                var prop = so.FindProperty(p[1]);
+                if (prop == null) return $"YOK\t{p[0]}.{p[1]}";
+                string old;
+                switch (prop.propertyType)
+                {
+                    case SerializedPropertyType.Float:
+                        old = prop.floatValue.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        prop.floatValue = float.Parse(p[2], System.Globalization.CultureInfo.InvariantCulture); break;
+                    case SerializedPropertyType.Integer:
+                        old = prop.intValue.ToString(); prop.intValue = int.Parse(p[2]); break;
+                    case SerializedPropertyType.Boolean:
+                        old = prop.boolValue.ToString(); prop.boolValue = bool.Parse(p[2]); break;
+                    default: return $"DESTEKLENMİYOR\t{prop.propertyType}";
+                }
+                so.ApplyModifiedPropertiesWithoutUndo();
+                UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(mb.gameObject.scene);
+                return $"OK\t{p[0]}.{p[1]}: {old} → {p[2]}";
+            }
+            return $"YOK\t{p[0]}";
+        }
+
         private const string RequestPath = "Temp/menu.request";
         private const string DonePath = "Temp/menu.done";
         private static double s_nextPoll;
@@ -28,6 +60,7 @@ namespace BlobSurvivor.EditorTools
             {
                 string menu = raw.Trim();
                 if (menu.Length == 0) continue;
+                if (menu.StartsWith("set ")) { log.AppendLine(SetField(menu.Substring(4).Trim())); continue; }
                 bool ok = EditorApplication.ExecuteMenuItem(menu);
                 log.AppendLine($"{(ok ? "OK" : "YOK")}\t{menu}");
             }
