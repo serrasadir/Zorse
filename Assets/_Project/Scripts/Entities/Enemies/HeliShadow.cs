@@ -23,6 +23,15 @@ namespace BlobSurvivor.Entities.Enemies
         [SerializeField] private float _highScale = 1.3f;
         [SerializeField, Range(0f, 1f)] private float _rotorAlphaFactor = 0.7f;
 
+        // Issue #71: burnun altındaki projektörün yere düşen ışığı. Pivot burnun altında; ışık önde, yavaşça
+        // sağa sola tarar ("arıyor"). Gölgeyle aynı katmanda, renk/opaklık sabit (irtifadan bağımsız).
+        [Header("Projektör")]
+        [SerializeField] private Renderer _spot;
+        [SerializeField] private Transform _spotPivot;
+        [SerializeField] private Color _spotColor = new Color(1f, 0.93f, 0.55f, 0.3f);
+        [SerializeField] private float _spotSweepAngle = 14f;  // derece, iki yana
+        [SerializeField] private float _spotSweepSpeed = 0.6f; // tur/sn × 2π
+
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
 
         private FinalBossController _boss;
@@ -39,13 +48,19 @@ namespace BlobSurvivor.Entities.Enemies
             if (_rotor != null) _rotorBaseScale = _rotor.transform.localScale;
         }
 
-        private void OnEnable() => _lastT = -1f;
+        private void OnEnable()
+        {
+            _lastT = -1f;
+            if (_spot != null) SetColor(_spot, _spotColor);
+        }
 
         private void LateUpdate()
         {
             // Pervane gölgesi gerçek rotorla aynı açıda (LateUpdate: HelicopterVisual bu kare döndürdükten sonra).
             if (_rotor != null && _rotorSource != null)
                 _rotor.transform.rotation = Quaternion.Euler(90f, _rotorSource.eulerAngles.y, 0f);
+            if (_spotPivot != null)
+                _spotPivot.localRotation = Quaternion.Euler(0f, Mathf.Sin(Time.time * _spotSweepSpeed * Mathf.PI * 2f) * _spotSweepAngle, 0f);
 
             float altitude = _boss != null ? _boss.CurrentAltitude : _highAltitude;
             float t = Mathf.InverseLerp(_lowAltitude, _highAltitude, altitude); // 0 = alçak, 1 = yüksek
@@ -67,10 +82,12 @@ namespace BlobSurvivor.Entities.Enemies
             }
         }
 
-        private void SetAlpha(Renderer renderer, float alpha)
+        private void SetAlpha(Renderer renderer, float alpha) => SetColor(renderer, new Color(0f, 0f, 0f, alpha));
+
+        private void SetColor(Renderer renderer, Color color)
         {
             renderer.GetPropertyBlock(_block);
-            _block.SetColor(BaseColorId, new Color(0f, 0f, 0f, alpha));
+            _block.SetColor(BaseColorId, color);
             renderer.SetPropertyBlock(_block);
         }
     }

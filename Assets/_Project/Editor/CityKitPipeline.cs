@@ -364,6 +364,14 @@ namespace BlobSurvivor.EditorTools
                 return false;
             }
 
+            MeshFilter rocketSrc = LoadSourceMesh("V_HeliRocket");
+            MeshFilter flameSrc = LoadSourceMesh("V_HeliRocketFlame");
+            if (rocketSrc == null || flameSrc == null)
+            {
+                Debug.LogError("[CityKitPipeline] Helikopter: V_HeliRocket*.fbx bulunamadı (zorse-blender/build_rocket.py).");
+                return false;
+            }
+
             Material shadowBody = EnsureShadowMaterial("HeliShadowBody", 128, ShadowBodyAlpha);
             Material shadowRotor = EnsureShadowMaterial("HeliShadowRotor", 256, ShadowRotorAlpha);
             s_shadowBody = shadowBody;
@@ -376,6 +384,8 @@ namespace BlobSurvivor.EditorTools
                 if (oldModel != null) UnityEngine.Object.DestroyImmediate(oldModel.gameObject);
                 Transform oldShadow = contents.transform.Find("Shadow");
                 if (oldShadow != null) UnityEngine.Object.DestroyImmediate(oldShadow.gameObject);
+                Transform oldFx = contents.transform.Find("RocketFX");
+                if (oldFx != null) UnityEngine.Object.DestroyImmediate(oldFx.gameObject);
                 MeshRenderer oldRenderer = contents.GetComponent<MeshRenderer>();
                 if (oldRenderer != null) UnityEngine.Object.DestroyImmediate(oldRenderer);
                 MeshFilter oldFilter = contents.GetComponent<MeshFilter>();
@@ -431,6 +441,7 @@ namespace BlobSurvivor.EditorTools
 
                 if (contents.GetComponent<FinalBossController>() == null)
                     contents.AddComponent<FinalBossController>();
+                BuildRocketStrike(contents, palette, rocketSrc, flameSrc, layer);
 
                 PrefabUtility.SaveAsPrefabAsset(contents, prefabPath);
                 Debug.Log($"[CityKitPipeline] Helikopter: kuyruk ham +Z={tailAtPlusZ}, kapsül r={capsule.radius:F2} h={capsule.height:F2} c={capsule.center}.");
@@ -466,12 +477,109 @@ namespace BlobSurvivor.EditorTools
             float diameter = Mathf.Max(rotor.size.x, rotor.size.z);
             rotorQuad.localScale = new Vector3(diameter, diameter, 1f);
 
+            // Projektör ışığı (#71): burnun altındaki sarı projektörden (build_police_heli.py "searchlight") öne düşen
+            // yumuşak elips. Pivot projektörün tam altında; HeliShadow pivot'u yavaşça sağa sola çevirir.
+            Transform spotPivot = NewChild(shadow, "SpotPivot", new Vector3(0f, 0.005f, HeliSearchlightZ), layer);
+            Transform spotQuad = NewQuad(spotPivot, "Spot", s_shadowBody, layer);
+            spotQuad.localPosition = new Vector3(0f, 0f, SpotForward);
+            spotQuad.localScale = new Vector3(SpotSize.x, SpotSize.y, 1f);
+
             HeliShadow component = shadow.gameObject.AddComponent<HeliShadow>();
             SerializedObject so = new SerializedObject(component);
+            so.FindProperty("_spot").objectReferenceValue = spotQuad.GetComponent<Renderer>();
+            so.FindProperty("_spotPivot").objectReferenceValue = spotPivot;
             so.FindProperty("_body").objectReferenceValue = bodyQuad.GetComponent<Renderer>();
             so.FindProperty("_rotor").objectReferenceValue = rotorQuad.GetComponent<Renderer>();
             so.FindProperty("_rotorSource").objectReferenceValue = rotorPivot;
             so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // Projektör: build_police_heli.py'de burun altı y=1.16 (Blender) → burun +Z çerçevesinde z = 1.16 × HeliScale.
+        private const float HeliSearchlightZ = 1.16f * HeliScale;
+        private const float SpotForward = 2.2f;
+        private static readonly Vector2 SpotSize = new Vector2(2.6f, 3.6f);
+
+        // --- Helikopter roket alan saldırısı (HeliRocketStrike, #71) ---
+        // RocketFX altında üç pasif şablon: Rocket (Body = mesh, Flame = nozuldaki pivot), Marker (Ring + Fill),
+        // Blast (Flash + Wave). HeliRocketStrike bunları sahne köküne kopyalayıp kullanır. Quad'lar birim boyda;
+        // ölçek runtime'da yarıçapa göre verilir.
+        private const float RocketScale = 1.6f;
+
+        private static void BuildRocketStrike(GameObject root, Material palette, MeshFilter rocketSrc, MeshFilter flameSrc, int layer)
+        {
+            Material ring = EnsureShadowMaterial("StrikeRing", 256, StrikeRingAlpha);
+            Material fill = EnsureShadowMaterial("StrikeFill", 128, StrikeFillAlpha);
+
+            Transform fx = NewChild(root.transform, "RocketFX", Vector3.zero, layer);
+
+            Transform rocket = NewChild(fx, "Rocket", Vector3.zero, layer);
+            Transform body = NewChild(rocket, "Body", Vector3.zero, layer);
+            MeshRenderer rocketRenderer = AddMeshChild(body, "Mesh", rocketSrc, palette, Vector3.zero, layer);
+            // Burun +Z olsun: kanatlı (geniş) uç kuyruk. Ham FBX ekseni ters olabilir (bkz. FacingFix).
+            Transform mesh = rocketRenderer.transform;
+            float minZ = float.MaxValue, maxZ = float.MinValue;
+            Vector3[] verts = rocketSrc.sharedMesh.vertices;
+            for (int i = 0; i < verts.Length; i++)
+            {
+                verts[i] = mesh.localRotation * Vector3.Scale(verts[i], mesh.localScale);
+                minZ = Mathf.Min(minZ, verts[i].z);
+                maxZ = Mathf.Max(maxZ, verts[i].z);
+            }
+            float span = maxZ - minZ, wideMin = 0f, wideMax = 0f;
+            foreach (Vector3 v in verts)
+            {
+                float radial = new Vector2(v.x, v.y).magnitude;
+                if (v.z < minZ + span * 0.25f) wideMin = Mathf.Max(wideMin, radial);
+                if (v.z > maxZ - span * 0.25f) wideMax = Mathf.Max(wideMax, radial);
+            }
+            bool tailAtPlusZ = wideMax > wideMin;
+            body.localRotation = tailAtPlusZ ? FacingFix : Quaternion.identity;
+            body.localScale = Vector3.one * RocketScale;
+            float rearZ = (tailAtPlusZ ? -maxZ : minZ) * RocketScale;
+
+            Transform flame = NewChild(rocket, "Flame", new Vector3(0f, 0f, rearZ), layer);
+            Transform flameFix = NewChild(flame, "Fix", Vector3.zero, layer);
+            flameFix.localRotation = body.localRotation;
+            flameFix.localScale = body.localScale;
+            MeshRenderer flameRenderer = AddMeshChild(flameFix, "Mesh", flameSrc, palette, Vector3.zero, layer);
+            flameRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+
+            Transform marker = NewChild(fx, "Marker", Vector3.zero, layer);
+            Transform fillQuad = NewQuad(marker, "Fill", fill, layer);
+            fillQuad.localPosition = Vector3.zero;
+            Transform ringQuad = NewQuad(marker, "Ring", ring, layer);
+            ringQuad.localPosition = new Vector3(0f, 0.01f, 0f);
+
+            Transform blast = NewChild(fx, "Blast", Vector3.zero, layer);
+            Transform flash = NewQuad(blast, "Flash", fill, layer);
+            flash.localPosition = new Vector3(0f, 0.02f, 0f);
+            Transform wave = NewQuad(blast, "Wave", ring, layer);
+            wave.localPosition = new Vector3(0f, 0.03f, 0f);
+
+            foreach (Transform t in new[] { rocket, marker, blast }) t.gameObject.SetActive(false);
+
+            HeliRocketStrike strike = root.GetComponent<HeliRocketStrike>();
+            if (strike == null) strike = root.AddComponent<HeliRocketStrike>();
+            SerializedObject so = new SerializedObject(strike);
+            so.FindProperty("_rocketTemplate").objectReferenceValue = rocket.gameObject;
+            so.FindProperty("_markerTemplate").objectReferenceValue = marker.gameObject;
+            so.FindProperty("_blastTemplate").objectReferenceValue = blast.gameObject;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            Debug.Log($"[CityKitPipeline] Roket: kuyruk ham +Z={tailAtPlusZ}, nozul z={rearZ:F2}.");
+        }
+
+        // Kenarda net halka (hedef dairesinin sınırı); içi boş, iç diski Fill çizer.
+        private static float StrikeRingAlpha(float x, float y)
+        {
+            float r = Mathf.Sqrt(x * x + y * y);
+            return Mathf.SmoothStep(0.82f, 0.88f, r) * (1f - Mathf.SmoothStep(0.95f, 1f, r));
+        }
+
+        // Dolu disk, kenarı yumuşak (dolan uyarı + patlama parlaması).
+        private static float StrikeFillAlpha(float x, float y)
+        {
+            float r = Mathf.Sqrt(x * x + y * y);
+            return 1f - Mathf.SmoothStep(0.88f, 1f, r);
         }
 
         private static Transform NewQuad(Transform parent, string name, Material material, int layer)

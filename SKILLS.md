@@ -302,6 +302,7 @@ Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Elit polisin nişan-kilit
 | **Can** | 3000. **Silahla ölmez** (can 1'in altına inmez) |
 | **İrtifa** (kızakların yerden yüksekliği) | Başta **8** → can %75'te **7** → %50'de **6** → %25'te **5**. Yumuşak iner, geri yükselmez |
 | **Saldırı** | Makineli tüfek, yukarıdan: 1 sn nişan lazeri (son 0.4 sn kilit) → **6 mermi × 6 = 36 hasar** (0.12 sn arayla), 2 sn bekleme. Menzil 10 (yatay). Arada bina varsa ateş etmez |
+| **Roket (alan)** | Her **7 sn**'de (ilk 6. sn'de) blob'un gideceği yere **kırmızı daire**; halka atar, iç disk dolar, **1.6 sn** sonra roket düşer: **20 hasar**. Can %75'in üstünde 1, %50'ye kadar 2, sonrası **3 roket** (ekler hedefin iki yanına, 0.3 sn arayla). Daire yarıçapı 1.8 + blob yarıçapı × 0.6; daireden çıkan (kenarı sıyıran) kurtulur. Menzil 16 (yatay) |
 | **Hız** | 3.5. Ekran dışında ve uzaktaysa ×2 (yetişme) |
 | **Algı** | Tüm harita |
 | **Yutulma** | Blob'un tepesi helikoptere **değdiği an**, hangi irtifada olursa olsun. Çok büyüyen oyuncu daha erken bitirir |
@@ -310,7 +311,7 @@ Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Elit polisin nişan-kilit
 - **Ne kadar büyümek gerekir** (blob tepesi ≈ 1.1 × ölçek): irtifa 5 ≈ **1340 mass** (Giant ile Dev arası; Dev olmak gerekmez), 6 ≈ 1950, 7 ≈ 2700, 8 ≈ 3600.
 - **Oyuncu silahı yukarı ateş eder:** Havadaki hedefe nişan otomatik 3D (skill gerekmez). Menzil yatay ölçülür; helikopterin altına yaklaşman yeter.
 - **Kamera:** Helikopter gelince hızlıca uzaklaşıp ikinizi birden kadraja alır; boss ölünce normale döner.
-- **Görsel:** Rotorlar döner, havada süzülür, gittiği yöne eğilir. Son irtifada rotor yavaşlar ("hasarlı").
+- **Görsel:** Rotorlar döner, havada süzülür, gittiği yöne eğilir. Son irtifada rotor yavaşlar ("hasarlı"). Burnun altındaki projektör yere sarı ışık düşürür, yavaşça sağa sola tarar.
 - **Zaman sınırı yok:** Run sadece ölümle ya da helikopter yutulunca biter.
 
 ### Zorluk zaman çizelgesi
