@@ -37,6 +37,15 @@ namespace BlobSurvivor.Entities.Blob
         private const float ShieldTilt = -20f;         // X ekseni; eksi = yüz yukarı bakar
         private const float TurnSpeed = 10f;           // yöne dönme yumuşaklığı
         private const float MinTurnSpeedSqr = 0.3f * 0.3f;
+        // Kafada (CharacterData.ArmorOnHead, Mermo): tepede şapka gibi yatar, ön kenarı gidiş yönünde, hafif geriye yatık.
+        public static bool OnHead;                      // GameManager her run başında yazar
+        private static readonly Vector3 HeadOffset = new Vector3(0f, 0.47f, -0.02f);
+        private static readonly Quaternion HeadRotation =
+            Quaternion.AngleAxis(-10f, Vector3.right) * Quaternion.LookRotation(Vector3.up, Vector3.forward); // yüz yukarı, üst kenar öne
+        private const float HeadScale = 0.8f;
+        private const float HeadBobAmplitude = 0.012f;
+        private bool _onHead;
+
         private const float BobAmplitude = 0.03f;
         private const float BobFrequency = 1.6f;
 
@@ -180,8 +189,9 @@ namespace BlobSurvivor.Entities.Blob
             go.layer = gameObject.layer;
             _shield = go.transform;
             _shield.SetParent(_pivot, false);
-            _shield.localPosition = ShieldOffset;
-            _shield.localRotation = Quaternion.Euler(ShieldTilt, ShieldYaw, 0f);
+            _onHead = OnHead;
+            _shield.localPosition = _onHead ? HeadOffset : ShieldOffset;
+            _shield.localRotation = BaseRotation(0f);
             _shieldFilter = go.AddComponent<MeshFilter>();
             var mr = go.AddComponent<MeshRenderer>();
             mr.sharedMaterial = s_material;
@@ -193,6 +203,10 @@ namespace BlobSurvivor.Entities.Blob
             _shield.localScale = Vector3.zero;
             _shieldRenderer.enabled = false;
         }
+
+        // Kırılma dönüşü modelin kendi yüz ekseni (Z) etrafında: yanda tekerlek gibi, kafada fırıldak gibi.
+        private Quaternion BaseRotation(float spin) =>
+            (_onHead ? HeadRotation : Quaternion.Euler(ShieldTilt, ShieldYaw, 0f)) * Quaternion.Euler(0f, 0f, spin);
 
         private void SetForm(int form)
         {
@@ -252,9 +266,10 @@ namespace BlobSurvivor.Entities.Blob
 
             // Pop-in'de hafif taşma (overshoot), vuruşta şişme.
             float pop = breaking ? _shown : 1f - Mathf.Pow(1f - _shown, 3f) + Mathf.Sin(_shown * Mathf.PI) * 0.15f;
-            _shield.localScale = Vector3.one * (pop * (1f + _punch));
-            _shield.localPosition = ShieldOffset + new Vector3(0f, Mathf.Sin(_bobPhase) * BobAmplitude, 0f);
-            _shield.localRotation = Quaternion.Euler(ShieldTilt, ShieldYaw, breakSpin);
+            _shield.localScale = Vector3.one * (pop * (1f + _punch) * (_onHead ? HeadScale : 1f));
+            float bob = Mathf.Sin(_bobPhase) * (_onHead ? HeadBobAmplitude : BobAmplitude);
+            _shield.localPosition = (_onHead ? HeadOffset : ShieldOffset) + new Vector3(0f, bob, 0f);
+            _shield.localRotation = BaseRotation(breakSpin);
 
             // Doluluk: azaldıkça koyulaşır; vuruşta parlar (HDR > 1 dokuyu açar).
             float shade = Mathf.Lerp(0.55f, 1f, _fill) + _flash * 0.8f;

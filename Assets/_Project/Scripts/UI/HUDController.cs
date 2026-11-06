@@ -47,6 +47,7 @@ namespace BlobSurvivor.UI
         private void Awake()
         {
             LayoutHud();
+            AnchorHealthBarRight();
             CreateShieldBar();
             if (_bossHealthContainer != null)
                 _bossHealthContainer.SetActive(false);
@@ -120,6 +121,7 @@ namespace BlobSurvivor.UI
 
         private void Update()
         {
+            UpdateHealthWidth();
             if (_bannerTime < 0f || _banner == null) return;
             _bannerTime += Time.unscaledDeltaTime;
             float t = _bannerTime;
@@ -201,6 +203,38 @@ namespace BlobSurvivor.UI
                 _healthBar.maxValue = max;
                 _healthBar.value = current;
             }
+            // Max can arttıkça bar uzar (Can Artışı, Market): 100 can = sahnedeki boy, üst sınır ekran payı.
+            if (_healthRect != null)
+                _healthWidthTarget = Mathf.Clamp(_healthBaseWidth * max / HealthReferenceMax, _healthBaseWidth, HealthMaxWidth);
+        }
+
+        // --- Can barı boyu: sağ kenar sabit, sola uzar (sağda ekran kenarına ~40 px var). ---
+        private const float HealthReferenceMax = 100f;
+        private const float HealthMaxWidth = 460f;      // 1080 genişlikte soldaki seviye yazısına çarpmadan
+        private const float HealthGrowSpeed = 6f;
+        private RectTransform _healthRect;
+        private float _healthBaseWidth, _healthWidthTarget;
+
+        private void AnchorHealthBarRight()
+        {
+            if (_healthBar == null) return;
+            _healthRect = _healthBar.GetComponent<RectTransform>();
+            _healthBaseWidth = _healthRect.sizeDelta.x;
+            _healthWidthTarget = _healthBaseWidth;
+            // Pivot sağ kenara: genişlik değişince sadece sol kenar oynar (ekrandaki konum aynı kalır).
+            Vector2 pos = _healthRect.anchoredPosition;
+            pos.x += _healthBaseWidth * (1f - _healthRect.pivot.x);
+            _healthRect.pivot = new Vector2(1f, _healthRect.pivot.y);
+            _healthRect.anchoredPosition = pos;
+        }
+
+        private void UpdateHealthWidth()
+        {
+            if (_healthRect == null) return;
+            Vector2 size = _healthRect.sizeDelta;
+            if (Mathf.Abs(size.x - _healthWidthTarget) < 0.5f) return;
+            size.x = Mathf.Lerp(size.x, _healthWidthTarget, 1f - Mathf.Exp(-HealthGrowSpeed * Time.unscaledDeltaTime));
+            _healthRect.sizeDelta = size;
         }
 
         private void OnScoreChanged(int score)

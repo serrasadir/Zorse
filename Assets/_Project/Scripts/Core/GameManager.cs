@@ -124,6 +124,7 @@ namespace BlobSurvivor.Core
             BlobVisual visual = blob.GetComponent<BlobVisual>();
             if (visual == null) visual = blob.AddComponent<BlobVisual>();
             visual.Apply(character.BlobVisualPrefab);
+            ArmorShield.OnHead = character.ArmorOnHead; // Zırh kalkanı kafada mı (Mermo)
 
             switch (character.PassiveType)
             {

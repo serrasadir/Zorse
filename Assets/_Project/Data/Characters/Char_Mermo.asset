@@ -18,6 +18,7 @@ MonoBehaviour:
     b\xF6ler."
   _startingWeaponPrefab: {fileID: 1195012648784995356, guid: db0808b4be58440f9b33f0b4a932cc43, type: 3}
   _blobVisualPrefab: {fileID: 830980558916555298, guid: a16d69c32a2c2450ea858a7de3c6022f, type: 3}
+  _armorOnHead: 1
   _passiveType: 2
   _passiveValue: 1
   _requiresMarketUnlock: 0

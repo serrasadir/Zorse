@@ -23,6 +23,8 @@ namespace BlobSurvivor.Data
         [Header("Görünüm")]
         [Tooltip("Blob'un child'ı olarak takılan model (yüz +Z'de, çap 1, pivot merkez). Boş = varsayılan küre.")]
         [SerializeField] private GameObject _blobVisualPrefab;
+        [Tooltip("Zırh kalkanı yanda süzülmek yerine kafada şapka gibi durur (Mermo: yanlarda tabancaları var).")]
+        [SerializeField] private bool _armorOnHead;
 
         [Header("Pasif")]
         [SerializeField] private CharacterPassiveType _passiveType;
@@ -39,6 +41,7 @@ namespace BlobSurvivor.Data
         public string Description => _description;
         public GameObject StartingWeaponPrefab => _startingWeaponPrefab;
         public GameObject BlobVisualPrefab => _blobVisualPrefab;
+        public bool ArmorOnHead => _armorOnHead;
         public CharacterPassiveType PassiveType => _passiveType;
         public float PassiveValue => _passiveValue;
         public bool RequiresMarketUnlock => _requiresMarketUnlock;
