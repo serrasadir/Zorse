@@ -114,6 +114,7 @@ Ayrıntı ve tüm sayılar **`SKILLS.md`**'de. Özet:
   - **Topik** — top (yay çizen, küçük patlamalı); pasif: hız. Baştan açık.
   - **Mıknato** — metal bilye (hedefe bükülen); pasif: Attract ×1.25. Market'te 500 kredi.
   - **Mermo** — tabanca (hızlı, düz); pasif: kendinden 1 tier büyük objeyi vurup 3 yenebilir parçaya böler. **3 run bitirince** açılır (ölüm de sayılır).
+- Silah **sadece önündeki 180°'ye** ateş eder (yüzün baktığı = gidiş yönü; dururken son yön). Arkandaki polise ateş etmek için ona dönmen gerekir. Tam tepedeki hedef (helikopter) her zaman vurulur.
 - Silah havadaki hedefe (helikopter) otomatik yukarı nişan alır; menzil yatay ölçülür.
 - **Mermiler** karaktere özel model + renkli iz: Topik turuncu şeritli top (döner), Mıknato kırmızı-mavi bantlı çelik bilye (döner), Mermo pirinç kovanlı mermi. Blob büyüdükçe mermi de büyür (Tiny 1× → Dev ~3×, kamera uzaklaştığı için). Modeller `zorse-blender/build_bullets.py`.
 

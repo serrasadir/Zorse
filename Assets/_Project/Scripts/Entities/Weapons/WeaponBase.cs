@@ -28,7 +28,7 @@ namespace BlobSurvivor.Entities.Weapons
         // uçan hedef de menzilde sayılır (dikey silindir). Yerdeki düşmanlar için eski küreyle aynı sonuç.
         private const float VerticalReach = 14f;
 
-        private readonly Collider[] _hits = new Collider[16];
+        private readonly Collider[] _hits = new Collider[32]; // ön 180° süzgeci: arkadakiler tamponu doldurmasın
         private readonly Transform[] _targets = new Transform[MaxTargets];
         private readonly float[] _targetSqr = new float[MaxTargets];
         private ObjectPool<Projectile> _projectilePool;
@@ -83,10 +83,16 @@ namespace BlobSurvivor.Entities.Weapons
 
         protected abstract void Fire(Transform target);
 
+        // 2026-11-06 (Serra: "sadece önüme doğru ateş edeyim"): hedef yalnızca yüzün baktığı yarım düzlemde (ön 180°).
+        // Yüz = BlobVisual.Forward (gidiş yönü; dururken son yön). Görünümsüz küre ve tam tepedeki hedef (helikopter) serbest.
+        private const float OverheadSqr = 0.25f;
+
         // En yakın N düşmanı _targets'a yakından uzağa doldurur (N ≤ 3, küçük ekleme sıralaması).
         private int FindNearestEnemies(int wanted)
         {
             Vector3 origin = transform.position;
+            bool frontOnly = _blobVisual != null && _blobVisual.HasFacing;
+            Vector3 forward = frontOnly ? _blobVisual.Forward : Vector3.forward;
             int hitCount = Physics.OverlapCapsuleNonAlloc(origin, origin + Vector3.up * VerticalReach, _range, _hits, EnemyLayerMask);
             int found = 0;
 
@@ -96,6 +102,7 @@ namespace BlobSurvivor.Entities.Weapons
                 Vector3 flat = t.position - origin;
                 flat.y = 0f;
                 float sqr = flat.sqrMagnitude;
+                if (frontOnly && sqr > OverheadSqr && Vector3.Dot(forward, flat) < 0f) continue; // arkada
 
                 int slot = found;
                 while (slot > 0 && _targetSqr[slot - 1] > sqr) slot--;
