@@ -10,10 +10,13 @@ namespace BlobSurvivor.EditorTools
     // büyütülemez); aynı palet hücreleri ve aynı yükseklikler kullanılır.
     internal static class CityExpansion
     {
-        internal const int BlockCount = 11;   // tek sayı: Level01 ortada kalsın. 11 -> 136x136, 13 -> 160x160
-        internal const float BlockPitch = 12f; // blok merkezleri arası (8 blok + 4 yol)
+        internal const int BlockCount = 11;   // tek sayı: Level01 ortada kalsın. 11 blok, pitch 15 -> 172x172
+        // 2026-11-06 (Serra: "polis artacak, kaçmak için yollar genişlesin"): yol 4 → 7 (pitch 12 → 15).
+        // Blokların içi zorse-blender/build_city2.py'de (PITCH aynı olmalı); arabalar/spawner'lar şehir kurulumunda bağlanır.
+        internal const float BlockPitch = 15f; // blok merkezleri arası (8 blok + 7 yol)
         internal const float BlockHalf = 4f;   // 8x8 kaldırım adası
-        internal const float RoadHalf = 2f;
+        internal const float RoadHalf = 3.5f;
+        private const float TemplatePitch = 12f; // eski Level01 yerleşimi (city_layout.json) bu aralıkla çizildi
         internal const float HalfExtent = BlockCount * BlockPitch / 2f + RoadHalf; // dış çevre yolu dahil
         private const int Seed = 1701;          // aynı seed = her kurulumda aynı şehir
         private const float ParkChance = 0.12f;
@@ -135,15 +138,15 @@ namespace BlobSurvivor.EditorTools
                 if (item.mesh.StartsWith("V_") || item.mesh == "L_Ground") continue;
 
                 // Köşedeki hidrant/trafik ışığı kaldırım dışına taşabiliyor: en yakın bloğa yazılır.
-                int gx = Mathf.Clamp(Mathf.RoundToInt(item.x / BlockPitch), -OriginalRadius, OriginalRadius);
-                int gz = Mathf.Clamp(Mathf.RoundToInt(item.z / BlockPitch), -OriginalRadius, OriginalRadius);
+                int gx = Mathf.Clamp(Mathf.RoundToInt(item.x / TemplatePitch), -OriginalRadius, OriginalRadius);
+                int gz = Mathf.Clamp(Mathf.RoundToInt(item.z / TemplatePitch), -OriginalRadius, OriginalRadius);
 
                 CityKitPipeline.CityItem local = new CityKitPipeline.CityItem
                 {
                     mesh = item.mesh,
-                    x = item.x - gx * BlockPitch,
+                    x = item.x - gx * TemplatePitch,
                     y = item.y,
-                    z = item.z - gz * BlockPitch,
+                    z = item.z - gz * TemplatePitch,
                     yaw = item.yaw,
                     sx = item.sx,
                     sy = item.sy,

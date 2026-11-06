@@ -108,7 +108,7 @@ namespace BlobSurvivor.EditorTools
         internal const float PoliceModelScale = 1.3225f;
         internal const float EliteModelScale = 1.1f;
         // 2026-11-04 (Serra): miniboss "çok küçük", en az 2 kat. Değiştirince collider/agent de ölçeklenir.
-        internal const float MinibossScale = 2.5f; // 3 olursa tank (5.4 geniş) en dar sokağa (~5.2) sığmaz
+        internal const float MinibossScale = 2.5f; // tank ~4.5 geniş; sokak 7 (bina-bina ~8+) rahat
 
         [Serializable]
         internal class CityItem
@@ -261,7 +261,8 @@ namespace BlobSurvivor.EditorTools
             AssignPedestrians(man, woman, mapHalfExtent);
             if (large) AssignEnemyMapExtent(mapHalfExtent);
             AssignCars(cars);
-            if (large) RoadNetworkGenerator.Generate(CityExpansion.StreetLines());
+            if (large) RoadNetworkGenerator.Generate(CityExpansion.StreetLines(), CityExpansion.RoadHalf);
+            if (large) AssignCityGrid(mapHalfExtent);
             else RoadNetworkGenerator.Generate();
             BakeNavMesh();
 
@@ -844,7 +845,7 @@ namespace BlobSurvivor.EditorTools
         // 2026-11-04 (Serra: "miniboss binaların köşelerine giriyor, çarpmasın"): NavMesh 0.5 yarıçaplı ajana
         // bake'li, tank 2 kat büyüdükten sonra ~1.8 yarı genişlikte — yol bulma onu bina kenarına 0.5'e kadar
         // sokuyordu. Tank için ayrı ajan tipi + aynı ayarlarla ikinci NavMeshSurface. Bina-bina arası en az
-        // ~5.2 (4 sokak + iki kaldırım payı), tank 3.6 geniş: tüm sokaklar açık kalır. Tekrar çalıştırmak güvenli.
+        // ~8 (7 sokak + kaldırım payı), tank ~4.5 geniş: tüm sokaklar açık kalır. Tekrar çalıştırmak güvenli.
         internal const string TankAgentName = "Tank";
         internal const float TankAgentRadius = 2.25f; // = 0.9 × MinibossScale
         private const float TankAgentHeight = 2.5f;
@@ -1331,6 +1332,27 @@ namespace BlobSurvivor.EditorTools
             so.FindProperty("_spawnYOffset").floatValue = PedestrianY;
             so.ApplyModifiedPropertiesWithoutUndo();
             return data;
+        }
+
+        // Yol ızgarası ve harita sınırı sahnedeki spawner'lara: arabalar (sokak ekseni + sağ şerit), yerdeki yiyecekler.
+        private static void AssignCityGrid(float mapHalfExtent)
+        {
+            CarSpawner cars = UnityEngine.Object.FindAnyObjectByType<CarSpawner>();
+            if (cars != null)
+            {
+                SerializedObject so = new SerializedObject(cars);
+                so.FindProperty("_gridBlockCount").intValue = CityExpansion.BlockCount;
+                so.FindProperty("_gridBlockPitch").floatValue = CityExpansion.BlockPitch;
+                so.FindProperty("_laneOffset").floatValue = CityExpansion.RoadHalf * 0.5f; // şeridin ortası
+                so.ApplyModifiedProperties();
+            }
+            var food = UnityEngine.Object.FindAnyObjectByType<ConsumableSpawner>(FindObjectsInactive.Include);
+            if (food != null)
+            {
+                SerializedObject so = new SerializedObject(food);
+                so.FindProperty("_mapHalfExtent").floatValue = mapHalfExtent - 1f;
+                so.ApplyModifiedProperties();
+            }
         }
 
         private static void AssignEnemyMapExtent(float mapHalfExtent)

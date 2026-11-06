@@ -19,10 +19,10 @@ namespace BlobSurvivor.Entities.Vehicles
         // ızgarasından hesaplanır, sahnede waypoint gerekmez.
         [Header("Şehir Izgarası (CityExpansion ile aynı olmalı)")]
         [SerializeField] private int _gridBlockCount = 11;      // CityExpansion.BlockCount
-        [SerializeField] private float _gridBlockPitch = 12f;   // CityExpansion.BlockPitch
+        [SerializeField] private float _gridBlockPitch = 15f;   // CityExpansion.BlockPitch (şehir kurulumu yazar)
         // Sokak ekseninden şerit kayması. Döngüler saat yönünün tersine kurulduğu için dışa kayma
         // = sağ şerit; komşu döngüler aynı sokağı ters yönde, karşı şeritte kullanır.
-        [SerializeField] private float _laneOffset = 1f;
+        [SerializeField] private float _laneOffset = 1.75f; // yol yarı genişliğinin yarısı
         [SerializeField] private int _minLoopBlocks = 1;
         [SerializeField] private int _maxLoopBlocks = 3;
         [SerializeField] private int _maxActive = 6;

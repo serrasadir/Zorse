@@ -14,7 +14,7 @@ namespace BlobSurvivor.Entities
         [SerializeField] private int _maxActive = 80;
         [SerializeField] private float _spawnRadius = 30f;
         [SerializeField] private float _minSpawnDistance = 5f;
-        [SerializeField] private float _mapHalfExtent = 66f; // şehir ±68; dışı su
+        [SerializeField] private float _mapHalfExtent = 84f; // şehir ±86; dışı su (şehir kurulumu yazar)
         [SerializeField] private int _initialSpawnCount = 40;
         [SerializeField] private float _refillCheckInterval = 2f;
         // 2026-11-03 (Serra, Karar 15 büyük harita): geride kalan consumable 80'lik tavanı dolduruyor,

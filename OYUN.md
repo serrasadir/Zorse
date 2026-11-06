@@ -148,7 +148,7 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 
 ## 8. Harita
 
-- **Tek harita: Modern Şehir**, 136×136 birim (11×11 blok). Ortası elle tasarlanmış Level01 mahallesi, dışı aynı kitten türetilmiş bloklar ve parklar.
+- **Tek harita: Modern Şehir**, 172×172 birim (11×11 blok). Blok 8×8 kaldırım adası, aralarda **7 birim** geniş yollar (polis sürüsünden kaçmak için; `CityExpansion.BlockPitch` 15 = 8 + 7, Blender `build_city2.py` PITCH ile aynı olmalı). Blok içleri `build_city2.py` mahalle yerleşiminden.
 - Şehir bir ada: kenarlar boyunca mazgallı taş sur/rıhtım, köşelerde kuleler, dışı yavaşça kayan su (sadece görsel, yenmez). Sınırı görünmez duvar tutar.
 - Bina adalarının zemini kare karo kaldırım (4×4 birimde tekrar eden doku).
 - Binalar şehir kitinden (Blender, tek palet dokusu). Uzun binalar oynanış için kısaltılmış (en uzun kule ~6.4).

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &60371114645959165
+--- !u!1 &2522196469040577728
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,8 +8,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 7897446989037218101}
-  - component: {fileID: 2104975509283507984}
+  - component: {fileID: 4760555611206937580}
+  - component: {fileID: 4467420114328490991}
   m_Layer: 19
   m_Name: PropObstacle
   m_TagString: Untagged
@@ -17,13 +17,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &7897446989037218101
+--- !u!4 &4760555611206937580
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 60371114645959165}
+  m_GameObject: {fileID: 2522196469040577728}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -32,13 +32,13 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1633491335647818431}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &2104975509283507984
+--- !u!65 &4467420114328490991
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 60371114645959165}
+  m_GameObject: {fileID: 2522196469040577728}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -143,7 +143,7 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &6613883811724725502
+--- !u!1 &8469311394165897345
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -151,8 +151,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 8072848417685484901}
-  - component: {fileID: 2850467297929327636}
+  - component: {fileID: 8314595809887807038}
+  - component: {fileID: 2173571978410040902}
   m_Layer: 12
   m_Name: EatZone
   m_TagString: Untagged
@@ -160,13 +160,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &8072848417685484901
+--- !u!4 &8314595809887807038
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6613883811724725502}
+  m_GameObject: {fileID: 8469311394165897345}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -175,13 +175,13 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1633491335647818431}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &2850467297929327636
+--- !u!65 &2173571978410040902
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6613883811724725502}
+  m_GameObject: {fileID: 8469311394165897345}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -230,8 +230,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6221874309193977537}
-  - {fileID: 7897446989037218101}
-  - {fileID: 8072848417685484901}
+  - {fileID: 4760555611206937580}
+  - {fileID: 8314595809887807038}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &9181376115246133155
@@ -269,7 +269,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.CityConsumable
   _data: {fileID: 11400000, guid: 52e7f093bc754452d94308214df092b6, type: 2}
   _obstacle: {fileID: 0}
-  _eatZone: {fileID: 2850467297929327636}
+  _eatZone: {fileID: 2173571978410040902}
 --- !u!114 &4617297040096325095
 MonoBehaviour:
   m_ObjectHideFlags: 0

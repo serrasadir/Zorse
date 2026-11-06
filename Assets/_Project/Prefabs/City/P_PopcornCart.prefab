@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &19653879128436167
+--- !u!1 &35056253005759599
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,22 +8,22 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1465855404912730232}
-  - component: {fileID: 4871535559204085990}
-  m_Layer: 19
-  m_Name: PropObstacle
+  - component: {fileID: 6072421347108660270}
+  - component: {fileID: 3218482782580638479}
+  m_Layer: 10
+  m_Name: EatZone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1465855404912730232
+--- !u!4 &6072421347108660270
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 19653879128436167}
+  m_GameObject: {fileID: 35056253005759599}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -32,13 +32,13 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2167994916852643566}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &4871535559204085990
+--- !u!65 &3218482782580638479
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 19653879128436167}
+  m_GameObject: {fileID: 35056253005759599}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -47,12 +47,12 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.0399995, y: 1.8000045, z: 0.5299998}
-  m_Center: {x: -0.0000004172325, y: 0.9, z: -0.014999241}
+  m_Size: {x: 1.0980047, y: 1.8000045, z: 0.8200046}
+  m_Center: {x: -0.0010000179, y: 0.9, z: -0.00999999}
 --- !u!1 &2079554874837050875
 GameObject:
   m_ObjectHideFlags: 0
@@ -177,8 +177,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2747951198196785537}
-  - {fileID: 1465855404912730232}
-  - {fileID: 1162662818747367253}
+  - {fileID: 1017745185705773209}
+  - {fileID: 6072421347108660270}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &8402282375617511211
@@ -216,7 +216,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.CityConsumable
   _data: {fileID: 11400000, guid: f0bdb97cdbc944e829fd910f7fce9a25, type: 2}
   _obstacle: {fileID: 0}
-  _eatZone: {fileID: 5988802674846993157}
+  _eatZone: {fileID: 3218482782580638479}
 --- !u!114 &1929576753781555713
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -254,7 +254,7 @@ MonoBehaviour:
   m_IgnoreFromBuild: 1
   m_ApplyToChildren: 1
   m_AffectedAgents: f2652fae
---- !u!1 &7915590316508515551
+--- !u!1 &7169786255774723252
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -262,22 +262,22 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1162662818747367253}
-  - component: {fileID: 5988802674846993157}
-  m_Layer: 10
-  m_Name: EatZone
+  - component: {fileID: 1017745185705773209}
+  - component: {fileID: 5417157368739632561}
+  m_Layer: 19
+  m_Name: PropObstacle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1162662818747367253
+--- !u!4 &1017745185705773209
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7915590316508515551}
+  m_GameObject: {fileID: 7169786255774723252}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -286,13 +286,13 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2167994916852643566}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &5988802674846993157
+--- !u!65 &5417157368739632561
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7915590316508515551}
+  m_GameObject: {fileID: 7169786255774723252}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -301,9 +301,9 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.0980047, y: 1.8000045, z: 0.8200046}
-  m_Center: {x: -0.0010000179, y: 0.9, z: -0.00999999}
+  m_Size: {x: 1.0399995, y: 1.8000045, z: 0.5299998}
+  m_Center: {x: -0.0000004172325, y: 0.9, z: -0.014999241}

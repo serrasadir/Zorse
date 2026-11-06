@@ -97,8 +97,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Vehicles.CarController
   _tierOverride: 0
   _massOverride: 0
-  _crumbColorA: {r: 0.9490196, g: 0.9411765, b: 0.91764706, a: 1}
-  _crumbColorB: {r: 0.14117648, g: 0.14509805, b: 0.16470589, a: 1}
+  _crumbColorA: {r: 1, g: 1, b: 1, a: 1}
+  _crumbColorB: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!1 &3637745170261730670
 GameObject:
   m_ObjectHideFlags: 0

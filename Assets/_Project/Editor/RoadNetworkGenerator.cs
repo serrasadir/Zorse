@@ -16,7 +16,7 @@ namespace BlobSurvivor.EditorTools
         private const string MaterialPath = "Assets/_Project/Art/Roads/Mat_Road.mat";
 
         private static readonly float[] Level01StreetLines = { -18f, -6f, 6f, 18f };
-        private const float RoadHalf = 2f;
+        private const float Level01RoadHalf = 2f;
         private const float RoadY = 0.05f;   // çizgiler 0.03, kaldırımlar 0.14
 
         // Atlas: sol yarı düz yol, sağ yarı kavşak. Düz hücrenin sol şeridi kesik çizgisiz asfalttır.
@@ -27,11 +27,14 @@ namespace BlobSurvivor.EditorTools
         private const float PlainU0 = 0.03f;
         private const float PlainU1 = 0.18f;
 
-        internal static void Generate() => Generate(Level01StreetLines);
+        internal static void Generate() => Generate(Level01StreetLines, Level01RoadHalf);
+
+        private static float RoadHalf = Level01RoadHalf;
 
         // streetLines: küçükten büyüğe sıralı sokak eksenleri (X ve Z için aynı). İlk/son çizgi dış çevre yolu.
-        internal static void Generate(float[] streetLines)
+        internal static void Generate(float[] streetLines, float roadHalf)
         {
+            RoadHalf = roadHalf;
             Texture2D atlas = AssetDatabase.LoadAssetAtPath<Texture2D>(AtlasPath);
             if (atlas == null)
             {

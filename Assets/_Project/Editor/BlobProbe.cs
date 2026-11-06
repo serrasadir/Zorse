@@ -81,6 +81,23 @@ internal static class BlobProbe
 
         var sb = new StringBuilder();
         sb.AppendLine($"NavMesh üçgen={total} alan={areaTotal:0}");
+        if (tri.vertices.Length > 0)
+        {
+            Bounds nb = new Bounds(tri.vertices[0], Vector3.zero);
+            foreach (Vector3 v in tri.vertices) nb.Encapsulate(v);
+            sb.AppendLine($"sınırlar x=[{nb.min.x:0.#}, {nb.max.x:0.#}] z=[{nb.min.z:0.#}, {nb.max.z:0.#}]");
+        }
+        foreach (string agent in new[] { "Humanoid", "Tank" })
+        {
+            int id = -1;
+            for (int i = 0; i < NavMesh.GetSettingsCount(); i++)
+                if (NavMesh.GetSettingsNameFromID(NavMesh.GetSettingsByIndex(i).agentTypeID) == agent) id = NavMesh.GetSettingsByIndex(i).agentTypeID;
+            var filter = new NavMeshQueryFilter { agentTypeID = id, areaMask = NavMesh.AllAreas };
+            int hit = 0;
+            foreach (var probe in new[] { new Vector3(0f, 0f, 7.5f), new Vector3(82f, 0f, 82f), new Vector3(-82f, 0f, 7.5f), new Vector3(7.5f, 0f, -75f) })
+                if (NavMesh.SamplePosition(probe, out NavMeshHit h, 1.5f, filter)) hit++;
+            sb.AppendLine($"{agent} (id {id}): 4 sokak noktasından {hit} tanesi NavMesh'te");
+        }
         sb.AppendLine($"zemin seviyesi, bina kutusu içinde: üçgen={insideGround} alan={areaInside:0}");
         sb.AppendLine($"0.6 üstünde (çatı/teras vb.): üçgen={raised} alan={areaRaised:0}");
         foreach (string s in samples) sb.AppendLine(s);

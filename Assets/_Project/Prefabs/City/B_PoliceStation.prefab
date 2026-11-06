@@ -214,6 +214,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.CityConsumable
   _data: {fileID: 11400000, guid: cee8288c4f57440aebd0d0451cbe1598, type: 2}
   _obstacle: {fileID: 1341301056048059764}
+  _eatZone: {fileID: 0}
 --- !u!114 &5133972060333428828
 MonoBehaviour:
   m_ObjectHideFlags: 0
