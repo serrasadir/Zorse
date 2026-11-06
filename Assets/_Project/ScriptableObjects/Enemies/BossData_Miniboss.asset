@@ -15,14 +15,17 @@ MonoBehaviour:
   _displayName: Miniboss
   _stages:
   - EnemyData: {fileID: 11400000, guid: a876694a404d42c28b8c4d55e36a404f, type: 2}
-    SpawnTime: 360
+    RequiredLevel: 5
+    LatestTime: 540
     BonusCoinMin: 15
     BonusCoinMax: 25
   - EnemyData: {fileID: 11400000, guid: 7e76105b80c246f786a47fa484bf7234, type: 2}
-    SpawnTime: 540
+    RequiredLevel: 8
+    LatestTime: 900
     BonusCoinMin: 25
     BonusCoinMax: 40
   - EnemyData: {fileID: 11400000, guid: 842b0d38c86b42e2bfa97ac4831782ec, type: 2}
-    SpawnTime: 720
+    RequiredLevel: 11
+    LatestTime: 1260
     BonusCoinMin: 60
     BonusCoinMax: 100

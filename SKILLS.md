@@ -9,9 +9,9 @@
 **Seviye atlama.** Yediğin her şeyin mass'ı aynı zamanda XP'dir. Bir sonraki level için gereken XP `20 + level × 15 + level² × 2`: 1. level 20 XP, 2. level 37, 3. level 58, … 10. level 317. Karesel terim geç oyunda (bina = 25–50 XP) seviye atlamanın çok hızlanmasını önler.
 
 **Kart ekranı.** Level atlayınca oyun durur ve 3 kart gelir. Biri seçilir.
-- Kartlar ağırlıklı rastgele çekilir: çoğu skill ağırlık **10**, Rejenerasyon **8**, Yırtıcı Çene **6**. Ağırlığı düşük olan daha seyrek gelir.
+- Kartlar ağırlıklı rastgele çekilir: çoğu skill ağırlık **10**, Rejenerasyon **8**, Can Artışı **4**. Ağırlığı düşük olan daha seyrek gelir.
 - Max seviyeye ulaşan skill havuzdan çıkar, bir daha gelmez.
-- Havuzda 3'ten az skill kalırsa daha az kart gelir. Hepsi maxlıysa level-up ödülsüz geçer. Bunun için yaklaşık 61 seçim gerekir, pratikte ulaşılamaz.
+- Havuzda 3'ten az skill kalırsa daha az kart gelir. Hepsi maxlıysa level-up ödülsüz geçer. Bunun için 57 seçim gerekir, pratikte ulaşılamaz.
 - Kartın adının yanında **YENİ** (ilk kez alıyorsun) ya da **Sv. 3/8** (bu seçimle ulaşacağın seviye) yazar.
 - Tek lokmada birden fazla level atlarsan kart ekranları arka arkaya gelir, seviye kaybolmaz.
 - Elit sandığı da bir kart ekranı açar.
@@ -34,7 +34,7 @@
 
 ---
 
-## 2. Skiller (9 adet)
+## 2. Skiller (7 adet)
 
 ### 🛡️ Zırh (kalkan)
 - **Ne yapar:** Blob'un yanında bir **kalkan** belirir. Gelen her hasarı (polis vuruşu, elit/tank/helikopter mermisi, araba çarpması, hazard, polis ısırığı) **önce kalkan yer**; kalkan bitince can azalır. Kalkanın yuttuğu hasarda kırmızı parlama ve kamera sarsıntısı olmaz, kalkan parlar.
@@ -48,7 +48,7 @@
 | Kalkan | 20 | 30 | 40 | 50 | 60 | 70 | 80 | **100** |
 | Yeni | — | — | ⭐ **Dikenler** sn'de 6 | — | ⭐ Yenilenme 3 sn | ⭐ Dikenler sn'de **10** | — | ⭐ **Son form:** kırılınca şok dalgası |
 
-- **Dikenler (Sv.3+):** Kalkan sağlamken blob'a değen her düşman 0.5 sn'de bir hasar alır (Sv.3: sn'de 6, Sv.6: sn'de 10). Seni kovalayıp yakın dövüşe giren polis kendini yorar. Kalkan kırıkken dikenler çalışmaz.
+- **Dikenler (Sv.3+):** Kalkan sağlamken blob'a değen her düşman 0.5 sn'de bir hasar alır (Sv.3: sn'de 6, Sv.6: sn'de 10); kızarır ve 0.8 birim dışa seker (şok dalgasında 1.6). Seni kovalayıp yakın dövüşe giren polis kendini yorar. Kalkan kırıkken dikenler çalışmaz.
 - **Şok dalgası (Sv.8):** Kalkan kırıldığı an blob'un 2 birim dışına kadar tüm düşmanlara **25 hasar**.
 - **HUD:** Can barının hemen altında ince mavi kalkan barı (Zırh alınana kadar gizli).
 - **Görsel:** Blob'un sağ yanında süzülen, yüzü dışa bakan, gidiş yönüyle dönen **sokak eşyası kalkan**. Form seviyeyle, yeni mekanikle aynı anda değişir: **Sv.1-2** çöp kutusu kapağı → **Sv.3-5** dikenli "girilmez" tabelası (dikenler) → **Sv.6-7** dikenli menhol kapağı (güçlü dikenler) → **Sv.8** altın menhol kapağı + kızıl mücevher (şok dalgası). Kalkan azaldıkça koyulaşır, vuruşta parlar ve şişer, kırılınca dönerek küçülüp kaybolur, dolmaya başlayınca geri "pop" eder; yeni form da pop ile gelir. Modeller `zorse-blender/build_armor_shields.py` → `Resources/FX/Shield` (148–220 üçgen).
@@ -60,7 +60,7 @@
 
 ### ❤️ Can Artışı
 - **Ne yapar:** Max canı artırır. Eklenen miktar kadar da anında iyileştirir.
-- **Seviye başına:** +10 max can · **Max:** 8 · **Ağırlık:** 10
+- **Seviye başına:** +10 max can · **Max:** 8 · **Ağırlık:** 4 (seyrek gelir)
 - **Kod:** `HealthBoostEffect` → `BlobHealth.IncreaseMaxHealth`
 
 | Seviye | 0 | 2 | 4 | 8 |
@@ -104,17 +104,18 @@
 ### 🌀 Vakum
 - **Ne yapar:** Çevrendeki consumable'ları kendine doğru çeker. Sadece yiyebileceğin tier'dakileri çeker.
   **Çekmedikleri:** coin, yaya, polis, şehir binaları, hazard'lar.
-- **Seviye başına:** +0.5 menzil · **Max:** 8 · **Ağırlık:** 10
+- **Temel menzil:** 1.2 · **Seviye başına:** +0.35 · **Max:** 8 · **Ağırlık:** 10
 - **Kod:** `VacuumEffect` → `VacuumComponent` (0.15 sn'de bir tarama, çekme hızı 6 birim/sn)
 - **Menzil gövde yüzeyinden ölçülür:** blob büyüdükçe çekme alanı da büyür. Toplam yarıçap = gövde yarıçapı + menzil.
+- **Görsel:** çekim alanı boyunca zeminde sürekli dönen hafif bir kasırga: iki katman açık mavi, kesik kesik spiral rüzgar çizgisi, içe doğru akar. Menzil arttıkça büyür. Doku/materyal: `Tools → Blob.io → Vakum Efektini Kur` (`Resources/FX/Vacuum`).
 
 | Seviye | 1 | 4 | 8 |
 |---|---|---|---|
-| Menzil (gövde dışına) | 3.5 | 5.0 | **7.0** |
-| Mıknato ile (×1.25) | 4.4 | 6.25 | **8.75** |
-| Toplam yarıçap, Giant blob (gövde ~2) | 5.5 | 7.0 | 9.0 |
+| Menzil (gövde dışına) | 1.55 | 2.6 | **4.0** |
+| Mıknato ile (×1.25) | 1.94 | 3.25 | **5.0** |
+| Toplam yarıçap, Giant blob (gövde ~2) | 3.55 | 4.6 | 6.0 |
 
-**Örnek:** Seviye 4'te, gövdenin 5 birim dışına kadar yiyebileceğin objeler sana akar. Blob Giant olunca alan da onunla büyür.
+**Örnek:** Seviye 4'te, gövdenin 2.6 birim dışına kadar yiyebileceğin objeler sana akar. Blob Giant olunca alan da onunla büyür.
 
 ---
 
@@ -150,48 +151,27 @@
 
 ### 🍖 Sindirim
 - **Ne yapar:** Yediğin her şeyden kazandığın mass'ı, dolayısıyla XP'yi artırır. Daha hızlı büyür, daha hızlı level atlarsın.
-- **Seviye başına:** +%10 · **Max:** 8 · **Ağırlık:** 10
+- **Seviye başına:** +%5 · **Max:** 8 · **Ağırlık:** 10
 - **Kod:** `SindirimEffect` → `BlobGrowth._massGainMultiplier`
 
 | Seviye | 2 | 4 | 8 |
 |---|---|---|---|
-| Kazanç | ×1.2 | ×1.4 | **×1.8** |
+| Kazanç | ×1.1 | ×1.2 | **×1.4** |
 
-**Örnek:** 10 mass'lık bir obje Sindirim 8'de 18 mass verir. Medium'a (200 mass) ~111 mass'lık yemeyle ulaşırsın.
-
----
-
-### 🩹 Yutuş
-- **Ne yapar:** Her yemede can yeniler. Consumable, yaya, polis ve Kara Delik'in yuttukları sayılır. **Araba sayılmaz.**
-- **Seviye başına:** +1 can/yeme · **Max:** 8 · **Ağırlık:** 10
-- **Kod:** `YutusEffect` → `HealOnConsumeComponent`
-
-**Örnek:** Seviye 8'de, saniyede 2 küçük obje yiyorsan saniyede 16 can. Bu, Rejenerasyon 8'in 4 katı. Sürekli yiyen oyuncu için en güçlü iyileşme.
+**Örnek:** 10 mass'lık bir obje Sindirim 8'de 14 mass verir. Medium'a (200 mass) ~143 mass'lık yemeyle ulaşırsın.
 
 ---
 
-### 🦷 Yırtıcı Çene
-- **Ne yapar:** Polis yutarken blob'unu olduğundan seviye başına 1 tier büyük sayar.
-  **Consumable'ları, yayaları, arabaları ve binaları etkilemez.** Elitleri de kapsamaz; elit yemenin yolu Avcı Formu.
-- **Seviye başına:** +1 tier · **Max:** 2 · **Ağırlık:** 6 (seyrek gelir)
-- **Kod:** `YirticiCeneEffect` → `ConsumptionBonusComponent`, kullanıldığı yer `BlobConsumption.OnTriggerEnter`
+### 🚓 Polis yutma (skill değil, genel kural)
+Polis **Medium**, elit polis **Giant** blob ister.
 
-Polis normalde **Medium** blob ister.
+**Isırık bedeli:** Polis yutulurken ısırır: tier tam eşikteyse 5, 1 tier üstteyse 2.5, 2+ tier üstteyse 0 hasar.
 
-| Blob | Yırtıcı Çene yok | Sv. 1 | Sv. 2 |
-|---|---|---|---|
-| Tiny | ❌ | ❌ | ❌ |
-| Little | ❌ | ❌ | ✅ |
-| Small | ❌ | ✅ | ✅ |
-| Medium+ | ✅ | ✅ | ✅ |
-
-**Isırık bedeli:** Polis yutulurken ısırır. Hasar, (efektif) tier'ın eşiğin ne kadar üstünde olduğuna göre değişir: eşitse 5, 1 tier üstteyse 2.5, 2+ tier üstteyse 0. Yırtıcı Çene ile erken yediğin polis hep tam ısırır.
-
-**Kaçış:** Polisler, blob onları yiyebilecek boydayken (efektif tier ≥ Medium) blob'u görünce kaçar. Yırtıcı Çene efektif tier'ı yükselttiği için polisler **daha erken kaçmaya başlar**, yani skill "erken av" ile birlikte "erken kovalamaca" da getirir.
+**Kaçış:** Polisler, blob onları yiyebilecek boydayken blob'u görünce kaçar.
 
 ---
 
-## 3. Evrimler (2 adet)
+## 3. Evrim (1 adet)
 
 Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza girer. Kart ★ ve altın renkle işaretlenir. Max seviyesi 1'dir: bir kez seçilince havuzdan çıkar. Ağırlık 10.
 
@@ -200,6 +180,8 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 - **Ne yapar:** Blob'un çevresindeki, **yiyebildiğin tier'daki her şey** temas gerekmeden otomatik yutulur: consumable, yaya, şehir objesi. Hazard'ları yemez.
 - **Yarıçap:** gövde yarıçapının 2 katı; blob büyüdükçe büyür. 0.1 sn'de bir tarar.
 - **Kod:** `KaraDelikEffect` → `BlackHoleComponent`
+- **Evrim anı** (kart seçilince ~1.8 sn): zaman yavaşlar (×0.25), açık mavi kasırga hızlanıp blob'a çöker → indigo şok dalgası, kamera sarsıntısı, güçlü titreşim, blob şişip yutkunur; kasırga siyah-lacivert olarak geri açılır, olay ufku taşarak belirir; zaman ve kamera normale döner. Ekranın üstünde altın **★ KARA DELİK** yazısı (her evrimde adıyla).
+- **Kalıcı görünüm:** vakum kasırgası siyah + lacivert (normal vakumdan 1.5 kat çok çizgi, ayrı dokular), 1.6 kat hızlı döner; blob'un altında yutma yarıçapında siyah disk ve kenarında dönen indigo yığılma halkası (temassız yuttuğu alan).
 
 | Blob | Gövde yarıçapı | Kara Delik yarıçapı |
 |---|---|---|
@@ -207,17 +189,7 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 | Giant | ~2.0 | ~4.0 |
 
 **Örnek:** Giant blob'la bir sokakta ilerlerken, gövdenin 2 birim dışındaki her şey (Giant tier binalar dahil) dokunmadan yutulur. Vakum hâlâ çalışır ve daha uzaktakileri çekip Kara Delik'in içine getirir.
-**Not:** Polisleri yutmaz; onlar için temas ya da Avcı Formu gerekir.
-
----
-
-### ★ Avcı Formu
-- **Gereken:** Yırtıcı Çene 2 + Silah Gücü 8 (toplam 10 seçim)
-- **Ne yapar:** Silahınla vurduğun düşman **3 saniye boyunca, tier'a bakmadan** yutulabilir olur. **Elitler de dahil.** Boss'lar hariç (miniboss yutulamaz; helikopter sadece ona uzanarak yutulur).
-- **Kod:** `AvciFormuEffect` → `AvciFormuComponent` → `EnemyBase.MarkTemporarilyConsumable`
-
-**Örnek:** Small blob'sun, bir elit polis sana ateş ediyor. Silahın ona bir kez isabet ettiği anda 3 saniyelik pencere açılır. O sürede ona dokunursan yutarsın: 20 mass, 5-10 coin ve sandık. Normalde bunun için Giant (1100 mass) olman gerekirdi.
-**Not:** Elit "yutulduğunda" ısırmaz (elit ısırık hasarı 0).
+**Not:** Polisleri yutmaz; onlar için temas gerekir.
 
 ---
 
@@ -237,7 +209,7 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 | **Silah** | Top: yay çizerek uçar, çarptığı yerde patlar | Metal bilye: güdümlü, hedefe kıvrılır | Tabanca: düz ve en hızlı mermi |
 | **Mermi hızı / ömrü** | 14 / 0.9 sn | 12 / 1.5 sn | 18 / 0.7 sn |
 | **Silah özelliği** | 2 birim yarıçapta **alan hasarı** (vurulan dışındakilere de tam hasar) | **Iskalamaz** (sürekli hedefe döner) | Bir boy büyük objeyi **parçalar** (pasif) |
-| **Pasif** | **+%25 hız** ve büyüdükçe ~%10 daha az yavaşlama | **Vakum baştan açık** (3 menzil) + çekim etkisi **×1.25** | Mermileri, blob'un **tam 1 tier üstündeki** objeyi 3 yenebilir parçaya böler |
+| **Pasif** | **+%25 hız** ve büyüdükçe ~%10 daha az yavaşlama | **Vakum baştan açık** (1.2 menzil) + çekim etkisi **×1.25** | Mermileri, blob'un **tam 1 tier üstündeki** objeyi 3 yenebilir parçaya böler |
 | **Sv. 8 son form** | **Büyük Patlama:** alan 2.5 kat (5 birim) | **Sekme:** isabetten sonra 6 birim içindeki 2 düşmana daha seker | **Pompalı:** 40°'lik yelpazede 5 saçma (her biri %60 hasar) |
 | **Oyun tarzı** | Hızlı, hantallaşmayan; kalabalığı patlamayla dağıtır | Toplayıcı; yemi kendine çeker, hızlı büyür | Fırsatçı; büyük lokmaları bir boy erken yer |
 
@@ -248,7 +220,7 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 - **Zayıf yanı:** Top binaya çarpınca durur; patlama ince bir duvarın arkasına sızabilir.
 
 ### 🧲 Mıknato
-- **Pasif:** Oyuna Vakum skili açık başlar (3 menzil, gövde yüzeyinden). Çekim menzili ve çekme hızı ×1.25. Vakum skilini alırsa çarpan onu da büyütür (Vakum 8 → 8.75 menzil).
+- **Pasif:** Oyuna Vakum skili açık başlar (1.2 menzil, gövde yüzeyinden; ×1.25 ile 1.5). Çekim menzili ve çekme hızı ×1.25. Vakum skilini alırsa çarpan onu da büyütür (Vakum 8 → 5.0 menzil).
 - **Silah:** Metal bilye hedefe sürekli kıvrılır, pratikte ıskalamaz. Hedef ölürse düz gider.
 - **Örnek:** Diğer karakterler Vakum'u kart olarak beklerken Mıknato ilk saniyeden çevresini toplar. Erken büyüme ve erken level demek. Kara Delik evrimine (Vakum 8 + Sindirim 8) en doğal giden karakter.
 - **Not:** En güçlü pasif. Bu yüzden 500 kredilik Market kilidi var.
@@ -270,7 +242,7 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 | **Can** | 50 | 250 |
 | **Saldırı** | Yakın dövüş, 10 hasar, saniyede 1 | Tabanca: 0.5 sn nişan lazeri → **3'lü seri**, mermi başına 10 hasar, menzil 7.5. Arada bina varsa ateş etmez |
 | **Hız** | 3 | 2.1 |
-| **Yutulma** | Medium blob (Yırtıcı Çene ile daha erken) | Giant blob ya da Avcı Formu |
+| **Yutulma** | Medium blob | Giant blob |
 | **Davranış** | Blob onu yiyebiliyorsa **kaçar** | Kaçmaz |
 | **Ödül** | 3 mass, 1 coin, %5 kalp | 20 mass, 5–10 coin, **sandık**, %100 kalp |
 
@@ -279,27 +251,27 @@ Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Elit polisin nişan-kilit
 
 | | 1. Miniboss | 2. Miniboss |
 |---|---|---|
-| **Geliş** | **6. dk** | **9. dk** (ilki hâlâ yaşıyorsa o ölene kadar bekler) |
-| **Can** | 300 | 600 |
+| **Geliş** | **5. seviye** (en geç 9. dk) | **8. seviye** (en geç 15. dk; ilki hâlâ yaşıyorsa o ölene kadar bekler) |
+| **Can** | 600 | 1200 |
 | **Saldırı** | Tank topu: 1.1 sn nişan lazeri (son 0.4 sn kilit) → **1 mermi × 25 hasar**, sonra 2.5 sn bekleme. Menzil 8, mermi hızı 9 | 0.9 sn nişan (son 0.35 sn kilit) → **2 mermi × 20 = 40 hasar** (0.45 sn arayla), 2.2 sn bekleme. Menzil 8, mermi hızı 10 |
 | **Hız** | 2.9. Ekran dışında ve 25 birimden uzaktaysa **×2** (yetişme), ekrana girince normale döner | 3.2, yetişme aynı |
 | **Algı** | Tüm harita: oyuncuyu her yerden bulur | Tüm harita |
 | **Yutulma** | **Hiçbir şekilde yutulamaz**, silahla ölür | Aynı |
 | **Ödül** | 150 skor + 5–10 coin + sandık + **15–25 bonus coin** | 250 skor + 5–10 coin + sandık + **25–40 bonus coin** |
 
-- **Silahla öldürme süresi:** 1. Miniboss: temel silahla ~30 sn, Silah Gücü 8 ile ~10 sn. 2. Miniboss: ~60 sn / ~20 sn.
+- **Silahla öldürme süresi:** 1. Miniboss: temel silahla ~60 sn, Silah Gücü 8 ile ~20 sn. 2. Miniboss: ~120 sn / ~40 sn.
 - **Ekranda:** Boss can barı HUD'da görünür.
-- **Görsel:** Polis tankı modeli, **2 kat büyük** (`CityKitPipeline.MinibossScale`). Ateş edince geri teper.
+- **Görsel:** Polis tankı modeli, **2.5 kat büyük** (en dar sokağa sığan en büyük boy) (`CityKitPipeline.MinibossScale`). Ateş edince geri teper.
 - **Kaçış:** Kilit anında (lazer kalınlaşınca) yana kaçan oyuncu mermiyi atlatır. Arada bina varsa ateş etmez, yürür. Menzil oyuncu silahıyla eşit (8): o sana ateş edebiliyorsa sen de ona edebilirsin.
-- **Ölçek:** 6. dk'da can ~120-150 iken tek isabet canın ~1/5'i; 5-6 isabet öldürür.
+- **Ölçek:** 1. miniboss geldiğinde can ~120-150 iken tek isabet canın ~1/5'i; 5-6 isabet öldürür.
 
 ### 🚁 Final Boss: "Polis Helikopteri"
 **"Vur, alçalt, büyü, yut."** Helikopter havada uçar; vurdukça alçalır, sen de ona uzanacak kadar büyüyüp yutarsın.
 
 | | Final Boss |
 |---|---|
-| **Geliş** | **12. dk** (bir miniboss yaşıyorsa o ölene kadar bekler) |
-| **Can** | 3000. **Silahla ölmez** (can 1'in altına inmez) |
+| **Geliş** | **11. seviye** (en geç 21. dk). Bir miniboss yaşıyorsa beklemez, miniboss çekilir |
+| **Can** | 9000. **Silahla ölmez** (can 1'in altına inmez) |
 | **İrtifa** (kızakların yerden yüksekliği) | Başta **8** → can %75'te **7** → %50'de **6** → %25'te **5**. Yumuşak iner, geri yükselmez |
 | **Saldırı** | Mini roket serisi, yukarıdan: 1 sn nişan lazeri (son 0.4 sn kilit) → **6 roket × 6 hasar** (0.12 sn arayla), 2 sn bekleme. Menzil 10 (yatay). Arada bina varsa ateş etmez. Roketler blob'a, yere ya da duvara değince patlar: blob yüzeyi patlamaya **1.2 birim** yakınsa hasar alır (ıskalayıp yanına düşen de vurur). Mermi: `HeliRocketBullet` (Helikopter Mermi Roketini Kur) |
 | **Roket (alan)** | Her **7 sn**'de (ilk 6. sn'de) blob'un gideceği yere **kırmızı daire**; halka atar, iç disk dolar, **1.6 sn** sonra roket düşer: **20 hasar**. Can %75'in üstünde 1, %50'ye kadar 2, sonrası **3 roket** (ekler hedefin iki yanına, 0.3 sn arayla). Daire yarıçapı 1.8 + blob yarıçapı × 0.6; daireden çıkan (kenarı sıyıran) kurtulur. Menzil 16 (yatay) |
@@ -315,15 +287,14 @@ Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Elit polisin nişan-kilit
 - **Zaman sınırı yok:** Run sadece ölümle ya da helikopter yutulunca biter.
 
 ### Zorluk zaman çizelgesi
+Boss'lar süreye değil seviyeye bağlı (1. Miniboss Sv.5, 2. Miniboss Sv.8, Final Boss Sv.11; en geç 9 / 15 / 21. dk).
+
 | Dakika | Olay |
 |---|---|
 | 0–1 | Sadece yenebilir objeler, yayalar, arabalar |
 | 1 | Polisler gelmeye başlar (aynı anda en fazla 30 düşman) |
-| **Medium** (en geç 4) | Elit polis dalgası (aynı anda en fazla 10 elit, toplam 30'un içinde) |
+| **Medium** (en geç 4) | Elit polis dalgası (aynı anda en fazla 15 elit, toplam 30'un içinde) |
 | 5 | Düşman hasarı ×1.2 |
-| 6 | 1. Miniboss |
-| 9 | 2. Miniboss |
 | 10 | Düşman yoğunluğu ×2 (aynı anda en fazla 60) |
-| 12 | Final Boss |
 | 15 | Düşman hızı ×1.15 |
 | 20 | Düşman hasarı ×3 |

@@ -119,6 +119,15 @@ internal static class BlobProbe
         float bodyRadius = solid != null ? solid.radius * t.lossyScale.x : 0.5f;
         Vector3 center = solid != null ? solid.bounds.center : t.position;
 
+        // Vakum efekti (VacuumComponent'in oluşturduğu zemin kasırgası)
+        GameObject fx = GameObject.Find("VacuumRange");
+        sb.AppendLine(fx == null ? "VacuumRange yok" : $"VacuumRange active={fx.activeInHierarchy} pos={V(fx.transform.position)} blobBottom={(center.y - bodyRadius).ToString("0.###", inv)}");
+        if (fx != null)
+            foreach (Renderer r in fx.GetComponentsInChildren<Renderer>(true))
+                sb.AppendLine($"  {r.name} enabled={r.enabled} visible={r.isVisible} mat={(r.sharedMaterial != null ? r.sharedMaterial.name + " shader=" + r.sharedMaterial.shader.name + " queue=" + r.sharedMaterial.renderQueue : "YOK")} scale={V(r.transform.lossyScale)} bounds={V(r.bounds.size)}");
+        if (Physics.Raycast(center, Vector3.down, out RaycastHit ground, 10f, ~0, QueryTriggerInteraction.Ignore))
+            sb.AppendLine($"zemin altında: {HierarchyPath(ground.collider.transform)} y={ground.point.y.ToString("0.###", inv)}");
+
         // 4 yönde gövde büyüklüğünde süpürme: blob'u o yönde ilk ne durdurur?
         sb.AppendLine();
         sb.AppendLine($"--- Süpürme (gövde yarıçapı {bodyRadius.ToString("0.###", inv)}, {SweepDistance} birim) ---");

@@ -12,6 +12,17 @@ namespace BlobSurvivor.Entities.Weapons
         [SerializeField] private float _speed = 12f;
         [SerializeField] private float _lifetime = 3f;
         [SerializeField] private float _hitRadius = 0.3f;
+        // Görsel (Tools → Blob.io → Mermi Modellerini Uygula kurar).
+        [SerializeField] private Transform _spinModel;
+        [SerializeField] private float _spinSpeed;
+        [SerializeField] private float _knockback = 0.15f;
+
+        private const float PopScale = 1.7f;     // namludan iri çıkar, hızla normale iner
+        private const float PopDuration = 0.08f;
+        private Vector3 _baseScale;
+        private float _visualScale = 1f;
+        private float _popTime;
+        private TrailRenderer _trail;
 
         // WeaponBase'in "önden kesme" (lead) hesabı için — bkz. WeaponBase.GetPredictedAimPoint.
         public float Speed => _speed;
@@ -39,7 +50,16 @@ namespace BlobSurvivor.Entities.Weapons
         protected float NextLifetimeFraction => _lifetime > 0f ? Mathf.Clamp01((_elapsed + Time.deltaTime) / _lifetime) : 0f;
 
         // Restart sahneyi yeniden yüklemiyor: havadaki mermiler yeni run'a taşınmasın (EnemyProjectile ile aynı).
+        protected virtual void Awake()
+        {
+            _baseScale = transform.localScale;
+            _trail = GetComponent<TrailRenderer>();
+        }
+
         protected virtual void OnEnable() => GameEvents.OnCharacterSelected += HandleRestart;
+
+        // Blob büyüdükçe mermi de büyür (WeaponBase, Launch'tan önce çağırır).
+        public void SetVisualScale(float scale) => _visualScale = Mathf.Max(0.1f, scale);
 
         protected virtual void OnDisable() => GameEvents.OnCharacterSelected -= HandleRestart;
 
@@ -54,6 +74,13 @@ namespace BlobSurvivor.Entities.Weapons
             _lastPierced = null;
             IsUltimate = ultimate;
             _elapsed = 0f;
+            _popTime = 0f;
+            transform.localScale = _baseScale * (_visualScale * PopScale);
+            if (_trail != null)
+            {
+                _trail.widthMultiplier = _visualScale;
+                _trail.Clear(); // havuzdan gelince eski konumdan çizgi çekmesin
+            }
             OnLaunched();
         }
 
@@ -105,6 +132,21 @@ namespace BlobSurvivor.Entities.Weapons
                 ReturnToPool();
         }
 
+        private void LateUpdate()
+        {
+            float dt = Time.deltaTime;
+            if (_popTime < PopDuration)
+            {
+                _popTime += dt;
+                float t = Mathf.Clamp01(_popTime / PopDuration);
+                transform.localScale = _baseScale * (_visualScale * Mathf.Lerp(PopScale, 1f, t));
+            }
+            if (_spinModel != null && _spinSpeed != 0f)
+                _spinModel.Rotate(Vector3.right, _spinSpeed * dt, Space.Self);
+        }
+
+        protected void KnockbackEnemy(EnemyBase enemy) => enemy.Knockback(Direction, _knockback);
+
         private bool CheckSpawnOverlap()
         {
             int count = Physics.OverlapSphereNonAlloc(transform.position, _hitRadius, s_spawnHits, 1 << EnemyLayer);
@@ -124,6 +166,7 @@ namespace BlobSurvivor.Entities.Weapons
                 {
                     if (enemy == _lastPierced) return false; // az önce deldiği düşmanı tekrar vurmasın
                     enemy.TakeDamage(Damage);
+                    KnockbackEnemy(enemy);
                     OnHitEnemy(enemy);
                     if (TryPierce(enemy)) return false;
                     ReturnToPool();

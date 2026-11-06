@@ -143,6 +143,59 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.2, y: 2, z: 0.2}
   m_Center: {x: 0.0000007580966, y: 0.99999714, z: 0.35000002}
+--- !u!1 &5447026836249485943
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3731529959761797417}
+  - component: {fileID: 3379379730192547908}
+  m_Layer: 11
+  m_Name: EatZone
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3731529959761797417
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5447026836249485943}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1924295465703637604}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &3379379730192547908
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5447026836249485943}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.90000576, y: 2.5500057, z: 0.7874233}
+  m_Center: {x: 7.2147893e-10, y: 1.275, z: 0.008252755}
 --- !u!1 &6049939938773532761
 GameObject:
   m_ObjectHideFlags: 0
@@ -178,6 +231,7 @@ Transform:
   m_Children:
   - {fileID: 908874185834377803}
   - {fileID: 3001183660739583593}
+  - {fileID: 3731529959761797417}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &2450075398312443846
@@ -215,6 +269,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.CityConsumable
   _data: {fileID: 11400000, guid: cbab4d6b7f3ef4af4bc1a5496cb4704e, type: 2}
   _obstacle: {fileID: 0}
+  _eatZone: {fileID: 3379379730192547908}
 --- !u!114 &8197849008553604556
 MonoBehaviour:
   m_ObjectHideFlags: 0

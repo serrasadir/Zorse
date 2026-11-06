@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
   _displayName: Miniboss (9. dk)
   _prefab: {fileID: 2072016075202350378, guid: eb24b0619c2b648b48f533c3c5b08137, type: 3}
-  _maxHealth: 600
+  _maxHealth: 1200
   _damage: 20
   _moveSpeed: 3.2
   _attackRange: 8

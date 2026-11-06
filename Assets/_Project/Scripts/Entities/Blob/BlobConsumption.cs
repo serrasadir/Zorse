@@ -30,7 +30,7 @@ namespace BlobSurvivor.Entities.Blob
         private const float RearAngle = 120f;
         private static readonly float MinFrontDot = Mathf.Cos((180f - RearAngle * 0.5f) * Mathf.Deg2Rad);
 
-        private struct Contact { public IConsumable Consumable; public EnemyBase Enemy; }
+        private struct Contact { public IConsumable Consumable; public GameObject Owner; public EnemyBase Enemy; }
         private readonly System.Collections.Generic.Dictionary<Collider, Contact> _contacts =
             new System.Collections.Generic.Dictionary<Collider, Contact>();
         private BlobVisual _visual;
@@ -40,7 +40,13 @@ namespace BlobSurvivor.Entities.Blob
         {
             if (!_contacts.TryGetValue(other, out Contact c))
             {
-                c = new Contact { Consumable = other.GetComponent<IConsumable>(), Enemy = other.GetComponent<EnemyBase>() };
+                c = new Contact { Consumable = other.GetComponent<IConsumable>(), Owner = other.gameObject, Enemy = other.GetComponent<EnemyBase>() };
+                // Şehir eşyasının yeme alanı (child tetikleyici): sahibi yenir.
+                if (c.Consumable == null && other.isTrigger && other.name == CityConsumable.EatZoneName && other.transform.parent != null)
+                {
+                    CityConsumable owner = other.transform.parent.GetComponent<CityConsumable>();
+                    if (owner != null) { c.Consumable = owner; c.Owner = owner.gameObject; }
+                }
                 _contacts[other] = c;
             }
             return c;
@@ -92,20 +98,15 @@ namespace BlobSurvivor.Entities.Blob
         {
             if (c.Consumable != null)
             {
-                if (CanEat(other, c.Consumable)) Consume(c.Consumable, other.gameObject);
+                if (CanEat(other, c.Consumable)) Consume(c.Consumable, c.Owner);
                 return;
             }
 
             // Karar 5 (yeme birincil): sürü Tier3+, elit Tier5'te temasla yutulabilir (A12 API'si).
-            // B16 (Yırtıcı Çene): ConsumptionBonusComponent varsa efektif tier'ı yükseltip eşiği gevşetir.
             EnemyBase enemy = c.Enemy;
             if (enemy == null) return;
 
             BlobTier effectiveTier = _blobGrowth.CurrentTier;
-            ConsumptionBonusComponent bonus = ConsumptionBonusComponent.ActiveTierBonus > 0 ? GetComponent<ConsumptionBonusComponent>() : null;
-            // 2026-11-03: Yırtıcı Çene elitleri kapsamaz — Small blob elit yiyordu. Elit yemek Avcı Formu'nun işi.
-            if (bonus != null && enemy.Data != null && !enemy.Data.IsElite)
-                effectiveTier = (BlobTier)Mathf.Min((int)TierLayers.MaxTier, (int)effectiveTier + bonus.TierBonus);
 
             if (!enemy.CanBeConsumedBy(effectiveTier)) return;
             if (!enemy.IsBoss && !CanEat(other, null)) return;
@@ -117,7 +118,6 @@ namespace BlobSurvivor.Entities.Blob
                 _blobGrowth.AddMass(massReward);
                 _blobGrowth.PunchScale();
                 if (biteDamage > 0f) _blobHealth.TakeDamage(biteDamage);
-                ApplyHealOnConsume();
             }
         }
 
@@ -125,7 +125,7 @@ namespace BlobSurvivor.Entities.Blob
         // normal temas akışıyla (Consume) aynı sonucu üretir, tek fark tetikleyicinin OverlapSphere olması.
         public void ConsumeDirect(IConsumable consumable, GameObject obj) => Consume(consumable, obj);
 
-        // Hareketli araba (CarController kendi havuzuna döner). Yutuş tasarım gereği arabada çalışmaz.
+        // Hareketli araba (CarController kendi havuzuna döner).
         public void ConsumeVehicle(float mass, int score, BlobTier tier, Bounds bounds, Color crumbA, Color crumbB)
         {
             if (_blobGrowth == null) return;
@@ -140,7 +140,6 @@ namespace BlobSurvivor.Entities.Blob
             if (_blobGrowth == null) return;
             _blobGrowth.AddMass(consumable.MassValue);
             _blobGrowth.PunchScale();
-            ApplyHealOnConsume();
 
             _scoreSystem?.AddScore(consumable.Data.ScoreValue);
 
@@ -163,14 +162,6 @@ namespace BlobSurvivor.Entities.Blob
                 pooled.ReturnToOwner();
             else
                 obj.SetActive(false);
-        }
-
-        // B16 (Yutuş skill'i): HealOnConsumeComponent varsa her yemede küçük bir heal uygular.
-        private void ApplyHealOnConsume()
-        {
-            HealOnConsumeComponent healOnConsume = GetComponent<HealOnConsumeComponent>();
-            if (healOnConsume != null && healOnConsume.HealAmount > 0f)
-                _blobHealth?.Heal(healOnConsume.HealAmount);
         }
     }
 }

@@ -16,7 +16,7 @@
 | **Tür** | Roguelite / bullet-heaven / survival; "yiyerek büyü" |
 | **Platform** | iOS (TestFlight'ta, sürüm 0.1.x — canlıya çıkana kadar 0, son hane = build no). Android sonra; PC/Steam port post-launch |
 | **Motor** | Unity 6, URP, New Input System, AI Navigation |
-| **Run süresi** | Sabit hedef ve zaman sınırı yok; final boss 12. dk'da gelir, ne zaman yutulursa run o zaman biter |
+| **Run süresi** | Zaman sınırı yok; hedef ~25 dk. Final boss 11. seviyede (en geç 21. dk) gelir, ne zaman yutulursa run o zaman biter |
 | **İş modeli** | F2P + kozmetik IAP + rewarded reklam, **sıfır pay-to-win** (henüz kodda yok) |
 | **Referanslar** | Vampire Survivors · Katamari Damacy · Hole.io · Brotato |
 
@@ -45,8 +45,8 @@
 1. **Giriş ekranı:** arkada canlı şehir, kamera Topik'e yakın; Topik göz kırpar, sağa sola bakınır. Logo + OYNA. Duraklatma ve oyun sonundaki "Ana Menü" de buraya döner (run sıfırlanır).
 2. **Lobi:** OYNA'dan sonra karakter seç (Topik, Mıknato, Mermo), Market'e gir. HUD diliyle: başlık, kredi, her karakter için kart (portre `Art/UI/Characters/Icon_*.png` ← `build_blobs.py`, ad, pasif açıklaması; kilitliyse soluk + koşul rozeti), MARKET (şimdilik gri ve kapalı, "YAKINDA"; `LobbyPanel.MarketEnabled`) ve geri (giriş ekranına) tuşu. Karta dokunmak oyunu başlatır.
 3. Şehirde başlarsın; yerdeki çöpleri, sokak eşyalarını, yayaları yiyerek büyürsün. Senden büyük şeyler seni durdurur (katı), hazard'lar hasar verir.
-4. Kütle = XP; yenen her şeyin kütlesi genel büyüme hızıyla (×0.7, `BlobGrowth._globalGainScale`) çarpılır. Level atlayınca oyun durur, **3 karttan 1** seçilir. Aynı skill tekrar seçilirse seviye atlar (en fazla 8).
-5. Polisler gelir, zamanla ve büyüdükçe baskı artar; boss'lar belirli dakikalarda gelir.
+4. Kütle = XP; yenen her şeyin kütlesi genel büyüme hızıyla (×0.35, `BlobGrowth._globalGainScale`) çarpılır. Level atlayınca oyun durur, **3 karttan 1** seçilir. Aynı skill tekrar seçilirse seviye atlar (en fazla 8).
+5. Polisler gelir, zamanla ve büyüdükçe baskı artar; boss'lar belirli **seviyelerde** gelir (takılan oyuncuya en geç belirli bir dakikada).
 6. Run iki şekilde biter:
    - **Ölüm** → "Game Over!" ekranı, coin'in %50'si krediye.
    - **Final boss (helikopter) yutulursa** → "KAZANDIN!" ekranı, coin'in %100'ü krediye.
@@ -60,14 +60,19 @@
 | 1. dk | Polisler gelmeye başlar |
 | Blob **Medium** olunca (en geç 4. dk) | Elit polisler |
 | 5. dk | Düşman hasarı ×1.2 |
-| **6. dk** | 1. Miniboss (polis tankı) |
-| **9. dk** | 2. Miniboss (güçlü tank) |
 | 10. dk | Düşman yoğunluğu ×2 |
-| **12. dk** | **Final boss: polis helikopteri** (miniboss hâlâ sahnedeyse çekilir; aynı anda tek boss) |
 | 15. dk | Düşman hızı ×1.15 |
 | 20. dk | Düşman hasarı ×3 |
 
-Boss'lar sırayla ve tek tek gelir: biri yaşıyorsa sonraki onun ölmesini bekler.
+Boss'lar seviyeye bağlı, en geç süre yedek:
+
+| Boss | Seviye | En geç |
+|---|---|---|
+| 1. Miniboss (polis tankı) | **5** (~310 kütle, Medium) | 9. dk |
+| 2. Miniboss (güçlü tank) | **8** (~860 kütle, Large) | 15. dk |
+| **Final boss: polis helikopteri** | **11** (~1815 kütle) | 21. dk |
+
+Boss'lar sırayla ve tek tek gelir: biri yaşıyorsa sonraki onun ölmesini bekler; final boss beklemez (miniboss sahnedeyse çekilir). Kart ekranı açıkken boss çıkmaz. Seviye birden ikisini aşarsa sadece sonraki çıkar. Değerler `BossData_Miniboss.asset` → `RequiredLevel` / `LatestTime`.
 
 ---
 
@@ -89,7 +94,7 @@ Boss'lar sırayla ve tek tek gelir: biri yaşıyorsa sonraki onun ölmesini bekl
 
 - **Tier boydan gelir** (`Editor/TierRules.cs`): obje, blob o tier'a yeni girdiğindeki çapından en fazla %5 büyükse o tier'da yenir. Boy = kenarların geometrik ortalaması; uzun ince objelerde en uzun kenarın yarısı daha büyükse o. Şehir kurulumu bunu otomatik uygular; elle ayar için `Tools → Blob.io → Tier'ları Boya Göre Kur`. Polis ve elit istisna: tier'ları tasarım gereği `EnemyData`'da.
 - **Şehir objesi kütlesi tier'a göre:** 2 / 3 / 4 / 10 / 25 / 50 / 80. Hareketli araba 15 (otobüs 25), yaya 1 (iri 3), yerdeki yiyecek 1–3.
-- **Yeme temasla olur.** Tier'ın yetmediği obje katıdır (çarparsın, içinden geçemezsin); yetince içinden geçip yersin.
+- **Yeme temasla olur.** Tier'ın yetmediği obje katıdır (çarparsın, içinden geçemezsin); yetince içinden geçip yersin. Katı kısım yerdeki ayak izidir (direk, gövde); havada büyük çıkıntısı olan eşyalarda (pota panosu, ağaç tacı, lamba kolu, durak/benzinlik tentesi) görünür boy kadar bir **yeme alanı** da var: yiyebilecek boydaysan çıkıntıya değince yenir, küçükken altından geçersin.
 - **Önle yenir.** Blob'un yüzü gidiş yönüne bakar; arkadaki 120°'lik dilim (popo) yemez. Arkadan değen yenebilir obje içinden geçer, yüz ona dönünce yenir; arkadan çarpan araba yenmez ve hasar da vermez. İstisnalar: vakumla çekilenler, Kara Delik, boss'lar (`BlobConsumption.RearAngle`).
 - **Polis yutulurken ısırır:** tier tam yetiyorsa 5, bir tier üstündeysen 2.5, daha büyüksen 0 hasar.
 - **Polis kaçar:** blob onu yiyebilecek boydayken görünce kaçar.
@@ -102,14 +107,15 @@ Boss'lar sırayla ve tek tek gelir: biri yaşıyorsa sonraki onun ölmesini bekl
 
 Ayrıntı ve tüm sayılar **`SKILLS.md`**'de. Özet:
 
-- **9 skill:** Silah Gücü, Zırh (kalkan), Rejenerasyon, Can Artışı, Hız, Attract (Vakum), Sindirim, Yutuş, Yırtıcı Çene.
-- **2 evrim:** Attract + Sindirim (max) → **Kara Delik**; Yırtıcı Çene + Silah Gücü (max) → **Avcı Formu**. Evrim kartı ★ ve altın renkle gelir.
+- **7 skill:** Silah Gücü, Zırh (kalkan), Rejenerasyon, Can Artışı, Hız, Attract (Vakum), Sindirim.
+- **1 evrim:** Attract + Sindirim (max) → **Kara Delik**. Evrim kartı ★ ve altın renkle gelir. Seçilince evrim anı oynar (ağır çekim, kasırga blob'a çöker, indigo şok dalgası, ekranda ★ KARA DELİK); sonra blob'un altında siyah olay ufku ve siyah-lacivert kasırga kalır.
 - Max seviyedeki skill havuzdan çıkar; birden çok level aynı anda atlanırsa kartlar sırayla gelir; run bittiyse kart açılmaz.
 - **3 karakter**, hepsi top formunda, silahlar otomatik ateşler:
   - **Topik** — top (yay çizen, küçük patlamalı); pasif: hız. Baştan açık.
   - **Mıknato** — metal bilye (hedefe bükülen); pasif: Attract ×1.25. Market'te 500 kredi.
   - **Mermo** — tabanca (hızlı, düz); pasif: kendinden 1 tier büyük objeyi vurup 3 yenebilir parçaya böler. **3 run bitirince** açılır (ölüm de sayılır).
 - Silah havadaki hedefe (helikopter) otomatik yukarı nişan alır; menzil yatay ölçülür.
+- **Mermiler** karaktere özel model + renkli iz: Topik turuncu şeritli top (döner), Mıknato kırmızı-mavi bantlı çelik bilye (döner), Mermo pirinç kovanlı mermi. Blob büyüdükçe mermi de büyür (Tiny 1× → Dev ~3×, kamera uzaklaştığı için). Modeller `zorse-blender/build_bullets.py`.
 
 ---
 
@@ -121,10 +127,11 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 |---|---|---|
 | **Polis** (sürü) | Koşar, temasta coplar. Binaların, eşyaların, arabaların etrafından dolanır; yiyebileceğin boydaysan kaçar | Silah ya da Medium'dan itibaren yutma |
 | **Elit polis** | Durur, nişan lazeriyle takip eder, kilitleyip 3'lü mermi atar. Arada bina varsa ateş etmez | Silah ya da Giant'ta yutma. Sandık düşürür |
-| **Miniboss: Polis Tankı** (6. ve 9. dk) | 2 kat büyük; nişan lazeri + kilit + tank topu. Üstünden geçtiği arabaları ve sokak eşyalarını ezer, binaların etrafından dolanır. Uzaktaysa yetişmek için hızlanır | Sadece silahla, yutulamaz. Ölünce ~1.3 sn: beyaz parlama, titreme, patlama kırıntıları, yana yatıp yere gömülür |
-| **Final Boss: Polis Helikopteri** (12. dk) | Havada uçar, yukarıdan mini roket serisi atar (alevli, değince patlar: alan hasarı). Vurdukça kademe kademe alçalır (irtifa 8 → 7 → 6 → 5), yerde koyulaşan gölgesi ve dönen pervane gölgesi var. Gelince kamera ikinizi kadraja alır | **Silahla ölmez.** Blob'un tepesi helikoptere değdiği an yutulur, hangi irtifada olursa olsun (irtifa 5 ≈ 1340 kütle). **Yutulma sahnesi** (~4 sn, blob hasar almaz): yavaş çekimde helikopter dönerek küçülüp kıvılcım iziyle blob'a emilir, kamera yaklaşır, kocaman yutkunma + patlama + güçlü titreşim; zaman normale döner, ~1.3 sn sonra geğirme (şişme + ağızdan kırıntı bulutu), kısa bekleme; sonra KAZANDIN |
+| **Miniboss: Polis Tankı** (5. ve 8. seviye) | 2.5 kat büyük; nişan lazeri + kilit + tank topu. Üstünden geçtiği arabaları ve sokak eşyalarını ezer, binaların etrafından dolanır. Uzaktaysa yetişmek için hızlanır | Sadece silahla, yutulamaz. Ölünce ~1.3 sn: beyaz parlama, titreme, patlama kırıntıları, yana yatıp yere gömülür |
+| **Final Boss: Polis Helikopteri** (11. seviye) | Havada uçar, yukarıdan mini roket serisi atar (alevli, değince patlar: alan hasarı). Vurdukça kademe kademe alçalır (irtifa 8 → 7 → 6 → 5), yerde koyulaşan gölgesi ve dönen pervane gölgesi var. Gelince kamera ikinizi kadraja alır | **Silahla ölmez.** Blob'un tepesi helikoptere değdiği an yutulur, hangi irtifada olursa olsun (irtifa 5 ≈ 1340 kütle). **Yutulma sahnesi** (~4 sn, blob hasar almaz): yavaş çekimde helikopter dönerek küçülüp kıvılcım iziyle blob'a emilir, kamera yaklaşır, kocaman yutkunma + patlama + güçlü titreşim; zaman normale döner, ~1.3 sn sonra geğirme (şişme + ağızdan kırıntı bulutu), kısa bekleme; sonra KAZANDIN |
 
-- **Eşzamanlı:** en fazla 30 düşman (10. dk'dan sonra 60), bunların en fazla 10'u elit; 25 yaya.
+- **Eşzamanlı:** en fazla 30 düşman (10. dk'dan sonra 60), bunların en fazla 15'i elit; 25 yaya.
+- **Can barı:** polis ve elit vurulunca kafasının üstünde kırmızı can barı belirir (kameraya döner; hiç vurulmamış polisde görünmez). Boss'ların barı HUD'da.
 - **Ödüller:** her düşman coin düşürür; elit ve boss'lar sandık (ekstra kart + coin); boss'lar bonus coin. Kalp: polis %5, elit %100 (+20 can).
 - Coin 20 sn sonra kaybolur (son 3 sn yanıp söner).
 
@@ -172,7 +179,7 @@ Kademeli statlar sınırsız alınabilir. Kayıt yerel JSON'da (`meta_progressio
 
 - **Dokunmatik:** görünmez sürükleme — parmağın bastığı yerden sürüklediğin yön ve mesafe hareket olur (80 px = tam hız). UI butonuna basınca hareket başlamaz. **Klavye:** WASD / ok tuşları.
 - **Kamera:** üstten 60° eğik; blob büyüdükçe yavaş uzaklaşır (en fazla ×4); hasar alınca kısa sarsıntı; final boss gelince ikisini birden kadraja alır.
-- **Geri bildirim:** yemede hafif titreşim (iOS haptic), hasarda kırmızı parlama, kalkan vuruşunda kalkan parlar. **Medium ve üstü lokmada** obje kaybolduğu an onun renklerinde kırıntı küpleri fışkırıp blob'a çekilir (boyla ölçekli), görünüm bir an "yutkunur"; Large/Giant'ta orta, Dev'de güçlü titreşim ve hafif kamera sarsıntısı. Kırıntı renkleri modelin palet renklerinden (`Yeme Efektini Kur`).
+- **Geri bildirim:** yemede hafif titreşim (iOS haptic), hasarda kırmızı parlama, kalkan vuruşunda kalkan parlar. **Ateş:** her atışta blob ateş yönünün tersine kısa geri teper; mermi namludan iri çıkıp normale iner. **Vuruş:** düşman kısa süre kızarır (boss'lar dahil), boss olmayan geri seker (mermi az, Topik patlaması orta, Zırh dikenleri güçlü). **Medium ve üstü lokmada** obje kaybolduğu an onun renklerinde kırıntı küpleri fışkırıp blob'a çekilir (boyla ölçekli), görünüm bir an "yutkunur"; Large/Giant'ta orta, Dev'de güçlü titreşim ve hafif kamera sarsıntısı. Kırıntı renkleri modelin palet renklerinden (`Yeme Efektini Kur`).
 - **HUD:** barlar (can + altında kalkan barı (Zırh varsa), XP, boss can barı); sol üstte süre, sağ üstte skor + coin, XP barının solunda seviye, üstünde tier. Skill rozeti / karakter ikonu yok.
 - **Duraklatma:** tuşu üst satırda süre kutusunun yanında. Panel tüm ekranı kaplar (çentik ve alt şerit dahil): Devam / Yeniden Başla / Ana Menü. Ana Menü run'ı terk eder (coin kredisi yok, run sayılmaz).
 - **Haber bandı** (üstte, Plague Inc. tarzı): 30 sn'de bir yeni başlık; blob büyüdükçe haberler onunla ilgili olur. Metinler `NewsHeadlines.asset`'te.

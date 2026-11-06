@@ -39,7 +39,7 @@ namespace BlobSurvivor.Entities.Blob
 
         // Genel büyüme hızı: yenen her şeyin kütlesi (= XP) bununla çarpılır. 1 = eski hız.
         [Header("Genel Büyüme Hızı")]
-        [SerializeField, Range(0.2f, 1.5f)] private float _globalGainScale = 0.7f;
+        [SerializeField, Range(0.2f, 1.5f)] private float _globalGainScale = 0.35f;
 
         public float CurrentMass { get; private set; }
         public BlobTier CurrentTier { get; private set; } = BlobTier.Tiny;

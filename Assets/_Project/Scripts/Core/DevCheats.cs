@@ -12,6 +12,8 @@ namespace BlobSurvivor.Core
     //   B  aktif final boss'a canının %25'i kadar hasar — irtifa kademelerini hızlı görmek için
     //   H  canı doldur
     //   N  sıradaki boss aşamasını hemen çıkar (aktif boss ödülsüz kalkar) — miniboss → miniboss 2 → helikopter
+    //   V  Vakum skill'i +1 seviye (kart ekranı açılmaz)
+    //   K  Kara Delik: Vakum 8 + Sindirim 8 + evrim (evrim anı efekti oynar)
     public class DevCheats : MonoBehaviour
     {
         private const float MassStep = 500f;
@@ -24,7 +26,7 @@ namespace BlobSurvivor.Core
         {
             GameObject go = new GameObject("DevCheats (Editor)") { hideFlags = HideFlags.DontSave };
             go.AddComponent<DevCheats>();
-            Debug.Log("[DevCheats] M: +500 kütle · B: final boss −%25 can · H: canı doldur · N: sıradaki boss (sadece Editor)");
+            Debug.Log("[DevCheats] M: +500 kütle · B: final boss −%25 can · H: canı doldur · N: sıradaki boss · V: Vakum +1 · K: Kara Delik (sadece Editor)");
         }
 
         private void Update()
@@ -56,6 +58,16 @@ namespace BlobSurvivor.Core
 
             if (keyboard.nKey.wasPressedThisFrame && BossSpawner.Instance != null)
                 Debug.Log("[DevCheats] " + BossSpawner.Instance.DebugSpawnNextStage());
+
+            if (keyboard.vKey.wasPressedThisFrame && BlobSurvivor.Systems.UpgradeSystem.Instance != null)
+                Debug.Log("[DevCheats] " + BlobSurvivor.Systems.UpgradeSystem.Instance.DebugGrant("vacuum"));
+
+            if (keyboard.kKey.wasPressedThisFrame && BlobSurvivor.Systems.UpgradeSystem.Instance != null)
+            {
+                var upgrades = BlobSurvivor.Systems.UpgradeSystem.Instance;
+                for (int i = 0; i < 8; i++) { upgrades.DebugGrant("vacuum"); upgrades.DebugGrant("Sindirim"); }
+                Debug.Log("[DevCheats] " + upgrades.DebugGrant("kara_delik")); // evrim, ikisi max olunca havuza girer
+            }
 
             if (keyboard.hKey.wasPressedThisFrame && _health != null)
                 _health.Heal(_health.MaxHealth);

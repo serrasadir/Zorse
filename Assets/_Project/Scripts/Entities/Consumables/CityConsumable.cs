@@ -8,6 +8,10 @@ namespace BlobSurvivor.Entities
     public class CityConsumable : ConsumableBase
     {
         [SerializeField] private Collider _obstacle;
+        // Havada büyük çıkıntısı olan eşyada (pota panosu, ağaç tacı) görünür boy kadar tetikleyici: yiyebilecek
+        // boydaysan değdiğin an yenir. Katı collider yerdeki ayak izi kalır (görünmez duvar olmasın). Editor kurar.
+        [SerializeField] private Collider _eatZone;
+        public const string EatZoneName = "EatZone";
 
         private static Collider[] s_blobColliders;
 
@@ -17,6 +21,12 @@ namespace BlobSurvivor.Entities
         public bool BlocksProjectiles => _obstacle != null;
 
         public override void ReturnToOwner() => gameObject.SetActive(false);
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            if (_eatZone != null) _eatZone.gameObject.layer = gameObject.layer; // kök katmanı tier'dan gelir
+        }
 
         private void Start() => IgnoreBlob();
 

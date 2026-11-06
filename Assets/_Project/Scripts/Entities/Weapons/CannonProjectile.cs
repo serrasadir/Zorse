@@ -42,7 +42,10 @@ namespace BlobSurvivor.Entities.Weapons
             {
                 EnemyBase splash = _hits[i].GetComponent<EnemyBase>();
                 if (splash != null && splash != enemy)
+                {
                     splash.TakeDamage(Damage);
+                    splash.Knockback(splash.transform.position - transform.position, 0.3f); // patlamadan dışa
+                }
             }
         }
     }

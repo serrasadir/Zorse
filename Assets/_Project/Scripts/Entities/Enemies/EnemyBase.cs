@@ -26,8 +26,6 @@ namespace BlobSurvivor.Entities.Enemies
         private static int s_walkMask = -1;
 
         public event System.Action<EnemyBase> OnDeath;
-        // B17 evrimi "Avcı Formu": silahla vurulan sürü düşmanlarını dinlemek için statik hit event'i.
-        public static event System.Action<EnemyBase> OnAnyEnemyDamaged;
 
         public EnemyData Data => _data;
         public Transform BlobTransform { get; private set; }
@@ -43,6 +41,19 @@ namespace BlobSurvivor.Entities.Enemies
         private ScoreSystem _scoreSystem;
         private IEnemyState _currentState;
         private float _currentHealth;
+        private EnemyHealthBar _healthBar; // sadece polis/elit prefab'ında var
+
+        // Vuruş geri bildirimi: model kısa süre kızarır (MaterialPropertyBlock), boss olmayan geri seker.
+        private const float HitFlashDuration = 0.16f;
+        private static readonly Color HitFlashColor = new Color(1f, 0.25f, 0.22f, 1f);
+        private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+        private static MaterialPropertyBlock s_flashBlock;
+        private Renderer[] _flashRenderers;
+        private Color[] _flashBaseColors;
+        private float _flashTime = -1f;
+        private const float KnockbackDuration = 0.16f;
+        private Vector3 _knockbackVelocity;
+        private float _knockbackDecel;
         private float _aiUpdateTimer;
         private bool _canSeeBlobCached;
         private bool _edibleByBlobCached;
@@ -52,7 +63,6 @@ namespace BlobSurvivor.Entities.Enemies
         private float _catchUpMultiplier = 1f;
         private bool _isDead;
         private bool _consumableOverride;
-        private float _tierBypassUntil = -1f;
         private Vector3 _steerTarget;
         private bool _hasSteerTarget;
 
@@ -135,6 +145,7 @@ namespace BlobSurvivor.Entities.Enemies
         private void Awake()
         {
             _agent = GetComponent<NavMeshAgent>();
+            _healthBar = GetComponentInChildren<EnemyHealthBar>(true);
             CapsuleCollider body = GetComponent<CapsuleCollider>();
             _bodyRadius = body != null
                 ? body.radius * Mathf.Max(transform.lossyScale.x, transform.lossyScale.z)
@@ -148,6 +159,7 @@ namespace BlobSurvivor.Entities.Enemies
                 _modelRestRot = _model.localRotation;
                 _modelRestScale = _model.localScale;
             }
+            CacheFlashRenderers();
 
             if (s_environmentMask < 0)
                 s_environmentMask = LayerMask.GetMask("Environment");
@@ -158,6 +170,8 @@ namespace BlobSurvivor.Entities.Enemies
         private void OnEnable()
         {
             _currentHealth = _data != null ? _data.MaxHealth : 100f;
+            if (_healthBar != null) _healthBar.SetRatio(1f);
+            _knockbackVelocity = Vector3.zero;
             _aiUpdateTimer = Random.Range(0f, AIUpdateInterval); // stagger — hepsi aynı anda çalışmasın
             _canSeeBlobCached = false;
             _damageMultiplier = 1f;
@@ -166,7 +180,6 @@ namespace BlobSurvivor.Entities.Enemies
             _isDead = false;
             _consumableOverride = false;
             AirborneHeight = 0f; // FinalBossController her kare yeniden ayarlar
-            _tierBypassUntil = -1f;
             _hasSteerTarget = false;
             _followingPath = false;
             _nextRepathTime = 0f;
@@ -215,6 +228,76 @@ namespace BlobSurvivor.Entities.Enemies
         {
             SwarmSteering.Instance?.Unregister(this);
             ResetModelPose(); // havuza hamlenin ortasında dönerse bir sonraki spawn'da eğik kalmasın
+            ClearFlash();
+        }
+
+        // Sadece opak, _BaseColor'lı renderer'lar (helikopterin projektörü/gölgesi gibi saydamlar hariç).
+        private void CacheFlashRenderers()
+        {
+            Renderer[] all = _model != null ? _model.GetComponentsInChildren<Renderer>(true) : new Renderer[0];
+            var list = new System.Collections.Generic.List<Renderer>(all.Length);
+            var colors = new System.Collections.Generic.List<Color>(all.Length);
+            foreach (Renderer r in all)
+            {
+                Material m = r.sharedMaterial;
+                if (m == null || !m.HasProperty(BaseColorId) || m.renderQueue >= 2500) continue;
+                list.Add(r);
+                colors.Add(m.GetColor(BaseColorId));
+            }
+            _flashRenderers = list.ToArray();
+            _flashBaseColors = colors.ToArray();
+        }
+
+        private void UpdateFlash()
+        {
+            if (_flashTime < 0f) return;
+            _flashTime += Time.deltaTime;
+            float k = 1f - _flashTime / HitFlashDuration;
+            if (k <= 0f)
+            {
+                ClearFlash();
+                return;
+            }
+            if (s_flashBlock == null) s_flashBlock = new MaterialPropertyBlock();
+            for (int i = 0; i < _flashRenderers.Length; i++)
+            {
+                s_flashBlock.SetColor(BaseColorId, Color.Lerp(_flashBaseColors[i], _flashBaseColors[i] * HitFlashColor, k));
+                _flashRenderers[i].SetPropertyBlock(s_flashBlock);
+            }
+        }
+
+        private void ClearFlash()
+        {
+            if (_flashTime < 0f || _flashRenderers == null) return;
+            _flashTime = -1f;
+            foreach (Renderer r in _flashRenderers) r.SetPropertyBlock(null); // SRP batch'e geri döner
+        }
+
+        // Vuruşla geri sekme (yatay). Boss'lar sekmez. Duvar/eşya varsa önünde durur (vuruş anında tek ışın).
+        public void Knockback(Vector3 direction, float distance)
+        {
+            if (_isDead || IsBoss || distance <= 0f) return;
+            direction.y = 0f;
+            if (direction.sqrMagnitude < 0.0001f) return;
+            direction.Normalize();
+            if (Physics.Raycast(transform.position, direction, out RaycastHit hit, distance + _bodyRadius, s_walkMask, QueryTriggerInteraction.Ignore))
+                distance = hit.distance - _bodyRadius;
+            if (distance < 0.02f) return;
+
+            float speed = 2f * distance / KnockbackDuration;
+            if (speed * speed <= _knockbackVelocity.sqrMagnitude) return; // daha güçlüsü sürüyor
+            _knockbackVelocity = direction * speed;
+            _knockbackDecel = speed / KnockbackDuration;
+        }
+
+        private void UpdateKnockback()
+        {
+            if (_knockbackVelocity.sqrMagnitude < 0.0001f) return;
+            float dt = Time.deltaTime;
+            Vector3 step = _knockbackVelocity * dt;
+            if (UsesSteering) transform.position += step;
+            else if (_agent != null && _agent.enabled && _agent.isOnNavMesh) _agent.Move(step);
+            _knockbackVelocity = Vector3.MoveTowards(_knockbackVelocity, Vector3.zero, _knockbackDecel * dt);
         }
 
         private void PlayLunge(float distance, float pitch)
@@ -272,8 +355,8 @@ namespace BlobSurvivor.Entities.Enemies
                 _canSeeBlobCached = ComputeCanSeeBlob();
                 _edibleByBlobCached = ComputeEdibleByBlob();
 
-                // 2026-11-03 (Serra): sürü polisi blob onu yiyebilecek boyuttaysa (Medium, Yırtıcı Çene ile daha
-                // erken) kovalamak yerine kaçar. Elit/boss kaçmaz (UsesSteering = elit değil).
+                // 2026-11-03 (Serra): sürü polisi blob onu yiyebilecek boyuttaysa (Medium)
+                // kovalamak yerine kaçar. Elit/boss kaçmaz (UsesSteering = elit değil).
                 if (_edibleByBlobCached && _canSeeBlobCached && !(_currentState is FleeState))
                     ChangeState(new FleeState());
 
@@ -298,7 +381,9 @@ namespace BlobSurvivor.Entities.Enemies
             if (UsesSteering && _hasSteerTarget)
                 ApplySteeringMovement();
 
+            UpdateKnockback();
             AnimateLunge();
+            UpdateFlash();
         }
 
         // Throttle tick'inde: hedefe düz yol açık mı? Değilse NavMesh yolu (gerekirse yeniden) hesaplanır.
@@ -454,6 +539,7 @@ namespace BlobSurvivor.Entities.Enemies
         {
             _data = data;
             _currentHealth = data.MaxHealth;
+            if (_healthBar != null) _healthBar.SetRatio(1f);
             // Havuzlu örnek başına bir kez eklenir (tank miniboss). Veri değişirse açık/kapalı izler.
             if (data.CrushesObstacles || TryGetComponent(out TankCrusher _))
             {
@@ -539,8 +625,7 @@ namespace BlobSurvivor.Entities.Enemies
         private bool ComputeEdibleByBlob()
         {
             if (!UsesSteering || _data == null || _data.PreventConsumption || BlobTransform == null) return false;
-            int effectiveTier = Mathf.Min((int)TierLayers.MaxTier, (int)GameEvents.CurrentBlobTier + ConsumptionBonusComponent.ActiveTierBonus);
-            return effectiveTier >= (int)_data.RequiredConsumeTier;
+            return GameEvents.CurrentBlobTier >= _data.RequiredConsumeTier;
         }
 
         // Elit/boss'ta EnemyData.AttackRange bilinçli bir "menzil/alan saldırısı" değeridir, olduğu gibi
@@ -652,7 +737,8 @@ namespace BlobSurvivor.Entities.Enemies
             if (_isDead) return;
 
             _currentHealth -= amount;
-            OnAnyEnemyDamaged?.Invoke(this);
+            if (_healthBar != null && MaxHealth > 0f) _healthBar.SetRatio(_currentHealth / MaxHealth);
+            if (_flashRenderers != null && _flashRenderers.Length > 0) _flashTime = 0f;
 
             if (_currentHealth <= 0f)
             {
@@ -669,10 +755,6 @@ namespace BlobSurvivor.Entities.Enemies
         // PreventConsumption asset-seviyesinde (paylaşımlı SO), bu ise instance-seviyesinde geçici override.
         public void SetConsumableOverride(bool value) => _consumableOverride = value;
 
-        // B17 evrimi "Avcı Formu": silahla vurulan düşmanlar kısa süreliğine tier şartı olmadan yutulabilir
-        // olur. 2026-11-03: elitler de dahil; boss'lar PreventConsumption kontrolüyle zaten dışarıda.
-        public void MarkTemporarilyConsumable(float duration) => _tierBypassUntil = Mathf.Max(_tierBypassUntil, Time.time + duration);
-
         // Karar 5 (GDD_v2.md §4 — yeme birincil): sürü düşmanı Tier3+'ta, elit Tier5'te temasla yutulabilir.
         // Mass ödülü BlobGrowth.AddMass üzerinden verilmeli — mass=XP zaten birleşik (Karar 7).
         // TryConsumeByBlob'un yan etkisiz hâli (önle yeme kontrolünden önce sorulur).
@@ -680,7 +762,7 @@ namespace BlobSurvivor.Entities.Enemies
         {
             if (_isDead || _data == null) return false;
             if (_data.PreventConsumption && !_consumableOverride) return false;
-            return Time.time <= _tierBypassUntil || blobTier >= _data.RequiredConsumeTier;
+            return blobTier >= _data.RequiredConsumeTier;
         }
 
         // Boss'lar (helikopter yukarıdan, uzanarak yutulur) önle yeme kuralına girmez.
@@ -694,10 +776,7 @@ namespace BlobSurvivor.Entities.Enemies
             // A16: final boss'un yenebilir fazında _consumableOverride bunu geçici olarak açar.
             if (_data.PreventConsumption && !_consumableOverride) return false;
 
-            bool tierBypassed = Time.time <= _tierBypassUntil;
-            // 2026-09-06: eskiden burada hardcoded IsElite? Giant : Medium vardı — artık EnemyData'nın
-            // gerçek RequiredConsumeTier alanından okunuyor (veri-odaklı, enemy başına farklılaştırılabilir).
-            if (!tierBypassed && blobTier < _data.RequiredConsumeTier) return false;
+            if (blobTier < _data.RequiredConsumeTier) return false;
 
             massReward = _data.MassReward;
             Die();
@@ -705,7 +784,7 @@ namespace BlobSurvivor.Entities.Enemies
         }
 
         // 2026-11-02 (Serra): polisi yemek bedelsizdi. Eşiğe yeni ulaşmışken ısırık acıtır, büyüdükçe azalır
-        // ve 2 tier fark kalınca biter. Yırtıcı Çene/Avcı Formu ile erken yutmak tam hasarı alır.
+        // ve 2 tier fark kalınca biter.
         public float GetConsumeDamage(BlobTier blobTier)
         {
             if (_data == null || _data.ConsumeDamage <= 0f) return 0f;

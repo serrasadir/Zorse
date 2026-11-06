@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
   _displayName: Final Boss - Polis Helikopteri (12. dk)
   _prefab: {fileID: 2072016075202350378, guid: e55e570b097534c299337932d151eb22, type: 3}
-  _maxHealth: 3000
+  _maxHealth: 9000
   _damage: 6
   _moveSpeed: 3.5
   _attackRange: 10

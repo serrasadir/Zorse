@@ -53,6 +53,59 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.25999987, y: 2, z: 0.2251676}
   m_Center: {x: 0.00000064074993, y: 0.999997, z: -0.00000086426735}
+--- !u!1 &3581207431026374026
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3249812132056346899}
+  - component: {fileID: 6659413153487040088}
+  m_Layer: 11
+  m_Name: EatZone
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3249812132056346899
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3581207431026374026}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1853798763035507235}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &6659413153487040088
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3581207431026374026}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.4612756, y: 2.430006, z: 1.4400061}
+  m_Center: {x: 0.045873046, y: 1.215, z: -0.000000004010349}
 --- !u!1 &5773530632995183308
 GameObject:
   m_ObjectHideFlags: 0
@@ -178,6 +231,7 @@ Transform:
   m_Children:
   - {fileID: 8885966099490013686}
   - {fileID: 7426540901096793170}
+  - {fileID: 3249812132056346899}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &716788387936098298
@@ -215,6 +269,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.CityConsumable
   _data: {fileID: 11400000, guid: edbbc2de873ae4cf58285d331b1dab44, type: 2}
   _obstacle: {fileID: 0}
+  _eatZone: {fileID: 6659413153487040088}
 --- !u!114 &906097296551849311
 MonoBehaviour:
   m_ObjectHideFlags: 0

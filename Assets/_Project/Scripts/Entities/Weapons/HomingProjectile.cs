@@ -53,6 +53,7 @@ namespace BlobSurvivor.Entities.Weapons
                     if (enemy != null)
                     {
                         enemy.TakeDamage(Damage);
+                        KnockbackEnemy(enemy);
                         OnHitEnemy(enemy);
                     }
 

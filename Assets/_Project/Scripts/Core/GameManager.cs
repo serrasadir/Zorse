@@ -162,11 +162,8 @@ namespace BlobSurvivor.Core
             WeaponBase oldWeapon = blob.GetComponentInChildren<WeaponBase>();
             if (oldWeapon != null) Destroy(oldWeapon.gameObject);
 
-            // Skill efektleri blob'a component olarak eklenir; kalırsa Yırtıcı Çene gibi bonuslar yeni run'a sızar.
-            RemoveComponent<ConsumptionBonusComponent>(blob);
-            RemoveComponent<HealOnConsumeComponent>(blob);
+            // Skill efektleri blob'a component olarak eklenir; kalırsa bonuslar yeni run'a sızar.
             RemoveComponent<BlackHoleComponent>(blob);
-            RemoveComponent<AvciFormuComponent>(blob);
             RemoveComponent<ArmorShield>(blob); // Zırh baloncuğu + dikenler (kalkan havuzunu ResetHealth sıfırlar)
 
             blob.GetComponent<BlobGrowth>()?.ResetGrowth();

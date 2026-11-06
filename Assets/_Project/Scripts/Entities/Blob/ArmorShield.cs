@@ -20,6 +20,8 @@ namespace BlobSurvivor.Entities.Blob
         private const float ThornInterval = 0.5f;
         private const float ThornRadiusFactor = 1.3f; // blob gövde yarıçapına göre (tetikleyici 0.6'nın biraz dışı)
         private const float ShockwaveExtraRadius = 2f;
+        private const float ThornKnockback = 0.8f;
+        private const float ShockwaveKnockback = 1.6f;
         private const int EnemyLayerMask = 1 << 14;
 
         private const string ShieldFolder = "FX/Shield/";
@@ -113,7 +115,7 @@ namespace BlobSurvivor.Entities.Blob
         {
             _breakTime = 0f;
             if (_shockwaveDamage > 0f)
-                DamageEnemiesInRadius(ThornWorldRadius() + ShockwaveExtraRadius, _shockwaveDamage);
+                DamageEnemiesInRadius(ThornWorldRadius() + ShockwaveExtraRadius, _shockwaveDamage, ShockwaveKnockback);
         }
 
         private float ThornWorldRadius() => transform.localScale.x * _bodyRadius * ThornRadiusFactor;
@@ -126,14 +128,14 @@ namespace BlobSurvivor.Entities.Blob
             if (_thornTimer > 0f) return;
             _thornTimer = ThornInterval;
             // Blob'a değen (merkezi değil, collider'ı) düşmanlar — OverlapSphere collider yüzeyine bakar.
-            if (DamageEnemiesInRadius(ThornWorldRadius() + 0.15f, _thornDamagePerTick) > 0)
+            if (DamageEnemiesInRadius(ThornWorldRadius() + 0.15f, _thornDamagePerTick, ThornKnockback) > 0)
             {
                 _flash = Mathf.Max(_flash, 0.6f);
                 _punch = Mathf.Max(_punch, 0.08f);
             }
         }
 
-        private int DamageEnemiesInRadius(float radius, float damage)
+        private int DamageEnemiesInRadius(float radius, float damage, float knockback)
         {
             int count = Physics.OverlapSphereNonAlloc(transform.position, radius, _hits, EnemyLayerMask);
             int damaged = 0;
@@ -142,6 +144,7 @@ namespace BlobSurvivor.Entities.Blob
                 EnemyBase enemy = _hits[i].GetComponent<EnemyBase>();
                 if (enemy == null || !enemy.isActiveAndEnabled) continue;
                 enemy.TakeDamage(damage);
+                enemy.Knockback(enemy.transform.position - transform.position, knockback); // kızarır + dışa seker
                 damaged++;
             }
             return damaged;

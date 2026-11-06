@@ -7,7 +7,7 @@
 
 ## 1. Akış
 
-1. İstenen obje için ilgili script'e bir `def <obje>()` fonksiyonu eklenir (eşya/zemin `build_props2.py`, bina `build_kit2.py`, insan `build_people.py`, yerdeki yiyecek `build_litter.py`, karakter `build_blobs.py`, tekil modeller kendi script'inde: `build_chest.py`, `build_police_heli.py`, `build_armor_shields.py`).
+1. İstenen obje için ilgili script'e bir `def <obje>()` fonksiyonu eklenir (eşya/zemin `build_props2.py`, bina `build_kit2.py`, insan `build_people.py`, yerdeki yiyecek `build_litter.py`, karakter `build_blobs.py`, tekil modeller kendi script'inde: `build_chest.py`, `build_police_heli.py`, `build_armor_shields.py`, `build_bullets.py`).
 2. Önce **önizleme render'ı** alınır (oyun açısı 60° + yakın plan) ve görsel kontrol edilir. Script'i tek eşyayla çalıştırmak `props2.blend`'i o eşyayla ezer; tek modelin önizlemesi için geçici bir script kullanılır.
 3. Beğenilince `--export` ile FBX `Assets/_Project/Art/City/...` altına yazılır.
 4. Şehirde yer alacaksa yerleşim `build_city2.py`'a eklenir → `city_v2.json`. **Rastgele sayı tüketmeden** ekle (sabit konum, sayaç); aksi hâlde seed kayar ve bütün şehir değişir.
@@ -22,7 +22,7 @@
 
 Unity'de çarpışma kutusu otomatik hesaplanır: **modelin alttan 0.6 birimlik kısmının yerdeki izi** engeldir. Daha yüksekteki her şeyin altından blob geçebilir.
 
-- ✅ Çıkıntılar **havada**: ağaç yaprakları, tente, lamba kolu, saçak. En alt noktaları **0.8'in üstünde** (ağaç yaprakları 0.85+).
+- ✅ Çıkıntılar **havada**: ağaç yaprakları, tente, lamba kolu, saçak. En alt noktaları **0.8'in üstünde** (ağaç yaprakları 0.85+). Yemek için çıkıntıya değmek yeter: Unity görünür boy kadar tetikleyici yeme alanı (`EatZone`) ekler.
 - ✅ Yerdeki kısım objenin görünür, katı kısmı olsun: gövde, duvar, direk.
 - ❌ Yere yakın geniş ama ince parçalar (kök, kaide, etek, zemin plakası). Kaide gövdeden taşarsa çarpışma kutusu büyür.
 - ❌ Yerde şeffaf parça (cam duvar): görünmez duvar hissi verir.
@@ -66,6 +66,7 @@ Unity'de çarpışma kutusu otomatik hesaplanır: **modelin alttan 0.6 birimlik 
 | `CH_` | Karakter görünümü | `CH_Topik_T3` |
 | `C_` | Toplanabilir (sandık, coin) | `C_Chest` |
 | `W_` | Yenmeyen çevre (sur, kule; elle yerleştirilir) | `W_SeaWall` |
+| `X_` | Oyuncu mermisi (pivot merkez, burun +Y) | `X_BulletMermo` |
 
 PascalCase, Türkçe karakter ve boşluk yok. Eski kitle aynı adı kullanma: `CityVisualFixes` prefab'ları adla eşleştirir.
 

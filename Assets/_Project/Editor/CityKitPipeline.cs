@@ -108,7 +108,7 @@ namespace BlobSurvivor.EditorTools
         internal const float PoliceModelScale = 1.3225f;
         internal const float EliteModelScale = 1.1f;
         // 2026-11-04 (Serra): miniboss "çok küçük", en az 2 kat. Değiştirince collider/agent de ölçeklenir.
-        internal const float MinibossScale = 2f;
+        internal const float MinibossScale = 2.5f; // 3 olursa tank (5.4 geniş) en dar sokağa (~5.2) sığmaz
 
         [Serializable]
         internal class CityItem
@@ -846,7 +846,7 @@ namespace BlobSurvivor.EditorTools
         // sokuyordu. Tank için ayrı ajan tipi + aynı ayarlarla ikinci NavMeshSurface. Bina-bina arası en az
         // ~5.2 (4 sokak + iki kaldırım payı), tank 3.6 geniş: tüm sokaklar açık kalır. Tekrar çalıştırmak güvenli.
         internal const string TankAgentName = "Tank";
-        internal const float TankAgentRadius = 1.8f;
+        internal const float TankAgentRadius = 2.25f; // = 0.9 × MinibossScale
         private const float TankAgentHeight = 2.5f;
 
         [MenuItem("Tools/Blob.io/Tank NavMesh'ini Kur")]
@@ -1143,6 +1143,7 @@ namespace BlobSurvivor.EditorTools
                     ApplyPropObstacle(root, colliderBounds);
                 }
                 so.ApplyModifiedPropertiesWithoutUndo();
+                if (item.mesh.StartsWith("P_")) ApplyEatZone(root, renderer, colliderBounds);
             }
 
             GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
@@ -1164,6 +1165,62 @@ namespace BlobSurvivor.EditorTools
         internal const string PropObstacleLayerName = "PropObstacle";
         internal const int PropObstacleLayer = 19;
         private const float PropObstacleMaxHeight = 2f; // sorgular gövde boyunda; kanopiyi saymaya gerek yok
+
+        // Ayak izi görünür boydan çok küçükse (pota: 0.2 direk, 0.9 pano) görünür boy kadar tetikleyici yeme alanı.
+        // Yiyebilecek boydaysan panoya/taca değince yenir; küçükken tetikleyici yok sayılır (görünmez duvar yok).
+        private const float EatZoneAreaRatio = 1.5f;
+
+        internal static void ApplyEatZone(GameObject root, MeshRenderer renderer, Bounds footprint)
+        {
+            for (Transform t = root.transform.Find(CityConsumable.EatZoneName); t != null; t = root.transform.Find(CityConsumable.EatZoneName))
+                UnityEngine.Object.DestroyImmediate(t.gameObject);
+
+            Bounds full = renderer.bounds;
+            Collider zone = null;
+            if (full.size.x * full.size.z > footprint.size.x * footprint.size.z * EatZoneAreaRatio)
+            {
+                GameObject go = new GameObject(CityConsumable.EatZoneName) { layer = root.layer };
+                go.transform.SetParent(root.transform, false);
+                BoxCollider box = go.AddComponent<BoxCollider>();
+                box.isTrigger = true;
+                box.center = full.center;
+                box.size = full.size;
+                zone = box;
+            }
+            CityConsumable consumable = root.GetComponent<CityConsumable>();
+            if (consumable != null)
+            {
+                SerializedObject so = new SerializedObject(consumable);
+                so.FindProperty("_eatZone").objectReferenceValue = zone;
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+        // Tools → Blob.io → Yeme Alanlarını Kur: sadece P_ prefab'larına yeme alanı (Görsel Düzeltmeler de çağırır).
+        [MenuItem("Tools/Blob.io/Yeme Alanlarını Kur")]
+        private static void ApplyEatZonesMenu()
+        {
+            int added = 0, total = 0;
+            foreach (string guid in AssetDatabase.FindAssets("P_ t:Prefab", new[] { PrefabRoot }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (!System.IO.Path.GetFileName(path).StartsWith("P_")) continue;
+                GameObject contents = PrefabUtility.LoadPrefabContents(path);
+                try
+                {
+                    Transform model = contents.transform.Find("Model");
+                    MeshRenderer renderer = model != null ? model.GetComponent<MeshRenderer>() : null;
+                    if (renderer == null || contents.GetComponent<CityConsumable>() == null) continue;
+                    total++;
+                    ApplyEatZone(contents, renderer, ComputeColliderBounds(renderer));
+                    if (contents.transform.Find(CityConsumable.EatZoneName) != null) added++;
+                    PrefabUtility.SaveAsPrefabAsset(contents, path);
+                }
+                finally { PrefabUtility.UnloadPrefabContents(contents); }
+            }
+            AssetDatabase.SaveAssets();
+            Debug.Log($"[CityKitPipeline] Yeme alanı: {added}/{total} sokak eşyasına eklendi.");
+        }
 
         internal static void ApplyPropObstacle(GameObject root, Bounds footprint)
         {

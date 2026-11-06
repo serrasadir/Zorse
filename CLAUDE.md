@@ -102,6 +102,10 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 | Şehir Kur (Kit2 Deneme) | Büyük şehir + bina noktalarına şehir kiti v2 binaları (`Art/City/Kit2`, Blender: `build_kit2.py --export`). Performans denemesi; eski şehre dönmek için Şehir Kur (Büyük). Sonra Şehir Görsel Düzeltmeleri |
 | Karakter Görünümlerini Uygula | `Art/City/Characters/CH_*.fbx` (Blender: `build_blobs.py`, karakter ve tier başına `CH_<Karakter>_T1..T5`) → `Prefabs/Blob/BlobVisual_*` (+ `BlobTierMeshes`) + `CharacterData._blobVisualPrefab`. Runtime'da `BlobVisual` takar, gidiş yönüne çevirir; boş = varsayılan küre |
 | Yerdeki Yiyecekleri Kur | `Art/City/Litter/J_*.fbx` (Blender: `build_litter.py`) → prefab + ConsumableData, ConsumableSpawner havuzunu bunlarla değiştirir. GameScene açıkken; sonra Cmd+S |
+| Mermi Modellerini Uygula | `Art/City/X_Bullet*.fbx` (Blender: `build_bullets.py`) → Cannon/MetalBall/Pistol prefab'ı: `Spin/Model` + renkli `TrailRenderer` (`Mat_BulletTrail`). Mermi ucu +Z'ye otomatik çevrilir |
+| Yeme Alanlarını Kur | Ayak izi görünür boyundan çok küçük `P_` prefab'larına (pota, ağaç, lamba, tente) görünür boy kadar tetikleyici `EatZone` child + `CityConsumable._eatZone`. Görsel Düzeltmeler ve şehir kurulumu da yapar |
+| Vakum Efektini Kur | Vakum kasırgası (iki spiral rüzgar dokusu, açık mavi; Kara Delik için ayrı siyah + lacivert, 1.5 kat çizgi) ve Kara Delik olay ufku (siyah disk, indigo halka, şok dalgası): dokular + saydam materyaller → `Resources/FX/Vacuum` (`VacuumComponent` runtime'da yükler) |
+| Polis Can Barlarını Kur | Polis + elit prefab'ına kafa üstü can barı (`EnemyHealthBar`, iki quad, `Mat_EnemyHealthBar_*`). Vurulunca görünür; `_onlyWhenDamaged` kapatılırsa hep görünür |
 | Kalp Prefab'ını Kur · Haber Bandını Kur · Duraklatma Menüsünü Kur | İlgili sahne/prefab kurulumu |
 | Görsel Ayarları Uygula | Post-processing, ışık, ortam |
 | Helikopter Mermi Roketini Kur | Final boss mermisi: alan saldırısının roket şablonundan küçük `HeliRocketBullet` (alev titrer, değince patlar, alan hasarı) → `EnemyData_FinalBoss._projectilePrefab`. Elit polis `EnemyBullet`'ta kalır |
@@ -116,7 +120,7 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 
 **Performans göstergesi** (`PerfOverlay`, telefonda da): 3 parmakla dokun (Editor'da F3) → FPS, en kötü kare, +500 kütle düğmesi. **Yayın öncesi `PerfOverlay.Enabled = false`.**
 
-**Editor test tuşları** (`DevCheats`, sadece Editor): **M** +500 kütle (XP'siz) · **B** final boss −%25 can · **H** can doldur · **N** sıradaki boss aşamasını hemen çıkar (aktif boss kalkar).
+**Editor test tuşları** (`DevCheats`, sadece Editor): **M** +500 kütle (XP'siz) · **B** final boss −%25 can · **H** can doldur · **N** sıradaki boss aşamasını hemen çıkar (aktif boss kalkar) · **V** Vakum skill'i +1 seviye (kart açılmaz) · **K** Kara Delik (Vakum 8 + Sindirim 8 + evrim, evrim anı oynar).
 
 ## iOS / TestFlight
 

@@ -63,6 +63,7 @@ namespace BlobSurvivor.UI
             GameEvents.OnLevelUp += OnLevelUp;
             GameEvents.OnCharacterSelected += OnCharacterSelected;
             GameEvents.OnBossHealthChanged += OnBossHealthChanged;
+            GameEvents.OnUpgradeApplied += OnUpgradeApplied;
         }
 
         private void OnDisable()
@@ -76,7 +77,63 @@ namespace BlobSurvivor.UI
             GameEvents.OnLevelUp -= OnLevelUp;
             GameEvents.OnCharacterSelected -= OnCharacterSelected;
             GameEvents.OnBossHealthChanged -= OnBossHealthChanged;
+            GameEvents.OnUpgradeApplied -= OnUpgradeApplied;
             if (_blobHealth != null) _blobHealth.OnShieldChanged -= OnShieldChanged;
+        }
+
+        // --- Evrim yazısı: "★ KARA DELİK" ekranın üst ortasında belirir (pop), durur, söner. Ölçeksiz zaman. ---
+        private static readonly Color EvolutionGold = new Color(1f, 0.82f, 0.25f, 1f);
+        private static readonly Color EvolutionShadow = new Color(0.12f, 0.02f, 0.2f, 0.9f);
+        private const float BannerPop = 0.22f, BannerHold = 1.6f, BannerFade = 0.5f;
+        private RectTransform _banner;
+        private TMP_Text _bannerText, _bannerShadow;
+        private float _bannerTime = -1f;
+
+        private void OnUpgradeApplied(UpgradeData data, int level)
+        {
+            if (data == null || !data.IsEvolution) return;
+            if (_banner == null) CreateBanner();
+            if (_banner == null) return;
+            string text = "★ " + data.DisplayName.ToUpper(new System.Globalization.CultureInfo("tr-TR"));
+            _bannerText.text = text;
+            _bannerShadow.text = text;
+            _banner.gameObject.SetActive(true);
+            _bannerTime = 0f;
+        }
+
+        private void CreateBanner()
+        {
+            RectTransform root = CreateLayoutRoot();
+            if (root == null) return;
+            var go = new GameObject("EvolutionBanner", typeof(RectTransform));
+            go.layer = gameObject.layer;
+            _banner = (RectTransform)go.transform;
+            _banner.SetParent(root, false);
+            _banner.anchorMin = _banner.anchorMax = new Vector2(0.5f, 0.72f);
+            _banner.sizeDelta = new Vector2(1000f, 140f);
+            _bannerShadow = CreateText("Shadow", _banner, "");
+            _bannerText = CreateText("Text", _banner, "");
+            PlaceText(_bannerShadow, _banner, Vector2.zero, Vector2.one, new Vector2(0f, -6f), new Vector2(0f, -6f), 92f, TextAlignmentOptions.Center, EvolutionShadow);
+            PlaceText(_bannerText, _banner, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 92f, TextAlignmentOptions.Center, EvolutionGold);
+            go.SetActive(false);
+        }
+
+        private void Update()
+        {
+            if (_bannerTime < 0f || _banner == null) return;
+            _bannerTime += Time.unscaledDeltaTime;
+            float t = _bannerTime;
+            float scale = t < BannerPop ? Mathf.Lerp(1.6f, 1f, t / BannerPop) : 1f;
+            float alpha = t < BannerPop + BannerHold ? 1f : 1f - (t - BannerPop - BannerHold) / BannerFade;
+            if (alpha <= 0f)
+            {
+                _bannerTime = -1f;
+                _banner.gameObject.SetActive(false);
+                return;
+            }
+            _banner.localScale = Vector3.one * scale;
+            _bannerText.alpha = alpha;
+            _bannerShadow.alpha = alpha * EvolutionShadow.a;
         }
 
         private void CreateShieldBar()

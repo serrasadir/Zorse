@@ -120,6 +120,7 @@ namespace BlobSurvivor.EditorTools
                     {
                         CityKitPipeline.ApplyNavBlocker(contents, bounds, humanoidOnly: true); // elit dolanır, tank ezer
                         CityKitPipeline.ApplyPropObstacle(contents, bounds);                   // yaya/sürü polisi dolanır
+                        CityKitPipeline.ApplyEatZone(contents, model.GetComponent<MeshRenderer>(), bounds); // pano/taç değince yenir
                     }
                 }
 

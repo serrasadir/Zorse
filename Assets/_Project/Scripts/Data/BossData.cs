@@ -6,7 +6,9 @@ namespace BlobSurvivor.Data
     public struct BossStage
     {
         public EnemyData EnemyData;
-        public float SpawnTime; // saniye — GameManager.SurvivalTime ile aynı birim
+        public int RequiredLevel; // blob bu seviyeye gelince çıkar (0 = seviyeye bakılmaz)
+        [UnityEngine.Serialization.FormerlySerializedAs("SpawnTime")]
+        public float LatestTime;  // saniye: seviyeye ulaşılamasa da en geç bu sürede çıkar (0 = yok)
         public int BonusCoinMin;
         public int BonusCoinMax;
     }

@@ -125,6 +125,7 @@ Transform:
   m_Children:
   - {fileID: 446095567997329515}
   - {fileID: 5275581462921402365}
+  - {fileID: 5351413268991490527}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &8324155010925745460
@@ -162,6 +163,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.CityConsumable
   _data: {fileID: 11400000, guid: f0d5a03dd6a47457496dc25030fcb819, type: 2}
   _obstacle: {fileID: 0}
+  _eatZone: {fileID: 1422263128563858852}
 --- !u!114 &252023884262508237
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -252,3 +254,56 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.22000071, y: 2, z: 0.2}
   m_Center: {x: -0.00000045076013, y: 0.999997, z: -0.00000045076013}
+--- !u!1 &7607523200975028340
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5351413268991490527}
+  - component: {fileID: 1422263128563858852}
+  m_Layer: 11
+  m_Name: EatZone
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5351413268991490527
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7607523200975028340}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 207443447844872970}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1422263128563858852
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7607523200975028340}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.4400063, y: 2.450006, z: 1.4400063}
+  m_Center: {x: 1.5001924e-16, y: 1.225, z: -1.5001924e-16}

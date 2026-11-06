@@ -7,8 +7,7 @@ using BlobSurvivor.Systems;
 
 namespace BlobSurvivor.Entities.Enemies
 {
-    // A15 (GDD Karar 8 + §7): 4./8. dk'da aynı tasarım, artan stat'lı miniboss.
-    // EnemySpawner'ın ağırlıklı-random havuzundan bağımsız — sabit zamanlı, tekil spawn.
+    // Boss aşamaları blob seviyesine bağlı (en geç süre yedek). EnemySpawner havuzundan bağımsız, tekil spawn.
     public class BossSpawner : MonoBehaviour
     {
         public static BossSpawner Instance { get; private set; }
@@ -32,6 +31,7 @@ namespace BlobSurvivor.Entities.Enemies
 
         private Transform _blobTransform;
         private int _nextStageIndex;
+        private int _blobLevel;
         private EnemyBase _activeBoss;
         private BossStage _activeStage;
         private float _lastReportedHealth = -1f;
@@ -53,12 +53,14 @@ namespace BlobSurvivor.Entities.Enemies
             _camera = Camera.main;
 
             GameEvents.OnSurvivalTimeUpdated += CheckSpawnTrigger;
+            GameEvents.OnLevelUp += HandleLevelUp;
             GameEvents.OnCharacterSelected += HandleRestart;
         }
 
         private void OnDestroy()
         {
             GameEvents.OnSurvivalTimeUpdated -= CheckSpawnTrigger;
+            GameEvents.OnLevelUp -= HandleLevelUp;
             GameEvents.OnCharacterSelected -= HandleRestart;
 
             if (Instance == this)
@@ -104,8 +106,16 @@ namespace BlobSurvivor.Entities.Enemies
         {
             DismissActiveBoss();
             _nextStageIndex = 0;
+            _blobLevel = 0;
             _lastReportedHealth = -1f;
         }
+
+        // Spawn burada değil süre tikinde: kart ekranı açıkken boss çıkmasın.
+        private void HandleLevelUp(int level) => _blobLevel = level;
+
+        private bool IsDue(BossStage stage, float survivalTime) =>
+            (stage.RequiredLevel > 0 && _blobLevel >= stage.RequiredLevel) ||
+            (stage.LatestTime > 0f && survivalTime >= stage.LatestTime);
 
         // Aktif boss'u ödülsüz havuza döndürür (restart, final boss gelişi, DevCheats).
         private void DismissActiveBoss()
@@ -118,7 +128,7 @@ namespace BlobSurvivor.Entities.Enemies
             GameEvents.RaiseBossHealthChanged(0f, 0f);
         }
 
-        // Her aşama kendi süresinde çıkar; süresi geçmiş önceki aşamalar atlanır (sadece en sonuncusu çıkar).
+        // Aşama seviyesine (ya da en geç süresine) gelince çıkar; birden çok aşama birden hazırsa sadece en sonuncusu çıkar.
         // Aynı anda tek boss: ara aşama aktif boss'u bekler, son aşama (final boss) beklemez — aktif boss çekilir.
         private void CheckSpawnTrigger(float survivalTime)
         {
@@ -127,7 +137,7 @@ namespace BlobSurvivor.Entities.Enemies
 
             int due = -1;
             for (int i = _nextStageIndex; i < stages.Length; i++)
-                if (survivalTime >= stages[i].SpawnTime) due = i;
+                if (IsDue(stages[i], survivalTime)) due = i;
             if (due < 0) return;
 
             bool isFinal = due == stages.Length - 1;

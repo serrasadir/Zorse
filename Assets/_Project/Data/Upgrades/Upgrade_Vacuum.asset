@@ -20,5 +20,5 @@ MonoBehaviour:
   _weight: 10
   _effect: {fileID: 11400000, guid: 2bb2fe1b5b27949399df02cc785aa1c6, type: 2}
   _maxLevel: 8
-  _perLevelValue: 0.5
+  _perLevelValue: 0.35
   _isEvolution: 0

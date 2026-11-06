@@ -33,6 +33,10 @@ namespace BlobSurvivor.Entities.Weapons
         private readonly float[] _targetSqr = new float[MaxTargets];
         private ObjectPool<Projectile> _projectilePool;
         private float _cooldown;
+        private Transform _blobRoot;
+        private BlobSurvivor.Entities.Blob.BlobVisual _blobVisual;
+        private const float TinyBlobScale = 0.5f;   // BlobGrowth._baseScale
+        private const float MaxBulletScale = 3f;
 
         // Silah Gücü yolu (WeaponUpgradeEffect ayarlar). Restart'ta silah yeniden yaratıldığı için kendiliğinden sıfırlanır.
         protected int TargetCount { get; private set; } = 1;
@@ -47,6 +51,15 @@ namespace BlobSurvivor.Entities.Weapons
             if (_projectilePrefab != null && PoolManager.Instance != null)
                 _projectilePool = PoolManager.Instance.CreatePool(_projectilePrefab, InitialPoolSize);
             CurrentUltimateDescription = _ultimateDescription;
+            _blobVisual = GetComponentInParent<BlobSurvivor.Entities.Blob.BlobVisual>();
+            _blobRoot = transform.parent;
+        }
+
+        // Kamera blob'la birlikte uzaklaşıyor: mermi de büyümezse Giant'ta görünmez. Tiny 1 → Dev ~3.
+        private float BulletScale()
+        {
+            float blob = _blobRoot != null ? _blobRoot.localScale.x : TinyBlobScale;
+            return Mathf.Clamp(Mathf.Sqrt(blob / TinyBlobScale), 1f, MaxBulletScale);
         }
 
         protected virtual void Update()
@@ -60,6 +73,7 @@ namespace BlobSurvivor.Entities.Weapons
             for (int i = 0; i < count; i++)
                 Fire(_targets[i]);
             _cooldown = 1f / _fireRate;
+            if (_blobVisual != null) _blobVisual.Recoil(_targets[0].position - transform.position);
         }
 
         public void IncreaseDamage(float amount) => _damage += amount;
@@ -147,6 +161,7 @@ namespace BlobSurvivor.Entities.Weapons
             Quaternion rotation = direction.sqrMagnitude > 0.0001f ? Quaternion.LookRotation(direction) : Quaternion.identity;
             Vector3 muzzle = new Vector3(transform.position.x, MuzzleHeight, transform.position.z);
             Projectile projectile = _projectilePool.Get(muzzle, rotation);
+            projectile.SetVisualScale(BulletScale());
             projectile.Launch(_projectilePool, direction, _damage * damageScale, Pierce, UltimateActive);
             return projectile;
         }

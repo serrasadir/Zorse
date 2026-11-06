@@ -41,6 +41,33 @@ namespace BlobSurvivor.EditorTools
             return $"YOK\t{p[0]}";
         }
 
+        // "prune <BileşenTipi> <_dizi>": sahnedeki ilk o tipteki bileşenin obje dizisinden boş/kayıp referansları siler.
+        private static string PruneNulls(string args)
+        {
+            string[] p = args.Split(' ');
+            if (p.Length < 2) return "HATA\tprune <Tip> <_dizi>";
+            foreach (var mb in Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include))
+            {
+                if (mb.GetType().Name != p[0]) continue;
+                var so = new SerializedObject(mb);
+                var prop = so.FindProperty(p[1]);
+                if (prop == null || !prop.isArray) return $"YOK\t{p[0]}.{p[1]}";
+                int removed = 0;
+                for (int i = prop.arraySize - 1; i >= 0; i--)
+                {
+                    SerializedProperty e = prop.GetArrayElementAtIndex(i);
+                    if (e.propertyType != SerializedPropertyType.ObjectReference || e.objectReferenceValue != null) continue;
+                    e.objectReferenceValue = null;
+                    prop.DeleteArrayElementAtIndex(i);
+                    removed++;
+                }
+                so.ApplyModifiedPropertiesWithoutUndo();
+                if (removed > 0) UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(mb.gameObject.scene);
+                return $"OK\t{p[0]}.{p[1]}: {removed} boş referans silindi, kalan {prop.arraySize}";
+            }
+            return $"YOK\t{p[0]}";
+        }
+
         private const string RequestPath = "Temp/menu.request";
         private const string DonePath = "Temp/menu.done";
         private static double s_nextPoll;
@@ -61,6 +88,7 @@ namespace BlobSurvivor.EditorTools
                 string menu = raw.Trim();
                 if (menu.Length == 0) continue;
                 if (menu.StartsWith("set ")) { log.AppendLine(SetField(menu.Substring(4).Trim())); continue; }
+                if (menu.StartsWith("prune ")) { log.AppendLine(PruneNulls(menu.Substring(6).Trim())); continue; }
                 bool ok = EditorApplication.ExecuteMenuItem(menu);
                 log.AppendLine($"{(ok ? "OK" : "YOK")}\t{menu}");
             }

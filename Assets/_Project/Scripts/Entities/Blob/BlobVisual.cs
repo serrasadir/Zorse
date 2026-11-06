@@ -19,6 +19,10 @@ namespace BlobSurvivor.Entities.Blob
         private Quaternion _facing = Quaternion.LookRotation(Vector3.back); // başta kameraya bakar
         private Vector3 _lastPosition;
         private float _gulpTime = -1f, _gulpAmount;
+        private float _recoilTime = -1f;
+        private Vector3 _recoilLocalDir;
+        private const float RecoilDuration = 0.14f;
+        private const float RecoilDistance = 0.09f; // kök ölçeğinde: çapın ~%9'u
 
         // Yüzü olan görünüm takılıysa "önle yeme" kuralı (BlobConsumption.CanEatFrom) bu yönü kullanır.
         public bool HasFacing => _visual != null;
@@ -47,6 +51,7 @@ namespace BlobSurvivor.Entities.Blob
             _facing = Quaternion.LookRotation(Vector3.back);
             _lastPosition = transform.position;
             _gulpTime = -1f;
+            _recoilTime = -1f;
 
             if (prefab == null)
             {
@@ -97,6 +102,33 @@ namespace BlobSurvivor.Entities.Blob
             }
             _visual.rotation = _facing;
             UpdateGulp(dt);
+            UpdateRecoil(dt);
+        }
+
+        // Silah ateşlenince görünüm ateş yönünün tersine kısa bir tepme yapar (sadece görsel child).
+        public void Recoil(Vector3 shotDirection)
+        {
+            if (_visual == null) return;
+            shotDirection.y = 0f;
+            if (shotDirection.sqrMagnitude < 0.0001f) return;
+            _recoilLocalDir = transform.InverseTransformDirection(-shotDirection.normalized).normalized;
+            _recoilTime = 0f;
+        }
+
+        private void UpdateRecoil(float dt)
+        {
+            if (_recoilTime < 0f) return;
+            _recoilTime += dt;
+            float t = _recoilTime / RecoilDuration;
+            if (t >= 1f)
+            {
+                _recoilTime = -1f;
+                _visual.localPosition = Vector3.zero;
+                return;
+            }
+            // Hızlı tepme, yumuşak dönüş.
+            float k = t < 0.25f ? t / 0.25f : 1f - Mathf.SmoothStep(0f, 1f, (t - 0.25f) / 0.75f);
+            _visual.localPosition = _recoilLocalDir * (RecoilDistance * k);
         }
 
         // Büyük lokmada "yutkunma": görünüm bir an basıklaşıp yanlara şişer, geri gelir. Sadece görsel child —

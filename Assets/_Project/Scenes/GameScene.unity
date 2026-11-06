@@ -13230,7 +13230,7 @@ MonoBehaviour:
   _despawnDistance: 50
   _minDistanceFromBlob: 18
   _maxActiveEnemies: 30
-  _maxActiveElites: 10
+  _maxActiveElites: 15
 --- !u!4 &222400388
 Transform:
   m_ObjectHideFlags: 0
@@ -16325,7 +16325,7 @@ MonoBehaviour:
   _baseXPThreshold: 20
   _xpGrowthPerLevel: 15
   _xpQuadraticPerLevel: 2
-  _globalGainScale: 0.7
+  _globalGainScale: 0.35
   _punchDecay: 8
 --- !u!114 &276010511
 MonoBehaviour:
@@ -29445,8 +29445,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9a1a53f3539f54aa9a01b50dfc7fccc9, type: 2}
   - {fileID: 11400000, guid: 7a60ab4d1e9804c11a6724b7a567bac7, type: 2}
   - {fileID: 11400000, guid: bfcdcf59c7e9e4d83b18c0271b27d009, type: 2}
-  - {fileID: 11400000, guid: 84868a71375594f4a96e592c45f11fab, type: 2}
-  - {fileID: 11400000, guid: 810e282ced92b48fa89223c93a3ce000, type: 2}
   _choiceCount: 3
 --- !u!4 &582339428
 Transform:
@@ -88786,7 +88784,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Systems.EvolutionSystem
   _evolutions:
-  - {fileID: 11400000, guid: 881f3b83107cb43cda9defb97dc59ffd, type: 2}
   - {fileID: 11400000, guid: 68324a5f6aca54172b629a86a7e21d56, type: 2}
 --- !u!4 &1802187662
 Transform:
@@ -98077,7 +98074,7 @@ MonoBehaviour:
   m_OverrideTileSize: 0
   m_TileSize: 256
   m_OverrideVoxelSize: 0
-  m_VoxelSize: 0.59999996
+  m_VoxelSize: 0.75
   m_MinRegionArea: 2
   m_NavMeshData: {fileID: 23800000, guid: 8d0c7c2bbbbba4e618e985ce4aec99f1, type: 2}
   m_BuildHeightMesh: 0

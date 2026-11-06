@@ -134,6 +134,27 @@ namespace BlobSurvivor.Systems
             GameManager.Instance?.ResumeGame();
         }
 
+#if UNITY_EDITOR
+        // DevCheats: kart ekranı açmadan skill'i bir seviye verir (kart seçimiyle aynı uygulama + evrim kontrolü).
+        public string DebugGrant(string id)
+        {
+            if (_allUpgrades == null) return "Skill listesi boş.";
+            var all = new List<UpgradeData>(_allUpgrades);
+            all.AddRange(_dynamicUpgrades); // açılmış evrimler
+            foreach (var u in all)
+            {
+                if (u == null || u.Id != id) continue;
+                int level = GetLevel(u);
+                if (level >= u.MaxLevel) return $"{u.DisplayName} zaten max ({level}/{u.MaxLevel}).";
+                _levels[u] = level + 1;
+                if (_blobRoot != null && u.Effect != null) u.Effect.Apply(_blobRoot, u);
+                GameEvents.RaiseUpgradeApplied(u, level + 1);
+                return $"{u.DisplayName} Sv.{level + 1}/{u.MaxLevel}";
+            }
+            return $"'{id}' skill'i bulunamadı.";
+        }
+#endif
+
         private UpgradeData[] SelectUpgrades()
         {
             var pool = new List<UpgradeData>();
