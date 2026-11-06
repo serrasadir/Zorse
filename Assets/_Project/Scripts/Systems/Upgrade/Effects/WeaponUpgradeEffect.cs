@@ -1,5 +1,6 @@
 using UnityEngine;
 using BlobSurvivor.Data;
+using BlobSurvivor.Entities.Blob;
 using BlobSurvivor.Entities.Weapons;
 
 namespace BlobSurvivor.Systems
@@ -29,6 +30,10 @@ namespace BlobSurvivor.Systems
             else if (level == _tripleTargetLevel) weapon.SetTargetCount(3);
             else if (level == _ultimateLevel) weapon.EnableUltimate();
             else weapon.IncreaseDamage(data.PerLevelValue);
+
+            // Görünür silah: form yeni mekanikle değişir, +hasar seviyeleri modeli değiştirmez.
+            int form = level >= _ultimateLevel ? 4 : level >= _tripleTargetLevel ? 3 : level >= _doubleTargetLevel ? 2 : 1;
+            blobRoot.GetComponent<WeaponVisual>()?.SetForm(form);
         }
     }
 }

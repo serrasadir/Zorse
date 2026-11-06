@@ -26,6 +26,8 @@ namespace BlobSurvivor.Entities.Enemies
         private static int s_walkMask = -1;
 
         public event System.Action<EnemyBase> OnDeath;
+        // Oyuncunun düşmana gerçekten işlettiği hasar (Can Emme dinler). Kilitli final boss'ta boşa giden sayılmaz.
+        public static event System.Action<float> OnDamageDealt;
 
         public EnemyData Data => _data;
         public Transform BlobTransform { get; private set; }
@@ -736,6 +738,7 @@ namespace BlobSurvivor.Entities.Enemies
         {
             if (_isDead) return;
 
+            float before = _currentHealth;
             _currentHealth -= amount;
             if (_healthBar != null && MaxHealth > 0f) _healthBar.SetRatio(_currentHealth / MaxHealth);
             if (_flashRenderers != null && _flashRenderers.Length > 0) _flashTime = 0f;
@@ -749,6 +752,9 @@ namespace BlobSurvivor.Entities.Enemies
                 else
                     Die();
             }
+
+            float dealt = before - Mathf.Max(_currentHealth, 0f);
+            if (dealt > 0f) OnDamageDealt?.Invoke(dealt);
         }
 
         // FinalBossController, HP eşiği altına inince bunu true yapar — yenebilir faza geçiş.

@@ -23,8 +23,18 @@ namespace BlobSurvivor.Data
         [Header("Görünüm")]
         [Tooltip("Blob'un child'ı olarak takılan model (yüz +Z'de, çap 1, pivot merkez). Boş = varsayılan küre.")]
         [SerializeField] private GameObject _blobVisualPrefab;
-        [Tooltip("Zırh kalkanı yanda süzülmek yerine kafada şapka gibi durur (Mermo: yanlarda tabancaları var).")]
+        [Tooltip("Zırh kalkanı yanda süzülmek yerine kafada şapka gibi durur (Mermo: yanlarda keleşleri var).")]
         [SerializeField] private bool _armorOnHead;
+        [Tooltip("Silah Gücü görseli: Resources/FX/Weapons/G_<bu>_1..4 (build_weapons.py). Boş = silah görünmez.")]
+        [SerializeField] private string _weaponModel;
+        [Tooltip("Silah Sv.0'dan görünür (Mermo). Kapalıysa Silah Gücü alınınca belirir.")]
+        [SerializeField] private bool _weaponVisibleFromStart;
+
+        [Header("Kart Çekimi")]
+        [Tooltip("Bu karakterde kart ekranında daha sık çıkan skill (Topik Hız, Mıknato Vakum, Mermo Silah Gücü).")]
+        [SerializeField] private UpgradeData _favoredUpgrade;
+        [Tooltip("Favori skill'in ağırlık çarpanı. 2 ≈ kart ekranlarının %48'i yerine %69'unda çıkar.")]
+        [SerializeField] private float _favoredWeightMultiplier = 2f;
 
         [Header("Pasif")]
         [SerializeField] private CharacterPassiveType _passiveType;
@@ -42,6 +52,10 @@ namespace BlobSurvivor.Data
         public GameObject StartingWeaponPrefab => _startingWeaponPrefab;
         public GameObject BlobVisualPrefab => _blobVisualPrefab;
         public bool ArmorOnHead => _armorOnHead;
+        public string WeaponModel => _weaponModel;
+        public bool WeaponVisibleFromStart => _weaponVisibleFromStart;
+        public UpgradeData FavoredUpgrade => _favoredUpgrade;
+        public float FavoredWeightMultiplier => _favoredWeightMultiplier;
         public CharacterPassiveType PassiveType => _passiveType;
         public float PassiveValue => _passiveValue;
         public bool RequiresMarketUnlock => _requiresMarketUnlock;

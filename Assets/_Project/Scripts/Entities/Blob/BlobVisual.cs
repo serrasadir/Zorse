@@ -26,6 +26,8 @@ namespace BlobSurvivor.Entities.Blob
 
         // Yüzü olan görünüm takılıysa "önle yeme" kuralı (BlobConsumption.CanEatFrom) bu yönü kullanır.
         public bool HasFacing => _visual != null;
+        // Görünümün mesh renderer'ı (WeaponVisual silahı buna child olarak takar: aynı uzay, aynı materyal).
+        public Renderer ModelRenderer { get; private set; }
         public Vector3 Forward => _facing * Vector3.forward;
 
         // Giriş ekranı: kameraya bakarken yavaşça sağa sola bakınır (ölçeksiz zaman; oyun donukken de).
@@ -53,6 +55,7 @@ namespace BlobSurvivor.Entities.Blob
             _gulpTime = -1f;
             _recoilTime = -1f;
 
+            ModelRenderer = null;
             if (prefab == null)
             {
                 if (_defaultRenderer != null) _defaultRenderer.enabled = true;
@@ -68,7 +71,8 @@ namespace BlobSurvivor.Entities.Blob
             _visual.rotation = _facing;
 
             if (_defaultRenderer != null) _defaultRenderer.enabled = false;
-            _flash?.SetRenderer(instance.GetComponentInChildren<Renderer>());
+            ModelRenderer = instance.GetComponentInChildren<Renderer>();
+            _flash?.SetRenderer(ModelRenderer);
         }
 
         private void LateUpdate()

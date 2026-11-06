@@ -13,11 +13,20 @@ MonoBehaviour:
   m_Name: Upgrade_Regen
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
   _id: regen_boost
-  _displayName: Rejenerasyon
-  _description: "Rejenerasyon. \xC7ok haval\u0131 de\u011Fil mi?"
+  _displayName: Can Emme
+  _description: "Vurdu\u011Fun hasar\u0131n bir k\u0131sm\u0131 can olarak sana d\u00F6ner."
   _icon: {fileID: 0}
   _category: 0
   _weight: 8
   _effect: {fileID: 11400000, guid: 1778c5772844549ff804c1ac7668af1f, type: 2}
   _maxLevel: 8
-  _perLevelValue: 0.5
+  _perLevelValue: 0.02
+  _levelDescriptions:
+  - "Vurdu\u011Fun hasar\u0131n %2'si kadar can kazan\u0131rs\u0131n."
+  - "Vurdu\u011Fun hasar\u0131n %4'\u00FC kadar can kazan\u0131rs\u0131n."
+  - "Vurdu\u011Fun hasar\u0131n %6's\u0131 kadar can kazan\u0131rs\u0131n."
+  - "Vurdu\u011Fun hasar\u0131n %8'i kadar can kazan\u0131rs\u0131n."
+  - "Vurdu\u011Fun hasar\u0131n %10'u kadar can kazan\u0131rs\u0131n."
+  - "Vurdu\u011Fun hasar\u0131n %12'si kadar can kazan\u0131rs\u0131n."
+  - "Vurdu\u011Fun hasar\u0131n %14'\u00FC kadar can kazan\u0131rs\u0131n."
+  - "Vurdu\u011Fun hasar\u0131n %16's\u0131 kadar can kazan\u0131rs\u0131n."

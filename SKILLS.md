@@ -9,7 +9,8 @@
 **Seviye atlama.** Yediğin her şeyin mass'ı aynı zamanda XP'dir. Bir sonraki level için gereken XP `20 + level × 15 + level² × 2`: 1. level 20 XP, 2. level 37, 3. level 58, … 10. level 317. Karesel terim geç oyunda (bina = 25–50 XP) seviye atlamanın çok hızlanmasını önler.
 
 **Kart ekranı.** Level atlayınca oyun durur ve 3 kart gelir. Biri seçilir.
-- Kartlar ağırlıklı rastgele çekilir: çoğu skill ağırlık **10**, Rejenerasyon **8**, Can Artışı **4**. Ağırlığı düşük olan daha seyrek gelir.
+- Kartlar ağırlıklı rastgele çekilir: çoğu skill ağırlık **10**, Can Emme **8**, Can Artışı **4**. Ağırlığı düşük olan daha seyrek gelir.
+- **Karakterin favori skill'i ×2 ağırlıkla** çekilir (kart ekranlarının ~%48'i yerine ~%69'unda çıkar): Topik → Hız, Mıknato → Vakum, Mermo → Silah Gücü. `CharacterData._favoredUpgrade` / `_favoredWeightMultiplier`.
 - Max seviyeye ulaşan skill havuzdan çıkar, bir daha gelmez.
 - Havuzda 3'ten az skill kalırsa daha az kart gelir. Hepsi maxlıysa level-up ödülsüz geçer. Bunun için 57 seçim gerekir, pratikte ulaşılamaz.
 - Kartın adının yanında **YENİ** (ilk kez alıyorsun) ya da **Sv. 3/8** (bu seçimle ulaşacağın seviye) yazar.
@@ -71,13 +72,18 @@
 
 ---
 
-### 💚 Rejenerasyon
-- **Ne yapar:** Her saniye can yeniler.
-- **Seviye başına:** +0.5 can/sn · **Max:** 8 · **Ağırlık:** 8
-- **Kod:** `RegenBoostEffect` → `BlobHealth.EnableRegen`
+### 💚 Can Emme
+- **Ne yapar:** Düşmana vurduğun hasarın bir yüzdesi can olarak sana döner. Durduk yere can yenilemez; savaştıkça iyileşirsin. Mermi, Topik patlaması, Zırh dikenleri ve şok dalgası hepsi sayılır. Sadece gerçekten işleyen hasar sayılır (canı 1'e kilitli helikoptere boşa giden vuruş can vermez). Can doluyken birikmez.
+- **Seviye başına:** vurulan hasarın %2'si · **Max:** 8 · **Ağırlık:** 8
+- **Kod:** `RegenBoostEffect` (id `regen_boost`, eski Rejenerasyon) → `LifestealComponent` (`EnemyBase.OnDamageDealt` dinler, 0.2 sn'de bir toplu iyileştirir)
 
 | Seviye | 1 | 4 | 8 |
 |---|---|---|---|
+| Can olarak dönen | %2 | %8 | **%16** |
+
+**Örnek:** Sv.4, silahın saniyede toplam 40 hasar vuruyor (3 hedef, patlama): saniyede ~3.2 can. Ateş etmediğin sürece iyileşmezsin.
+
+---|---|---|---|
 | Can/sn | 0.5 | 2 | **4** |
 | Dakikada | 30 | 120 | 240 |
 

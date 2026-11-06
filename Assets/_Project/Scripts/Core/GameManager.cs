@@ -125,6 +125,9 @@ namespace BlobSurvivor.Core
             if (visual == null) visual = blob.AddComponent<BlobVisual>();
             visual.Apply(character.BlobVisualPrefab);
             ArmorShield.OnHead = character.ArmorOnHead; // Zırh kalkanı kafada mı (Mermo)
+            WeaponVisual weaponVisual = blob.GetComponent<WeaponVisual>();
+            if (weaponVisual == null) weaponVisual = blob.AddComponent<WeaponVisual>();
+            weaponVisual.Setup(visual.ModelRenderer, character.WeaponModel, character.WeaponVisibleFromStart);
 
             switch (character.PassiveType)
             {
@@ -165,6 +168,7 @@ namespace BlobSurvivor.Core
 
             // Skill efektleri blob'a component olarak eklenir; kalırsa bonuslar yeni run'a sızar.
             RemoveComponent<BlackHoleComponent>(blob);
+            RemoveComponent<LifestealComponent>(blob);
             RemoveComponent<ArmorShield>(blob); // Zırh baloncuğu + dikenler (kalkan havuzunu ResetHealth sıfırlar)
 
             blob.GetComponent<BlobGrowth>()?.ResetGrowth();

@@ -28,6 +28,7 @@ namespace BlobSurvivor.Systems
         // alınır, seçim sonrası arka arkaya gösterilir.
         private bool _awaitingChoice;
         private int _pendingLevelUps;
+        private CharacterData _character; // favori skill'i daha sık çekilir
 
         private void Awake()
         {
@@ -67,8 +68,9 @@ namespace BlobSurvivor.Systems
         }
 
         // Skill seviyeleri ve açılan evrimler run'a özeldir.
-        private void HandleRestart(CharacterData _)
+        private void HandleRestart(CharacterData character)
         {
+            _character = character;
             _levels.Clear();
             _dynamicUpgrades.Clear();
             _awaitingChoice = false;
@@ -155,6 +157,9 @@ namespace BlobSurvivor.Systems
         }
 #endif
 
+        private float WeightOf(UpgradeData u) =>
+            _character != null && u == _character.FavoredUpgrade ? u.Weight * _character.FavoredWeightMultiplier : u.Weight;
+
         private UpgradeData[] SelectUpgrades()
         {
             var pool = new List<UpgradeData>();
@@ -174,13 +179,13 @@ namespace BlobSurvivor.Systems
             for (int i = 0; i < count; i++)
             {
                 float total = 0f;
-                foreach (var u in pool) total += u.Weight;
+                foreach (var u in pool) total += WeightOf(u);
 
                 float roll = Random.Range(0f, total);
                 float cumulative = 0f;
                 for (int j = 0; j < pool.Count; j++)
                 {
-                    cumulative += pool[j].Weight;
+                    cumulative += WeightOf(pool[j]);
                     if (roll <= cumulative)
                     {
                         selected[i] = pool[j];

@@ -4,15 +4,16 @@ using BlobSurvivor.Entities.Blob;
 
 namespace BlobSurvivor.Systems
 {
+    // Can Emme (eski Rejenerasyon; sınıf/asset adı guid için aynı): vurulan hasarın PerLevelValue'su kadar can, seviyeyle toplanır.
     [CreateAssetMenu(fileName = "RegenBoostEffect", menuName = "BlobSurvivor/Effects/Regen Boost")]
     public class RegenBoostEffect : UpgradeEffect
     {
         public override void Apply(GameObject blobRoot, UpgradeData data)
         {
-            var health = blobRoot.GetComponent<BlobHealth>();
-            if (health == null) return;
-            float newRate = health.GetRegenRate() + data.PerLevelValue;
-            health.EnableRegen(newRate);
+            if (blobRoot.GetComponent<BlobHealth>() == null) return;
+            var lifesteal = blobRoot.GetComponent<LifestealComponent>();
+            if (lifesteal == null) lifesteal = blobRoot.AddComponent<LifestealComponent>();
+            lifesteal.AddFraction(data.PerLevelValue);
         }
     }
 }

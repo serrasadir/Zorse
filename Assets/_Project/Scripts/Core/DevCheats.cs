@@ -15,6 +15,7 @@ namespace BlobSurvivor.Core
     //   V  Vakum skill'i +1 seviye (kart ekranı açılmaz)
     //   K  Kara Delik: Vakum 8 + Sindirim 8 + evrim (evrim anı efekti oynar)
     //   Z  Zırh skill'i +1 seviye (kalkan, Sv.3 dikenler, Sv.8 şok dalgası)
+    //   G  Silah Gücü +1 seviye (görünür silah: Sv.1, 3, 7, 8'de form değişir)
     public class DevCheats : MonoBehaviour
     {
         private const float MassStep = 500f;
@@ -72,6 +73,9 @@ namespace BlobSurvivor.Core
 
             if (keyboard.zKey.wasPressedThisFrame && BlobSurvivor.Systems.UpgradeSystem.Instance != null)
                 Debug.Log("[DevCheats] " + BlobSurvivor.Systems.UpgradeSystem.Instance.DebugGrant("damage_reduction"));
+
+            if (keyboard.gKey.wasPressedThisFrame && BlobSurvivor.Systems.UpgradeSystem.Instance != null)
+                Debug.Log("[DevCheats] " + BlobSurvivor.Systems.UpgradeSystem.Instance.DebugGrant("weapon"));
 
             if (keyboard.hKey.wasPressedThisFrame && _health != null)
                 _health.Heal(_health.MaxHealth);
