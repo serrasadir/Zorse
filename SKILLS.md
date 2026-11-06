@@ -52,7 +52,7 @@
 - **Dikenler (Sv.3+):** Kalkan sağlamken blob'a değen her düşman 0.5 sn'de bir hasar alır (Sv.3: sn'de 6, Sv.6: sn'de 10); kızarır ve 0.8 birim dışa seker (şok dalgasında 1.6). Seni kovalayıp yakın dövüşe giren polis kendini yorar. Kalkan kırıkken dikenler çalışmaz.
 - **Şok dalgası (Sv.8):** Kalkan kırıldığı an blob'un 2 birim dışına kadar tüm düşmanlara **25 hasar**.
 - **HUD:** Can barının hemen altında ince mavi kalkan barı (Zırh alınana kadar gizli).
-- **Görsel:** Blob'un sağ yanında süzülen, yüzü dışa bakan, gidiş yönüyle dönen **sokak eşyası kalkan**. **Mermo'da kafada** şapka gibi durur (yanlarında tabancaları var; `CharacterData._armorOnHead`): tepede yatay, ön kenarı gidiş yönünde, hafif geriye yatık, %80 boy; kırılınca fırıldak gibi döner. Form seviyeyle, yeni mekanikle aynı anda değişir: **Sv.1-2** çöp kutusu kapağı → **Sv.3-5** dikenli "girilmez" tabelası (dikenler) → **Sv.6-7** dikenli menhol kapağı (güçlü dikenler) → **Sv.8** altın menhol kapağı + kızıl mücevher (şok dalgası). Kalkan azaldıkça koyulaşır, vuruşta parlar ve şişer, kırılınca dönerek küçülüp kaybolur, dolmaya başlayınca geri "pop" eder; yeni form da pop ile gelir. Modeller `zorse-blender/build_armor_shields.py` → `Resources/FX/Shield` (148–220 üçgen).
+- **Görsel:** Blob'un sağ yanında süzülen, yüzü dışa bakan, gidiş yönüyle dönen **sokak eşyası kalkan**. **Mermo'da kafada** şapka gibi durur (yanlarında keleşleri var; `CharacterData._armorOnHead`): tepede yatay, ön kenarı gidiş yönünde, hafif geriye yatık, %80 boy; kırılınca fırıldak gibi döner. Form seviyeyle, yeni mekanikle aynı anda değişir: **Sv.1-2** çöp kutusu kapağı → **Sv.3-5** dikenli "girilmez" tabelası (dikenler) → **Sv.6-7** dikenli menhol kapağı (güçlü dikenler) → **Sv.8** altın menhol kapağı + kızıl mücevher (şok dalgası). Kalkan azaldıkça koyulaşır, vuruşta parlar ve şişer, kırılınca dönerek küçülüp kaybolur, dolmaya başlayınca geri "pop" eder; yeni form da pop ile gelir. Modeller `zorse-blender/build_armor_shields.py` → `Resources/FX/Shield` (148–220 üçgen).
 
 **Örnek:** Sv.3, kalkan 40. Bir polis seni 10'ar vuruyor: ilk 4 vuruşu kalkan yer, canın hiç azalmaz. Bu sürede polis sana değdiği için saniyede 6 hasar alır (50 canlı polis ~8 sn'de düşer). 4 sn kaçarsan kalkan 2 sn'de geri dolar.
 **Örnek:** Helikopterin 36 hasarlık serisini Sv.4'teki 50'lik kalkan tamamen yer.
@@ -129,6 +129,11 @@
 - **Ne yapar:** Silahını güçlendirir. Her seviye "+hasar" değil: kilometre taşı seviyelerinde yeni bir yetenek açılır. Kart, o seviyede ne kazanacağını yazar.
 - **Max:** 8 · **Ağırlık:** 10
 - **Kod:** `WeaponUpgradeEffect` (kilometre taşı seviyeleri burada, Inspector'dan değiştirilebilir) → `WeaponBase`. Kart metinleri `Upgrade_Weapon.asset` → Level Descriptions.
+- **Görsel:** Görünür silah, form yeni mekanikle aynı anda değişir (kalkandaki kural; +hasar seviyeleri modeli değiştirmez): **Sv.1-2** temel → **Sv.3-6** 2 namlu (çift hedef) → **Sv.7** 3 namlu (üçlü hedef) → **Sv.8** altın detaylı son form. Yeni form "pop" ile gelir. Topik ve Mıknato'da Silah Gücü alınana kadar silah görünmez (mermi yine atılır), sonra blob'un **sol** yanında belirir; Mermo'da baştan iki yanda.
+  - **Topik:** top. Tek namlu → yan yana çift → üçgen üçlü → geniş ağızlı altın bantlı havan.
+  - **Mıknato:** bilye tüfeği (kırmızı mıknatıs halkalı çelik namlu, tepede bilye dolu cam hazne). Tek → çift → üçlü → uzun namlu, altın halkalar.
+  - **Mermo:** iki yanda keleş. Kısa keleş (tel dipçik) → ahşap dipçikli, bantlı ikiz şarjör → tambur şarjör + dürbün → altın ağızlı keleş pompalı.
+  - Silah gövdeye sabit, gidiş yönüne bakar (hedefe dönmez). Modeller `zorse-blender/build_weapons.py` → `Resources/FX/Weapons/G_<Kar>_1..4` (118–502 üçgen); `WeaponVisual` görünüm renderer'ına child takar (aynı materyal), `CharacterData._weaponModel` / `_weaponVisibleFromStart`.
 - **Temel silah (3 karakter aynı):** saniyede **2.5 atış × 4 hasar** (saniye başına 10), menzil 8. Mermiler küçük ve hızlı.
 
 | Sv. | Kazanılan | Mermi hasarı | Hedef başına sn. hasar |

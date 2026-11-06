@@ -7,7 +7,7 @@
 
 ## 1. Akış
 
-1. İstenen obje için ilgili script'e bir `def <obje>()` fonksiyonu eklenir (eşya/zemin `build_props2.py`, bina `build_kit2.py`, insan `build_people.py`, yerdeki yiyecek `build_litter.py`, karakter `build_blobs.py`, tekil modeller kendi script'inde: `build_chest.py`, `build_police_heli.py`, `build_armor_shields.py`, `build_bullets.py`).
+1. İstenen obje için ilgili script'e bir `def <obje>()` fonksiyonu eklenir (eşya/zemin `build_props2.py`, bina `build_kit2.py`, insan `build_people.py`, yerdeki yiyecek `build_litter.py`, karakter `build_blobs.py`, tekil modeller kendi script'inde: `build_chest.py`, `build_police_heli.py`, `build_armor_shields.py`, `build_bullets.py`, `build_weapons.py`).
 2. Önce **önizleme render'ı** alınır (oyun açısı 60° + yakın plan) ve görsel kontrol edilir. Script'i tek eşyayla çalıştırmak `props2.blend`'i o eşyayla ezer; tek modelin önizlemesi için geçici bir script kullanılır.
 3. Beğenilince `--export` ile FBX `Assets/_Project/Art/City/...` altına yazılır.
 4. Şehirde yer alacaksa yerleşim `build_city2.py`'a eklenir → `city_v2.json`. **Rastgele sayı tüketmeden** ekle (sabit konum, sayaç); aksi hâlde seed kayar ve bütün şehir değişir.
@@ -67,6 +67,7 @@ Unity'de çarpışma kutusu otomatik hesaplanır: **modelin alttan 0.6 birimlik 
 | `C_` | Toplanabilir (sandık, coin) | `C_Chest` |
 | `W_` | Yenmeyen çevre (sur, kule; elle yerleştirilir) | `W_SeaWall` |
 | `X_` | Oyuncu mermisi (pivot merkez, burun +Y) | `X_BulletMermo` |
+| `G_` | Görünür silah (blob uzayında: pivot blob merkezi, yüz +Y; karakter paleti) | `G_Topik_2` |
 
 PascalCase, Türkçe karakter ve boşluk yok. Eski kitle aynı adı kullanma: `CityVisualFixes` prefab'ları adla eşleştirir.
 

@@ -117,6 +117,7 @@ Ayrıntı ve tüm sayılar **`SKILLS.md`**'de. Özet:
 - Silah **sadece önündeki 180°'ye** ateş eder (yüzün baktığı = gidiş yönü; dururken son yön). Arkandaki polise ateş etmek için ona dönmen gerekir. Tam tepedeki hedef (helikopter) her zaman vurulur.
 - Silah havadaki hedefe (helikopter) otomatik yukarı nişan alır; menzil yatay ölçülür.
 - **Mermiler** karaktere özel model + renkli iz: Topik turuncu şeritli top (döner), Mıknato kırmızı-mavi bantlı çelik bilye (döner), Mermo pirinç kovanlı mermi. Blob büyüdükçe mermi de büyür (Tiny 1× → Dev ~3×, kamera uzaklaştığı için). Modeller `zorse-blender/build_bullets.py`.
+- **Görünür silah** (Silah Gücü'yle form değiştirir; ayrıntı `SKILLS.md`): Topik ve Mıknato'da Silah Gücü alınınca sol yanda belirir (kalkan sağda), Mermo'nun iki yanında baştan keleş var (kalkanı kafada). Silah gövdeye sabit, gidiş yönüne bakar.
 
 ---
 
