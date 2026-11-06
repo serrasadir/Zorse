@@ -18,6 +18,11 @@ namespace BlobSurvivor.Systems
             if (controller == null) return;
             controller.SetSpeedMultiplier(controller.GetSpeedMultiplier() + data.PerLevelValue);
             controller.ReduceTierSlowdownExponent(TierSlowdownReductionPerLevel);
+
+            // Görsel: kaykay → alevli kaykay (Sv.4) → + popoda roket (Sv.8). UpgradeSystem seviyeyi Apply'dan önce artırır.
+            SpeedVisual visual = blobRoot.GetComponent<SpeedVisual>();
+            if (visual == null) visual = blobRoot.AddComponent<SpeedVisual>();
+            visual.SetLevel(UpgradeSystem.Instance != null ? UpgradeSystem.Instance.GetLevel(data) : 1);
         }
     }
 }

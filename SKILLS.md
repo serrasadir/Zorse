@@ -95,6 +95,7 @@
 - **Ne yapar:** İki şey yapar. (1) Hız çarpanını artırır. (2) Büyüdükçe gelen yavaşlamayı biraz hafifletir.
 - **Seviye başına:** +%10 hız, yavaşlama üssü −0.015 · **Max:** 8 · **Ağırlık:** 10
 - **Kod:** `SpeedBoostEffect` → `BlobController.SetSpeedMultiplier` + `ReduceTierSlowdownExponent`
+- **Görsel (bütün karakterlerde aynı):** **Sv.1-3** kaykay → **Sv.4-7** alevli kaykay (tablada alev deseni, turuncu tekerlek) → **Sv.8** alevli kaykay + **popoda roket** (alevi hıza göre uzar, dururken söner gibi kısalır, titrer). Yeni parça "pop" ile gelir. Kaykay varken görünüm 0.13 kalkar (tekerlekler yere basar; collider ve yeme aynı). Modeller `zorse-blender/build_speed.py` → `Resources/FX/Speed` (kaykay ~210, roket 260, alev 92 üçgen); `SpeedVisual`. Topik'in pasif rüzgar izi bundan ayrı, baştan var.
 - **Formül:** `hız = 5 × çarpan / sıra^üs` (sıra: Tiny 1 … Giant 5, Dev 6). Başlangıç üssü **0.24** (sahnede `BlobController._tierSlowdownExponent`).
 
 | Seviye | Çarpan | Üs | Tiny hızı | Giant hızı | Dev hızı |

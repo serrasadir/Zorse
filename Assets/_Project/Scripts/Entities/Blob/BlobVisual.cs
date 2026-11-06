@@ -23,6 +23,11 @@ namespace BlobSurvivor.Entities.Blob
         private Vector3 _recoilLocalDir;
         private const float RecoilDuration = 0.14f;
         private const float RecoilDistance = 0.09f; // kök ölçeğinde: çapın ~%9'u
+        private Vector3 _recoilOffset;
+        private float _lift;                         // şu anki yükseklik (Lift'e yumuşakça gider)
+
+        // Görünümü kök-yerel yukarı kaldırır (Hız skili kaykayı: tekerlekler yere bassın). Sadece görsel; collider aynı.
+        public float Lift { get; set; }
 
         // Yüzü olan görünüm takılıysa "önle yeme" kuralı (BlobConsumption.CanEatFrom) bu yönü kullanır.
         public bool HasFacing => _visual != null;
@@ -54,6 +59,8 @@ namespace BlobSurvivor.Entities.Blob
             _lastPosition = transform.position;
             _gulpTime = -1f;
             _recoilTime = -1f;
+            _recoilOffset = Vector3.zero;
+            Lift = _lift = 0f;
 
             ModelRenderer = null;
             if (prefab == null)
@@ -107,6 +114,8 @@ namespace BlobSurvivor.Entities.Blob
             _visual.rotation = _facing;
             UpdateGulp(dt);
             UpdateRecoil(dt);
+            _lift = Mathf.MoveTowards(_lift, Lift, dt * 1.2f);
+            _visual.localPosition = _recoilOffset + Vector3.up * _lift;
         }
 
         // Silah ateşlenince görünüm ateş yönünün tersine kısa bir tepme yapar (sadece görsel child).
@@ -127,12 +136,12 @@ namespace BlobSurvivor.Entities.Blob
             if (t >= 1f)
             {
                 _recoilTime = -1f;
-                _visual.localPosition = Vector3.zero;
+                _recoilOffset = Vector3.zero;
                 return;
             }
             // Hızlı tepme, yumuşak dönüş.
             float k = t < 0.25f ? t / 0.25f : 1f - Mathf.SmoothStep(0f, 1f, (t - 0.25f) / 0.75f);
-            _visual.localPosition = _recoilLocalDir * (RecoilDistance * k);
+            _recoilOffset = _recoilLocalDir * (RecoilDistance * k);
         }
 
         // Büyük lokmada "yutkunma": görünüm bir an basıklaşıp yanlara şişer, geri gelir. Sadece görsel child —

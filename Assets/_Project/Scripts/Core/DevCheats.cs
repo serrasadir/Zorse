@@ -16,6 +16,7 @@ namespace BlobSurvivor.Core
     //   K  Kara Delik: Vakum 8 + Sindirim 8 + evrim (evrim anı efekti oynar)
     //   Z  Zırh skill'i +1 seviye (kalkan, Sv.3 dikenler, Sv.8 şok dalgası)
     //   G  Silah Gücü +1 seviye (görünür silah: Sv.1, 3, 7, 8'de form değişir)
+    //   J  Hız +1 seviye (Sv.1 kaykay, Sv.4 alevli kaykay, Sv.8 roket)
     public class DevCheats : MonoBehaviour
     {
         private const float MassStep = 500f;
@@ -76,6 +77,9 @@ namespace BlobSurvivor.Core
 
             if (keyboard.gKey.wasPressedThisFrame && BlobSurvivor.Systems.UpgradeSystem.Instance != null)
                 Debug.Log("[DevCheats] " + BlobSurvivor.Systems.UpgradeSystem.Instance.DebugGrant("weapon"));
+
+            if (keyboard.jKey.wasPressedThisFrame && BlobSurvivor.Systems.UpgradeSystem.Instance != null)
+                Debug.Log("[DevCheats] " + BlobSurvivor.Systems.UpgradeSystem.Instance.DebugGrant("speed_boost"));
 
             if (keyboard.hKey.wasPressedThisFrame && _health != null)
                 _health.Heal(_health.MaxHealth);

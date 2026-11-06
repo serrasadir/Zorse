@@ -121,7 +121,7 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 
 **Performans göstergesi** (`PerfOverlay`, telefonda da): 3 parmakla dokun (Editor'da F3) → FPS, en kötü kare, +500 kütle düğmesi. **Yayın öncesi `PerfOverlay.Enabled = false`.**
 
-**Editor test tuşları** (`DevCheats`, sadece Editor): **M** +500 kütle (XP'siz) · **B** final boss −%25 can · **H** can doldur · **N** sıradaki boss aşamasını hemen çıkar (aktif boss kalkar) · **V** Vakum skill'i +1 seviye (kart açılmaz) · **K** Kara Delik (Vakum 8 + Sindirim 8 + evrim, evrim anı oynar) · **Z** Zırh skill'i +1 seviye · **G** Silah Gücü +1 seviye.
+**Editor test tuşları** (`DevCheats`, sadece Editor): **M** +500 kütle (XP'siz) · **B** final boss −%25 can · **H** can doldur · **N** sıradaki boss aşamasını hemen çıkar (aktif boss kalkar) · **V** Vakum skill'i +1 seviye (kart açılmaz) · **K** Kara Delik (Vakum 8 + Sindirim 8 + evrim, evrim anı oynar) · **Z** Zırh skill'i +1 seviye · **G** Silah Gücü +1 seviye · **J** Hız +1 seviye.
 
 ## iOS / TestFlight
 
