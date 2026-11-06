@@ -125,6 +125,8 @@ namespace BlobSurvivor.Core
             if (visual == null) visual = blob.AddComponent<BlobVisual>();
             visual.Apply(character.BlobVisualPrefab);
             ArmorShield.OnHead = character.ArmorOnHead; // Zırh kalkanı kafada mı (Mermo)
+            if (character.SpeedTrail)
+                blob.AddComponent<SpeedTrail>(); // Topik: rüzgar izi (eskisi ClearPreviousRunState'te kare sonunda silinir)
             WeaponVisual weaponVisual = blob.GetComponent<WeaponVisual>();
             if (weaponVisual == null) weaponVisual = blob.AddComponent<WeaponVisual>();
             weaponVisual.Setup(visual.ModelRenderer, character.WeaponModel, character.WeaponVisibleFromStart);
@@ -169,6 +171,7 @@ namespace BlobSurvivor.Core
             // Skill efektleri blob'a component olarak eklenir; kalırsa bonuslar yeni run'a sızar.
             RemoveComponent<BlackHoleComponent>(blob);
             RemoveComponent<LifestealComponent>(blob);
+            RemoveComponent<SpeedTrail>(blob);
             RemoveComponent<ArmorShield>(blob); // Zırh baloncuğu + dikenler (kalkan havuzunu ResetHealth sıfırlar)
 
             blob.GetComponent<BlobGrowth>()?.ResetGrowth();

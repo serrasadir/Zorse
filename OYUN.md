@@ -111,7 +111,7 @@ Ayrıntı ve tüm sayılar **`SKILLS.md`**'de. Özet:
 - **1 evrim:** Attract + Sindirim (max) → **Kara Delik**. Evrim kartı ★ ve altın renkle gelir. Seçilince evrim anı oynar (ağır çekim, kasırga blob'a çöker, indigo şok dalgası, ekranda ★ KARA DELİK); sonra blob'un altında siyah olay ufku ve siyah-lacivert kasırga kalır.
 - Max seviyedeki skill havuzdan çıkar; birden çok level aynı anda atlanırsa kartlar sırayla gelir; run bittiyse kart açılmaz.
 - **3 karakter**, hepsi top formunda, silahlar otomatik ateşler:
-  - **Topik** — top (yay çizen, küçük patlamalı); pasif: hız. Baştan açık.
+  - **Topik** — top (yay çizen, küçük patlamalı); pasif: hız. Baştan açık. Hızlı giderken arkasında hafif rüzgar çizgileri (iki yandan ve tepeden üç ince beyaz iz; `CharacterData._speedTrail`, `SpeedTrail`).
   - **Mıknato** — metal bilye (hedefe bükülen); pasif: Attract ×1.25. Market'te 500 kredi.
   - **Mermo** — tabanca (hızlı, düz); pasif: kendinden 1 tier büyük objeyi vurup 3 yenebilir parçaya böler. **3 run bitirince** açılır (ölüm de sayılır).
 - Silah **sadece önündeki 180°'ye** ateş eder (yüzün baktığı = gidiş yönü; dururken son yön). Arkandaki polise ateş etmek için ona dönmen gerekir. Tam tepedeki hedef (helikopter) her zaman vurulur.

@@ -25,6 +25,8 @@ namespace BlobSurvivor.Data
         [SerializeField] private GameObject _blobVisualPrefab;
         [Tooltip("Zırh kalkanı yanda süzülmek yerine kafada şapka gibi durur (Mermo: yanlarda keleşleri var).")]
         [SerializeField] private bool _armorOnHead;
+        [Tooltip("Hızlı giderken arkada hafif rüzgar çizgileri (Topik: hız pasifi).")]
+        [SerializeField] private bool _speedTrail;
         [Tooltip("Silah Gücü görseli: Resources/FX/Weapons/G_<bu>_1..4 (build_weapons.py). Boş = silah görünmez.")]
         [SerializeField] private string _weaponModel;
         [Tooltip("Silah Sv.0'dan görünür (Mermo). Kapalıysa Silah Gücü alınınca belirir.")]
@@ -52,6 +54,7 @@ namespace BlobSurvivor.Data
         public GameObject StartingWeaponPrefab => _startingWeaponPrefab;
         public GameObject BlobVisualPrefab => _blobVisualPrefab;
         public bool ArmorOnHead => _armorOnHead;
+        public bool SpeedTrail => _speedTrail;
         public string WeaponModel => _weaponModel;
         public bool WeaponVisibleFromStart => _weaponVisibleFromStart;
         public UpgradeData FavoredUpgrade => _favoredUpgrade;
