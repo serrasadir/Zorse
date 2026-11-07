@@ -22,12 +22,12 @@ MonoBehaviour:
   _maxLevel: 8
   _perLevelValue: 2
   _levelDescriptions:
-  - "Mermi hasar\u0131 +2."
-  - "Mermi hasar\u0131 +2."
+  - "Mermi hasar\u0131 +2, menzil +0.5."
+  - "Mermi hasar\u0131 +2, menzil +0.5."
   - "Ayn\u0131 anda en yak\u0131n 2 d\xFC\u015Fmana ate\u015F eder."
-  - "Mermi hasar\u0131 +2."
+  - "Mermi hasar\u0131 +2, menzil +0.5."
   - "Mermiler ilk d\xFC\u015Fman\u0131 delip arkas\u0131ndakine de vurur."
-  - "Mermi hasar\u0131 +2."
+  - "Mermi hasar\u0131 +2, menzil +0.5."
   - "Ayn\u0131 anda en yak\u0131n 3 d\xFC\u015Fmana ate\u015F eder."
   - "SON FORM: {ultimate}"
   _isEvolution: 0

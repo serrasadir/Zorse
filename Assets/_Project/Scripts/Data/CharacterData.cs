@@ -35,8 +35,11 @@ namespace BlobSurvivor.Data
         [Header("Kart Çekimi")]
         [Tooltip("Bu karakterde kart ekranında daha sık çıkan skill (Topik Hız, Mıknato Vakum, Mermo Silah Gücü).")]
         [SerializeField] private UpgradeData _favoredUpgrade;
-        [Tooltip("Favori skill'in ağırlık çarpanı. 2 ≈ kart ekranlarının %48'i yerine %69'unda çıkar.")]
+        [Tooltip("Favori skill'in ağırlık çarpanı. 2 ≈ kart ekranlarının %41'i yerine %63'ünde çıkar.")]
         [SerializeField] private float _favoredWeightMultiplier = 2f;
+        [Tooltip("Run'a bu skill bu seviyede başlar (ör. Mermo: Silah Gücü Sv.2). 0 = yok.")]
+        [SerializeField] private UpgradeData _startingUpgrade;
+        [SerializeField] private int _startingUpgradeLevel;
 
         [Header("Pasif")]
         [SerializeField] private CharacterPassiveType _passiveType;
@@ -59,6 +62,8 @@ namespace BlobSurvivor.Data
         public bool WeaponVisibleFromStart => _weaponVisibleFromStart;
         public UpgradeData FavoredUpgrade => _favoredUpgrade;
         public float FavoredWeightMultiplier => _favoredWeightMultiplier;
+        public UpgradeData StartingUpgrade => _startingUpgrade;
+        public int StartingUpgradeLevel => _startingUpgradeLevel;
         public CharacterPassiveType PassiveType => _passiveType;
         public float PassiveValue => _passiveValue;
         public bool RequiresMarketUnlock => _requiresMarketUnlock;

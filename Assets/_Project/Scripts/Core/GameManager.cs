@@ -165,8 +165,13 @@ namespace BlobSurvivor.Core
             VacuumComponent oldVacuum = blob.GetComponent<VacuumComponent>();
             if (oldVacuum != null) Destroy(oldVacuum);
 
-            WeaponBase oldWeapon = blob.GetComponentInChildren<WeaponBase>();
-            if (oldWeapon != null) Destroy(oldWeapon.gameObject);
+            // Karakter silahı + skill'le kurulan Havai Fişek (ikisi de blob'un child'ı).
+            foreach (WeaponBase oldWeapon in blob.GetComponentsInChildren<WeaponBase>())
+                if (oldWeapon.gameObject != blob)
+                {
+                    oldWeapon.transform.SetParent(null); // Destroy kare sonunda: başlangıç skill'i bu karede eskisini bulmasın
+                    Destroy(oldWeapon.gameObject);
+                }
 
             // Skill efektleri blob'a component olarak eklenir; kalırsa bonuslar yeni run'a sızar.
             RemoveComponent<BlackHoleComponent>(blob);

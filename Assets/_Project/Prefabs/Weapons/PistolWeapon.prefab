@@ -46,6 +46,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Weapons.PistolWeapon
   _fireRate: 2.5
   _damage: 4
-  _range: 8
+  _range: 3
   _projectilePrefab: {fileID: 8627647832622817237, guid: 1104b24a1ac2e4446a1b3372ef8cfd31, type: 3}
   _ultimateDescription: "Pompal\u0131 \u2014 her at\u0131\u015F 5 sa\xE7mal\u0131 bir yelpaze olur."

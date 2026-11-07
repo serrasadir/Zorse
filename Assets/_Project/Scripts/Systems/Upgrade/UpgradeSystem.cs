@@ -29,6 +29,8 @@ namespace BlobSurvivor.Systems
         private bool _awaitingChoice;
         private int _pendingLevelUps;
         private CharacterData _character; // favori skill'i daha sık çekilir
+        private int _playerLevel;
+        private readonly HashSet<UpgradeData> _guaranteeUsed = new HashSet<UpgradeData>();
 
         private void Awake()
         {
@@ -75,6 +77,23 @@ namespace BlobSurvivor.Systems
             _dynamicUpgrades.Clear();
             _awaitingChoice = false;
             _pendingLevelUps = 0;
+            _playerLevel = 0;
+            _guaranteeUsed.Clear();
+            GrantStartingUpgrade(character);
+        }
+
+        // Karakterin başlangıç skill'i (Mermo: Silah Gücü Sv.2): kart seçimiyle aynı yoldan, seviye seviye uygulanır.
+        private void GrantStartingUpgrade(CharacterData character)
+        {
+            if (character == null || character.StartingUpgrade == null || _blobRoot == null) return;
+            UpgradeData data = character.StartingUpgrade;
+            int target = Mathf.Min(character.StartingUpgradeLevel, data.MaxLevel);
+            for (int level = 1; level <= target; level++)
+            {
+                _levels[data] = level;
+                if (data.Effect != null) data.Effect.Apply(_blobRoot, data);
+                GameEvents.RaiseUpgradeApplied(data, level);
+            }
         }
 
         public int GetLevel(UpgradeData data)
@@ -89,6 +108,7 @@ namespace BlobSurvivor.Systems
             // run bitmiş ekranın üstünde açılıyordu. Run bittiyse (ölüm ya da tamamlandı) level-up yok sayılır.
             GameState state = GameManager.Instance != null ? GameManager.Instance.CurrentState : GameState.Playing;
             if (state == GameState.GameOver || state == GameState.RunComplete) return;
+            _playerLevel = Mathf.Max(_playerLevel, level);
 
             if (_awaitingChoice)
             {
@@ -175,8 +195,22 @@ namespace BlobSurvivor.Systems
 
             int count = Mathf.Min(_choiceCount, pool.Count);
             var selected = new UpgradeData[count];
+            int first = 0;
 
-            for (int i = 0; i < count; i++)
+            // Garantili kart (bir kez): seviyesine gelinmiş, hiç alınmamış.
+            for (int j = 0; j < pool.Count; j++)
+            {
+                UpgradeData u = pool[j];
+                if (u.GuaranteedAtLevel <= 0 || _playerLevel < u.GuaranteedAtLevel) continue;
+                if (GetLevel(u) > 0 || _guaranteeUsed.Contains(u)) continue;
+                _guaranteeUsed.Add(u);
+                selected[0] = u;
+                pool.RemoveAt(j);
+                first = 1;
+                break;
+            }
+
+            for (int i = first; i < count; i++)
             {
                 float total = 0f;
                 foreach (var u in pool) total += WeightOf(u);

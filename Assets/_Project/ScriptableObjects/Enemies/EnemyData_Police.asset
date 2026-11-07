@@ -16,7 +16,7 @@ MonoBehaviour:
   _prefab: {fileID: 5896680904072327028, guid: 2d258be3b3b864c49b3b9a86b6b8671b, type: 3}
   _maxHealth: 50
   _damage: 10
-  _moveSpeed: 3
+  _moveSpeed: 2.7
   _attackRange: 2
   _attackCooldown: 1
   _scoreValue: 3

@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a39f692a12e49499b3cddabf07df41, type: 3}
+  m_Name: Upgrade_Firework
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
+  _id: firework
+  _displayName: "Havai Fişek"
+  _description: "Uzun menzilli ağır atış. Önce boss'a, sonra elit polise nişan alır; sadece önüne ateş eder."
+  _icon: {fileID: 0}
+  _category: 3
+  _weight: 10
+  _effect: {fileID: 11400000, guid: 4b6f5e91380841d3ae34b407d156aa34, type: 2}
+  _maxLevel: 6
+  _perLevelValue: 8
+  _levelDescriptions:
+  - "Önündeki en güçlü düşmana uzun menzilli ağır atış (25 hasar). Önce boss, sonra elit."
+  - "Havai Fişek hasarı +8."
+  - "Havai Fişek atış hızı %30 artar."
+  - "Havai Fişek hasarı +8."
+  - "Boss ve elit polise %50 fazla hasar."
+  - "SON FORM: her atış art arda 2 roket."
+  _guaranteedAtLevel: 4
+  _isEvolution: 0

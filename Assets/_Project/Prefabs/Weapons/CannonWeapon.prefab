@@ -46,6 +46,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Weapons.CannonWeapon
   _fireRate: 2.5
   _damage: 4
-  _range: 8
+  _range: 3
   _projectilePrefab: {fileID: 4560391737795658350, guid: 59e6e5c532eee4945bb64ad4e614816a, type: 3}
   _ultimateDescription: "B\xFCy\xFCk Patlama \u2014 topun patlama alan\u0131 2.5 kat\u0131na \xE7\u0131kar."

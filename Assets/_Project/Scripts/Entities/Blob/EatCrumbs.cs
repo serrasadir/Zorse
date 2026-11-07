@@ -40,6 +40,29 @@ namespace BlobSurvivor.Entities.Blob
             _ps.Emit(Mathf.Clamp(Mathf.RoundToInt(20f * Mathf.Pow(k, 1.2f)), 20, 90));
         }
 
+        // Havai fişek patlaması / duman: noktadan her yöne saçılır, sonra düşer (gravity < 0) ya da yükselir.
+        public void PlayBurst(Vector3 point, Color a, Color b, float size, int count, float speed, float gravity)
+        {
+            if (_ps == null) _ps = GetComponent<ParticleSystem>();
+            transform.SetPositionAndRotation(point, Quaternion.identity);
+
+            ParticleSystem.ShapeModule shape = _ps.shape;
+            shape.scale = Vector3.one * (0.15f * size);
+
+            ParticleSystem.MainModule main = _ps.main;
+            main.startColor = new ParticleSystem.MinMaxGradient(a, b);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.07f * size, 0.15f * size);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(speed * 0.6f * size, speed * size);
+
+            ParticleSystem.ForceOverLifetimeModule force = _ps.forceOverLifetime;
+            force.x = 0f;
+            force.y = gravity;
+            force.z = 0f;
+
+            if (!_ps.isPlaying) _ps.Play();
+            _ps.Emit(count);
+        }
+
         public void Stop() => _ps.Clear();
     }
 }

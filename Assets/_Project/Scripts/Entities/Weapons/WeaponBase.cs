@@ -10,7 +10,10 @@ namespace BlobSurvivor.Entities.Weapons
         // saniyede 2.5 × 4 hasar — saniye başına hasar aynı (10), ateş akıcı. Değerler prefab'larda.
         [SerializeField] protected float _fireRate = 2.5f;
         [SerializeField] protected float _damage = 4f;
-        [SerializeField] protected float _range = 8f;
+        [Tooltip("Menzil gövde YÜZEYİNDEN (Vakum gibi): blob büyüdükçe menzil de onunla büyür.")]
+        [SerializeField] protected float _range = 3f;
+        // Ateş yayı (yüzün baktığı yöne göre, derece). 360 = her yöne; ana silahlar 360, Havai Fişek ön koni.
+        [SerializeField, Range(30f, 360f)] protected float _fireArc = 360f;
         [SerializeField] protected Projectile _projectilePrefab;
         // Kartta Sv.8 açıklamasında gösterilir — karaktere özel son form (bkz. UpgradePanel).
         [SerializeField] private string _ultimateDescription;
@@ -33,9 +36,11 @@ namespace BlobSurvivor.Entities.Weapons
         private readonly float[] _targetSqr = new float[MaxTargets];
         private ObjectPool<Projectile> _projectilePool;
         private float _cooldown;
+        private const float NoTargetRetry = 0.1f; // menzilde hedef yokken her kare Overlap atmasın
         private Transform _blobRoot;
         private BlobSurvivor.Entities.Blob.BlobVisual _blobVisual;
         private const float TinyBlobScale = 0.5f;   // BlobGrowth._baseScale
+        private float _bodyLocalRadius = 0.5f;      // blob'un katı SphereCollider'ı (yeme trigger'ı değil)
         private const float MaxBulletScale = 3f;
 
         // Silah Gücü yolu (WeaponUpgradeEffect ayarlar). Restart'ta silah yeniden yaratıldığı için kendiliğinden sıfırlanır.
@@ -43,16 +48,49 @@ namespace BlobSurvivor.Entities.Weapons
         protected int Pierce { get; private set; }
         protected bool UltimateActive { get; private set; }
 
-        // Aktif silahın son form açıklaması — tek oyuncu silahı olduğu için statik tutulur.
+        // Ana silahın (karakter silahı) son form açıklaması — Silah Gücü kartı okur.
         public static string CurrentUltimateDescription { get; private set; }
+
+        // Karakter silahı = ana silah (Silah Gücü bunu büyütür). İkincil silahlar (Havai Fişek) false döner.
+        public virtual bool IsPrimary => true;
+
+        public static WeaponBase FindPrimary(GameObject root)
+        {
+            foreach (WeaponBase w in root.GetComponentsInChildren<WeaponBase>())
+                if (w.IsPrimary) return w;
+            return null;
+        }
 
         protected virtual void Awake()
         {
-            if (_projectilePrefab != null && PoolManager.Instance != null)
-                _projectilePool = PoolManager.Instance.CreatePool(_projectilePrefab, InitialPoolSize);
-            CurrentUltimateDescription = _ultimateDescription;
+            SetProjectilePrefab(_projectilePrefab);
+            if (IsPrimary) CurrentUltimateDescription = _ultimateDescription;
             _blobVisual = GetComponentInParent<BlobSurvivor.Entities.Blob.BlobVisual>();
             _blobRoot = transform.parent;
+            if (_blobRoot != null)
+                foreach (SphereCollider c in _blobRoot.GetComponents<SphereCollider>())
+                    if (!c.isTrigger) { _bodyLocalRadius = c.radius; break; }
+        }
+
+        // Merkezden ölçülen gerçek menzil = gövde yarıçapı + yüzeyden menzil.
+        protected float EffectiveRange =>
+            (_blobRoot != null ? _blobRoot.localScale.x * _bodyLocalRadius : 0f) + _range;
+
+        // Runtime'da kurulan silah (skill efekti) için: AddComponent'ten sonra çağrılır.
+        protected void Configure(Projectile prefab, float fireRate, float damage, float range, float arc)
+        {
+            _fireRate = fireRate;
+            _damage = damage;
+            _range = range;
+            _fireArc = arc;
+            SetProjectilePrefab(prefab);
+        }
+
+        private void SetProjectilePrefab(Projectile prefab)
+        {
+            _projectilePrefab = prefab;
+            _projectilePool = prefab != null && PoolManager.Instance != null
+                ? PoolManager.Instance.CreatePool(prefab, InitialPoolSize) : null;
         }
 
         // Kamera blob'la birlikte uzaklaşıyor: mermi de büyümezse Giant'ta görünmez. Tiny 1 → Dev ~3.
@@ -65,35 +103,45 @@ namespace BlobSurvivor.Entities.Weapons
         protected virtual void Update()
         {
             _cooldown -= Time.deltaTime;
-            if (_cooldown > 0f) return;
+            if (_cooldown > 0f || !CanFire) return;
 
             int count = FindNearestEnemies(TargetCount);
-            if (count == 0) return;
+            if (count == 0) { _cooldown = NoTargetRetry; return; }
 
             for (int i = 0; i < count; i++)
                 Fire(_targets[i]);
             _cooldown = 1f / _fireRate;
-            if (_blobVisual != null) _blobVisual.Recoil(_targets[0].position - transform.position);
+            if (_blobVisual != null) _blobVisual.Recoil(_targets[0].position - transform.position, RecoilStrength);
         }
 
+        protected virtual float RecoilStrength => 1f;
+        protected virtual bool CanFire => true; // Havai Fişek: dönünce kurma süresi
+        protected BlobSurvivor.Entities.Blob.BlobVisual Visual => _blobVisual;
+
         public void IncreaseDamage(float amount) => _damage += amount;
+        public void MultiplyFireRate(float factor) => _fireRate *= factor;
+        public void IncreaseRange(float amount) => _range += amount;
         public void SetTargetCount(int count) => TargetCount = Mathf.Clamp(count, 1, MaxTargets);
         public void SetPierce(int pierce) => Pierce = Mathf.Max(0, pierce);
         public void EnableUltimate() => UltimateActive = true;
 
         protected abstract void Fire(Transform target);
 
-        // 2026-11-06 (Serra: "sadece önüme doğru ateş edeyim"): hedef yalnızca yüzün baktığı yarım düzlemde (ön 180°).
-        // Yüz = BlobVisual.Forward (gidiş yönü; dururken son yön). Görünümsüz küre ve tam tepedeki hedef (helikopter) serbest.
+        // Yay < 360: hedef yalnızca yüzün baktığı koni içinde. Yüz = BlobVisual.Forward (gidiş yönü; dururken son yön).
+        // Görünümsüz küre ve tam tepedeki hedef (helikopter) serbest. Kaçarken arkaya ateş edilemesin diye ana silahlar 360.
         private const float OverheadSqr = 0.25f;
 
-        // En yakın N düşmanı _targets'a yakından uzağa doldurur (N ≤ 3, küçük ekleme sıralaması).
+        // Hedef sıralaması: küçük = önce. Varsayılan en yakın; Havai Fişek boss/elit önceliği ekler.
+        protected virtual float TargetCost(Collider hit, float flatSqr) => flatSqr;
+
+        // En iyi N düşmanı _targets'a doldurur (N ≤ 3, küçük ekleme sıralaması).
         private int FindNearestEnemies(int wanted)
         {
             Vector3 origin = transform.position;
-            bool frontOnly = _blobVisual != null && _blobVisual.HasFacing;
+            bool frontOnly = _fireArc < 359.9f && _blobVisual != null && _blobVisual.HasFacing;
             Vector3 forward = frontOnly ? _blobVisual.Forward : Vector3.forward;
-            int hitCount = Physics.OverlapCapsuleNonAlloc(origin, origin + Vector3.up * VerticalReach, _range, _hits, EnemyLayerMask);
+            float cosHalf = Mathf.Cos(_fireArc * 0.5f * Mathf.Deg2Rad);
+            int hitCount = Physics.OverlapCapsuleNonAlloc(origin, origin + Vector3.up * VerticalReach, EffectiveRange, _hits, EnemyLayerMask);
             int found = 0;
 
             for (int i = 0; i < hitCount; i++)
@@ -101,8 +149,9 @@ namespace BlobSurvivor.Entities.Weapons
                 Transform t = _hits[i].transform;
                 Vector3 flat = t.position - origin;
                 flat.y = 0f;
-                float sqr = flat.sqrMagnitude;
-                if (frontOnly && sqr > OverheadSqr && Vector3.Dot(forward, flat) < 0f) continue; // arkada
+                float flatSqr = flat.sqrMagnitude;
+                if (frontOnly && flatSqr > OverheadSqr && Vector3.Dot(forward, flat) < cosHalf * Mathf.Sqrt(flatSqr)) continue; // yay dışında
+                float sqr = TargetCost(_hits[i], flatSqr);
 
                 int slot = found;
                 while (slot > 0 && _targetSqr[slot - 1] > sqr) slot--;

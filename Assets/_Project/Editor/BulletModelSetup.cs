@@ -18,6 +18,7 @@ namespace BlobSurvivor.EditorTools
             public string Prefab, Mesh;
             public Color Trail;
             public float Spin;
+            public float RootScale, TrailTime, TrailWidth; // 0 = varsayılan (1, 0.14, 0.17)
         }
 
         private static readonly Entry[] Entries =
@@ -25,6 +26,9 @@ namespace BlobSurvivor.EditorTools
             new Entry { Prefab = "Assets/_Project/Prefabs/Weapons/Cannon.prefab", Mesh = "X_BulletTopik", Trail = new Color(1f, 0.64f, 0.3f), Spin = 720f },
             new Entry { Prefab = "Assets/_Project/Prefabs/Weapons/MetalBall.prefab", Mesh = "X_BulletMiknato", Trail = new Color(0.55f, 0.82f, 1f), Spin = 540f },
             new Entry { Prefab = "Assets/_Project/Prefabs/Weapons/Pistol.prefab", Mesh = "X_BulletMermo", Trail = new Color(1f, 0.85f, 0.35f), Spin = 0f },
+            // Havai Fişek roketi: iz ve gövde rengi her atışta FireworkProjectile'dan gelir.
+            new Entry { Prefab = "Assets/_Project/Prefabs/Weapons/FireworkRocket.prefab", Mesh = "X_Firework", Trail = Color.white, Spin = 0f,
+                        RootScale = 1.3f, TrailTime = 0.32f, TrailWidth = 0.24f },
         };
 
         [MenuItem("Tools/Blob.io/Mermi Modellerini Uygula")]
@@ -45,7 +49,7 @@ namespace BlobSurvivor.EditorTools
                 if (source == null) continue;
 
                 GameObject root = PrefabUtility.LoadPrefabContents(e.Prefab);
-                root.transform.localScale = Vector3.one;
+                root.transform.localScale = Vector3.one * (e.RootScale > 0f ? e.RootScale : 1f);
                 // Eski gri küre kökteydi.
                 var oldRenderer = root.GetComponent<MeshRenderer>();
                 if (oldRenderer != null) Object.DestroyImmediate(oldRenderer);
@@ -81,10 +85,10 @@ namespace BlobSurvivor.EditorTools
                 var trail = root.GetComponent<TrailRenderer>();
                 if (trail == null) trail = root.AddComponent<TrailRenderer>();
                 trail.sharedMaterial = trailMat;
-                trail.time = 0.14f;
+                trail.time = e.TrailTime > 0f ? e.TrailTime : 0.14f;
                 trail.minVertexDistance = 0.12f;
                 trail.widthMultiplier = 1f;
-                trail.widthCurve = new AnimationCurve(new Keyframe(0f, 0.17f), new Keyframe(1f, 0f));
+                trail.widthCurve = new AnimationCurve(new Keyframe(0f, e.TrailWidth > 0f ? e.TrailWidth : 0.17f), new Keyframe(1f, 0f));
                 var grad = new Gradient();
                 grad.SetKeys(
                     new[] { new GradientColorKey(Color.Lerp(e.Trail, Color.white, 0.35f), 0f), new GradientColorKey(e.Trail, 1f) },

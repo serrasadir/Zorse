@@ -107,17 +107,17 @@ Boss'lar sırayla ve tek tek gelir: biri yaşıyorsa sonraki onun ölmesini bekl
 
 Ayrıntı ve tüm sayılar **`SKILLS.md`**'de. Özet:
 
-- **7 skill:** Silah Gücü, Zırh (kalkan), Can Emme (vurduğun hasarın %2/sv'si can), Can Artışı, Hız, Attract (Vakum), Sindirim.
+- **8 skill:** Silah Gücü, Havai Fişek (ikinci silah, boss avcısı), Zırh (kalkan), Can Emme (vurduğun hasarın %2/sv'si can), Can Artışı, Hız, Attract (Vakum), Sindirim.
 - **1 evrim:** Attract + Sindirim (max) → **Kara Delik**. Evrim kartı ★ ve altın renkle gelir. Seçilince evrim anı oynar (ağır çekim, kasırga blob'a çöker, indigo şok dalgası, ekranda ★ KARA DELİK); sonra blob'un altında siyah olay ufku ve siyah-lacivert kasırga kalır.
 - Max seviyedeki skill havuzdan çıkar; birden çok level aynı anda atlanırsa kartlar sırayla gelir; run bittiyse kart açılmaz.
 - **3 karakter**, hepsi top formunda, silahlar otomatik ateşler:
   - **Topik** — top (yay çizen, küçük patlamalı); pasif: hız. Baştan açık. Hızlı giderken arkasında hafif rüzgar çizgileri (iki yandan ve tepeden üç ince beyaz iz; `CharacterData._speedTrail`, `SpeedTrail`).
   - **Mıknato** — metal bilye (hedefe bükülen); pasif: Attract ×1.25. Market'te 500 kredi.
-  - **Mermo** — tabanca (hızlı, düz); pasif: kendinden 1 tier büyük objeyi vurup 3 yenebilir parçaya böler. **3 run bitirince** açılır (ölüm de sayılır).
-- Silah **sadece önündeki 180°'ye** ateş eder (yüzün baktığı = gidiş yönü; dururken son yön). Arkandaki polise ateş etmek için ona dönmen gerekir. Tam tepedeki hedef (helikopter) her zaman vurulur.
+  - **Mermo** — tabanca (hızlı, düz); pasif: kendinden 1 tier büyük objeyi vurup 3 yenebilir parçaya böler; ayrıca **Silah Gücü Sv.2 ile başlar** (`CharacterData._startingUpgrade`). **3 run bitirince** açılır (ölüm de sayılır).
+- **İki silah:** karakter silahı **her yöne** (360°) ama kısa menzille (gövde yüzeyinden 3, Silah Gücü ile 5'e kadar) ateş eder: kaçarken kovalayanı savuşturur, haritayı temizlemez. **Havai Fişek** (kart, Sv.4'te bir kez garanti; 1. miniboss Sv.5'te) uzun menzilli (gövde yüzeyinden 12), yavaş, tek hedefe ağır; sadece **önündeki 120°'ye**, önce boss'a sonra elite nişan alır. Dönünce 1 sn kurulur (fitil kıvılcımı = hazır). Boss ritmi: dön, dur (yüz son yönde kalır), kurulsun, ateş et; lazer kilitlenince yana kaç. Tam tepedeki hedef (helikopter) her zaman vurulur.
 - Silah havadaki hedefe (helikopter) otomatik yukarı nişan alır; menzil yatay ölçülür.
 - **Mermiler** karaktere özel model + renkli iz: Topik turuncu şeritli top (döner), Mıknato kırmızı-mavi bantlı çelik bilye (döner), Mermo pirinç kovanlı mermi. Blob büyüdükçe mermi de büyür (Tiny 1× → Dev ~3×, kamera uzaklaştığı için). Modeller `zorse-blender/build_bullets.py`.
-- **Görünür silah** (Silah Gücü'yle form değiştirir; ayrıntı `SKILLS.md`): Topik ve Mıknato'da Silah Gücü alınınca sol yanda belirir (kalkan sağda), Mermo'nun iki yanında baştan keleş var (kalkanı kafada). Silah gövdeye sabit, gidiş yönüne bakar.
+- **Görünür silah** (Silah Gücü'yle form değiştirir; ayrıntı `SKILLS.md`): Topik ve Mıknato'da Silah Gücü alınınca sol yanda belirir (kalkan sağda), Mermo'nun iki yanında baştan keleş var (kalkanı kafada). Silah gövdeye sabit, gidiş yönüne bakar. **Havai Fişek atarı** sol omuzda, ana silahın üstünde (sol = saldırı, sağ = kalkan); renkli roketler, isabette renkli kıvılcım.
 
 ---
 
@@ -180,7 +180,7 @@ Kademeli statlar sınırsız alınabilir. Kayıt yerel JSON'da (`meta_progressio
 ## 10. Kontrol, Kamera, Arayüz
 
 - **Dokunmatik:** görünmez sürükleme — parmağın bastığı yerden sürüklediğin yön ve mesafe hareket olur (80 px = tam hız). UI butonuna basınca hareket başlamaz. **Klavye:** WASD / ok tuşları.
-- **Kamera:** üstten 60° eğik; blob büyüdükçe yavaş uzaklaşır (en fazla ×4); hasar alınca kısa sarsıntı; final boss gelince ikisini birden kadraja alır.
+- **Kamera:** üstten 60° eğik; blob büyüdükçe uzaklaşır: yükseklik × (ölçek / başlangıç ölçeği)^0.35 (`CameraController._zoomExponent`; Medium ~×1.6, Dev ~×2.2, en fazla ×4). Blob ekranda yine büyür (Dev'de başlangıçtakinin ~4.5 katı); hasar alınca kısa sarsıntı; final boss gelince ikisini birden kadraja alır.
 - **Geri bildirim:** yemede hafif titreşim (iOS haptic), hasarda kırmızı parlama, kalkan vuruşunda kalkan parlar. **Ateş:** her atışta blob ateş yönünün tersine kısa geri teper; mermi namludan iri çıkıp normale iner. **Vuruş:** düşman kısa süre kızarır (boss'lar dahil), boss olmayan geri seker (mermi az, Topik patlaması orta, Zırh dikenleri güçlü). **Medium ve üstü lokmada** obje kaybolduğu an onun renklerinde kırıntı küpleri fışkırıp blob'a çekilir (boyla ölçekli), görünüm bir an "yutkunur"; Large/Giant'ta orta, Dev'de güçlü titreşim ve hafif kamera sarsıntısı. Kırıntı renkleri modelin palet renklerinden (`Yeme Efektini Kur`).
 - **HUD:** barlar (can + altında kalkan barı (Zırh varsa), XP, boss can barı); can barı max canla uzar (100 can = normal boy, sağ kenarı sabit, sola doğru yumuşakça uzar; en fazla ~230 can boyu, Can Artışı/Market); sol üstte süre, sağ üstte skor + coin, XP barının solunda seviye, üstünde tier. Skill rozeti / karakter ikonu yok.
 - **Duraklatma:** tuşu üst satırda süre kutusunun yanında. Panel tüm ekranı kaplar (çentik ve alt şerit dahil): Devam / Yeniden Başla / Ana Menü. Ana Menü run'ı terk eder (coin kredisi yok, run sayılmaz).

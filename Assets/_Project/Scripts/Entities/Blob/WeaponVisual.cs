@@ -23,7 +23,8 @@ namespace BlobSurvivor.Entities.Blob
         private float _popTime = -1f;
         private bool _popFromZero;
 
-        public void Setup(Renderer host, string model, bool visibleFromStart)
+        // childName: aynı host'a ikinci bir görünür silah (Havai Fişek atarı) takılabilsin diye.
+        public void Setup(Renderer host, string model, bool visibleFromStart, string childName = "Weapon")
         {
             if (_weapon != null) Destroy(_weapon.gameObject);
             _weapon = null;
@@ -32,7 +33,7 @@ namespace BlobSurvivor.Entities.Blob
             _model = model;
             if (host == null || string.IsNullOrEmpty(model)) return;
 
-            var go = new GameObject("Weapon");
+            var go = new GameObject(childName);
             go.layer = host.gameObject.layer;
             _weapon = go.transform;
             _weapon.SetParent(host.transform, false);
@@ -42,6 +43,12 @@ namespace BlobSurvivor.Entities.Blob
             _renderer.shadowCastingMode = host.shadowCastingMode;
             _renderer.receiveShadows = host.receiveShadows;
             SetForm(visibleFromStart ? 1 : 0, pop: false);
+        }
+
+        // Havai Fişek atarı skill objesiyle birlikte silinir; mesh child'ı host renderer'da kalmasın.
+        private void OnDestroy()
+        {
+            if (_weapon != null) Destroy(_weapon.gameObject);
         }
 
         // form 0 = gizli, 1..4 = G_<Model>_<form>.

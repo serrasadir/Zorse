@@ -23,6 +23,8 @@ MonoBehaviour:
   _weaponVisibleFromStart: 1
   _favoredUpgrade: {fileID: 11400000, guid: 7a60ab4d1e9804c11a6724b7a567bac7, type: 2}
   _favoredWeightMultiplier: 2
+  _startingUpgrade: {fileID: 11400000, guid: 7a60ab4d1e9804c11a6724b7a567bac7, type: 2}
+  _startingUpgradeLevel: 2
   _passiveType: 2
   _passiveValue: 1
   _requiresMarketUnlock: 0

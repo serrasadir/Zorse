@@ -29,7 +29,7 @@ namespace BlobSurvivor.Core
         {
             GameObject go = new GameObject("DevCheats (Editor)") { hideFlags = HideFlags.DontSave };
             go.AddComponent<DevCheats>();
-            Debug.Log("[DevCheats] M: +500 kütle · B: final boss −%25 can · H: canı doldur · N: sıradaki boss · V: Vakum +1 · K: Kara Delik · Z: Zırh +1 (sadece Editor)");
+            Debug.Log("[DevCheats] M: +500 kütle · B: final boss −%25 can · H: canı doldur · N: sıradaki boss · V: Vakum +1 · K: Kara Delik · Z: Zırh +1 · U: Havai Fişek +1 (sadece Editor)");
         }
 
         private void Update()
@@ -77,6 +77,9 @@ namespace BlobSurvivor.Core
 
             if (keyboard.gKey.wasPressedThisFrame && BlobSurvivor.Systems.UpgradeSystem.Instance != null)
                 Debug.Log("[DevCheats] " + BlobSurvivor.Systems.UpgradeSystem.Instance.DebugGrant("weapon"));
+
+            if (keyboard.uKey.wasPressedThisFrame && BlobSurvivor.Systems.UpgradeSystem.Instance != null)
+                Debug.Log("[DevCheats] " + BlobSurvivor.Systems.UpgradeSystem.Instance.DebugGrant("firework"));
 
             if (keyboard.jKey.wasPressedThisFrame && BlobSurvivor.Systems.UpgradeSystem.Instance != null)
                 Debug.Log("[DevCheats] " + BlobSurvivor.Systems.UpgradeSystem.Instance.DebugGrant("speed_boost"));

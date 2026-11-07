@@ -16,10 +16,12 @@ namespace BlobSurvivor.Systems
         [SerializeField] private int _pierceLevel = 5;
         [SerializeField] private int _tripleTargetLevel = 7;
         [SerializeField] private int _ultimateLevel = 8;
+        [Tooltip("+hasar seviyelerinde menzile eklenir (gövde yüzeyinden).")]
+        [SerializeField] private float _rangePerDamageLevel = 0.5f;
 
         public override void Apply(GameObject blobRoot, UpgradeData data)
         {
-            var weapon = blobRoot.GetComponentInChildren<WeaponBase>();
+            var weapon = WeaponBase.FindPrimary(blobRoot); // Havai Fişek değil, karakter silahı
             if (weapon == null) return;
 
             // UpgradeSystem seviyeyi Apply'dan önce artırıyor — bu, az önce ulaşılan seviye.
@@ -29,7 +31,11 @@ namespace BlobSurvivor.Systems
             else if (level == _pierceLevel) weapon.SetPierce(1);
             else if (level == _tripleTargetLevel) weapon.SetTargetCount(3);
             else if (level == _ultimateLevel) weapon.EnableUltimate();
-            else weapon.IncreaseDamage(data.PerLevelValue);
+            else
+            {
+                weapon.IncreaseDamage(data.PerLevelValue);
+                weapon.IncreaseRange(_rangePerDamageLevel);
+            }
 
             // Görünür silah: form yeni mekanikle değişir, +hasar seviyeleri modeli değiştirmez.
             int form = level >= _ultimateLevel ? 4 : level >= _tripleTargetLevel ? 3 : level >= _doubleTargetLevel ? 2 : 1;

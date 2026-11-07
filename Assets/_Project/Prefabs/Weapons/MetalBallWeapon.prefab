@@ -46,6 +46,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Weapons.MetalBallWeapon
   _fireRate: 2.5
   _damage: 4
-  _range: 8
+  _range: 3
   _projectilePrefab: {fileID: 8882636722854061293, guid: 924309c45a44b4d59b3235728120bdf8, type: 3}
   _ultimateDescription: "Sekme \u2014 bilye isabet edince en yak\u0131n 2 d\xFC\u015Fmana daha seker."

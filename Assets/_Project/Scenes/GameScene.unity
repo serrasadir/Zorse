@@ -29846,6 +29846,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9a1a53f3539f54aa9a01b50dfc7fccc9, type: 2}
   - {fileID: 11400000, guid: 7a60ab4d1e9804c11a6724b7a567bac7, type: 2}
   - {fileID: 11400000, guid: bfcdcf59c7e9e4d83b18c0271b27d009, type: 2}
+  - {fileID: 11400000, guid: 9231d870b0224dadb1833c18cac33f88, type: 2}
   _choiceCount: 3
 --- !u!4 &582339428
 Transform:
@@ -51243,7 +51244,7 @@ MonoBehaviour:
   _followSmoothing: 5
   _baseHeight: 7
   _baseTilt: 60
-  _zoomExponent: 0.3
+  _zoomExponent: 0.35
   _maxHeightMultiplier: 4
   _zoomSmoothing: 1.5
   _hitShakeAmplitude: 0.12

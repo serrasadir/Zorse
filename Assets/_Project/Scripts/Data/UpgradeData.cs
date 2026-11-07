@@ -30,6 +30,10 @@ namespace BlobSurvivor.Data
                  "{ultimate} yazısı aktif silahın son form açıklamasıyla değiştirilir.")]
         [SerializeField] private string[] _levelDescriptions;
 
+        [Tooltip("0 = yok. Oyuncu bu seviyeye gelince (henüz almadıysa) ilk kart ekranında bir kez garanti çıkar — " +
+                 "ör. Havai Fişek 1. miniboss'tan (Sv.5) önce.")]
+        [SerializeField] private int _guaranteedAtLevel;
+
         [Header("Evrim (B17)")]
         [Tooltip("true ise UpgradePanel bu kartı görsel olarak (★ + altın renk) işaretler — EvolutionSystem tarafından havuza dinamik eklenen çıktı skillerinde kullanılır.")]
         [SerializeField] private bool _isEvolution;
@@ -44,6 +48,7 @@ namespace BlobSurvivor.Data
         public int MaxLevel => _maxLevel;
         public float PerLevelValue => _perLevelValue;
         public bool IsEvolution => _isEvolution;
+        public int GuaranteedAtLevel => _guaranteedAtLevel;
 
         // Seçilince ulaşılacak seviyenin açıklaması; tanımlı değilse genel açıklama.
         public string GetDescriptionForLevel(int level)

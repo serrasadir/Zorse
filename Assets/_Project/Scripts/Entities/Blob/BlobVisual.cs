@@ -21,6 +21,7 @@ namespace BlobSurvivor.Entities.Blob
         private float _gulpTime = -1f, _gulpAmount;
         private float _recoilTime = -1f;
         private Vector3 _recoilLocalDir;
+        private float _recoilStrength = 1f;
         private const float RecoilDuration = 0.14f;
         private const float RecoilDistance = 0.09f; // kök ölçeğinde: çapın ~%9'u
         private Vector3 _recoilOffset;
@@ -119,13 +120,15 @@ namespace BlobSurvivor.Entities.Blob
         }
 
         // Silah ateşlenince görünüm ateş yönünün tersine kısa bir tepme yapar (sadece görsel child).
-        public void Recoil(Vector3 shotDirection)
+        // strength: 1 = karakter silahı; Havai Fişek daha sert teper.
+        public void Recoil(Vector3 shotDirection, float strength = 1f)
         {
             if (_visual == null) return;
             shotDirection.y = 0f;
             if (shotDirection.sqrMagnitude < 0.0001f) return;
             _recoilLocalDir = transform.InverseTransformDirection(-shotDirection.normalized).normalized;
             _recoilTime = 0f;
+            _recoilStrength = strength;
         }
 
         private void UpdateRecoil(float dt)
@@ -141,7 +144,7 @@ namespace BlobSurvivor.Entities.Blob
             }
             // Hızlı tepme, yumuşak dönüş.
             float k = t < 0.25f ? t / 0.25f : 1f - Mathf.SmoothStep(0f, 1f, (t - 0.25f) / 0.75f);
-            _recoilOffset = _recoilLocalDir * (RecoilDistance * k);
+            _recoilOffset = _recoilLocalDir * (RecoilDistance * _recoilStrength * k);
         }
 
         // Büyük lokmada "yutkunma": görünüm bir an basıklaşıp yanlara şişer, geri gelir. Sadece görsel child —

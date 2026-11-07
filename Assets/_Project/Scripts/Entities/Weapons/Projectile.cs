@@ -129,7 +129,10 @@ namespace BlobSurvivor.Entities.Weapons
 
             _elapsed += Time.deltaTime;
             if (_elapsed >= _lifetime)
+            {
+                OnImpact();
                 ReturnToPool();
+            }
         }
 
         private void LateUpdate()
@@ -169,6 +172,7 @@ namespace BlobSurvivor.Entities.Weapons
                     KnockbackEnemy(enemy);
                     OnHitEnemy(enemy);
                     if (TryPierce(enemy)) return false;
+                    OnImpact();
                     ReturnToPool();
                     return true;
                 }
@@ -179,6 +183,7 @@ namespace BlobSurvivor.Entities.Weapons
             // 2026-11-03 (Serra: "binanın arkasındaki polise nişan alamamalıyım"): mermi binalardan geçmez.
             if (IsWall(other))
             {
+                OnImpact();
                 ReturnToPool();
                 return true;
             }
@@ -201,6 +206,9 @@ namespace BlobSurvivor.Entities.Weapons
         }
 
         protected virtual void OnHitEnemy(EnemyBase enemy) { }
+
+        // Mermi durduğu an (düşmanda, duvarda ya da ömrü bitince havada). Restart'ta çağrılmaz.
+        protected virtual void OnImpact() { }
 
         // true → mermi durur/pool'a döner; false → mermiyi durdurmadan geçer (pas geçme)
         protected virtual bool OnHitOther(Collider other) => false;
