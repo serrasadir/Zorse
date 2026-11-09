@@ -59,6 +59,9 @@ namespace BlobSurvivor.Systems.Meta
 
         private MetaProgressionSaveData _data = new MetaProgressionSaveData();
 
+        // Kredi ya da satın alım değişince (Market/Lobi tazelenir).
+        public event Action Changed;
+
         public int Credit => _data.credit;
         public bool MiknatoUnlocked => _data.miknatoUnlocked;
         public int CompletedRuns => _data.completedRuns;
@@ -166,8 +169,35 @@ namespace BlobSurvivor.Systems.Meta
             return true;
         }
 
+        // Test araçları (DevCheats, PerfOverlay dev paneli).
+        public void DevAddCredit(int amount)
+        {
+            _data.credit += amount;
+            Save();
+        }
+
+        public void DevSetMiknatoUnlocked(bool unlocked)
+        {
+            _data.miknatoUnlocked = unlocked;
+            Save();
+        }
+
+        public void DevUnlockAllCharacters()
+        {
+            _data.miknatoUnlocked = true;
+            _data.completedRuns = Mathf.Max(_data.completedRuns, 99);
+            Save();
+        }
+
+        public void DevReset()
+        {
+            _data = new MetaProgressionSaveData();
+            Save();
+        }
+
         private void Save()
         {
+            Changed?.Invoke();
             try
             {
                 File.WriteAllText(FilePath, JsonUtility.ToJson(_data, true));

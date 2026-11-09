@@ -151,8 +151,7 @@ namespace BlobSurvivor.Entities.Enemies
             _nextStageIndex = due + 1;
         }
 
-#if UNITY_EDITOR
-        // DevCheats N: aktif boss'u ödülsüz kaldırır, sıradaki aşamayı hemen çıkarır.
+        // DevCheats N / dev paneli: aktif boss'u ödülsüz kaldırır, sıradaki aşamayı hemen çıkarır.
         public string DebugSpawnNextStage()
         {
             if (_bossData?.Stages == null || _nextStageIndex >= _bossData.Stages.Length)
@@ -164,7 +163,6 @@ namespace BlobSurvivor.Entities.Enemies
             _nextStageIndex++;
             return $"Aşama {_nextStageIndex}/{_bossData.Stages.Length}: {stage.EnemyData?.DisplayName}";
         }
-#endif
 
         private void SpawnStage(BossStage stage)
         {

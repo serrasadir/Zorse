@@ -1,5 +1,11 @@
+using System.Collections.Generic;
+using BlobSurvivor.Data;
 using BlobSurvivor.Entities.Blob;
+using BlobSurvivor.Entities.Enemies;
+using BlobSurvivor.Systems;
+using BlobSurvivor.Systems.Meta;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace BlobSurvivor.Core
@@ -8,6 +14,8 @@ namespace BlobSurvivor.Core
     //   Aç/kapa: ekrana 3 parmakla dokun (Editor'da F3). Durum PlayerPrefs'te kalır.
     //   Gösterir: ortalama FPS (0.5 sn), son 2 sn'nin en kötü karesi (ms, takılma), hedef FPS.
     //   "+500 kütle" düğmesi: Giant'a hızlı çıkıp en kötü anı (kamera en uzak, en çok bina ekranda) ölçmek için.
+    //   "DEV" düğmesi: test paneli — skill +1/max, kütle, can, boss; kredi, karakter kilitleri, kayıt sıfırlama.
+    //   Panel açıkken oyun durur ve uGUI tıklamaları kapanır (alttaki karta/butona basılmasın).
     // YAYIN ÖNCESİ: Enabled = false (oyunculara hile düğmesi gitmesin). Kapalıyken hiç oluşmaz, maliyeti sıfır.
     public class PerfOverlay : MonoBehaviour
     {
@@ -25,6 +33,14 @@ namespace BlobSurvivor.Core
         private float _worstMs, _worstAccMs, _worstTimer;
         private GUIStyle _style, _button;
         private BlobGrowth _growth;
+
+        private bool _devOpen;
+        private bool _pausedByPanel;
+        private bool _confirmReset;
+        private Vector2 _scroll;
+        private string _message = "";
+        private List<UpgradeData> _skills;
+        private EventSystem _disabledEventSystem;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Create()
@@ -103,13 +119,176 @@ namespace BlobSurvivor.Core
             GUI.Label(new Rect(r.x + 8 * s, r.y + 30 * s, r.width, 26 * s), $"en kötü kare {_worstMs:F0} ms (2 sn)", _style);
 
             if (_growth == null) _growth = FindAnyObjectByType<BlobGrowth>();
+            float y = r.yMax + 6 * s;
             if (_growth != null)
             {
                 _style.normal.textColor = Color.white;
                 GUI.Label(new Rect(r.x + 8 * s, r.y + 56 * s, r.width, 26 * s), $"kütle {_growth.CurrentMass:F0} · {_growth.CurrentTier}", _style);
-                if (GUI.Button(new Rect(r.x, r.yMax + 6 * s, 150 * s, 40 * s), "+500 kütle", _button))
+                if (GUI.Button(new Rect(r.x, y, 150 * s, 40 * s), "+500 kütle", _button))
                     _growth.DebugAddMassWithoutXP(500f);
             }
+            if (GUI.Button(new Rect(r.x + 160 * s, y, 100 * s, 40 * s), _devOpen ? "DEV ×" : "DEV", _button))
+                SetDevOpen(!_devOpen);
+
+            if (_devOpen) DrawDevPanel(s);
+        }
+
+        // ---------------------------------------------------------------- dev paneli
+
+        private void SetDevOpen(bool open)
+        {
+            _devOpen = open;
+            _confirmReset = false;
+            _message = "";
+            if (open)
+            {
+                _skills = UpgradeSystem.Instance != null ? UpgradeSystem.Instance.DebugAllUpgrades() : null;
+                GameManager gm = GameManager.Instance;
+                if (gm != null && gm.CurrentState == GameState.Playing && Time.timeScale > 0f)
+                {
+                    Time.timeScale = 0f;
+                    _pausedByPanel = true;
+                }
+                EventSystem es = EventSystem.current;
+                if (es != null) { es.enabled = false; _disabledEventSystem = es; }
+            }
+            else
+            {
+                if (_pausedByPanel && GameManager.Instance != null && GameManager.Instance.CurrentState == GameState.Playing)
+                    Time.timeScale = 1f;
+                _pausedByPanel = false;
+                if (_disabledEventSystem != null) _disabledEventSystem.enabled = true;
+                _disabledEventSystem = null;
+            }
+        }
+
+        private void DrawDevPanel(float s)
+        {
+            float pad = 10 * s, rowH = 46 * s, gap = 6 * s;
+            var panel = new Rect(pad, 210 * s, Screen.width - pad * 2, Screen.height - 230 * s);
+            GUI.Box(panel, GUIContent.none);
+            GUI.Box(panel, GUIContent.none); // iki kat: daha koyu
+
+            float w = panel.width - pad * 2;
+            float half = (w - gap) / 2f;
+            _style.normal.textColor = new Color(1f, 0.82f, 0.25f);
+            GUI.Label(new Rect(panel.x + pad, panel.y + pad, w, 30 * s), "DEV ARAÇLARI", _style);
+            if (!string.IsNullOrEmpty(_message))
+            {
+                _style.normal.textColor = Color.white;
+                GUI.Label(new Rect(panel.x + pad, panel.y + pad + 30 * s, w, 28 * s), _message, _style);
+            }
+
+            var view = new Rect(panel.x + pad, panel.y + 74 * s, w, panel.height - 84 * s);
+            float contentH = ContentHeight(rowH, gap, s);
+            _scroll = GUI.BeginScrollView(view, _scroll, new Rect(0, 0, w - 20 * s, contentH));
+            float cw = w - 20 * s;
+            half = (cw - gap) / 2f;
+            float y = 0f;
+
+            GameManager gm = GameManager.Instance;
+            bool inRun = gm != null && gm.CurrentState != GameState.Menu && UpgradeSystem.Instance != null;
+
+            Header("RUN", ref y, cw, s);
+            if (!inRun)
+            {
+                Note("Run içinde açılır (karakter seç).", ref y, cw, s);
+            }
+            else
+            {
+                if (Btn(0, y, half, rowH, "+500 kütle") && _growth != null) { _growth.DebugAddMassWithoutXP(500f); _message = $"Kütle {_growth.CurrentMass:F0}"; }
+                if (Btn(half + gap, y, half, rowH, "Canı doldur"))
+                {
+                    BlobHealth h = _growth != null ? _growth.GetComponent<BlobHealth>() : null;
+                    if (h != null) { h.Heal(h.MaxHealth); _message = "Can dolu"; }
+                }
+                y += rowH + gap;
+                if (Btn(0, y, half, rowH, "Sıradaki boss") && BossSpawner.Instance != null) _message = BossSpawner.Instance.DebugSpawnNextStage();
+                if (Btn(half + gap, y, half, rowH, "Final boss −%25"))
+                {
+                    FinalBossController boss = FinalBossController.Active;
+                    EnemyBase enemy = boss != null ? boss.GetComponent<EnemyBase>() : null;
+                    if (enemy == null) _message = "Aktif final boss yok";
+                    else { enemy.TakeDamage(enemy.MaxHealth * 0.25f); _message = $"Final boss {enemy.CurrentHealth:F0}/{enemy.MaxHealth:F0}"; }
+                }
+                y += rowH + gap;
+
+                Header("SKILLER", ref y, cw, s);
+                if (_skills != null)
+                {
+                    UpgradeSystem up = UpgradeSystem.Instance;
+                    float btnW = 90 * s;
+                    for (int i = 0; i < _skills.Count; i++)
+                    {
+                        UpgradeData u = _skills[i];
+                        int level = up.GetLevel(u);
+                        _style.normal.textColor = level >= u.MaxLevel ? new Color(0.45f, 0.9f, 0.5f) : Color.white;
+                        GUI.Label(new Rect(0, y + 8 * s, cw - btnW * 2 - gap * 2, rowH), $"{u.DisplayName}  {level}/{u.MaxLevel}", _style);
+                        if (Btn(cw - btnW * 2 - gap, y, btnW, rowH, "+1")) Grant(u, 1);
+                        if (Btn(cw - btnW, y, btnW, rowH, "MAX")) Grant(u, u.MaxLevel);
+                        y += rowH + gap;
+                    }
+                }
+            }
+
+            Header("KAYIT / MARKET", ref y, cw, s);
+            MetaProgression meta = MetaProgression.Instance;
+            if (meta == null)
+            {
+                Note("MetaProgression yok.", ref y, cw, s);
+            }
+            else
+            {
+                Note($"Kredi {meta.Credit:N0} · Mıknato {(meta.MiknatoUnlocked ? "açık" : "kilitli")} · biten run {meta.CompletedRuns}", ref y, cw, s);
+                if (Btn(0, y, half, rowH, "+1000 kredi")) { meta.DevAddCredit(1000); _message = $"Kredi {meta.Credit:N0}"; }
+                if (Btn(half + gap, y, half, rowH, meta.MiknatoUnlocked ? "Mıknato'yu kilitle" : "Mıknato'yu aç"))
+                {
+                    meta.DevSetMiknatoUnlocked(!meta.MiknatoUnlocked);
+                    _message = meta.MiknatoUnlocked ? "Mıknato açık" : "Mıknato kilitli";
+                }
+                y += rowH + gap;
+                if (Btn(0, y, half, rowH, "Tüm karakterleri aç")) { meta.DevUnlockAllCharacters(); _message = "Tüm karakterler açık"; }
+                if (Btn(half + gap, y, half, rowH, _confirmReset ? "Emin misin? Sıfırla" : "Kaydı sıfırla"))
+                {
+                    if (_confirmReset) { meta.DevReset(); _message = "Kayıt sıfırlandı"; _confirmReset = false; }
+                    else _confirmReset = true;
+                }
+                y += rowH + gap;
+            }
+
+            GUI.EndScrollView();
+        }
+
+        private float ContentHeight(float rowH, float gap, float s)
+        {
+            int skills = _skills != null ? _skills.Count : 0;
+            int rows = 2 + skills + 2;
+            return 3 * 40 * s + 2 * 34 * s + rows * (rowH + gap) + 20 * s;
+        }
+
+        private void Grant(UpgradeData u, int times)
+        {
+            UpgradeSystem up = UpgradeSystem.Instance;
+            if (up == null) return;
+            for (int i = 0; i < times && up.GetLevel(u) < u.MaxLevel; i++) _message = up.DebugGrant(u.Id);
+            _skills = up.DebugAllUpgrades(); // evrim açıldıysa listeye girsin
+        }
+
+        private bool Btn(float x, float y, float w, float h, string label) => GUI.Button(new Rect(x, y, w, h), label, _button);
+
+        private void Header(string text, ref float y, float w, float s)
+        {
+            y += 6 * s;
+            _style.normal.textColor = new Color(1f, 0.82f, 0.25f);
+            GUI.Label(new Rect(0, y, w, 30 * s), text, _style);
+            y += 34 * s;
+        }
+
+        private void Note(string text, ref float y, float w, float s)
+        {
+            _style.normal.textColor = new Color(1f, 1f, 1f, 0.75f);
+            GUI.Label(new Rect(0, y, w, 30 * s), text, _style);
+            y += 34 * s;
         }
     }
 }

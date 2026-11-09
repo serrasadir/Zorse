@@ -17,6 +17,7 @@ namespace BlobSurvivor.Core
     //   Z  Zırh skill'i +1 seviye (kalkan, Sv.3 dikenler, Sv.8 şok dalgası)
     //   G  Silah Gücü +1 seviye (görünür silah: Sv.1, 3, 7, 8'de form değişir)
     //   J  Hız +1 seviye (Sv.1 kaykay, Sv.4 alevli kaykay, Sv.8 roket)
+    //   C  +500 Market kredisi (kayda yazılır; lobide/Market'te de çalışır)
     public class DevCheats : MonoBehaviour
     {
         private const float MassStep = 500f;
@@ -29,7 +30,7 @@ namespace BlobSurvivor.Core
         {
             GameObject go = new GameObject("DevCheats (Editor)") { hideFlags = HideFlags.DontSave };
             go.AddComponent<DevCheats>();
-            Debug.Log("[DevCheats] M: +500 kütle · B: final boss −%25 can · H: canı doldur · N: sıradaki boss · V: Vakum +1 · K: Kara Delik · Z: Zırh +1 · U: Havai Fişek +1 (sadece Editor)");
+            Debug.Log("[DevCheats] M: +500 kütle · B: final boss −%25 can · H: canı doldur · N: sıradaki boss · V: Vakum +1 · K: Kara Delik · Z: Zırh +1 · U: Havai Fişek +1 · C: +500 kredi (sadece Editor)");
         }
 
         private void Update()
@@ -39,6 +40,13 @@ namespace BlobSurvivor.Core
 
             if (_growth == null) _growth = FindAnyObjectByType<BlobGrowth>();
             if (_health == null && _growth != null) _health = _growth.GetComponent<BlobHealth>();
+
+            if (keyboard.cKey.wasPressedThisFrame && BlobSurvivor.Systems.Meta.MetaProgression.Instance != null)
+            {
+                var meta = BlobSurvivor.Systems.Meta.MetaProgression.Instance;
+                meta.DevAddCredit(500);
+                Debug.Log($"[DevCheats] Kredi {meta.Credit}");
+            }
 
             if (keyboard.mKey.wasPressedThisFrame && _growth != null)
             {

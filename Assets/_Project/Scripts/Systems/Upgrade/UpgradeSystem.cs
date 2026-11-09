@@ -156,8 +156,17 @@ namespace BlobSurvivor.Systems
             GameManager.Instance?.ResumeGame();
         }
 
-#if UNITY_EDITOR
-        // DevCheats: kart ekranı açmadan skill'i bir seviye verir (kart seçimiyle aynı uygulama + evrim kontrolü).
+        // Test listesi (DevCheats, PerfOverlay dev paneli): havuzdaki skiller + açılmış evrimler.
+        public List<UpgradeData> DebugAllUpgrades()
+        {
+            var all = new List<UpgradeData>();
+            if (_allUpgrades != null) all.AddRange(_allUpgrades);
+            foreach (var u in _dynamicUpgrades) if (!all.Contains(u)) all.Add(u);
+            all.RemoveAll(u => u == null);
+            return all;
+        }
+
+        // DevCheats / dev paneli (test build'lerinde de): kart ekranı açmadan skill'i bir seviye verir (kart seçimiyle aynı uygulama + evrim kontrolü).
         public string DebugGrant(string id)
         {
             if (_allUpgrades == null) return "Skill listesi boş.";
@@ -175,7 +184,6 @@ namespace BlobSurvivor.Systems
             }
             return $"'{id}' skill'i bulunamadı.";
         }
-#endif
 
         private float WeightOf(UpgradeData u) =>
             _character != null && u == _character.FavoredUpgrade ? u.Weight * _character.FavoredWeightMultiplier : u.Weight;

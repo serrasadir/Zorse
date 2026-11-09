@@ -20,8 +20,7 @@ namespace BlobSurvivor.UI
         [SerializeField] private Image[] _icons;
         [SerializeField] private TMP_Text[] _nameTexts;
 
-        // M23: Market'e giriş — MarketPanel'in kendi "geri" butonu LobbyPanel.Show + MarketPanel.Hide'ı
-        // Inspector'da iki ayrı OnClick listener olarak wire ediyor.
+        // Market'e giriş; Market'in geri tuşu Show()'u çağırır.
         [SerializeField] private Button _marketButton;
         [SerializeField] private MarketPanel _marketPanel;
 
@@ -29,7 +28,6 @@ namespace BlobSurvivor.UI
         private static readonly Color CardColor = new Color(0.05f, 0.05f, 0.17f, 0.82f);
         private static readonly Color Gold = new Color(1f, 0.82f, 0.25f, 1f);
         private static readonly Color Subtle = new Color(1f, 1f, 1f, 0.78f);
-        private static readonly Color Secondary = new Color(0.16f, 0.16f, 0.3f, 1f);
         private static readonly Color ShadowColor = new Color(0.05f, 0.05f, 0.17f, 0.85f);
 
         private class Card
@@ -39,8 +37,6 @@ namespace BlobSurvivor.UI
             public RectTransform LockBadge;
             public CanvasGroup Group;
         }
-
-        private static readonly bool MarketEnabled = false; // Market ekranı henüz hazır değil (const değil: unreachable uyarısı)
 
         private Card[] _cards;
         private TMP_Text _credit;
@@ -59,13 +55,32 @@ namespace BlobSurvivor.UI
                 _buttons[i].onClick.AddListener(() => OnCharacterSelected(_characters[index]));
             }
 
-            if (_marketButton != null && MarketEnabled)
+            if (_marketButton != null)
                 _marketButton.onClick.AddListener(OpenMarket);
+            if (MetaProgression.Instance != null) MetaProgression.Instance.Changed += RefreshCharacterButtons;
 
             RefreshCharacterButtons();
         }
 
-        // MarketPanel'in "geri" butonu Inspector'dan bunu çağırır. Market'te Mıknato satın alınmış olabileceğinden
+        private void OnDestroy()
+        {
+            if (MetaProgression.Instance != null) MetaProgression.Instance.Changed -= RefreshCharacterButtons;
+        }
+
+        public RectTransform PanelRect => _panel != null ? (RectTransform)_panel.transform : null;
+
+        // Market'te satılan karakter (Mıknato).
+        public CharacterData MarketCharacter
+        {
+            get
+            {
+                foreach (CharacterData c in _characters)
+                    if (c != null && c.RequiresMarketUnlock) return c;
+                return null;
+            }
+        }
+
+        // Market'in geri tuşu bunu çağırır. Market'te Mıknato satın alınmış olabileceğinden
         // kilit durumu her Show()'da yeniden değerlendirilir.
         public void Show()
         {
@@ -122,7 +137,7 @@ namespace BlobSurvivor.UI
         private void OpenMarket()
         {
             if (_panel != null) _panel.SetActive(false);
-            _marketPanel?.Show();
+            if (_marketPanel != null) _marketPanel.Show(this);
         }
 
         private void OnCharacterSelected(CharacterData data)
@@ -153,21 +168,14 @@ namespace BlobSurvivor.UI
             for (int i = 0; i < _buttons.Length; i++)
                 if (_buttons[i] != null) _cards[i] = BuildCard(_buttons[i], panel, new Vector2(0f, 330f - i * 390f), rounded);
 
-            // Market henüz yok: gri, basılmaz, "YAKINDA". Açılınca MarketEnabled = true yeter.
             if (_marketButton != null)
             {
                 Place((RectTransform)_marketButton.transform, panel, new Vector2(0f, -800f), new Vector2(640f, 120f));
-                StyleImage(_marketButton.targetGraphic as Image, MarketEnabled ? Secondary : new Color(0.32f, 0.32f, 0.36f, 0.9f), rounded);
+                StyleImage(_marketButton.targetGraphic as Image, Gold, rounded);
                 foreach (Transform c in _marketButton.transform) c.gameObject.SetActive(false);
-                _marketButton.interactable = MarketEnabled;
-                ColorBlock mc = _marketButton.colors;
-                mc.disabledColor = Color.white; // rengi yukarıda verildi, Unity'nin ek soluklaştırması olmasın
-                _marketButton.colors = mc;
-                Text("Label", (RectTransform)_marketButton.transform, new Vector2(0f, MarketEnabled ? 0f : 12f), new Vector2(640f, 70f), 50f,
-                    TextAlignmentOptions.Center, MarketEnabled ? Color.white : new Color(1f, 1f, 1f, 0.45f)).text = "MARKET";
-                if (!MarketEnabled)
-                    Text("Soon", (RectTransform)_marketButton.transform, new Vector2(0f, -32f), new Vector2(640f, 40f), 26f,
-                        TextAlignmentOptions.Center, new Color(1f, 1f, 1f, 0.45f)).text = "YAKINDA";
+                _marketButton.interactable = true;
+                Text("Label", (RectTransform)_marketButton.transform, Vector2.zero, new Vector2(640f, 70f), 50f,
+                    TextAlignmentOptions.Center, new Color(0.12f, 0.08f, 0.02f, 1f)).text = "MARKET";
             }
 
             // Geri: giriş ekranına (run zaten sıfır, sadece ekran değişir).
