@@ -1279,7 +1279,7 @@ namespace BlobSurvivor.EditorTools
                 AssetDatabase.CreateAsset(data, path);
             }
 
-            BlobTier tier = TierRules.TryMeasure(measured, out Vector3 size) ? TierRules.TierForSize(TierRules.SizeOf(size)) : BlobTier.Medium;
+            BlobTier tier = TierRules.TryMeasure(measured, out Vector3 size) ? TierRules.TierFor(mesh, TierRules.SizeOf(size)) : BlobTier.Medium;
             int mass = (int)TierRules.MassFor(tier);
             SerializedObject so = new SerializedObject(data);
             so.FindProperty("_displayName").stringValue = mesh;

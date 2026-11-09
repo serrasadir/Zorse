@@ -110961,8 +110961,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.UI.MarketPanel
   _panel: {fileID: 2137831695}
-  _creditText: {fileID: 2046201460}
-  _statTypes: 000000000100000002000000030000000400000005000000
   _buttons:
   - {fileID: 1837565897}
   - {fileID: 1576489723}
@@ -110970,7 +110968,6 @@ MonoBehaviour:
   - {fileID: 1105900011}
   - {fileID: 338988691}
   - {fileID: 1134143741}
-  _labelTexts: []
 --- !u!1001 &2137884438
 PrefabInstance:
   m_ObjectHideFlags: 0

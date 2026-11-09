@@ -66,7 +66,7 @@ GameObject:
   - component: {fileID: 4506615752907715217}
   - component: {fileID: 1503188273117104274}
   - component: {fileID: 1883417162019483695}
-  m_Layer: 11
+  m_Layer: 10
   m_Name: P_Lamp2
   m_TagString: Untagged
   m_Icon: {fileID: 0}

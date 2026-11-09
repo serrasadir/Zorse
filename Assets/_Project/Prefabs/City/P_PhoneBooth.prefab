@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8443900175935862387}
   - component: {fileID: 6416138577389561924}
   - component: {fileID: 7487179880766707795}
-  m_Layer: 10
+  m_Layer: 11
   m_Name: P_PhoneBooth
   m_TagString: Untagged
   m_Icon: {fileID: 0}

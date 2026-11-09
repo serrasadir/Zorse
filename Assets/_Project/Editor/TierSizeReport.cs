@@ -114,7 +114,7 @@ internal static class TierSizeReport
             sb.AppendLine(string.Join("\t", e.Kind, e.Name, e.Tier, e.Mass.ToString(inv), e.Sizes.Count,
                 F(avg.x), F(avg.z), F(avg.y),
                 F(e.Sizes.Min(s => s.x)), F(e.Sizes.Max(s => s.x)), F(e.Sizes.Min(s => s.y)), F(e.Sizes.Max(s => s.y)),
-                F(TierRules.SizeOf(avg)), TierRules.TierForSize(TierRules.SizeOf(avg))));
+                F(TierRules.SizeOf(avg)), TierRules.TierFor(e.Name, TierRules.SizeOf(avg))));
         }
         Directory.CreateDirectory("Temp");
         File.WriteAllText(ResultPath, sb.ToString());

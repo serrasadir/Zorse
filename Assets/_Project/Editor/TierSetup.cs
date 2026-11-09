@@ -116,7 +116,7 @@ namespace BlobSurvivor.EditorTools
                     if (TierRules.TryMeasure(c.transform, out var s)) { size += TierRules.SizeOf(s); n++; }
                 if (n == 0) continue;
                 size /= n;
-                BlobTier tier = TierRules.TierForSize(size);
+                BlobTier tier = TierRules.TierFor(kv.Key.name, size);
                 bool isCity = kv.Key.name.StartsWith("City_");
                 SetData(kv.Key, tier, isCity ? TierRules.MassFor(tier) : (float?)null, log, size);
 

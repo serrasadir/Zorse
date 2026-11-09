@@ -8,7 +8,7 @@ namespace BlobSurvivor.Entities.Loot
 {
     // GDD_v2.md §9 "Kalp (can)" toplanabiliri (2026-11-02). Düşman ölünce EnemyData'daki ihtimalle düşer.
     // Sahne objesi gerekmez: havuz PoolManager'da prefab başına tek, ilk düşüşte kurulur.
-    // Can doluyken alınmaz, yerde bekler. Belli süre sonra kaybolur; son saniyelerde yanıp söner.
+    // Değince alınır (can doluysa boşa gider). Belli süre sonra kaybolur; son saniyelerde yanıp söner.
     public class HeartPickup : MonoBehaviour
     {
         [SerializeField] private float _healAmount = 20f;
@@ -73,7 +73,7 @@ namespace BlobSurvivor.Entities.Loot
             if (!other.CompareTag("Blob")) return;
 
             BlobHealth health = other.GetComponent<BlobHealth>();
-            if (health == null || health.CurrentHealth >= health.MaxHealth) return;
+            if (health == null) return;
 
             health.Heal(_healAmount);
             ReturnToPool();

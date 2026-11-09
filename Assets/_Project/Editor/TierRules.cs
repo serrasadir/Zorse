@@ -23,6 +23,24 @@ namespace BlobSurvivor.EditorTools
             return Mathf.Max(gm, Mathf.Max(wdh.x, wdh.y) * 0.5f);
         }
 
+        // Boy kuralına elle istisna (oyun hissi): prefab/mesh adı → tier kayması. Şehir kurulumu ve
+        // Tier'ları Boya Göre Kur ikisi de TierFor üzerinden okur, tekrar çalışınca ezilmez.
+        private static readonly System.Collections.Generic.Dictionary<string, int> TierShift =
+            new System.Collections.Generic.Dictionary<string, int>
+            {
+                { "P_Lamp2", -1 },      // sokak lambası: Medium → Small
+                { "P_PhoneBooth", +1 }, // telefon kulübesi: Small → Medium
+            };
+
+        // name: mesh adı ("P_Lamp2") ya da ConsumableData adı ("City_P_Lamp2").
+        public static BlobTier TierFor(string name, float size)
+        {
+            BlobTier tier = TierForSize(size);
+            if (name != null && name.StartsWith("City_")) name = name.Substring(5);
+            if (name == null || !TierShift.TryGetValue(name, out int shift)) return tier;
+            return (BlobTier)Mathf.Clamp((int)tier + shift, (int)BlobTier.Tiny, (int)TierLayers.MaxTier);
+        }
+
         public static BlobTier TierForSize(float size)
         {
             for (int i = 0; i < Thresholds.Length; i++)
