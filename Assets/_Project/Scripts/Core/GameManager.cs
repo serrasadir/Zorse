@@ -26,7 +26,6 @@ namespace BlobSurvivor.Core
 
     public class GameManager : MonoBehaviour
     {
-        private const float TopikSlowdownReduction = 0.03f;
 
         public static GameManager Instance { get; private set; }
 
@@ -131,23 +130,12 @@ namespace BlobSurvivor.Core
             if (weaponVisual == null) weaponVisual = blob.AddComponent<WeaponVisual>();
             weaponVisual.Setup(visual.ModelRenderer, character.WeaponModel, character.WeaponVisibleFromStart);
 
-            switch (character.PassiveType)
+            // Topik ve Mermo'nun avantajı başlangıç skill'i (UpgradeSystem verir); burada sadece Mıknato'nun çekimi.
+            // Çekim menzili ve hızı ×(1 + PassiveValue); Vakum skili de bunun üstüne biner.
+            if (character.PassiveType == CharacterPassiveType.MagnetPull)
             {
-                case CharacterPassiveType.MoveSpeed:
-                    // M22: hız artık ApplyMetaProgression'da meta bonusuyla birlikte tek seferde set ediliyor
-                    // (aksi halde burada overwrite edilip meta bonusu kaybolurdu).
-                    // 2026-11-03: Topik ayrıca büyüdükçe daha az yavaşlar (üs 0.3 → 0.27, ~%10) — "hantallaşmayan" karakter.
-                    blob.GetComponent<BlobController>()?.ReduceTierSlowdownExponent(TopikSlowdownReduction);
-                    break;
-                case CharacterPassiveType.MagnetPull:
-                    // 2026-11-03: eskiden +PassiveValue yarıçap ekliyordu (0.1 birim, hissedilmiyordu).
-                    // GDD Karar 9 "Attract hattına +%25": menzil ve çekme hızı çarpanı. Vakum skili de bunun üstüne biner.
-                    VacuumComponent vacuum = blob.AddComponent<VacuumComponent>();
-                    vacuum.SetEffectMultiplier(1f + character.PassiveValue);
-                    break;
-                case CharacterPassiveType.ConsumableSplit:
-                    // PistolWeapon zaten hedef tier'ı kontrol edip parçalıyor — ek kurulum gerekmiyor.
-                    break;
+                VacuumComponent vacuum = blob.AddComponent<VacuumComponent>();
+                vacuum.SetEffectMultiplier(1f + character.PassiveValue);
             }
 
             if (character.StartingWeaponPrefab != null)
@@ -221,8 +209,7 @@ namespace BlobSurvivor.Core
             float coinGainBonus = meta != null ? meta.CoinGainBonus : 0f;
             float xpBonus = meta != null ? meta.XpMultiplierBonus : 0f;
 
-            float characterSpeedBonus = character.PassiveType == CharacterPassiveType.MoveSpeed ? character.PassiveValue : 0f;
-            blob.GetComponent<BlobController>()?.SetSpeedMultiplier(1f + characterSpeedBonus + speedBonus);
+            blob.GetComponent<BlobController>()?.SetSpeedMultiplier(1f + speedBonus);
 
             if (maxHealthBonus > 0f)
                 blob.GetComponent<BlobHealth>()?.IncreaseMaxHealth(maxHealthBonus);

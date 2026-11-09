@@ -75,16 +75,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 4049604843532918030}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1fe3ff766101048f9b70e07a001a4e99, type: 3}
+  m_Script: {fileID: 11500000, guid: 0b0941ec830fb4450b2d4b318e5957b5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Weapons.PistolProjectile
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Weapons.Projectile
   _speed: 18
   _lifetime: 0.7
   _hitRadius: 0.3
   _spinModel: {fileID: 1596521651636614511}
   _spinSpeed: 0
   _knockback: 0.15
-  _splitCount: 3
 --- !u!96 &5692713281680532096
 TrailRenderer:
   serializedVersion: 4

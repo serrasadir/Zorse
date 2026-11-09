@@ -300,8 +300,6 @@ namespace BlobSurvivor.Entities.Pedestrians
             transform.position = pos;
         }
 
-        public override bool CanBeSplit => false; // yaya eşyaya bölünmez
-
         public override void ReturnToOwner() => PedestrianSpawner.Instance?.ReturnToPool(this);
     }
 }

@@ -149,7 +149,7 @@ namespace BlobSurvivor.Entities
             return false;
         }
 
-        // B14: normal yeme akışı için pool return — ConsumeAndSplit'teki pattern'in genel hali.
+        // B14: normal yeme akışı için pool return.
         public void ReturnToPool(ConsumableBase target)
         {
             if (target == null) return;
@@ -157,35 +157,6 @@ namespace BlobSurvivor.Entities
             _activeConsumables.Remove(target.gameObject);
             if (target.Data != null && _pools.TryGetValue(target.Data, out ObjectPool<ConsumableBase> pool))
                 pool.Return(target);
-        }
-
-        public void ConsumeAndSplit(ConsumableBase target, int splitCount)
-        {
-            if (target == null) return;
-
-            BlobTier spawnTier = target.RequiredTier > BlobTier.Tiny ? target.RequiredTier - 1 : BlobTier.Tiny;
-            Vector3 position = target.transform.position;
-            // Parçaların toplamı parçalanan objenin mass'ı kadar — havuzda tek tür (2 mass'lık Trash) olduğu için
-            // eskiden Giant bina (50) 3 × 2 = 6 mass'a dönüşüyordu.
-            float pieceMass = splitCount > 0 ? target.MassValue / splitCount : 0f;
-
-            target.ReturnToOwner(); // havuz dışı şehir objeleri (CityConsumable) de gerçekten kaybolsun
-
-            for (int i = 0; i < splitCount; i++)
-            {
-                ConsumableData data = GetRandomDataForTier(spawnTier);
-                if (data == null || !_pools.ContainsKey(data)) continue;
-
-                Vector2 scatter = Random.insideUnitCircle * 1.5f;
-                Vector3 spawnPos = new Vector3(position.x + scatter.x, data.SpawnYOffset, position.z + scatter.y);
-                // Parça komşu bir binanın içine saçılmasın; tutmazsa parçalanan objenin (artık boş) yerine düşer.
-                if (!SpawnPositionUtility.IsClear(spawnPos))
-                    spawnPos = new Vector3(position.x, data.SpawnYOffset, position.z);
-                ConsumableBase instance = _pools[data].Get(spawnPos, RandomYaw());
-                instance.SetData(data);
-                instance.SetMassOverride(pieceMass);
-                _activeConsumables.Add(instance.gameObject);
-            }
         }
 
         private void OnTierChanged(BlobTier newTier)

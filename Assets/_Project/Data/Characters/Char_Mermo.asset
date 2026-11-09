@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.CharacterData
   _displayName: Mermo
   _icon: {fileID: 21300000, guid: 4fc5348db9ec247088268cd8c00b2e00, type: 3}
-  _description: "Mermileri, bir boy b\xFCy\xFCk lokmalar\u0131 yenebilir par\xE7alara
-    b\xF6ler."
+  _description: "Silah G\xFCc\xFC skiliyle ba\u015Flar (Sv.2)."
   _startingWeaponPrefab: {fileID: 1195012648784995356, guid: db0808b4be58440f9b33f0b4a932cc43, type: 3}
   _blobVisualPrefab: {fileID: 830980558916555298, guid: a16d69c32a2c2450ea858a7de3c6022f, type: 3}
   _armorOnHead: 1
@@ -25,7 +24,7 @@ MonoBehaviour:
   _favoredWeightMultiplier: 2
   _startingUpgrade: {fileID: 11400000, guid: 7a60ab4d1e9804c11a6724b7a567bac7, type: 2}
   _startingUpgradeLevel: 2
-  _passiveType: 2
-  _passiveValue: 1
+  _passiveType: 0
+  _passiveValue: 0
   _requiresMarketUnlock: 0
   _requiredCompletedRuns: 3

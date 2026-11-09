@@ -78,8 +78,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a452c742242b4bab92057193ccdfe50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Weapons.CannonProjectile
-  _speed: 14
-  _lifetime: 0.9
+  _speed: 18
+  _lifetime: 0.7
   _hitRadius: 0.3
   _spinModel: {fileID: 4501664850775856842}
   _spinSpeed: 720

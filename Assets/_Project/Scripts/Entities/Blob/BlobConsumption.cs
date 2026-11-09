@@ -154,7 +154,7 @@ namespace BlobSurvivor.Entities.Blob
             consumable.OnConsumed();
 
             // B14: pool'a gerçek dönüş — önceden sadece SetActive(false) yapılıyordu, pool Queue'su
-            // hiç dolmuyordu (ConsumeAndSplit'teki doğru pattern'in normal yeme akışına taşınması).
+            // hiç dolmuyordu.
             // M24: ReturnToOwner() virtual olduğu için burada spawner tipine bakmaya gerek yok —
             // PedestrianController kendi PedestrianSpawner'ına döner.
             ConsumableBase pooled = obj.GetComponent<ConsumableBase>();

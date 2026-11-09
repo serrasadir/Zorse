@@ -78,8 +78,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da0b5c664e0024a88b5863d1ccceac7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Weapons.HomingProjectile
-  _speed: 12
-  _lifetime: 1.5
+  _speed: 18
+  _lifetime: 0.7
   _hitRadius: 0.3
   _spinModel: {fileID: 5806711399374591443}
   _spinSpeed: 540

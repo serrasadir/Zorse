@@ -6,10 +6,11 @@ namespace BlobSurvivor.Entities.Weapons
     {
         protected override void Fire(Transform target)
         {
-            Vector3 direction = GetAimDirection(target, lead: false);
+            // Son forma kadar herkesle aynı düz mermi; Sv.8 "Sekme"de güdümlü olur (sekme hedefi güdümle bulur).
+            Vector3 direction = GetAimDirection(target, lead: !UltimateActive);
 
             Projectile projectile = SpawnProjectile(direction);
-            if (projectile is HomingProjectile homing)
+            if (UltimateActive && projectile is HomingProjectile homing)
                 homing.SetTarget(target);
         }
     }

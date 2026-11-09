@@ -2,11 +2,11 @@ using UnityEngine;
 
 namespace BlobSurvivor.Data
 {
+    // Karakter avantajı çoğunlukla başlangıç skill'i (_startingUpgrade). Pasif sadece Mıknato'da (çekim).
     public enum CharacterPassiveType
     {
-        MoveSpeed,
-        MagnetPull,
-        ConsumableSplit
+        None,
+        MagnetPull
     }
 
     [CreateAssetMenu(fileName = "Character", menuName = "BlobSurvivor/Character")]

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.CharacterData
   _displayName: Topik
   _icon: {fileID: 21300000, guid: b4bb6b97abdc64b2185f28ca7055a0b8, type: 3}
-  _description: "+%25 h\u0131z, b\xFCy\xFCd\xFCk\xE7e daha az yava\u015Flar."
+  _description: "H\u0131z skiliyle ba\u015Flar (Sv.2)."
   _startingWeaponPrefab: {fileID: 1195012648784995356, guid: 8dc57e157854348fd95c73a2d2e69c1d, type: 3}
   _blobVisualPrefab: {fileID: 615227606570224158, guid: cd6d3df7377774fe1be7116da0c42426, type: 3}
   _speedTrail: 1
@@ -23,7 +23,9 @@ MonoBehaviour:
   _weaponVisibleFromStart: 0
   _favoredUpgrade: {fileID: 11400000, guid: 1c02eed465f3d411cb8c57a3242128c3, type: 2}
   _favoredWeightMultiplier: 2
+  _startingUpgrade: {fileID: 11400000, guid: 1c02eed465f3d411cb8c57a3242128c3, type: 2}
+  _startingUpgradeLevel: 2
   _passiveType: 0
-  _passiveValue: 0.25
+  _passiveValue: 0
   _requiresMarketUnlock: 0
   _requiredCompletedRuns: 0
