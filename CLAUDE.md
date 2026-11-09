@@ -82,6 +82,7 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 - **Şehir objeleri static batching'de** — runtime'da taşınmaz (collider kayar, görsel kalır). Yenen şehir objesi gizlenir, `CityLevel` run sonunda geri açar.
 - **`Art/City` altına giren dokular** palet ayarına zorlanır (Point, Clamp, mipmap yok: `CityKitPipeline` ön işlemcisi). Tekrar eden desen dokuları `Art/City/Textures/`'a konur (Repeat + mipmap).
 - **Saydam/özel materyaller** build'de ayıklanmasın diye prefab'da referanslı ya da `Resources/` altında olmalı; runtime'da shader'dan materyal üretme.
+- Steering birimleri (sürü polisi) collider'sız hareket eder: her adım `ClampStepAgainstEnvironment`'tan geçmeli (geri sekme dahil), sonra `MapBounds.Clamp` (CityBounds iç yüzü). Yeni hareket kaynağı eklerken ikisini de uygula.
 - Final boss'un collider'ı havada (`EnemyBase.AirborneHeight`/`AimPoint`); kök yerde NavMesh'te.
 - `FindAnyObjectByType<T>()` pasif objeleri bulmaz: lobi (`LobbyPanel`, kendi paneliyle aynı obje) run sırasında pasif. Paneli/ekranı arıyorsan `FindObjectsInactive.Include` ver.
 - UnityEvent (OnClick) slotuna Project penceresinden script değil, **Hierarchy'den GameObject** sürüklenir.
@@ -119,9 +120,9 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 | TestFlight Xcode Projesi Üret | Release iOS build, TestFlight için (build no +1) |
 | iOS Xcode Projesi Üret | Geliştirme build'i, cihaza doğrudan kurmak için |
 
-**Performans göstergesi** (`PerfOverlay`, telefonda da): 3 parmakla dokun (Editor'da F3) → FPS, en kötü kare, +500 kütle düğmesi. **Yayın öncesi `PerfOverlay.Enabled = false`.**
+**Performans göstergesi** (`PerfOverlay`, telefonda da): 3 parmakla dokun (Editor'da F3) → FPS, en kötü kare, +500 kütle ve **DEV** düğmesi. DEV paneli (açıkken oyun durur, uGUI tıklaması kapanır): skill +1 / MAX, kütle, can, sıradaki boss, final boss −%25; kredi +1000, Mıknato aç/kilitle, tüm karakterleri aç, kaydı sıfırla. Test API'leri (`UpgradeSystem.DebugGrant`, `BossSpawner.DebugSpawnNextStage`, `MetaProgression.Dev*`) build'de de derlenir. **Yayın öncesi `PerfOverlay.Enabled = false`.**
 
-**Editor test tuşları** (`DevCheats`, sadece Editor): **M** +500 kütle (XP'siz) · **B** final boss −%25 can · **H** can doldur · **N** sıradaki boss aşamasını hemen çıkar (aktif boss kalkar) · **V** Vakum skill'i +1 seviye (kart açılmaz) · **K** Kara Delik (Vakum 8 + Sindirim 8 + evrim, evrim anı oynar) · **Z** Zırh skill'i +1 seviye · **G** Silah Gücü +1 seviye · **J** Hız +1 seviye · **U** Havai Fişek +1 seviye.
+**Editor test tuşları** (`DevCheats`, sadece Editor): **M** +500 kütle (XP'siz) · **B** final boss −%25 can · **H** can doldur · **N** sıradaki boss aşamasını hemen çıkar (aktif boss kalkar) · **V** Vakum skill'i +1 seviye (kart açılmaz) · **K** Kara Delik (Vakum 8 + Sindirim 8 + evrim, evrim anı oynar) · **Z** Zırh skill'i +1 seviye · **G** Silah Gücü +1 seviye · **J** Hız +1 seviye · **U** Havai Fişek +1 seviye · **C** +500 Market kredisi (kayda yazılır).
 
 ## iOS / TestFlight
 

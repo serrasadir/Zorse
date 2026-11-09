@@ -75,7 +75,7 @@
 ---
 
 ### 💚 Can Emme
-- **Ne yapar:** Düşmana vurduğun hasarın bir yüzdesi can olarak sana döner. Durduk yere can yenilemez; savaştıkça iyileşirsin. Mermi, Topik patlaması, Zırh dikenleri ve şok dalgası hepsi sayılır. Sadece gerçekten işleyen hasar sayılır (canı 1'e kilitli helikoptere boşa giden vuruş can vermez). Can doluyken birikmez.
+- **Ne yapar:** Düşmana vurduğun hasarın bir yüzdesi can olarak sana döner. Durduk yere can yenilemez; savaştıkça iyileşirsin. Mermi, Topik son form patlaması, Zırh dikenleri ve şok dalgası hepsi sayılır. Sadece gerçekten işleyen hasar sayılır (canı 1'e kilitli helikoptere boşa giden vuruş can vermez). Can doluyken birikmez.
 - **Seviye başına:** vurulan hasarın %2'si · **Max:** 8 · **Ağırlık:** 8
 - **Kod:** `RegenBoostEffect` (id `regen_boost`, eski Rejenerasyon) → `LifestealComponent` (`EnemyBase.OnDamageDealt` dinler, 0.2 sn'de bir toplu iyileştirir)
 
@@ -106,7 +106,7 @@
 | 4 | 1.4 | 0.18 | 7.0 | 5.2 | 5.1 |
 | 8 | **1.8** | **0.12** | 9.0 | **7.4** | 7.3 |
 
-**Örnek:** Topik'in pasifi +%25 hız ve yavaşlama üssü −0.03 (0.21). Topik ile Hız 8 = çarpan 2.05, üs 0.09; Giant hızı ~8.9.
+**Örnek:** Topik run'a Hız Sv.2 ile başlar (çarpan 1.2, üs 0.21): ilk saniyeden Tiny hızı 6.0, kaykay görünür.
 
 ---
 
@@ -154,9 +154,9 @@
 **Son formlar (Sv. 8):**
 | Karakter | Silah | Son form |
 |---|---|---|
-| Topik | Top (çarptığı yerde 2 birimlik patlama) | **Büyük Patlama:** patlama alanı 2.5 katı (5 birim). Polis kümesini tek atışta temizler |
-| Mıknato | Metal Bilye (güdümlü) | **Sekme:** isabet eden bilye 6 birim içindeki en yakın 2 düşmana daha seker. Her mermi 3 düşmana vurur |
-| Mermo | Pistol (düz, en hızlı) | **Pompalı:** her atış 40°'lik yelpazede 5 saçma (saçma başına hasarın %60'ı). Yakında 3 kat hasar |
+| Topik | Top | **Büyük Patlama:** isabette 5 birimlik patlama (diğer düşmanlara da tam hasar). Polis kümesini tek atışta temizler |
+| Mıknato | Metal Bilye (son formda güdümlü olur) | **Sekme:** isabet eden bilye 6 birim içindeki en yakın 2 düşmana daha seker. Her mermi 3 düşmana vurur |
+| Mermo | Pistol | **Pompalı:** her atış 40°'lik yelpazede 5 saçma (saçma başına hasarın %60'ı). Yakında 3 kat hasar |
 
 **Örnek:** Sv. 7'de 3 polis sana koşuyor: her biri saniyede 2.5 mermi yer; delme sayesinde arkalarındakiler de vurulur. Polis (50 can) tek hedefe 12 hasarla ~2 saniyede düşer.
 **Not:** Tek bir elite (250 can) karşı Sv. 8'de saniyede 30 hasar = ~8 saniye. Güç kalabalığa karşı; tek güçlü düşmanda daha yavaş.
@@ -237,35 +237,28 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 - **Mermo:** toplam **3 run** bitirince kendiliğinden açılır. Ölümle biten run da, kazanılan run da sayılır. Sayı kalıcı kayıtta tutulur (`MetaProgression.CompletedRuns`), koşul `Char_Mermo.asset` → `Required Completed Runs`.
 - Kilitli karakter Lobby'de seçilemez; isminin altında koşul yazar: "(Market'te açılır)" ya da "(2 run sonra açılır)".
 
-Üç karakter de aynı blob'dur; farkları **başlangıç silahı** ve **pasif yetenektir**. Temel silah değerleri üçünde aynı: saniyede 2.5 atış × 4 hasar, menzil gövde yüzeyinden 3, her yöne. Silah Gücü yolu (Bölüm 2) üçünde de aynı ilerler, sadece **Sv. 8 son formu** karaktere özeldir.
+Üç karakter de aynı blob'dur; farkları **başlangıç avantajı** ve **Silah Gücü Sv. 8 son formu**. Silah ve ateş tarzı üçünde aynı: saniyede 2.5 atış × 4 hasar, menzil gövde yüzeyinden 3, her yöne; düz giden, hareketi önden kesen mermi (hız 18, ömür 0.7 sn). Sadece mermi ve silah modeli karaktere özel.
 
 | | 🟠 Topik | 🧲 Mıknato | 🔫 Mermo |
 |---|---|---|---|
 | **Kilit** | Başlangıçta açık | Market'te **500 kredi** ile satın alınır | **3 run bitirince** açılır (ölümle biten run da sayılır) |
-| **Silah** | Top: yay çizerek uçar, çarptığı yerde patlar | Metal bilye: güdümlü, hedefe kıvrılır | Tabanca: düz ve en hızlı mermi |
-| **Mermi hızı / ömrü** | 14 / 0.9 sn | 12 / 1.5 sn | 18 / 0.7 sn |
-| **Silah özelliği** | 2 birim yarıçapta **alan hasarı** (vurulan dışındakilere de tam hasar) | **Iskalamaz** (sürekli hedefe döner) | Bir boy büyük objeyi **parçalar** (pasif) |
-| **Pasif** | **+%25 hız** ve büyüdükçe ~%10 daha az yavaşlama | **Vakum baştan açık** (1.2 menzil) + çekim etkisi **×1.25** | Mermileri, blob'un **tam 1 tier üstündeki** objeyi 3 yenebilir parçaya böler + **Silah Gücü Sv.2 ile başlar** |
-| **Sv. 8 son form** | **Büyük Patlama:** alan 2.5 kat (5 birim) | **Sekme:** isabetten sonra 6 birim içindeki 2 düşmana daha seker | **Pompalı:** 40°'lik yelpazede 5 saçma (her biri %60 hasar) |
-| **Oyun tarzı** | Hızlı, hantallaşmayan; kalabalığı patlamayla dağıtır | Toplayıcı; yemi kendine çeker, hızlı büyür | Fırsatçı; büyük lokmaları bir boy erken yer |
+| **Mermi modeli** | Top | Metal bilye | Tabanca mermisi |
+| **Başlangıç avantajı** | Run'a **Hız Sv.2** ile başlar | **Vakum baştan açık** (1.2 menzil) + çekim etkisi **×1.25** | Run'a **Silah Gücü Sv.2** ile başlar |
+| **Sv. 8 son form** | **Büyük Patlama:** isabette 5 birimlik patlama | **Sekme:** isabetten sonra 6 birim içindeki 2 düşmana daha seker | **Pompalı:** 40°'lik yelpazede 5 saçma (her biri %60 hasar) |
+| **Oyun tarzı** | Baştan hızlı; kaçarak ve dolaşarak büyür | Toplayıcı; yemi kendine çeker, hızlı büyür | Savaşçı; polisi baştan daha hızlı indirir |
 
 ### 🟠 Topik
-- **Pasif:** Hız çarpanı +0.25 (Hız Artışı skiliyle toplanır: Hız 8 ile ×2.05). Ayrıca büyüme yavaşlaması üssü 0.24 → 0.21. Giant'ta bile çevik kalır.
-- **Silah:** Top yay çizerek uçar (0.4 birim yükseklik), ilk düşmana çarpınca patlar ve 2 birim içindeki diğer düşmanlara da tam hasar verir. Kalabalığa en etkili silah.
-- **Örnek:** Sv. 7'de 3 hedefe ateş eden, her biri 2 birimlik patlama yapan Topik, sürüyü saniyeler içinde eritir. Sv. 8'de patlama 5 birim olur.
-- **Zayıf yanı:** Top binaya çarpınca durur; patlama ince bir duvarın arkasına sızabilir.
+- **Pasif:** Run'a **Hız Artışı Sv.2** ile başlar (çarpan 1.2, yavaşlama üssü 0.21; kaykay baştan görünür). Kart ekranında sıradaki Sv.3 çıkar, Hız favori skili (×2 ağırlık). `Char_Topik.asset` → `Starting Upgrade` / `Starting Upgrade Level`. Rüzgar izi (`SpeedTrail`) sadece görsel.
+- **Son form:** Büyük Patlama: isabette 5 birim içindeki diğer düşmanlara da tam hasar. Ondan önce patlama yok.
 
 ### 🧲 Mıknato
 - **Pasif:** Oyuna Vakum skili açık başlar (1.2 menzil, gövde yüzeyinden; ×1.25 ile 1.5). Çekim menzili ve çekme hızı ×1.25. Vakum skilini alırsa çarpan onu da büyütür (Vakum 8 → 5.0 menzil).
-- **Silah:** Metal bilye hedefe sürekli kıvrılır, pratikte ıskalamaz. Hedef ölürse düz gider.
+- **Silah:** Diğerleriyle aynı düz mermi. Sv.8 Sekme'de bilye güdümlü olur ve isabetten sonra 2 düşmana daha seker.
 - **Örnek:** Diğer karakterler Vakum'u kart olarak beklerken Mıknato ilk saniyeden çevresini toplar. Erken büyüme ve erken level demek. Kara Delik evrimine (Vakum 8 + Sindirim 8) en doğal giden karakter.
 - **Not:** En güçlü pasif. Bu yüzden 500 kredilik Market kilidi var.
 
 ### 🔫 Mermo
 - **Başlangıç:** Run'a **Silah Gücü Sv.2** ile başlar (mermi 8 hasar, menzil gövde yüzeyinden 4; kart ekranında sıradaki Sv.3 çift hedef). `Char_Mermo.asset` → `Starting Upgrade` / `Starting Upgrade Level`.
-- **Pasif (kalıp kalmayacağı açık soru, issue'da):** Mermisi blob'un **tam bir boy büyüğü** olan objeye (şehir binaları dahil) çarparsa onu 3 parçaya böler. Parçalar blob'un yiyebileceği boyda ve toplamda objenin mass'ı kadar verir. Daha büyük objelerde mermi durur; dev binaları silemez. Yayalar ve hazard'lar parçalanmaz. Silah objeye nişan almaz (sadece polise ateş eder): parçalanma ancak polise giden mermi yolda bir boy büyük objeye değerse olur, efekti de yok; pratikte fark edilmiyor.
-- **Silah:** En hızlı, düz giden mermi. Nişan, polisin hareketine göre önden kesilir.
-- **Örnek:** Large blob, Giant bir binaya (50 mass) ateş eder → 3 × 16.7 mass'lık parça. Normalde Giant olmadan yenemeyeceği lokmayı erken yer.
 - **Son form:** Pompalı yakın mesafede çok güçlü (5 saçma × %60 = 3 kat hasar).
 
 ---
