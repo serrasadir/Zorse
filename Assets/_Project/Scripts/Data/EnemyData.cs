@@ -38,6 +38,8 @@ namespace BlobSurvivor.Data
 
         [Header("Yutulabilirlik (A12 — Karar 5, yeme birincil)")]
         [SerializeField] private float _massReward = 3f;
+        [Tooltip("Silahla (mermi, patlama, diken) öldürülünce verilen XP. Kütle vermez; yutunca bunun yerine _massReward gelir.")]
+        [SerializeField] private float _killXp;
         [SerializeField] private bool _preventConsumption;
         // 2026-09-06 (Serra): eskiden "_spawnTier" adıyla vardı ama HİÇ kullanılmıyordu (Police'te
         // anlamsızca 0, elit/boss'larda tesadüfen doğru olan 5) — asıl yutulabilirlik eşiği
@@ -77,6 +79,7 @@ namespace BlobSurvivor.Data
         public float AimDuration => _aimDuration;
         public float AimLockDuration => _aimLockDuration;
         public float MassReward => _massReward;
+        public float KillXp => _killXp;
         public bool PreventConsumption => _preventConsumption;
         public BlobTier RequiredConsumeTier => _requiredConsumeTier;
         public float ConsumeDamage => _consumeDamage;

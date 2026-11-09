@@ -40,6 +40,7 @@ namespace BlobSurvivor.Entities.Enemies
 
         private NavMeshAgent _agent;
         private BlobHealth _blobHealth;
+        private BlobGrowth _blobGrowth;
         private ScoreSystem _scoreSystem;
         private IEnemyState _currentState;
         private float _currentHealth;
@@ -198,6 +199,7 @@ namespace BlobSurvivor.Entities.Enemies
             {
                 BlobTransform = blob.transform;
                 _blobHealth = blob.GetComponent<BlobHealth>();
+                _blobGrowth = blob.GetComponent<BlobGrowth>();
 
                 // Blob'da iki SphereCollider var (trigger=yeme algılama, solid=fiziksel/dokunma) —
                 // temas mesafesi için solid olanın yarıçapı gerekli (M25 notuna bkz., CLAUDE.md).
@@ -297,7 +299,8 @@ namespace BlobSurvivor.Entities.Enemies
             if (_knockbackVelocity.sqrMagnitude < 0.0001f) return;
             float dt = Time.deltaTime;
             Vector3 step = _knockbackVelocity * dt;
-            if (UsesSteering) transform.position += step;
+            // Steering'de de duvar kontrolü: duvar dibindeki polis vurulunca duvarın içinden suya itiliyordu.
+            if (UsesSteering) transform.position += ClampStepAgainstEnvironment(step);
             else if (_agent != null && _agent.enabled && _agent.isOnNavMesh) _agent.Move(step);
             _knockbackVelocity = Vector3.MoveTowards(_knockbackVelocity, Vector3.zero, _knockbackDecel * dt);
         }
@@ -384,6 +387,8 @@ namespace BlobSurvivor.Entities.Enemies
                 ApplySteeringMovement();
 
             UpdateKnockback();
+            if (UsesSteering)
+                transform.position = MapBounds.Clamp(transform.position, _agent != null ? _agent.radius : 0.5f);
             AnimateLunge();
             UpdateFlash();
         }
@@ -750,7 +755,10 @@ namespace BlobSurvivor.Entities.Enemies
                 if (_data != null && _data.RequiresConsumptionToDie)
                     _currentHealth = 1f;
                 else
+                {
+                    if (_blobGrowth != null && _data != null) _blobGrowth.AddKillXP(_data.KillXp);
                     Die();
+                }
             }
 
             float dealt = before - Mathf.Max(_currentHealth, 0f);

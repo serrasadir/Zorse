@@ -32,5 +32,6 @@ MonoBehaviour:
   _aimDuration: 1.1
   _aimLockDuration: 0.4
   _massReward: 0
+  _killXp: 80
   _preventConsumption: 1
   _crushesObstacles: 1

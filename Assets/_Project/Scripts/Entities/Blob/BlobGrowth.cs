@@ -89,6 +89,12 @@ namespace BlobSurvivor.Entities.Blob
             AddXP(adjusted);
         }
 
+        // Silahla öldürülen düşman: sadece XP (büyüme yemeğe bağlı kalır). Market XP çarpanı uygulanır.
+        public void AddKillXP(float amount)
+        {
+            if (amount > 0f) AddXP(amount);
+        }
+
         public void IncreaseMassGainMultiplier(float amount) => _massGainMultiplier += amount;
 
         // DevCheats (Editor) ve PerfOverlay (telefonda performans testi): kütle ekler ama XP vermez — kart ekranı yağmuru olmasın.
