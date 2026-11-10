@@ -201,7 +201,8 @@ namespace BlobSurvivor.UI
             foreach (Transform c in panel) c.gameObject.SetActive(false); // eski düzen
 
             Image backdrop = _panel.GetComponent<Image>();
-            if (backdrop != null) { backdrop.color = Backdrop; backdrop.sprite = null; backdrop.raycastTarget = true; }
+            if (backdrop != null) { backdrop.color = Color.clear; backdrop.sprite = null; backdrop.raycastTarget = true; }
+            LobbyPanel.ScreenBackdrop(panel, Backdrop);
 
             Shadowed("Title", panel, new Vector2(0f, 760f), new Vector2(1000f, 120f), "MARKET", 92f, Gold);
 
@@ -221,6 +222,8 @@ namespace BlobSurvivor.UI
             _rows = new Row[StatRows.Length];
             for (int i = 0; i < StatRows.Length; i++)
                 _rows[i] = BuildStatRow(StatRows[i], panel, new Vector2(0f, 110f - i * 172f), rounded);
+
+            LobbyPanel.PinToEdge(panel, 1f, "Title", "TitleShadow", "CreditChip", "BackButton");
         }
 
         private Row BuildCharacterCard(RectTransform panel, Vector2 pos, Sprite rounded)

@@ -96,6 +96,8 @@ namespace BlobSurvivor.Core
             if (!toggle) return;
             _visible = !_visible;
             PlayerPrefs.SetInt(PrefKey, _visible ? 1 : 0);
+            // Gizlenince panel de kapanmalı: yoksa EventSystem kapalı kalır, duraklatma menüsüne basılamaz.
+            if (!_visible && _devOpen) SetDevOpen(false);
         }
 
         private void OnGUI()

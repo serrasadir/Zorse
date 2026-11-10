@@ -157,7 +157,10 @@ namespace BlobSurvivor.UI
 
             Image backdrop = _panel.GetComponent<Image>();
             Sprite rounded = _marketButton != null && _marketButton.targetGraphic is Image mi ? mi.sprite : null;
-            if (backdrop != null) { backdrop.color = Backdrop; backdrop.sprite = null; }
+            if (backdrop != null) { backdrop.sprite = null; backdrop.color = Color.clear; }
+            panel.anchorMin = Vector2.zero; panel.anchorMax = Vector2.one;
+            panel.anchoredPosition = Vector2.zero; panel.sizeDelta = Vector2.zero;
+            ScreenBackdrop(panel, Backdrop);
 
             Shadowed("Title", panel, new Vector2(0f, 760f), new Vector2(1000f, 120f), "KARAKTERİNİ SEÇ", 92f, Color.white);
 
@@ -186,6 +189,39 @@ namespace BlobSurvivor.UI
             backButton.targetGraphic = backImage;
             backButton.onClick.AddListener(() => TitleScreen.ShowTitle());
             Text("Label", back, Vector2.zero, back.sizeDelta, 56f, TextAlignmentOptions.Center, Color.white).text = "<";
+
+            PinToEdge(panel, 1f, "Title", "TitleShadow", "CreditChip", "BackButton");
+            if (_marketButton != null) PinToEdge((RectTransform)_marketButton.transform, 0f);
+        }
+
+        // Düzen 1080x1920'ye göre çizildi. Uzun ekranda başlık bloğu üste, Market düğmesi alta yapışır (1920'de konum aynı).
+        internal static void PinToEdge(RectTransform panel, float edge, params string[] names)
+        {
+            foreach (string n in names)
+                if (panel.Find(n) is RectTransform r) PinToEdge(r, edge);
+        }
+
+        internal static void PinToEdge(RectTransform r, float edge)
+        {
+            Vector2 p = r.anchoredPosition;
+            r.anchorMin = r.anchorMax = new Vector2(0.5f, edge);
+            p.y += edge > 0.5f ? -960f : 960f;
+            r.anchoredPosition = p;
+        }
+
+        // Panel güvenli alanın içinde; arka plan çentik ve alt çubuk şeridini de kaplasın diye taşar (ekran dışı kırpılır).
+        internal static void ScreenBackdrop(RectTransform panel, Color color)
+        {
+            var go = new GameObject("ScreenBackdrop", typeof(RectTransform));
+            go.layer = panel.gameObject.layer;
+            var rect = (RectTransform)go.transform;
+            rect.SetParent(panel, false);
+            rect.SetAsFirstSibling();
+            rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one;
+            rect.offsetMin = new Vector2(-400f, -600f); rect.offsetMax = new Vector2(400f, 600f);
+            var image = go.AddComponent<Image>();
+            image.color = color;
+            image.raycastTarget = false;
         }
 
         private Card BuildCard(Button button, RectTransform panel, Vector2 pos, Sprite rounded)
