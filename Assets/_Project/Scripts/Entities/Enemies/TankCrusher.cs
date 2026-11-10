@@ -8,6 +8,7 @@ namespace BlobSurvivor.Entities.Enemies
     // sadece binalar yasak — sokak eşyaları ve hareketli arabalar yok, ajan fizik collider'larına bakmaz.
     // Etrafından dolanmak yerine tank ezer: üstünden geçtiği arabalar havuza döner, küçük şehir eşyaları
     // (ağaç, lamba, durak...) gizlenir (CityLevel run sonunda geri açar). Binalar ezilmez, tank onları NavMesh ile dolanır.
+    // Ezilen eşya objenin renklerinde kırıntıyla dağılır (CrushFx).
     // EnemyData.CrushesObstacles açık düşmana EnemyBase.SetData ekler (prefab'a elle bağlamaya gerek yok).
     [RequireComponent(typeof(EnemyBase))]
     public class TankCrusher : MonoBehaviour
@@ -57,8 +58,19 @@ namespace BlobSurvivor.Entities.Enemies
                 // Engel kutusu olan (bina) ezilmez; yaya ve havuz consumable'ları CityConsumable değil, dokunulmaz.
                 CityConsumable prop = hit.GetComponentInParent<CityConsumable>();
                 if (prop != null && !prop.BlocksProjectiles)
+                {
+                    PlayCrush(prop);
                     prop.gameObject.SetActive(false);
+                }
             }
+        }
+
+        // Ezilme anında (seyrek): görünür boy kadar kırıntı + toz, objenin kendi renkleri (Yeme Efektini Kur yazar).
+        private static void PlayCrush(CityConsumable prop)
+        {
+            Renderer r = prop.GetComponentInChildren<Renderer>();
+            if (r == null || prop.Data == null) return;
+            CrushFx.Play(r.bounds, prop.Data.CrumbColorA, prop.Data.CrumbColorB);
         }
     }
 }
