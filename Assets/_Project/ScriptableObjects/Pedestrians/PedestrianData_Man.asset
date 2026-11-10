@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.PedestrianData
   _displayName: Erkek Yaya
   _prefab: {fileID: 209580712890757938, guid: 4a1916a64c157431891297ce48ddb071, type: 3}
-  _scoreValue: 1
+  _scoreValue: 5
   _massValue: 1
   _requiredTier: 2
   _isHazard: 0

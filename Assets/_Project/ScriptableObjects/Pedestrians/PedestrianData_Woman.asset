@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.PedestrianData
   _displayName: "Kad\u0131n Yaya"
   _prefab: {fileID: 209580712890757938, guid: 72e45be68fd684205b92fa16b5f39a43, type: 3}
-  _scoreValue: 1
+  _scoreValue: 5
   _massValue: 1
   _requiredTier: 2
   _isHazard: 0

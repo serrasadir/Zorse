@@ -19,7 +19,7 @@ MonoBehaviour:
   _moveSpeed: 2.7
   _attackRange: 2
   _attackCooldown: 1
-  _scoreValue: 3
+  _scoreValue: 15
   _isElite: 0
   _attackHitCount: 1
   _attackHitInterval: 0.3
