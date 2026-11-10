@@ -260,8 +260,6 @@ namespace BlobSurvivor.Core
         // Giriş ekranı (TitleScreen): run'ın her şeyi sıfırlanır (OnCharacterSelected dinleyicileri: şehir, düşman,
         // boss, coin...), blob varsayılan karakterle (Topik) başlangıçta durur. Menü durumunda kalır: blob hareket
         // etmez, düşman doğmaz, ama dünya akar (arabalar/yayalar) — arka plan canlı.
-        public CharacterData DefaultCharacter => _defaultCharacter;
-
         public void EnterTitle()
         {
             if (CurrentState == GameState.Playing || CurrentState == GameState.LevelUp) return;

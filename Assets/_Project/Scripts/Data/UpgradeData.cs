@@ -3,15 +3,6 @@ using BlobSurvivor.Systems;
 
 namespace BlobSurvivor.Data
 {
-    public enum UpgradeCategory
-    {
-        Mobility,
-        Defense,
-        Magnetic,
-        Weapon,
-        Feeding // B16 (GDD_v2.md §5, Karar 5 — yeme birincil): sona eklendi, mevcut asset'lerin int değerleri kaymasın diye.
-    }
-
     [CreateAssetMenu(fileName = "UpgradeData", menuName = "BlobSurvivor/Upgrade Data")]
     public class UpgradeData : ScriptableObject
     {
@@ -19,7 +10,6 @@ namespace BlobSurvivor.Data
         [SerializeField] private string _displayName;
         [SerializeField] private string _description;
         [SerializeField] private Sprite _icon;
-        [SerializeField] private UpgradeCategory _category;
         [SerializeField] private int _weight = 10;
         [SerializeField] private UpgradeEffect _effect;
 
@@ -42,7 +32,6 @@ namespace BlobSurvivor.Data
         public string DisplayName => _displayName;
         public string Description => _description;
         public Sprite Icon => _icon;
-        public UpgradeCategory Category => _category;
         public int Weight => _weight;
         public UpgradeEffect Effect => _effect;
         public int MaxLevel => _maxLevel;
