@@ -32,8 +32,10 @@ namespace BlobSurvivor.Entities.Weapons
         // Enemy(14) + ConsumableTier1-5(9-13) + Environment(16, bina engelleri ve harita duvarı) —
         // Rigidbody/Collider gerektirmez, doğrudan spatial sorgu.
         private const int HitMask = (1 << 14) | TierLayers.ConsumableMask | (1 << EnvironmentLayer);
-        // Pas geçilen (ağaç, yenebilir obje) hitlerden sonra aynı karede arkadakini de görebilsin.
-        private const int MaxHitsPerFrame = 3;
+        // Hak biterse kalan yol sadece düşman + duvara bakılarak gidilir (sorgusuz ilerleme yok).
+        private const int SolidMask = (1 << EnemyLayer) | (1 << EnvironmentLayer);
+        // Pas geçilen (ağaç, yaya) hitlerden sonra aynı karede arkadakini de görebilsin.
+        private const int MaxHitsPerFrame = 6;
 
         // Silahı değil havuzu tutar: restart'ta silah Destroy edilir, havuz (PoolManager) yaşamaya devam eder.
         private ObjectPool<Projectile> _pool;
@@ -46,8 +48,6 @@ namespace BlobSurvivor.Entities.Weapons
         protected float Damage { get; private set; }
         protected bool IsUltimate { get; private set; }
         protected Vector3 Direction { get; set; }
-        protected float LifetimeFraction => _lifetime > 0f ? Mathf.Clamp01(_elapsed / _lifetime) : 0f;
-        protected float NextLifetimeFraction => _lifetime > 0f ? Mathf.Clamp01((_elapsed + Time.deltaTime) / _lifetime) : 0f;
 
         // Restart sahneyi yeniden yüklemiyor: havadaki mermiler yeni run'a taşınmasın (EnemyProjectile ile aynı).
         protected virtual void Awake()
@@ -92,9 +92,9 @@ namespace BlobSurvivor.Entities.Weapons
 
         protected virtual void Update()
         {
-            // 2026-11-03: SphereCast başlangıçta zaten içinde olduğu collider'ı görmez — blob'a yapışmış polisin
-            // içinde doğan mermi ondan geçip gidiyordu. İlk karede bir kez yerinde bakılır.
-            if (_elapsed <= 0f && CheckSpawnOverlap()) return;
+            // SphereCast başlangıçta içinde olduğu collider'ı görmez: polis mermiye doğru yürüyüp onu içine aldıysa
+            // (ya da mermi bir eşyanın yüzeyinde polisin içinde durduysa) mermi geçip gidiyordu. Her kare yerinde bakılır.
+            if (CheckOverlap()) return;
 
             Vector3 extraMotion = GetExtraMotion();
             Vector3 castDirection;
@@ -116,9 +116,14 @@ namespace BlobSurvivor.Entities.Weapons
             // (arkadaki duvar/düşman o karede görülmüyordu); ayrıca mermi merkezi temas noktasına ışınlanıyordu.
             Vector3 position = transform.position;
             float remaining = travelDistance;
-            for (int i = 0; i < MaxHitsPerFrame && remaining > 0f; i++)
+            // Tetikleyiciler (yenebilir eşya/yaya, yeme alanları) mermiyi durdurmaz; sorguya girip hak yemesinler.
+            int mask = HitMask;
+            for (int i = 0; remaining > 0f; i++)
             {
-                if (!Physics.SphereCast(position, _hitRadius, castDirection, out RaycastHit hit, remaining, HitMask)) break;
+                if (i == MaxHitsPerFrame) mask = SolidMask;
+                else if (i > MaxHitsPerFrame) break;
+                if (!Physics.SphereCast(position, _hitRadius, castDirection, out RaycastHit hit, remaining, mask,
+                        QueryTriggerInteraction.Ignore)) break;
 
                 position += castDirection * hit.distance;
                 remaining -= hit.distance;
@@ -150,15 +155,16 @@ namespace BlobSurvivor.Entities.Weapons
 
         protected void KnockbackEnemy(EnemyBase enemy) => enemy.Knockback(Direction, _knockback);
 
-        private bool CheckSpawnOverlap()
+        private bool CheckOverlap()
         {
-            int count = Physics.OverlapSphereNonAlloc(transform.position, _hitRadius, s_spawnHits, 1 << EnemyLayer);
+            int count = Physics.OverlapSphereNonAlloc(transform.position, _hitRadius, s_overlapHits, 1 << EnemyLayer,
+                QueryTriggerInteraction.Ignore);
             for (int i = 0; i < count; i++)
-                if (HandleHit(s_spawnHits[i])) return true;
+                if (HandleHit(s_overlapHits[i])) return true;
             return false;
         }
 
-        private static readonly Collider[] s_spawnHits = new Collider[4];
+        private static readonly Collider[] s_overlapHits = new Collider[4];
 
         private bool HandleHit(Collider other)
         {
