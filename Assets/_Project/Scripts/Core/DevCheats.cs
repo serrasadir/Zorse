@@ -30,7 +30,7 @@ namespace BlobSurvivor.Core
         {
             GameObject go = new GameObject("DevCheats (Editor)") { hideFlags = HideFlags.DontSave };
             go.AddComponent<DevCheats>();
-            Debug.Log("[DevCheats] M: +500 kütle · B: final boss −%25 can · H: canı doldur · N: sıradaki boss · V: Vakum +1 · K: Kara Delik · Z: Zırh +1 · U: Havai Fişek +1 · C: +500 kredi (sadece Editor)");
+            Debug.Log("[DevCheats] M: +500 kütle · B: final boss −%25 can · H: canı doldur · N: sıradaki boss · V: Vakum +1 · K: Kara Delik · Z: Zırh +1 · U: Havai Fişek +1 · C: +500 coin (sadece Editor)");
         }
 
         private void Update()
@@ -45,7 +45,7 @@ namespace BlobSurvivor.Core
             {
                 var meta = BlobSurvivor.Systems.Meta.MetaProgression.Instance;
                 meta.DevAddCredit(500);
-                Debug.Log($"[DevCheats] Kredi {meta.Credit}");
+                Debug.Log($"[DevCheats] Coin {meta.Credit}");
             }
 
             if (keyboard.mKey.wasPressedThisFrame && _growth != null)

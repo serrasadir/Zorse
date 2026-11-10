@@ -14,9 +14,6 @@ namespace BlobSurvivor.UI
     {
         [SerializeField] private GameObject _panel;
         [SerializeField] private TMP_Text _scoreText;
-        [SerializeField] private TMP_Text _highScoreText;
-        [SerializeField] private TMP_Text _summaryText;
-        [SerializeField] private TMP_Text _newRecordText;
         [SerializeField] private Button _restartButton;
 
         // HUDController / PauseMenu ile aynı renkler.
@@ -158,7 +155,7 @@ namespace BlobSurvivor.UI
             _record.text = "YENİ REKOR!";
 
             RectTransform card = Panel("StatsCard", _content, new Vector2(0f, 20f), new Vector2(760f, 600f), rounded, PanelColor);
-            string[] names = { "Süre", "Skor", "Rekor", "Coin", "Kredi" };
+            string[] names = { "Süre", "Skor", "Rekor", "Toplanan coin", "Kazanılan coin" };
             TMP_Text[] values = new TMP_Text[names.Length];
             for (int i = 0; i < names.Length; i++)
             {

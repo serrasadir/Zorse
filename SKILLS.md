@@ -233,7 +233,7 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 
 **Açılma koşulları:**
 - **Topik:** baştan açık.
-- **Mıknato:** Market'te **500 kredi** ile satın alınır (kalıcı). Kredi run sonunda coin'den gelir: kazanınca coin'in %100'ü, ölünce %50'si.
+- **Mıknato:** Market'te **500 coin** ile satın alınır (kalıcı). Kasaya run sonunda toplanan coin girer: kazanınca %100'ü, ölünce %50'si.
 - **Mermo:** toplam **3 run** bitirince kendiliğinden açılır. Ölümle biten run da, kazanılan run da sayılır. Sayı kalıcı kayıtta tutulur (`MetaProgression.CompletedRuns`), koşul `Char_Mermo.asset` → `Required Completed Runs`.
 - Kilitli karakter Lobby'de seçilemez; isminin altında koşul yazar: "(Market'te açılır)" ya da "(2 run sonra açılır)".
 
@@ -241,7 +241,7 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 
 | | 🟠 Topik | 🧲 Mıknato | 🔫 Mermo |
 |---|---|---|---|
-| **Kilit** | Başlangıçta açık | Market'te **500 kredi** ile satın alınır | **3 run bitirince** açılır (ölümle biten run da sayılır) |
+| **Kilit** | Başlangıçta açık | Market'te **500 coin** ile satın alınır | **3 run bitirince** açılır (ölümle biten run da sayılır) |
 | **Mermi modeli** | Top | Metal bilye | Tabanca mermisi |
 | **Başlangıç avantajı** | Run'a **Hız Sv.2** ile başlar | **Vakum baştan açık** (1.2 menzil) + çekim etkisi **×1.25** | Run'a **Silah Gücü Sv.2** ile başlar |
 | **Sv. 8 son form** | **Büyük Patlama:** isabette 5 birimlik patlama | **Sekme:** isabetten sonra 6 birim içindeki 2 düşmana daha seker | **Pompalı:** 40°'lik yelpazede 5 saçma (her biri %60 hasar) |
@@ -255,7 +255,7 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 - **Pasif:** Oyuna Vakum skili açık başlar (1.2 menzil, gövde yüzeyinden; ×1.25 ile 1.5). Çekim menzili ve çekme hızı ×1.25. Vakum skilini alırsa çarpan onu da büyütür (Vakum 8 → 5.0 menzil).
 - **Silah:** Diğerleriyle aynı düz mermi. Sv.8 Sekme'de bilye güdümlü olur ve isabetten sonra 2 düşmana daha seker.
 - **Örnek:** Diğer karakterler Vakum'u kart olarak beklerken Mıknato ilk saniyeden çevresini toplar. Erken büyüme ve erken level demek. Kara Delik evrimine (Vakum 8 + Sindirim 8) en doğal giden karakter.
-- **Not:** En güçlü pasif. Bu yüzden 500 kredilik Market kilidi var.
+- **Not:** En güçlü pasif. Bu yüzden 500 coin'lik Market kilidi var.
 
 ### 🔫 Mermo
 - **Başlangıç:** Run'a **Silah Gücü Sv.2** ile başlar (mermi 8 hasar, menzil gövde yüzeyinden 4; kart ekranında sıradaki Sv.3 çift hedef). `Char_Mermo.asset` → `Starting Upgrade` / `Starting Upgrade Level`.
@@ -308,7 +308,7 @@ Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Elit polisin nişan-kilit
 | **Hız** | 3.5. Ekran dışında ve uzaktaysa ×2 (yetişme) |
 | **Algı** | Tüm harita |
 | **Yutulma** | Blob'un tepesi helikoptere **değdiği an**, hangi irtifada olursa olsun. Çok büyüyen oyuncu daha erken bitirir |
-| **Ödül** | Yutulunca **run "tamamlandı" olarak biter** (ölümden ayrı ekran), 300 mass, 600 skor, **60–100 bonus coin**, tam kredi (ölümde %50) |
+| **Ödül** | Yutulunca **run "tamamlandı" olarak biter** (ölümden ayrı ekran), 300 mass, 600 skor, **60–100 bonus coin**, coin'in tamamı kasaya (ölümde %50) |
 
 - **Ne kadar büyümek gerekir** (blob tepesi ≈ 1.1 × ölçek): irtifa 5 ≈ **1340 mass** (Giant ile Dev arası; Dev olmak gerekmez), 6 ≈ 1950, 7 ≈ 2700, 8 ≈ 3600.
 - **Oyuncu silahı yukarı ateş eder:** Havadaki hedefe nişan otomatik 3D (skill gerekmez). Menzil yatay ölçülür; helikopterin altına yaklaşman yeter.

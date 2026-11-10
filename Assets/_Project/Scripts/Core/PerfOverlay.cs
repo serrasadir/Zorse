@@ -14,7 +14,7 @@ namespace BlobSurvivor.Core
     //   Aç/kapa: ekrana 3 parmakla dokun (Editor'da F3). Durum PlayerPrefs'te kalır.
     //   Gösterir: ortalama FPS (0.5 sn), son 2 sn'nin en kötü karesi (ms, takılma), hedef FPS.
     //   "+500 kütle" düğmesi: Giant'a hızlı çıkıp en kötü anı (kamera en uzak, en çok bina ekranda) ölçmek için.
-    //   "DEV" düğmesi: test paneli — skill +1/max, kütle, can, boss; kredi, karakter kilitleri, kayıt sıfırlama.
+    //   "DEV" düğmesi: test paneli — coin, karakter kilitleri, skill +1/max, kütle, can, boss, kayıt sıfırlama.
     //   Panel açıkken oyun durur ve uGUI tıklamaları kapanır (alttaki karta/butona basılmasın).
     // YAYIN ÖNCESİ: Enabled = false (oyunculara hile düğmesi gitmesin). Kapalıyken hiç oluşmaz, maliyeti sıfır.
     public class PerfOverlay : MonoBehaviour
@@ -38,6 +38,8 @@ namespace BlobSurvivor.Core
         private bool _pausedByPanel;
         private bool _confirmReset;
         private Vector2 _scroll;
+        private float _dragDistance;
+        private const float DragClickThreshold = 12f; // piksel
         private string _message = "";
         private List<UpgradeData> _skills;
         private EventSystem _disabledEventSystem;
@@ -183,10 +185,38 @@ namespace BlobSurvivor.Core
 
             var view = new Rect(panel.x + pad, panel.y + 74 * s, w, panel.height - 84 * s);
             float contentH = ContentHeight(rowH, gap, s);
+            DragScroll(view, contentH);
             _scroll = GUI.BeginScrollView(view, _scroll, new Rect(0, 0, w - 20 * s, contentH));
             float cw = w - 20 * s;
             half = (cw - gap) / 2f;
             float y = 0f;
+
+            Header("COIN / KAYIT", ref y, cw, s);
+            MetaProgression meta = MetaProgression.Instance;
+            if (meta == null)
+            {
+                Note("MetaProgression yok.", ref y, cw, s);
+            }
+            else
+            {
+                Note($"Coin {meta.Credit:N0} · Mıknato {(meta.MiknatoUnlocked ? "açık" : "kilitli")} · biten run {meta.CompletedRuns}", ref y, cw, s);
+                if (Btn(0, y, half, rowH, "+1.000 coin")) { meta.DevAddCredit(1000); _message = $"Coin {meta.Credit:N0}"; }
+                if (Btn(half + gap, y, half, rowH, "+10.000 coin")) { meta.DevAddCredit(10000); _message = $"Coin {meta.Credit:N0}"; }
+                y += rowH + gap;
+                if (Btn(0, y, half, rowH, meta.MiknatoUnlocked ? "Mıknato'yu kilitle" : "Mıknato'yu aç"))
+                {
+                    meta.DevSetMiknatoUnlocked(!meta.MiknatoUnlocked);
+                    _message = meta.MiknatoUnlocked ? "Mıknato açık" : "Mıknato kilitli";
+                }
+                if (Btn(half + gap, y, half, rowH, "Tüm karakterleri aç")) { meta.DevUnlockAllCharacters(); _message = "Tüm karakterler açık"; }
+                y += rowH + gap;
+                if (Btn(0, y, half, rowH, _confirmReset ? "Emin misin? Sıfırla" : "Kaydı sıfırla"))
+                {
+                    if (_confirmReset) { meta.DevReset(); _message = "Kayıt sıfırlandı"; _confirmReset = false; }
+                    else _confirmReset = true;
+                }
+                y += rowH + gap;
+            }
 
             GameManager gm = GameManager.Instance;
             bool inRun = gm != null && gm.CurrentState != GameState.Menu && UpgradeSystem.Instance != null;
@@ -233,39 +263,37 @@ namespace BlobSurvivor.Core
                 }
             }
 
-            Header("KAYIT / MARKET", ref y, cw, s);
-            MetaProgression meta = MetaProgression.Instance;
-            if (meta == null)
-            {
-                Note("MetaProgression yok.", ref y, cw, s);
-            }
-            else
-            {
-                Note($"Kredi {meta.Credit:N0} · Mıknato {(meta.MiknatoUnlocked ? "açık" : "kilitli")} · biten run {meta.CompletedRuns}", ref y, cw, s);
-                if (Btn(0, y, half, rowH, "+1000 kredi")) { meta.DevAddCredit(1000); _message = $"Kredi {meta.Credit:N0}"; }
-                if (Btn(half + gap, y, half, rowH, meta.MiknatoUnlocked ? "Mıknato'yu kilitle" : "Mıknato'yu aç"))
-                {
-                    meta.DevSetMiknatoUnlocked(!meta.MiknatoUnlocked);
-                    _message = meta.MiknatoUnlocked ? "Mıknato açık" : "Mıknato kilitli";
-                }
-                y += rowH + gap;
-                if (Btn(0, y, half, rowH, "Tüm karakterleri aç")) { meta.DevUnlockAllCharacters(); _message = "Tüm karakterler açık"; }
-                if (Btn(half + gap, y, half, rowH, _confirmReset ? "Emin misin? Sıfırla" : "Kaydı sıfırla"))
-                {
-                    if (_confirmReset) { meta.DevReset(); _message = "Kayıt sıfırlandı"; _confirmReset = false; }
-                    else _confirmReset = true;
-                }
-                y += rowH + gap;
-            }
-
             GUI.EndScrollView();
         }
 
         private float ContentHeight(float rowH, float gap, float s)
         {
             int skills = _skills != null ? _skills.Count : 0;
-            int rows = 2 + skills + 2;
+            int rows = 2 + skills + 3;
             return 3 * 40 * s + 2 * 34 * s + rows * (rowH + gap) + 20 * s;
+        }
+
+        // IMGUI kaydırma alanı dokunmatikte sürüklenmiyor: parmak sürüklemesi elle kaydırır.
+        // Sürükleme sonrası parmak kalkınca altındaki düğmeye basılmış sayılmasın.
+        private void DragScroll(Rect view, float contentH)
+        {
+            Event e = Event.current;
+            switch (e.type)
+            {
+                case EventType.MouseDown:
+                    _dragDistance = 0f;
+                    break;
+                case EventType.MouseDrag when view.Contains(e.mousePosition):
+                    _dragDistance += Mathf.Abs(e.delta.y);
+                    _scroll.y = Mathf.Clamp(_scroll.y - e.delta.y, 0f, Mathf.Max(0f, contentH - view.height));
+                    e.Use();
+                    break;
+                case EventType.MouseUp when _dragDistance > DragClickThreshold:
+                    _dragDistance = 0f;
+                    GUIUtility.hotControl = 0;
+                    e.Use();
+                    break;
+            }
         }
 
         private void Grant(UpgradeData u, int times)

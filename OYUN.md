@@ -32,7 +32,7 @@
 2. **Akıcı büyüme.** Tier atlamak "tak" diye sıçramaz; blob sürekli büyür, kamera büyümeden yavaş uzaklaşır (blob ekranda büyür).
 3. **Büyüdükçe yavaşla.** Güç ≠ rahatlık. Ayarlanır, kaldırılmaz.
 4. **Tek input.** İkinci tuş isteyen fikir varsayılan olarak reddedilir.
-5. **Ölüm = ilerleme.** Ölünce run coin'inin %50'si krediye döner.
+5. **Ölüm = ilerleme.** Ölünce run'da toplanan coin'in %50'si kasaya (kalıcı coin) girer.
 6. **Sıfır pay-to-win.**
 7. **Frame rate > içerik.** Mobilde 30 FPS kaosun zirvesinde de korunur.
 8. **Çocuk yaya yok.** Yiyerek büyüme oyununda çocuk yutmak etik ve mağaza riski; eklenmez.
@@ -43,14 +43,14 @@
 
 0. **Açılış (sadece uygulama ilk açılırken):** siyah ekranda Zorse Studio logosu belirir (~2.2 sn), söner (`StudioSplash`, logo `Resources/UI/zorse-logo.png`).
 1. **Giriş ekranı:** arkada canlı şehir, kamera Topik'e yakın; Topik göz kırpar, sağa sola bakınır. Logo + OYNA. Duraklatma ve oyun sonundaki "Ana Menü" de buraya döner (run sıfırlanır).
-2. **Lobi:** OYNA'dan sonra karakter seç (Topik, Mıknato, Mermo), Market'e gir. HUD diliyle: başlık, kredi, her karakter için kart (portre `Art/UI/Characters/Icon_*.png` ← `build_blobs.py`, ad, pasif açıklaması; kilitliyse soluk + koşul rozeti), altın MARKET tuşu ve geri (giriş ekranına) tuşu. Karta dokunmak oyunu başlatır.
+2. **Lobi:** OYNA'dan sonra karakter seç (Topik, Mıknato, Mermo), Market'e gir. HUD diliyle: başlık, coin, her karakter için kart (portre `Art/UI/Characters/Icon_*.png` ← `build_blobs.py`, ad, pasif açıklaması; kilitliyse soluk + koşul rozeti), altın MARKET tuşu ve geri (giriş ekranına) tuşu. Karta dokunmak oyunu başlatır.
 3. Şehirde başlarsın; yerdeki çöpleri, sokak eşyalarını, yayaları yiyerek büyürsün. Senden büyük şeyler seni durdurur (katı), hazard'lar hasar verir.
 4. Kütle = XP; yenen her şeyin kütlesi genel büyüme hızıyla (×0.35, `BlobGrowth._globalGainScale`) çarpılır. Silahla öldürülen düşman sadece XP verir, kütle vermez (büyüme yemeğe bağlı): polis 1, elit 7, 1. tank 80, 2. tank 130 (`EnemyData._killXp`). Level atlayınca oyun durur, **3 karttan 1** seçilir. Aynı skill tekrar seçilirse seviye atlar (en fazla 8).
 5. Polisler gelir, zamanla ve büyüdükçe baskı artar; boss'lar belirli **seviyelerde** gelir (takılan oyuncuya en geç belirli bir dakikada).
 6. Run iki şekilde biter:
-   - **Ölüm** → "Game Over!" ekranı, coin'in %50'si krediye.
-   - **Final boss (helikopter) yutulursa** → "KAZANDIN!" ekranı, coin'in %100'ü krediye.
-7. Kredi Market'te kalıcı statlara ve Mıknato'ya harcanır.
+   - **Ölüm** → "Game Over!" ekranı, coin'in %50'si kasaya.
+   - **Final boss (helikopter) yutulursa** → "KAZANDIN!" ekranı, coin'in %100'ü kasaya.
+7. Kasadaki coin Market'te kalıcı statlara ve Mıknato'ya harcanır.
 
 ### Zaman çizelgesi
 
@@ -112,7 +112,7 @@ Ayrıntı ve tüm sayılar **`SKILLS.md`**'de. Özet:
 - Max seviyedeki skill havuzdan çıkar; birden çok level aynı anda atlanırsa kartlar sırayla gelir; run bittiyse kart açılmaz.
 - **3 karakter**, hepsi top formunda, silahlar otomatik ateşler. Ateş tarzı üçünde aynı (düz, hareketi önden kesen hızlı mermi; sadece mermi modeli farklı); fark Silah Gücü Sv.8 son formunda:
   - **Topik** — top mermisi; pasif: run'a **Hız Sv.2** ile başlar (kaykay baştan var). Baştan açık. Hızlı giderken arkasında hafif rüzgar çizgileri (iki yandan ve tepeden üç ince beyaz iz; `CharacterData._speedTrail`, `SpeedTrail`).
-  - **Mıknato** — metal bilye; pasif: Vakum baştan açık, çekim ×1.25. Market'te 500 kredi.
+  - **Mıknato** — metal bilye; pasif: Vakum baştan açık, çekim ×1.25. Market'te 500 coin.
   - **Mermo** — tabanca mermisi; pasif: run'a **Silah Gücü Sv.2** ile başlar (`CharacterData._startingUpgrade`). **3 run bitirince** açılır (ölüm de sayılır).
 - **İki silah:** karakter silahı **her yöne** (360°) ama kısa menzille (gövde yüzeyinden 3, Silah Gücü ile 5'e kadar) ateş eder: kaçarken kovalayanı savuşturur, haritayı temizlemez. **Havai Fişek** (kart, Sv.4'te bir kez garanti; 1. miniboss Sv.5'te) uzun menzilli (gövde yüzeyinden 12), yavaş, tek hedefe ağır; sadece **önündeki 120°'ye**, önce boss'a sonra elite nişan alır. Dönünce 1 sn kurulur (fitil kıvılcımı = hazır). Boss ritmi: dön, dur (yüz son yönde kalır), kurulsun, ateş et; lazer kilitlenince yana kaç. Tam tepedeki hedef (helikopter) her zaman vurulur.
 - Silah havadaki hedefe (helikopter) otomatik yukarı nişan alır; menzil yatay ölçülür.
@@ -161,7 +161,7 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 
 ## 9. Ekonomi ve Market
 
-- **Coin** run içinde toplanır; run sonunda **krediye** döner (kazanınca %100, ölünce %50).
+- **Coin** run içinde toplanır; run sonunda **kasaya** girer (kazanınca %100, ölünce %50). Oyuncu tek para görür: coin (kodda kasa `MetaProgression.Credit`).
 - **Skor** sadece rekor göstergesi, hiçbir şey satın almaz.
 
 | Market kalemi | Fiyat |
@@ -183,13 +183,13 @@ Kademeli statlar sınırsız alınabilir. Kayıt yerel JSON'da (`meta_progressio
 - **Kamera:** üstten 60° eğik; blob büyüdükçe uzaklaşır: yükseklik × (ölçek / başlangıç ölçeği)^0.35 (`CameraController._zoomExponent`; Medium ~×1.6, Dev ~×2.2, en fazla ×4). Blob ekranda yine büyür (Dev'de başlangıçtakinin ~4.5 katı); hasar alınca kısa sarsıntı; final boss gelince ikisini birden kadraja alır.
 - **Geri bildirim:** yemede hafif titreşim (iOS haptic), hasarda kırmızı parlama, kalkan vuruşunda kalkan parlar. **Ateş:** her atışta blob ateş yönünün tersine kısa geri teper; mermi namludan iri çıkıp normale iner. **Vuruş:** düşman kısa süre kızarır (boss'lar dahil), boss olmayan geri seker (mermi az, Topik son form patlaması orta, Zırh dikenleri güçlü). **Medium ve üstü lokmada** obje kaybolduğu an onun renklerinde kırıntı küpleri fışkırıp blob'a çekilir (boyla ölçekli), görünüm bir an "yutkunur"; Large/Giant'ta orta, Dev'de güçlü titreşim ve hafif kamera sarsıntısı. Kırıntı renkleri modelin palet renklerinden (`Yeme Efektini Kur`).
 - **HUD:** barlar (can + altında kalkan barı (Zırh varsa), XP, boss can barı); can barı max canla uzar (100 can = normal boy, sağ kenarı sabit, sola doğru yumuşakça uzar; en fazla ~230 can boyu, Can Artışı/Market); sol üstte süre, sağ üstte skor + coin, XP barının solunda seviye, üstünde tier. Skill rozeti / karakter ikonu yok.
-- **Duraklatma:** tuşu üst satırda süre kutusunun yanında. Panel tüm ekranı kaplar (çentik ve alt şerit dahil): Devam / Yeniden Başla / Ana Menü. Ana Menü run'ı terk eder (coin kredisi yok, run sayılmaz).
+- **Duraklatma:** tuşu üst satırda süre kutusunun yanında. Panel tüm ekranı kaplar (çentik ve alt şerit dahil): Devam / Yeniden Başla / Ana Menü. Ana Menü run'ı terk eder (coin kasaya girmez, run sayılmaz).
 - **Haber bandı** (üstte, Plague Inc. tarzı): 30 sn'de bir yeni başlık; blob büyüdükçe haberler onunla ilgili olur. Metinler `NewsHeadlines.asset`'te.
 - Uygulama arka plana atılınca oyun otomatik duraklar.
 - **Ekranlar:** Açılış logosu, giriş, lobi, Market, kart seçimi, Game Over / KAZANDIN.
-- **Market ekranı:** lobiden açılır, lobi diliyle (aynı başlık/kredi rozeti/geri tuşu yerleşimi, altın "MARKET" başlığı). Üstte Mıknato kartı (portre, pasif, "YENİ KARAKTER", fiyat), altında "KALICI GÜÇLER" satırları: ad, seviye (Sv. x), etki + şu anki toplam, sağda fiyat hapı (yetiyorsa altın, yetmiyorsa gri, alınmışsa yeşil ALINDI/AÇIK). Satıra dokunmak satın alır (satır ve kredi rozeti zıplar); kredi yetmezse rozet kırmızı sallanır. Düzen `MarketPanel` içinde kodla kurulur.
+- **Market ekranı:** lobiden açılır, lobi diliyle (aynı başlık/coin rozeti/geri tuşu yerleşimi, altın "MARKET" başlığı). Üstte Mıknato kartı (portre, pasif, "YENİ KARAKTER", fiyat), altında "KALICI GÜÇLER" satırları: ad, seviye (Sv. x), etki + şu anki toplam, sağda fiyat hapı (yetiyorsa altın, yetmiyorsa gri, alınmışsa yeşil ALINDI/AÇIK). Satıra dokunmak satın alır (satır ve coin rozeti zıplar); coin yetmezse rozet kırmızı sallanır. Düzen `MarketPanel` içinde kodla kurulur.
 - **Seviye atlama ekranı:** HUD diliyle, tüm ekran. Gölgeli altın "SEVİYE ATLADIN!" + "Bir güç seç"; 3 koyu kart: ad, sağ üstte rozet (YENİ yeşil / Sv. x/8 / EVRİM altın), seviyeye özel açıklama; evrim kartı altın tonlu. Kartlar sırayla belirir; yanlışlıkla seçilmesin diye ilk 0.4 sn dokunulmaz.
-- **Oyun sonu ekranı:** HUD diliyle (yarı saydam gece mavisi panel, kalın beyaz yazı, coin altın), tüm ekran. Başlık GAME OVER (kırmızımsı) ya da KAZANDIN! (altın) + alt satır, rekor kırıldıysa YENİ REKOR! rozeti, kart: Süre / Skor / Rekor / Coin / Kredi (+kazanılan; ölümde coin'in %50'si, kazanınca %100). Kart yumuşakça açılır, skor/coin/kredi sayarak yükselir. Butonlar: Tekrar Oyna, Ana Menü (lobiye döner, kredi zaten verilmiştir).
+- **Oyun sonu ekranı:** HUD diliyle (yarı saydam gece mavisi panel, kalın beyaz yazı, coin altın), tüm ekran. Başlık GAME OVER (kırmızımsı) ya da KAZANDIN! (altın) + alt satır, rekor kırıldıysa YENİ REKOR! rozeti, kart: Süre / Skor / Rekor / Toplanan coin / Kazanılan coin (+kasaya giren; ölümde toplananın %50'si, kazanınca %100). Kart yumuşakça açılır, skor ve coin'ler sayarak yükselir. Butonlar: Tekrar Oyna, Ana Menü (lobiye döner, coin zaten kasaya girmiştir).
 - Ses yok (henüz).
 
 ---

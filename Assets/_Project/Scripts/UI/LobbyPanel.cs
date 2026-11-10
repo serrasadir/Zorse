@@ -17,8 +17,6 @@ namespace BlobSurvivor.UI
         [SerializeField] private GameObject _hud;
         [SerializeField] private CharacterData[] _characters;
         [SerializeField] private Button[] _buttons;
-        [SerializeField] private Image[] _icons;
-        [SerializeField] private TMP_Text[] _nameTexts;
 
         // Market'e giriş; Market'in geri tuşu Show()'u çağırır.
         [SerializeField] private Button _marketButton;
@@ -95,12 +93,6 @@ namespace BlobSurvivor.UI
             if (_hud != null) _hud.SetActive(false);
         }
 
-        public void ShowFromRun()
-        {
-            if (_hud != null) _hud.SetActive(false);
-            Show();
-        }
-
         // Kilitler: Mıknato Market'te 500 krediyle (RequiresMarketUnlock), Mermo 3 run bitirince
         // (RequiredCompletedRuns, ölüm de sayılır). Kilitliyken kart soluk, koşul rozette yazar.
         private void RefreshCharacterButtons()
@@ -109,7 +101,7 @@ namespace BlobSurvivor.UI
             MetaProgression meta = MetaProgression.Instance;
             bool miknatoUnlocked = meta == null || meta.MiknatoUnlocked;
             int completedRuns = meta != null ? meta.CompletedRuns : int.MaxValue;
-            if (_credit != null) _credit.text = $"{(meta != null ? meta.Credit : 0):N0} kredi";
+            if (_credit != null) _credit.text = $"{(meta != null ? meta.Credit : 0):N0} coin";
 
             for (int i = 0; i < _buttons.Length; i++)
             {

@@ -100,7 +100,7 @@ namespace BlobSurvivor.UI
             MetaProgression meta = MetaProgression.Instance;
             if (!_built || meta == null) return;
 
-            _credit.text = $"{meta.Credit:N0} kredi";
+            _credit.text = $"{meta.Credit:N0} coin";
             if (_characterRow != null) RefreshRow(_characterRow, meta);
             foreach (Row row in _rows) RefreshRow(row, meta);
         }
