@@ -169,7 +169,6 @@ namespace BlobSurvivor.Core
 
             blob.GetComponent<BlobGrowth>()?.ResetGrowth();
             blob.GetComponent<BlobHealth>()?.ResetHealth();
-            blob.GetComponent<BlobController>()?.ResetTierSlowdown();
 
             ResetBlobPosition(blob);
         }

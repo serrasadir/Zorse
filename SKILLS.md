@@ -94,19 +94,19 @@
 ---
 
 ### 💨 Hız Artışı
-- **Ne yapar:** İki şey yapar. (1) Hız çarpanını artırır. (2) Büyüdükçe gelen yavaşlamayı biraz hafifletir.
-- **Seviye başına:** +%10 hız, yavaşlama üssü −0.015 · **Max:** 8 · **Ağırlık:** 10
-- **Kod:** `SpeedBoostEffect` → `BlobController.SetSpeedMultiplier` + `ReduceTierSlowdownExponent`
+- **Ne yapar:** Düz hız verir: hız çarpanını artırır. Büyüdükçe gelen yavaşlamaya dokunmaz.
+- **Seviye başına:** +%15 hız · **Max:** 8 · **Ağırlık:** 10
+- **Kod:** `SpeedBoostEffect` → `BlobController.SetSpeedMultiplier`
 - **Görsel (bütün karakterlerde aynı):** **Sv.1-3** kaykay → **Sv.4-7** alevli kaykay (tablada alev deseni, turuncu tekerlek) → **Sv.8** alevli kaykay + **popoda roket** (alevi hıza göre uzar, dururken söner gibi kısalır, titrer). Yeni parça "pop" ile gelir. Kaykay varken görünüm 0.13 kalkar (tekerlekler yere basar; collider ve yeme aynı). Modeller `zorse-blender/build_speed.py` → `Resources/FX/Speed` (kaykay ~210, roket 260, alev 92 üçgen); `SpeedVisual`. Topik'in pasif rüzgar izi bundan ayrı, baştan var.
-- **Formül:** `hız = 5 × çarpan / sıra^üs` (sıra: Tiny 1 … Giant 5, Dev 6). Başlangıç üssü **0.24** (sahnede `BlobController._tierSlowdownExponent`).
+- **Formül:** `hız = 5 × çarpan / sıra^üs` (sıra: Tiny 1 … Giant 5, Dev 6). Üs **0.24**, run boyunca sabit (sahnede `BlobController._tierSlowdownExponent`).
 
-| Seviye | Çarpan | Üs | Tiny hızı | Giant hızı | Dev hızı |
-|---|---|---|---|---|---|
-| 0 | 1.0 | 0.24 | 5.0 | 3.4 | 3.25 |
-| 4 | 1.4 | 0.18 | 7.0 | 5.2 | 5.1 |
-| 8 | **1.8** | **0.12** | 9.0 | **7.4** | 7.3 |
+| Seviye | Çarpan | Tiny hızı | Giant hızı | Dev hızı |
+|---|---|---|---|---|
+| 0 | 1.0 | 5.0 | 3.4 | 3.25 |
+| 4 | 1.6 | 8.0 | 5.4 | 5.2 |
+| 8 | **2.2** | 11.0 | **7.5** | 7.2 |
 
-**Örnek:** Topik run'a Hız Sv.2 ile başlar (çarpan 1.2, üs 0.21): ilk saniyeden Tiny hızı 6.0, kaykay görünür.
+**Örnek:** Topik run'a Hız Sv.2 ile başlar (çarpan 1.3): ilk saniyeden Tiny hızı 6.5, kaykay görünür.
 
 ---
 
@@ -248,7 +248,7 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 | **Oyun tarzı** | Baştan hızlı; kaçarak ve dolaşarak büyür | Toplayıcı; yemi kendine çeker, hızlı büyür | Savaşçı; polisi baştan daha hızlı indirir |
 
 ### 🟠 Topik
-- **Pasif:** Run'a **Hız Artışı Sv.2** ile başlar (çarpan 1.2, yavaşlama üssü 0.21; kaykay baştan görünür). Kart ekranında sıradaki Sv.3 çıkar, Hız favori skili (×2 ağırlık). `Char_Topik.asset` → `Starting Upgrade` / `Starting Upgrade Level`. Rüzgar izi (`SpeedTrail`) sadece görsel.
+- **Pasif:** Run'a **Hız Artışı Sv.2** ile başlar (çarpan 1.3; kaykay baştan görünür). Kart ekranında sıradaki Sv.3 çıkar, Hız favori skili (×2 ağırlık). `Char_Topik.asset` → `Starting Upgrade` / `Starting Upgrade Level`. Rüzgar izi (`SpeedTrail`) sadece görsel.
 - **Son form:** Büyük Patlama: isabette 5 birim içindeki diğer düşmanlara da tam hasar. Ondan önce patlama yok.
 
 ### 🧲 Mıknato

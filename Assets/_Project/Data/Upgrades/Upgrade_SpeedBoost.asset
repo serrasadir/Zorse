@@ -20,4 +20,4 @@ MonoBehaviour:
   _weight: 10
   _effect: {fileID: 11400000, guid: 713ea15d49caa48b78b29e5dd6cc4312, type: 2}
   _maxLevel: 8
-  _perLevelValue: 0.1
+  _perLevelValue: 0.15
