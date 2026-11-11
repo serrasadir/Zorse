@@ -224,7 +224,7 @@ namespace BlobSurvivor.EditorTools
             ground.AddComponent<MeshFilter>().sharedMesh = mesh;
             MeshRenderer groundRenderer = ground.AddComponent<MeshRenderer>();
             groundRenderer.sharedMaterials = sidewalk != null ? new[] { palette, sidewalk } : new[] { palette };
-            GameObjectUtility.SetStaticEditorFlags(ground, StaticEditorFlags.NavigationStatic | StaticEditorFlags.BatchingStatic);
+            GameObjectUtility.SetStaticEditorFlags(ground, StaticEditorFlags.BatchingStatic);
             return ground;
         }
 

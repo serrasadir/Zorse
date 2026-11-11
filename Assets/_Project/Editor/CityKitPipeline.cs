@@ -120,7 +120,7 @@ namespace BlobSurvivor.EditorTools
         [Serializable]
         private class CityLayout
         {
-            public CityItem[] items;
+            public CityItem[] items = null; // JsonUtility doldurur
         }
 
         [MenuItem("Tools/Blob.io/Şehir Kur (Level01)")]
@@ -1114,7 +1114,7 @@ namespace BlobSurvivor.EditorTools
             if (!IsKit2(item.mesh) && (bounds.size - expected).magnitude > expected.magnitude * 0.1f)
                 Debug.LogWarning($"[CityKitPipeline] {item.mesh}: boyut {bounds.size}, beklenen {expected}. Eksen/ölçek hatalı olabilir.");
 
-            const StaticEditorFlags staticFlags = StaticEditorFlags.NavigationStatic | StaticEditorFlags.BatchingStatic;
+            const StaticEditorFlags staticFlags = StaticEditorFlags.BatchingStatic;
             GameObjectUtility.SetStaticEditorFlags(root, staticFlags);
             GameObjectUtility.SetStaticEditorFlags(renderer.gameObject, staticFlags);
 
