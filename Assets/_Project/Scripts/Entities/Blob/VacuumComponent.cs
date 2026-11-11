@@ -24,11 +24,8 @@ namespace BlobSurvivor.Entities.Blob
 
         // Gövde yüzeyinden itibaren çekme mesafesi (Vakum skili artırır).
         public float Reach { get; private set; }
-        // Menzil + çekme hızı çarpanı — Mıknato'nun pasifi (GDD Karar 9: "Attract hattına +%25").
-        public float EffectMultiplier { get; private set; } = 1f;
-
-        // Blob merkezinden toplam tarama yarıçapı: gövde + menzil × çarpan.
-        public float EffectiveRadius => transform.localScale.x * _bodyLocalRadius + Reach * EffectMultiplier;
+        // Blob merkezinden toplam tarama yarıçapı: gövde + menzil.
+        public float EffectiveRadius => transform.localScale.x * _bodyLocalRadius + Reach;
 
         private float _bodyLocalRadius = 0.5f;
 
@@ -177,7 +174,7 @@ namespace BlobSurvivor.Entities.Blob
                 RefreshPulledTargets();
             }
 
-            float step = _pullSpeed * EffectMultiplier * Time.deltaTime;
+            float step = _pullSpeed * Time.deltaTime;
             for (int i = 0; i < _pulledTargets.Count; i++)
             {
                 Transform target = _pulledTargets[i];
@@ -204,8 +201,6 @@ namespace BlobSurvivor.Entities.Blob
         }
 
         public void IncreaseReach(float amount) => Reach += amount;
-
-        public void SetEffectMultiplier(float multiplier) => EffectMultiplier = Mathf.Max(0f, multiplier);
 
         private void OnDrawGizmosSelected()
         {

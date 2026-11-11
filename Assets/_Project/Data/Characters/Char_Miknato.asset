@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.CharacterData
   _displayName: "M\u0131knato"
   _icon: {fileID: 21300000, guid: b2cdef09b1ec04d15a83bb68371be50a, type: 3}
-  _description: "\xC7ekim ba\u015Ftan a\xE7\u0131k, \xE7ekme etkisi +%25."
+  _description: "Vakum skiliyle ba\u015Flar (Sv.2)."
   _startingWeaponPrefab: {fileID: 1195012648784995356, guid: a8bb66b1a3f09493b9773c11a568f190, type: 3}
   _blobVisualPrefab: {fileID: 6167819746899415606, guid: 4f97b2f67599645ea9a51e00aa6b8b94, type: 3}
   _armorOnHead: 0
@@ -22,7 +22,7 @@ MonoBehaviour:
   _weaponVisibleFromStart: 0
   _favoredUpgrade: {fileID: 11400000, guid: 9a1a53f3539f54aa9a01b50dfc7fccc9, type: 2}
   _favoredWeightMultiplier: 2
-  _passiveType: 1
-  _passiveValue: 0.25
+  _startingUpgrade: {fileID: 11400000, guid: 9a1a53f3539f54aa9a01b50dfc7fccc9, type: 2}
+  _startingUpgradeLevel: 2
   _requiresMarketUnlock: 1
   _requiredCompletedRuns: 0

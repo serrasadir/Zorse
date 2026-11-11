@@ -112,7 +112,7 @@ Ayrıntı ve tüm sayılar **`SKILLS.md`**'de. Özet:
 - Max seviyedeki skill havuzdan çıkar; birden çok level aynı anda atlanırsa kartlar sırayla gelir; run bittiyse kart açılmaz.
 - **3 karakter**, hepsi top formunda, silahlar otomatik ateşler. Ateş tarzı üçünde aynı (düz, hareketi önden kesen hızlı mermi; sadece mermi modeli farklı); fark Silah Gücü Sv.8 son formunda:
   - **Topik** — top mermisi; pasif: run'a **Hız Sv.2** ile başlar (kaykay baştan var). Baştan açık. Hızlı giderken arkasında hafif rüzgar çizgileri (iki yandan ve tepeden üç ince beyaz iz; `CharacterData._speedTrail`, `SpeedTrail`).
-  - **Mıknato** — metal bilye; pasif: Vakum baştan açık, çekim ×1.25. Market'te 500 coin.
+  - **Mıknato** — metal bilye; pasif: Vakum Sv.2 ile başlar. Market'te 500 coin.
   - **Mermo** — tabanca mermisi; pasif: run'a **Silah Gücü Sv.2** ile başlar (`CharacterData._startingUpgrade`). **3 run bitirince** açılır (ölüm de sayılır).
 - **İki silah:** karakter silahı **her yöne** (360°) ama kısa menzille (gövde yüzeyinden 3, Silah Gücü ile 5'e kadar) ateş eder: kaçarken kovalayanı savuşturur, haritayı temizlemez. **Havai Fişek** (kart, Sv.4'te bir kez garanti; 1. miniboss Sv.5'te) uzun menzilli (gövde yüzeyinden 12), yavaş, tek hedefe ağır; sadece **önündeki 120°'ye**, önce boss'a sonra elite nişan alır. Dönünce 1 sn kurulur (fitil kıvılcımı = hazır). Boss ritmi: dön, dur (yüz son yönde kalır), kurulsun, ateş et; lazer kilitlenince yana kaç. Tam tepedeki hedef (helikopter) her zaman vurulur.
 - Silah havadaki hedefe (helikopter) otomatik yukarı nişan alır; menzil yatay ölçülür.

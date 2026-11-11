@@ -130,13 +130,7 @@ namespace BlobSurvivor.Core
             if (weaponVisual == null) weaponVisual = blob.AddComponent<WeaponVisual>();
             weaponVisual.Setup(visual.ModelRenderer, character.WeaponModel, character.WeaponVisibleFromStart);
 
-            // Topik ve Mermo'nun avantajı başlangıç skill'i (UpgradeSystem verir); burada sadece Mıknato'nun çekimi.
-            // Çekim menzili ve hızı ×(1 + PassiveValue); Vakum skili de bunun üstüne biner.
-            if (character.PassiveType == CharacterPassiveType.MagnetPull)
-            {
-                VacuumComponent vacuum = blob.AddComponent<VacuumComponent>();
-                vacuum.SetEffectMultiplier(1f + character.PassiveValue);
-            }
+            // Karakter avantajı başlangıç skill'i: UpgradeSystem OnCharacterSelected'da verir.
 
             if (character.StartingWeaponPrefab != null)
             {
@@ -150,8 +144,9 @@ namespace BlobSurvivor.Core
 
         private void ClearPreviousRunState(GameObject blob)
         {
+            // Hemen silinir: Mıknato'nun başlangıç Vakum'u aynı karede verilir, kare sonunda silinecek eskisini bulmasın.
             VacuumComponent oldVacuum = blob.GetComponent<VacuumComponent>();
-            if (oldVacuum != null) Destroy(oldVacuum);
+            if (oldVacuum != null) DestroyImmediate(oldVacuum);
 
             // Karakter silahı + skill'le kurulan Havai Fişek (ikisi de blob'un child'ı).
             foreach (WeaponBase oldWeapon in blob.GetComponentsInChildren<WeaponBase>())

@@ -118,11 +118,12 @@
 - **Menzil gövde yüzeyinden ölçülür:** blob büyüdükçe çekme alanı da büyür. Toplam yarıçap = gövde yarıçapı + menzil.
 - **Görsel:** çekim alanı boyunca zeminde sürekli dönen hafif bir kasırga: iki katman açık mavi, kesik kesik spiral rüzgar çizgisi, içe doğru akar. Menzil arttıkça büyür. Doku/materyal: `Tools → Blob.io → Vakum Efektini Kur` (`Resources/FX/Vacuum`).
 
-| Seviye | 1 | 4 | 8 |
-|---|---|---|---|
-| Menzil (gövde dışına) | 1.55 | 2.6 | **4.0** |
-| Mıknato ile (×1.25) | 1.94 | 3.25 | **5.0** |
-| Toplam yarıçap, Giant blob (gövde ~2) | 3.55 | 4.6 | 6.0 |
+| Seviye | 1 | 2 | 4 | 8 |
+|---|---|---|---|---|
+| Menzil (gövde dışına) | 1.55 | 1.9 | 2.6 | **4.0** |
+| Toplam yarıçap, Giant blob (gövde ~2) | 3.55 | 3.9 | 4.6 | 6.0 |
+
+Mıknato run'a Sv.2 ile başlar; çarpanı yok, değerler herkesle aynı.
 
 **Örnek:** Seviye 4'te, gövdenin 2.6 birim dışına kadar yiyebileceğin objeler sana akar. Blob Giant olunca alan da onunla büyür.
 
@@ -237,13 +238,13 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 - **Mermo:** toplam **3 run** bitirince kendiliğinden açılır. Ölümle biten run da, kazanılan run da sayılır. Sayı kalıcı kayıtta tutulur (`MetaProgression.CompletedRuns`), koşul `Char_Mermo.asset` → `Required Completed Runs`.
 - Kilitli karakter Lobby'de seçilemez; isminin altında koşul yazar: "(Market'te açılır)" ya da "(2 run sonra açılır)".
 
-Üç karakter de aynı blob'dur; farkları **başlangıç avantajı** ve **Silah Gücü Sv. 8 son formu**. Silah ve ateş tarzı üçünde aynı: saniyede 2.5 atış × 4 hasar, menzil gövde yüzeyinden 3, her yöne; düz giden, hareketi önden kesen mermi (hız 18, ömür 0.7 sn). Sadece mermi ve silah modeli karaktere özel.
+Üç karakter de aynı blob'dur; farkları **başlangıç avantajı** (her biri kendi skill'inin **Sv.2**'siyle başlar) ve **Silah Gücü Sv. 8 son formu**. Silah ve ateş tarzı üçünde aynı: saniyede 2.5 atış × 4 hasar, menzil gövde yüzeyinden 3, her yöne; düz giden, hareketi önden kesen mermi (hız 18, ömür 0.7 sn). Sadece mermi ve silah modeli karaktere özel.
 
 | | 🟠 Topik | 🧲 Mıknato | 🔫 Mermo |
 |---|---|---|---|
 | **Kilit** | Başlangıçta açık | Market'te **500 coin** ile satın alınır | **3 run bitirince** açılır (ölümle biten run da sayılır) |
 | **Mermi modeli** | Top | Metal bilye | Tabanca mermisi |
-| **Başlangıç avantajı** | Run'a **Hız Sv.2** ile başlar | **Vakum baştan açık** (1.2 menzil) + çekim etkisi **×1.25** | Run'a **Silah Gücü Sv.2** ile başlar |
+| **Başlangıç avantajı** | Run'a **Hız Sv.2** ile başlar | Run'a **Vakum Sv.2** ile başlar | Run'a **Silah Gücü Sv.2** ile başlar |
 | **Sv. 8 son form** | **Büyük Patlama:** isabette 5 birimlik patlama | **Sekme:** isabetten sonra 6 birim içindeki 2 düşmana daha seker | **Pompalı:** 40°'lik yelpazede 5 saçma (her biri %60 hasar) |
 | **Oyun tarzı** | Baştan hızlı; kaçarak ve dolaşarak büyür | Toplayıcı; yemi kendine çeker, hızlı büyür | Savaşçı; polisi baştan daha hızlı indirir |
 
@@ -252,10 +253,10 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 - **Son form:** Büyük Patlama: isabette 5 birim içindeki diğer düşmanlara da tam hasar. Ondan önce patlama yok.
 
 ### 🧲 Mıknato
-- **Pasif:** Oyuna Vakum skili açık başlar (1.2 menzil, gövde yüzeyinden; ×1.25 ile 1.5). Çekim menzili ve çekme hızı ×1.25. Vakum skilini alırsa çarpan onu da büyütür (Vakum 8 → 5.0 menzil).
+- **Pasif:** Run'a **Vakum Sv.2** ile başlar (menzil gövde yüzeyinden 1.9; kart ekranında sıradaki Sv.3). Vakum favori skili (×2 ağırlık). `Char_Miknato.asset` → `Starting Upgrade` / `Starting Upgrade Level`.
 - **Silah:** Diğerleriyle aynı düz mermi. Sv.8 Sekme'de bilye güdümlü olur ve isabetten sonra 2 düşmana daha seker.
 - **Örnek:** Diğer karakterler Vakum'u kart olarak beklerken Mıknato ilk saniyeden çevresini toplar. Erken büyüme ve erken level demek. Kara Delik evrimine (Vakum 8 + Sindirim 8) en doğal giden karakter.
-- **Not:** En güçlü pasif. Bu yüzden 500 coin'lik Market kilidi var.
+- **Not:** Market'te 500 coin'lik kilidi var (satın alınan karakter).
 
 ### 🔫 Mermo
 - **Başlangıç:** Run'a **Silah Gücü Sv.2** ile başlar (mermi 8 hasar, menzil gövde yüzeyinden 4; kart ekranında sıradaki Sv.3 çift hedef). `Char_Mermo.asset` → `Starting Upgrade` / `Starting Upgrade Level`.

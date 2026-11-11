@@ -24,7 +24,5 @@ MonoBehaviour:
   _favoredWeightMultiplier: 2
   _startingUpgrade: {fileID: 11400000, guid: 7a60ab4d1e9804c11a6724b7a567bac7, type: 2}
   _startingUpgradeLevel: 2
-  _passiveType: 0
-  _passiveValue: 0
   _requiresMarketUnlock: 0
   _requiredCompletedRuns: 3

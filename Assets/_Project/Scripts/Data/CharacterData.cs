@@ -2,13 +2,7 @@ using UnityEngine;
 
 namespace BlobSurvivor.Data
 {
-    // Karakter avantajı çoğunlukla başlangıç skill'i (_startingUpgrade). Pasif sadece Mıknato'da (çekim).
-    public enum CharacterPassiveType
-    {
-        None,
-        MagnetPull
-    }
-
+    // Karakter avantajı: kendi skill'inin 2. seviyesiyle başlar (_startingUpgrade).
     [CreateAssetMenu(fileName = "Character", menuName = "BlobSurvivor/Character")]
     public class CharacterData : ScriptableObject
     {
@@ -37,13 +31,9 @@ namespace BlobSurvivor.Data
         [SerializeField] private UpgradeData _favoredUpgrade;
         [Tooltip("Favori skill'in ağırlık çarpanı. 2 ≈ kart ekranlarının %41'i yerine %63'ünde çıkar.")]
         [SerializeField] private float _favoredWeightMultiplier = 2f;
-        [Tooltip("Run'a bu skill bu seviyede başlar (ör. Mermo: Silah Gücü Sv.2). 0 = yok.")]
+        [Tooltip("Run'a bu skill bu seviyede başlar (Topik Hız, Mıknato Vakum, Mermo Silah Gücü; Sv.2). 0 = yok.")]
         [SerializeField] private UpgradeData _startingUpgrade;
         [SerializeField] private int _startingUpgradeLevel;
-
-        [Header("Pasif")]
-        [SerializeField] private CharacterPassiveType _passiveType;
-        [SerializeField] private float _passiveValue;
 
         // Kilit: true ise Market'te MiknatoCharacter satın alınana kadar kilitli (sadece Mıknato).
         [Header("Kilit")]
@@ -64,8 +54,6 @@ namespace BlobSurvivor.Data
         public float FavoredWeightMultiplier => _favoredWeightMultiplier;
         public UpgradeData StartingUpgrade => _startingUpgrade;
         public int StartingUpgradeLevel => _startingUpgradeLevel;
-        public CharacterPassiveType PassiveType => _passiveType;
-        public float PassiveValue => _passiveValue;
         public bool RequiresMarketUnlock => _requiresMarketUnlock;
         public int RequiredCompletedRuns => _requiredCompletedRuns;
     }
