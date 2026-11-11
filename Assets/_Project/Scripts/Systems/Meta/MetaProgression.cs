@@ -52,7 +52,10 @@ namespace BlobSurvivor.Systems.Meta
         [SerializeField] private float _maxHealthBonusPerLevel = 10f;
         [SerializeField] private float _massGainBonusPerLevel = 0.05f;
         [SerializeField] private float _coinGainBonusPerLevel = 0.05f;
-        [SerializeField] private float _xpMultiplierBonus = 0.1f;
+        [SerializeField] private float _xpMultiplierBonus = 0.25f;
+
+        // Kademeli statların (Hız/Can/Kütle/Coin) üst sınırı: Market'in bitecek bir hedefi olsun (OYUN.md Hedefler).
+        public const int MaxStatLevel = 5;
 
         private const string FileName = "meta_progression.json";
         private string FilePath => Path.Combine(Application.persistentDataPath, FileName);
@@ -76,6 +79,7 @@ namespace BlobSurvivor.Systems.Meta
         public float MassGainBonus => MassGainLevel * _massGainBonusPerLevel;
         public float CoinGainBonus => CoinGainLevel * _coinGainBonusPerLevel;
         public float XpMultiplierBonus => XpMultiplierPurchased ? _xpMultiplierBonus : 0f;
+        public float XpMultiplierBonusValue => _xpMultiplierBonus; // Market metni (alınmamışken de)
 
         private void Awake()
         {
@@ -134,14 +138,17 @@ namespace BlobSurvivor.Systems.Meta
             }
         }
 
-        // Sadece tek seferlik kalemler için anlamlı (karakter unlock, XP çarpanı) — kademeli statlar
-        // (Hız/MaxHP/Mass/Coin kazancı) sınırsız tekrar satın alınabilir, GDD'de üst sınır belirtilmemiş.
+        // Tek seferlikler alınınca, kademeli statlar MaxStatLevel'da biter.
         public bool IsPurchased(MetaStatType type)
         {
             switch (type)
             {
                 case MetaStatType.MiknatoCharacter: return MiknatoUnlocked;
                 case MetaStatType.XpMultiplier: return XpMultiplierPurchased;
+                case MetaStatType.Speed: return SpeedLevel >= MaxStatLevel;
+                case MetaStatType.MaxHealth: return MaxHealthLevel >= MaxStatLevel;
+                case MetaStatType.MassGain: return MassGainLevel >= MaxStatLevel;
+                case MetaStatType.CoinGain: return CoinGainLevel >= MaxStatLevel;
                 default: return false;
             }
         }

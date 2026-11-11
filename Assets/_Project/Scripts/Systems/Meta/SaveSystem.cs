@@ -13,6 +13,15 @@ namespace BlobSurvivor.Systems.Meta
         public int finalScore;
         public int coinsEarned;
         public List<string> upgradeChoiceIds = new List<string>();
+
+        // Denge ölçümü (OYUN.md Hedefler): coin kaynakları, öldürülenler, seviye zamanları.
+        public string character;
+        public int coinsBanked;           // kasaya giren (ölümde %50)
+        public int coinsPolice, coinsElite, coinsBoss, coinsChest;
+        public int coinsExpired;          // yerde kalıp kaybolan
+        public int policeKills, eliteKills, bossKills;
+        public int finalLevel;
+        public List<float> levelTimes = new List<float>(); // i. eleman: Sv.(i+2)'ye çıkılan saniye
     }
 
     [Serializable]

@@ -164,16 +164,33 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 - **Coin** run içinde toplanır; run sonunda **kasaya** girer (kazanınca %100, ölünce %50). Oyuncu tek para görür: coin (kodda kasa `MetaProgression.Credit`).
 - **Skor** sadece rekor göstergesi, hiçbir şey satın almaz.
 
-| Market kalemi | Fiyat |
-|---|---|
-| Mıknato (karakter) | 500 |
-| +%5 hız | 200, her alımda +150 |
-| +10 max can | 200, her alımda +150 |
-| +%5 kütle kazancı | 300, her alımda +200 |
-| +%5 coin kazancı | 300, her alımda +200 |
-| XP çarpanı +%10 | 1000 (tek sefer) |
+- **Coin kaynakları:** polis 2; elit 5–10 + sandık 35 (+ ekstra kart); boss'lar da elit sayılır: 5–10 + sandık 35 + bonus (1. miniboss 15–25, 2. miniboss 25–40, helikopter 60–100). Coin yerde 20 sn kalır. Değerlerin güncel tablosu: `python3 -I .claude/skills/denge/denge_tablosu.py`.
 
-Kademeli statlar sınırsız alınabilir. Kayıt yerel JSON'da (`meta_progression.json`); run analitiği de yerel (`analytics.json`, son 100 run).
+| Market kalemi | Fiyat | Sınır |
+|---|---|---|
+| Mıknato (karakter) | 500 | tek sefer |
+| +%5 hız | 200, her alımda +150 | Sv.5 (+%25) |
+| +10 max can | 200, her alımda +150 | Sv.5 (+50) |
+| +%5 kütle kazancı (XP'yi de artırır) | 300, her alımda +200 | Sv.5 (+%25) |
+| +%5 coin kazancı | 300, her alımda +200 | Sv.5 (+%25) |
+| XP çarpanı +%25 | 1000 | tek sefer |
+
+Sınıra gelen satırda fiyat yerine MAX yazar. Hepsinin toplamı 13.500 coin. Coin kazancı kesirli birikir (1 coin × 1.05 kaybolmaz). Kayıt yerel JSON'da (`meta_progression.json`).
+
+### Denge hedefleri
+
+Fiyatlar ve ödüller bu hedeflere göre ayarlanır; ölçülen değer hedeften saparsa değer değişir, hedef değil.
+
+| Hedef | Değer |
+|---|---|
+| Mıknato açılışı | 2.–3. run |
+| Market'in yarısı (~6.750 coin) | ~15. run |
+| Market'in tamamı (13.500 coin) | ~40. run |
+| Coin'in elit + sandıktan gelen payı | %40–55 (kaçan/toplayan oyun da kazansın) |
+| Yerde kaybolan coin | toplananın %15'inden az |
+| Run başına kart (ölüm / kazanma) | ~12 / ~30 |
+
+**Ölçüm:** her run `analytics.json`'a yazılır (son 100): süre, karakter, son seviye, seviye zamanları, toplanan / kasaya giren / kaybolan coin, coin'in kaynağa göre dağılımı (polis, elit, boss, sandık), öldürülen polis/elit/boss, seçilen kartlar. DEV panelinde (COIN / KAYIT) son 10 ölçülen run'ın ortalaması görünür.
 
 ---
 

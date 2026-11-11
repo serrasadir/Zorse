@@ -10,7 +10,7 @@ namespace BlobSurvivor.Entities.Loot
     {
         public event Action<ChestPickup> OnCollected;
 
-        [SerializeField] private int _coinAmount = 50;
+        [SerializeField] private int _coinAmount = 35;
         [SerializeField] private float _rotationSpeed = 90f;
 
         private ScoreSystem _scoreSystem;
@@ -38,7 +38,7 @@ namespace BlobSurvivor.Entities.Loot
             if (_scoreSystem == null)
                 _scoreSystem = FindAnyObjectByType<ScoreSystem>();
 
-            _scoreSystem?.AddCoin(_coinAmount);
+            _scoreSystem?.AddCoin(_coinAmount, CoinSource.Chest);
 
             int currentLevel = 0;
             BlobGrowth growth = other.GetComponentInParent<BlobGrowth>();

@@ -42,6 +42,7 @@ namespace BlobSurvivor.Entities.Coins
             _age += Time.deltaTime;
             if (_age >= _lifetime)
             {
+                _scoreSystem?.RegisterExpiredCoin(_amount);
                 OnExpired?.Invoke(this);
                 return;
             }
@@ -59,18 +60,21 @@ namespace BlobSurvivor.Entities.Coins
                 if (r != null) r.enabled = visible;
         }
 
-        public void Initialize(int amount, ScoreSystem scoreSystem)
+        public void Initialize(int amount, ScoreSystem scoreSystem, CoinSource source)
         {
             _amount = amount;
             _scoreSystem = scoreSystem;
+            _source = source;
         }
+
+        private CoinSource _source;
 
         private void OnTriggerEnter(Collider other)
         {
             // Blob'un iki collider'ı aynı adımda iki OnTriggerEnter üretebilir (coin blob'un içinde doğduğunda).
             if (!gameObject.activeInHierarchy || !other.CompareTag("Blob")) return;
 
-            _scoreSystem?.AddCoin(_amount);
+            _scoreSystem?.AddCoin(_amount, _source);
             OnCollected?.Invoke(this);
         }
     }

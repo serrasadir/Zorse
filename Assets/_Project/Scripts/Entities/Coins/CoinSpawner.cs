@@ -42,13 +42,13 @@ namespace BlobSurvivor.Entities.Coins
             _scoreSystem = FindAnyObjectByType<ScoreSystem>();
         }
 
-        public void SpawnCoin(Vector3 position, int amount)
+        public void SpawnCoin(Vector3 position, int amount, CoinSource source)
         {
             if (_pool == null) return;
 
             Vector3 spawnPos = new Vector3(position.x, _spawnYOffset, position.z);
             CoinPickup coin = _pool.Get(spawnPos, Quaternion.identity);
-            coin.Initialize(amount, _scoreSystem);
+            coin.Initialize(amount, _scoreSystem, source);
             coin.OnCollected -= HandleCollected;
             coin.OnCollected += HandleCollected;
             coin.OnExpired -= HandleCollected;

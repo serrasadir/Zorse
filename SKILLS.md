@@ -21,7 +21,7 @@
 
 **Run sonu.** Skiller run'a özeldir. Ölüm ya da restart hepsini sıfırlar.
 
-**Kalıcı bonuslarla etkileşim.** Market'ten alınan kalıcı statlar (Hız, Max Can, Mass/Coin kazancı, XP çarpanı) her run başında uygulanır. Skiller bunların üstüne eklenir.
+**Kalıcı bonuslarla etkileşim.** Market'ten alınan kalıcı statlar her run başında uygulanır, skiller bunların üstüne eklenir: Hız en fazla +%25, Max Can +50, Kütle kazancı +%25 (XP'yi de artırır), Coin kazancı +%25 (her biri 5 seviye), XP çarpanı +%25 (tek sefer). Fiyatlar ve denge hedefleri `OYUN.md` §9.
 
 **Blob boyutu referansı** (örneklerde kullanılıyor, sahne değerleri):
 
@@ -275,7 +275,7 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 | **Hız** | 2.7 | 2.1 |
 | **Yutulma** | Medium blob | Giant blob |
 | **Davranış** | Blob onu yiyebiliyorsa **kaçar** | Kaçmaz |
-| **Ödül** | 3 mass, 1 coin, %5 kalp | 20 mass, 5–10 coin, **sandık**, %100 kalp |
+| **Ödül** | 3 mass, 2 coin, %5 kalp | 20 mass, 5–10 coin, **sandık** (35 coin + ekstra kart), %100 kalp |
 
 ### 👹 Miniboss: "Polis Tankı"
 Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Elit polisin nişan-kilit-ateş akışını top mermisiyle kullanır; üstünden geçtiği arabaları ve sokak eşyalarını ezer.
@@ -288,7 +288,7 @@ Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Elit polisin nişan-kilit
 | **Hız** | 2.9. Ekran dışında ve 25 birimden uzaktaysa **×2** (yetişme), ekrana girince normale döner | 3.2, yetişme aynı |
 | **Algı** | Tüm harita: oyuncuyu her yerden bulur | Tüm harita |
 | **Yutulma** | **Hiçbir şekilde yutulamaz**, silahla ölür | Aynı |
-| **Ödül** | 150 skor + 5–10 coin + sandık + **15–25 bonus coin** | 250 skor + 5–10 coin + sandık + **25–40 bonus coin** |
+| **Ödül** | 150 skor + 5–10 coin + sandık (35 coin + ekstra kart) + **15–25 bonus coin** | 250 skor + 5–10 coin + sandık (35 coin + ekstra kart) + **25–40 bonus coin** |
 
 - **Silahla öldürme süresi:** 1. Miniboss: temel silahla ~60 sn, + Havai Fişek Sv.1 ~27 sn, Silah Gücü 8 ile ~20 sn. 2. Miniboss: ~120 sn / Havai Fişek Sv.1 ~53 sn / ~40 sn. (Temel silahın menzili yüzeyden 3 olduğu için tanka yaklaşmak gerekir.)
 - **Ekranda:** Boss can barı HUD'da görünür.
@@ -309,7 +309,7 @@ Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Elit polisin nişan-kilit
 | **Hız** | 3.5. Ekran dışında ve uzaktaysa ×2 (yetişme) |
 | **Algı** | Tüm harita |
 | **Yutulma** | Blob'un tepesi helikoptere **değdiği an**, hangi irtifada olursa olsun. Çok büyüyen oyuncu daha erken bitirir |
-| **Ödül** | Yutulunca **run "tamamlandı" olarak biter** (ölümden ayrı ekran), 300 mass, 600 skor, **60–100 bonus coin**, coin'in tamamı kasaya (ölümde %50) |
+| **Ödül** | Yutulunca **run "tamamlandı" olarak biter** (ölümden ayrı ekran), 300 mass, 600 skor, 5–10 coin + sandık (35) + **60–100 bonus coin**, coin'in tamamı kasaya (ölümde %50) |
 
 - **Ne kadar büyümek gerekir** (blob tepesi ≈ 1.1 × ölçek): irtifa 5 ≈ **1340 mass** (Giant ile Dev arası; Dev olmak gerekmez), 6 ≈ 1950, 7 ≈ 2700, 8 ≈ 3600.
 - **Oyuncu silahı yukarı ateş eder:** Havadaki hedefe nişan otomatik 3D (skill gerekmez). Menzil yatay ölçülür; helikopterin altına yaklaşman yeter.

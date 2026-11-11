@@ -211,7 +211,7 @@ namespace BlobSurvivor.Entities.Enemies
 
             int bonusCoin = Random.Range(_activeStage.BonusCoinMin, _activeStage.BonusCoinMax + 1);
             if (bonusCoin > 0)
-                CoinSpawner.Instance?.SpawnCoin(boss.transform.position, bonusCoin);
+                CoinSpawner.Instance?.SpawnCoin(boss.transform.position, bonusCoin, CoinSource.Boss);
 
             _activeBoss = null;
             GameEvents.RaiseBossHealthChanged(0f, 0f);

@@ -147,6 +147,7 @@ namespace BlobSurvivor.Core
             if (open)
             {
                 _skills = UpgradeSystem.Instance != null ? UpgradeSystem.Instance.DebugAllUpgrades() : null;
+                BuildRunSummary();
                 GameManager gm = GameManager.Instance;
                 if (gm != null && gm.CurrentState == GameState.Playing && Time.timeScale > 0f)
                 {
@@ -200,6 +201,8 @@ namespace BlobSurvivor.Core
             else
             {
                 Note($"Coin {meta.Credit:N0} · Mıknato {(meta.MiknatoUnlocked ? "açık" : "kilitli")} · biten run {meta.CompletedRuns}", ref y, cw, s);
+                Note(_runSummary1, ref y, cw, s);
+                Note(_runSummary2, ref y, cw, s);
                 if (Btn(0, y, half, rowH, "+1.000 coin")) { meta.DevAddCredit(1000); _message = $"Coin {meta.Credit:N0}"; }
                 if (Btn(half + gap, y, half, rowH, "+10.000 coin")) { meta.DevAddCredit(10000); _message = $"Coin {meta.Credit:N0}"; }
                 y += rowH + gap;
@@ -270,7 +273,35 @@ namespace BlobSurvivor.Core
         {
             int skills = _skills != null ? _skills.Count : 0;
             int rows = 2 + skills + 3;
-            return 3 * 40 * s + 2 * 34 * s + rows * (rowH + gap) + 20 * s;
+            return 3 * 40 * s + 4 * 34 * s + rows * (rowH + gap) + 20 * s;
+        }
+
+        // Denge ölçümü: son 10 run'ın ortalaması (analytics.json, panel açılınca bir kez okunur).
+        private string _runSummary1 = "", _runSummary2 = "";
+
+        private void BuildRunSummary()
+        {
+            AnalyticsSaveData data = SaveSystem.Instance != null ? SaveSystem.Instance.Load() : null;
+            var runs = new List<RunRecord>();
+            if (data != null)
+                foreach (RunRecord r in data.runs)
+                    if (!string.IsNullOrEmpty(r.character)) runs.Add(r); // ölçüm alanları eklenmeden önceki kayıtlar sayılmaz
+            int n = Mathf.Min(10, runs.Count);
+            if (n == 0) { _runSummary1 = "Henüz ölçülen run yok (bir run bitir)."; _runSummary2 = ""; return; }
+
+            float time = 0f; int coins = 0, banked = 0, police = 0, elite = 0, level = 0;
+            int cPolice = 0, cElite = 0, cChest = 0, cBoss = 0, expired = 0;
+            for (int i = runs.Count - n; i < runs.Count; i++)
+            {
+                RunRecord r = runs[i];
+                time += r.durationSeconds; coins += r.coinsEarned; banked += r.coinsBanked;
+                police += r.policeKills; elite += r.eliteKills; level += r.finalLevel;
+                cPolice += r.coinsPolice; cElite += r.coinsElite; cChest += r.coinsChest; cBoss += r.coinsBoss; expired += r.coinsExpired;
+            }
+            int t = Mathf.RoundToInt(time / n);
+            _runSummary1 = $"Son {n} run ort.: {t / 60}:{t % 60:00} · {coins / n} coin (kasaya {banked / n}) · {police / n} polis · {elite / n} elit · Sv.{level / n}";
+            int total = Mathf.Max(1, cPolice + cElite + cChest + cBoss);
+            _runSummary2 = $"Coin payı: polis %{100 * cPolice / total} · elit %{100 * cElite / total} · sandık %{100 * cChest / total} · boss %{100 * cBoss / total} · kaybolan {expired / n}/run";
         }
 
         // IMGUI kaydırma alanı dokunmatikte sürüklenmiyor: parmak sürüklemesi elle kaydırır.

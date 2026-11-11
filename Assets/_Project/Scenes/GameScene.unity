@@ -7828,7 +7828,7 @@ MonoBehaviour:
   _maxHealthBonusPerLevel: 10
   _massGainBonusPerLevel: 0.05
   _coinGainBonusPerLevel: 0.05
-  _xpMultiplierBonus: 0.1
+  _xpMultiplierBonus: 0.25
 --- !u!1 &145392803
 GameObject:
   m_ObjectHideFlags: 0
@@ -13722,8 +13722,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Blob.BlobHealth
   _maxHealth: 100
-  _regenRate: 0
-  _regenInterval: 1
 --- !u!114 &276010509
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -54150,11 +54148,6 @@ MonoBehaviour:
   - {fileID: 350069776}
   - {fileID: 34943073}
   - {fileID: 1768848935}
-  _icons: []
-  _nameTexts:
-  - {fileID: 240680120}
-  - {fileID: 1892372743}
-  - {fileID: 1764535736}
   _marketButton: {fileID: 986333498}
   _marketPanel: {fileID: 2137831699}
 --- !u!1 &1052490360
@@ -79077,9 +79070,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.UI.GameOverScreen
   _panel: {fileID: 618807597}
   _scoreText: {fileID: 1670425063}
-  _highScoreText: {fileID: 164510168}
-  _summaryText: {fileID: 0}
-  _newRecordText: {fileID: 0}
   _restartButton: {fileID: 417080649}
 --- !u!1001 &1553723145
 PrefabInstance:

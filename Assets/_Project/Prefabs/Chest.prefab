@@ -67,7 +67,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5fbd7e0bcaf34fe9a7c0404aceec2264, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Loot.ChestPickup
-  _coinAmount: 50
+  _coinAmount: 35
   _rotationSpeed: 90
 --- !u!1 &8859933124470610626
 GameObject:

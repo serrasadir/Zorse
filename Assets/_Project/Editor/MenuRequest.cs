@@ -6,7 +6,7 @@ using UnityEngine;
 namespace BlobSurvivor.EditorTools
 {
     // Claude, Temp/menu.request'e (satır başına bir menü yolu) yazarak Tools menülerini sırayla çalıştırır.
-    // Sonuç Temp/menu.done'a yazılır. Play Mode'da beklenir.
+    // Sonuç Temp/menu.done'a yazılır. Play Mode'da beklenir. "save" satırı açık sahneleri kaydeder (Cmd+S).
     [InitializeOnLoad]
     internal static class MenuRequest
     {
@@ -89,6 +89,12 @@ namespace BlobSurvivor.EditorTools
                 if (menu.Length == 0) continue;
                 if (menu.StartsWith("set ")) { log.AppendLine(SetField(menu.Substring(4).Trim())); continue; }
                 if (menu.StartsWith("prune ")) { log.AppendLine(PruneNulls(menu.Substring(6).Trim())); continue; }
+                if (menu == "save")
+                {
+                    bool saved = UnityEditor.SceneManagement.EditorSceneManager.SaveOpenScenes();
+                    log.AppendLine($"{(saved ? "OK" : "HATA")}\tsave");
+                    continue;
+                }
                 bool ok = EditorApplication.ExecuteMenuItem(menu);
                 log.AppendLine($"{(ok ? "OK" : "YOK")}\t{menu}");
             }

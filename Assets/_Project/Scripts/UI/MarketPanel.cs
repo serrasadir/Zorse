@@ -115,7 +115,8 @@ namespace BlobSurvivor.UI
             {
                 row.Pill.color = Owned;
                 row.Price.color = GoldInk;
-                row.Price.text = row.Type == MetaStatType.MiknatoCharacter ? "AÇIK" : "ALINDI";
+                row.Price.text = row.Type == MetaStatType.MiknatoCharacter ? "AÇIK"
+                    : row.Type == MetaStatType.XpMultiplier ? "ALINDI" : "MAX";
             }
             else
             {
@@ -127,7 +128,7 @@ namespace BlobSurvivor.UI
             if (row.Level != null)
             {
                 int level = LevelOf(row.Type, meta);
-                row.Level.text = level > 0 ? $"Sv. {level}" : "";
+                row.Level.text = level > 0 ? $"Sv. {level}/{MetaProgression.MaxStatLevel}" : "";
             }
             if (row.Type != MetaStatType.MiknatoCharacter) row.Detail.text = DetailOf(row.Type, meta);
             else if (owned) row.Detail.text = "Lobide seçebilirsin.";
@@ -166,7 +167,9 @@ namespace BlobSurvivor.UI
                 case MetaStatType.MaxHealth: return Stacked("+10 max can", meta.MaxHealthBonus, "");
                 case MetaStatType.MassGain: return Stacked("+%5 kütle", meta.MassGainBonus * 100f, "%");
                 case MetaStatType.CoinGain: return Stacked("+%5 coin", meta.CoinGainBonus * 100f, "%");
-                case MetaStatType.XpMultiplier: return meta.XpMultiplierPurchased ? "Kalıcı +%10 XP" : "Kalıcı +%10 XP · tek sefer";
+                case MetaStatType.XpMultiplier:
+                    string xp = $"Kalıcı +%{meta.XpMultiplierBonusValue * 100f:0} XP";
+                    return meta.XpMultiplierPurchased ? xp : $"{xp} · tek sefer";
                 default: return "";
             }
         }

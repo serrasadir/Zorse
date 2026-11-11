@@ -9,6 +9,7 @@ Claude Code bu dosyayı her oturumda otomatik okur. **Burada sadece çalışma k
 | `OYUN.md` | Oyunun **güncel hali** (döngü, sistemler, değerler). Tasarımla ilgili tek kaynak |
 | `SKILLS.md` | Skill, karakter, düşman/boss sayıları |
 | `ASSET_RULES.md` | 3B asset üretim kuralları (Blender script'leri) |
+| `.claude/skills/denge` | Denge/ekonomi kontrolü (`denge` skill'i + değerleri okuyan `denge_tablosu.py`). Hedefler `OYUN.md` §9 |
 | `DISCOVERY_STRATEGY.md` | Pazarlama / tanınma planı |
 | GitHub issues | **Bekleyen işler** (`gh issue list`) |
 
@@ -115,7 +116,7 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 | Şehir Kıyısını Kur | Şehrin dışı: `CityShore` kökü (W_SeaWall sur parçaları + köşede W_WallTower, Blender: `build_seawall.py`), alçakta su (`WaterScroll` kaydırır), gri Ground plane'in renderer'ını kapatır (collider kalır), Ground'u ve kıyıyı NavMesh'ten çıkarır (`NavMeshModifier`; sonra Görsel Düzeltmeler bake eder), kaldırım karosunu zemine uygular. Dokular: `build_textures.py`. Sonra Cmd+S |
 | Yeme Efektini Kur | `Resources/FX/EatCrumbs` (kırıntı parçacığı + materyali) ve her yenebilirin/arabanın kırıntı renkleri (modelin palet renkleri). Şehir kurulumu renkleri kendisi de yazar. Sonra Cmd+S |
 | Yenebilir Boyut Raporu | Yenebilir her şeyin oyundaki boyu + kurala göre tier'ı → `Temp/tier_sizes.txt` |
-| (Claude) `Temp/menu.request` · `Temp/snapshot.request` | `MenuRequest`: satır başına menü yolu yazılır, sırayla çalışır → `Temp/menu.done`. `SceneSnapshot`: "x z mesafe [yaw] [eat t]" → sahnenin oyun açısıyla `Temp/snapshot.png` (görsel kontrol; `eat t` en yakın Medium+ objenin yeme kırıntılarını t sn ilerletip çeker) |
+| (Claude) `Temp/menu.request` · `Temp/snapshot.request` | `MenuRequest`: satır başına menü yolu yazılır, sırayla çalışır → `Temp/menu.done`; `set <Tip> <_alan> <değer>` sahne bileşeni alanı yazar, `save` açık sahneyi kaydeder. `SceneSnapshot`: "x z mesafe [yaw] [eat t]" → sahnenin oyun açısıyla `Temp/snapshot.png` (görsel kontrol; `eat t` en yakın Medium+ objenin yeme kırıntılarını t sn ilerletip çeker) |
 | Blob Çevresini Raporla | Play'de blob çevresini `Temp/blob_probe.txt`'ye yazar (`Temp/blob_probe.request` ile de tetiklenir) |
 | TestFlight Xcode Projesi Üret | Release iOS build, TestFlight için (build no +1) |
 | iOS Xcode Projesi Üret | Geliştirme build'i, cihaza doğrudan kurmak için |
