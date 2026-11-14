@@ -41,6 +41,8 @@ namespace BlobSurvivor.Core
         [SerializeField] private float _bossZoomBoost = 1.3f;
         [SerializeField] private float _bossMaxHeightMultiplier = 3.5f;
         [SerializeField] private float _bossFramingMaxDistance = 40f; // bundan uzaktaki boss'u kadraja alma
+        // Giriş: ilk bu kadar sn ikisi birden kadrajda. Sonra uzaklık kalır, kamera blob'u ortalar (oyuncu ekrandan çıkmasın).
+        [SerializeField] private float _bossIntroDuration = 3f;
 
         [Header("Bounds")]
         [SerializeField] private bool _useBounds;
@@ -50,6 +52,9 @@ namespace BlobSurvivor.Core
         private BlobGrowth _growth;
         private BlobHealth _health;
         private float _heightMultiplier = 1f;
+        private FinalBossController _trackedBoss;
+        private float _bossIntroTime;
+        private float _heldBossZoom;
         // Sarsıntı yumuşak takibe karışmasın diye takip pozisyonu ayrı tutulur, sarsıntı üstüne eklenir.
         private Vector3 _followPosition;
         private float _shakeTime = -1f;
@@ -100,13 +105,20 @@ namespace BlobSurvivor.Core
             if (_target == null) return;
 
             FinalBossController boss = FinalBossController.Active;
-            Vector3 focus = _target.position;
-            if (boss != null && IsBossFramable(boss))
-                focus = Vector3.Lerp(_target.position, boss.BodyCenter, _bossFocusWeight);
-            else
-                boss = null;
+            if (boss != _trackedBoss)
+            {
+                _trackedBoss = boss;
+                _bossIntroTime = 0f;
+                _heldBossZoom = 0f;
+            }
 
-            UpdateZoom(boss);
+            // Giriş süresi sadece helikopter kadraja alınabilir mesafedeyken işler.
+            bool intro = boss != null && _bossIntroTime < _bossIntroDuration && IsBossFramable(boss);
+            if (intro) _bossIntroTime += Time.deltaTime;
+
+            Vector3 focus = intro ? Vector3.Lerp(_target.position, boss.BodyCenter, _bossFocusWeight) : _target.position;
+
+            UpdateZoom(intro ? boss : null);
 
             Vector3 desiredPos = CalculatePosition(focus);
             _followPosition = Vector3.Lerp(_followPosition, desiredPos, Time.deltaTime * _followSmoothing);
@@ -161,6 +173,12 @@ namespace BlobSurvivor.Core
                 float needed = Mathf.Max(target * _bossZoomBoost, (bossPos.y + flat.magnitude + _bossFramingPadding) / _baseHeight);
                 target = Mathf.Min(Mathf.Max(_bossMaxHeightMultiplier, target), needed);
                 smoothing = _bossFramingSmoothing;
+                _heldBossZoom = Mathf.Max(_heldBossZoom, _heightMultiplier);
+            }
+            else if (_trackedBoss != null && _heldBossZoom > target)
+            {
+                // Girişten sonra: ulaşılan uzaklık boss ölene kadar kalır.
+                target = _heldBossZoom;
             }
 
             float previous = _heightMultiplier;
