@@ -242,9 +242,7 @@ namespace BlobSurvivor.Systems.Meta
             }
             catch (Exception e)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning($"[MetaProgression] Kayıt yazılamadı: {e.Message}");
-#endif
+                EditorWarning($"Kayıt yazılamadı: {e.Message}");
             }
         }
 
@@ -258,6 +256,10 @@ namespace BlobSurvivor.Systems.Meta
             _data.version = SaveVersion;
             Save();
         }
+
+        // Build'de çağrı (argümanı dahil) derlenmez.
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        private static void EditorWarning(string message) => Debug.LogWarning($"[MetaProgression] {message}");
 
         private void Load()
         {
@@ -273,9 +275,7 @@ namespace BlobSurvivor.Systems.Meta
             }
             catch (Exception e)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning($"[MetaProgression] Kayıt okunamadı: {e.Message}");
-#endif
+                EditorWarning($"Kayıt okunamadı: {e.Message}");
             }
         }
     }
