@@ -1,4 +1,5 @@
 using UnityEngine;
+using BlobSurvivor.Entities.Blob;
 using BlobSurvivor.Entities.Enemies;
 using BlobSurvivor.Systems;
 
@@ -128,8 +129,12 @@ namespace BlobSurvivor.Entities.Weapons
         }
 
         private bool UsesSwing => _swing && IsPrimary;
+        // Prefab üzerinden de okunur (GameManager karakter kurarken): sopa görünümü G_Stick_1..4.
+        public bool UsesSwingVisual => _swing && IsPrimary;
+        public const string SwingModel = "Stick";
+        private WeaponVisual _stickVisual;
+        private bool _stickVisualLooked;
         private SwingArcFx _swingFxFront, _swingFxBack;
-        private bool _swingFlip;
 
         private float SwingInterval => _swingInterval / (TargetCount >= 3 ? _swingFastFactor : 1f);
 
@@ -175,11 +180,16 @@ namespace BlobSurvivor.Entities.Weapons
             if (!hitFront && !hitBack) { _cooldown = NoTargetRetry; return; }
 
             _cooldown = SwingInterval;
-            _swingFlip = !_swingFlip;
             float fxRadius = range;
-            if (hitFront || back) PlaySwingFx(ref _swingFxFront, "SwingArc_Front", forward, fxRadius, arc, _swingFlip);
-            if (back) PlaySwingFx(ref _swingFxBack, "SwingArc_Back", -forward, fxRadius, arc, !_swingFlip);
+            if (hitFront || back) PlaySwingFx(ref _swingFxFront, "SwingArc_Front", forward, fxRadius, arc, false); // soldan sağa, sopayla aynı
+            if (back) PlaySwingFx(ref _swingFxBack, "SwingArc_Back", -forward, fxRadius, arc, false);
             if (_blobVisual != null) _blobVisual.Recoil(-forward, 0.6f); // vuruş yönüne hafif atılma
+            if (!_stickVisualLooked && _blobRoot != null)
+            {
+                _stickVisual = _blobRoot.GetComponent<WeaponVisual>(); // ilk vuruşta bir kez (run başında eklenir)
+                _stickVisualLooked = true;
+            }
+            if (_stickVisual != null) _stickVisual.PlaySwing(arc, full);
         }
 
         private void PlaySwingFx(ref SwingArcFx fx, string name, Vector3 dir, float radius, float arc, bool flip)

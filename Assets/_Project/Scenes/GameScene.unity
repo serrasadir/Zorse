@@ -10986,6 +10986,9 @@ MonoBehaviour:
   _eliteCapAtLevel5: 2
   _eliteCapPerLevel: 1.5
   _spawnSpeedupPerLevel: 0.1
+  _swarmCapAtStart: 8
+  _swarmCapPerLevel: 1
+  _maxActiveSwarm: 18
 --- !u!4 &222400388
 Transform:
   m_ObjectHideFlags: 0
@@ -51183,7 +51186,7 @@ Transform:
   m_GameObject: {fileID: 998712585}
   serializedVersion: 2
   m_LocalRotation: {x: 0.5, y: 0, z: 0, w: 0.8660254}
-  m_LocalPosition: {x: -0.41, y: 7.77, z: -4.31}
+  m_LocalPosition: {x: -0.41, y: 15, z: -6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -51247,8 +51250,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Core.CameraController
   _target: {fileID: 276010515}
   _followSmoothing: 5
-  _baseHeight: 7
-  _baseTilt: 60
+  _baseHeight: 12
+  _baseTilt: 64.98
   _zoomExponent: 0.35
   _maxHeightMultiplier: 4
   _zoomSmoothing: 1.5
@@ -51260,6 +51263,7 @@ MonoBehaviour:
   _bossZoomBoost: 1.3
   _bossMaxHeightMultiplier: 3.5
   _bossFramingMaxDistance: 40
+  _bossIntroDuration: 3
   _useBounds: 0
   _minBounds: {x: 0, y: 0}
   _maxBounds: {x: 0, y: 0}

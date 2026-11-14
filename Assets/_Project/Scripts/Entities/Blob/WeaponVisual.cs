@@ -22,6 +22,63 @@ namespace BlobSurvivor.Entities.Blob
         private int _form = -1;
         private float _popTime = -1f;
         private bool _popFromZero;
+        private float _swingTime = -1f;
+        private bool _swingFull;
+        private float _swingArc = 120f;
+        private bool _hideWhenIdle;
+
+        // Sopa vuruşu: model blob'un ortasından gidiş yönüne uzanır (pivot = blob merkezi) ve yay boyunca
+        // soldan sağa savrulur (SwingArcFx'in süpürmesiyle aynı hızda); tam tur (Sv.8) bir kez döner.
+        private const float Sweep = 0.12f, Hold = 0.05f, Spin = 0.3f;
+
+        // Sopa: sadece vururken görünür.
+        public bool HideWhenIdle
+        {
+            set { _hideWhenIdle = value; RefreshVisible(); }
+        }
+
+        private void RefreshVisible()
+        {
+            if (_renderer == null || _filter == null) return;
+            _renderer.enabled = _filter.sharedMesh != null && (!_hideWhenIdle || _swingTime >= 0f);
+        }
+
+        public void PlaySwing(float arc, bool fullCircle)
+        {
+            if (_weapon == null || _form <= 0) return;
+            _swingTime = 0f;
+            _swingArc = arc;
+            _swingFull = fullCircle;
+            UpdateSwing();
+            RefreshVisible();
+        }
+
+        private void UpdateSwing()
+        {
+            if (_swingTime < 0f || _weapon == null) return;
+            float t = _swingTime;
+            _swingTime += Time.deltaTime;
+            float yaw;
+            if (_swingFull)
+            {
+                float u = Mathf.Clamp01(t / Spin);
+                yaw = -90f + 360f * (1f - (1f - u) * (1f - u));
+                if (t >= Spin + Hold) _swingTime = -1f;
+            }
+            else
+            {
+                float half = _swingArc * 0.5f;
+                yaw = Mathf.Lerp(-half, half, Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / Sweep)));
+                if (t >= Sweep + Hold) _swingTime = -1f;
+            }
+            if (_swingTime < 0f)
+            {
+                _weapon.localRotation = Quaternion.identity;
+                RefreshVisible();
+                return;
+            }
+            _weapon.localRotation = Quaternion.Euler(0f, yaw, 0f);
+        }
 
         // childName: aynı host'a ikinci bir görünür silah (Havai Fişek atarı) takılabilsin diye.
         public void Setup(Renderer host, string model, bool visibleFromStart, string childName = "Weapon")
@@ -30,6 +87,8 @@ namespace BlobSurvivor.Entities.Blob
             _weapon = null;
             _form = -1;
             _popTime = -1f;
+            _swingTime = -1f;
+            _hideWhenIdle = false;
             _model = model;
             if (host == null || string.IsNullOrEmpty(model)) return;
 
@@ -61,7 +120,7 @@ namespace BlobSurvivor.Entities.Blob
             _form = form;
             Mesh mesh = form > 0 ? LoadMesh(_model, form) : null;
             _filter.sharedMesh = mesh;
-            _renderer.enabled = mesh != null;
+            RefreshVisible();
             if (mesh == null || !pop)
             {
                 _popTime = -1f;
@@ -85,6 +144,7 @@ namespace BlobSurvivor.Entities.Blob
 
         private void Update()
         {
+            UpdateSwing();
             if (_popTime < 0f || _weapon == null) return;
             _popTime += Time.deltaTime;
             float t = _popTime / PopDuration;

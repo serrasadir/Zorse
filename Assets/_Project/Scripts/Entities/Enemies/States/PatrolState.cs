@@ -24,7 +24,7 @@ namespace BlobSurvivor.Entities.Enemies
             }
 
             if (enemy.CanSeeBlob())
-                enemy.ChangeState(enemy.IsEdibleByBlob ? new FleeState() : new ChaseState());
+                enemy.ChangeState(new ChaseState()); // yiyebilecek boyda olsan da kaçmaz, saldırır
         }
 
         public void Exit(EnemyBase enemy) { }

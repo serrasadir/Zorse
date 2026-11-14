@@ -48,8 +48,8 @@ namespace BlobSurvivor.Entities.Enemies
         [SerializeField] private float _spawnSpeedupPerLevel = 0.1f; // seviye 10'da 2 kat sık
 
         // Sürü (robot köpek): polis tavanından ayrı, kendi tavanı; o da seviyeyle artar.
-        [SerializeField] private float _swarmCapAtStart = 6f;
-        [SerializeField] private float _swarmCapPerLevel = 1.2f;
+        [SerializeField] private float _swarmCapAtStart = 8f;
+        [SerializeField] private float _swarmCapPerLevel = 1f;
         [SerializeField] private int _maxActiveSwarm = 18;
 
         private BlobGrowth _growth;

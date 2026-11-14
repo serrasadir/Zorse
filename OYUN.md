@@ -41,7 +41,7 @@
 
 ## 3. Run Akışı
 
-0. **Açılış (sadece uygulama ilk açılırken):** siyah ekranda Zorse Studio logosu belirir (~2.2 sn), söner (`StudioSplash`, logo `Resources/UI/zorse-logo.png`).
+0. **Açılış (sadece uygulama ilk açılırken):** Zorse Studio giriş videosu oynar (3 sn, dikey, sesli; koyu gri zemin ekranın kalanını doldurur), bitince söner (`StudioSplash`, video `Resources/UI/zorse-intro.mp4`). Video açılamazsa eski hâl: siyahta logo (`Resources/UI/zorse-logo.png`).
 1. **Giriş ekranı:** arkada canlı şehir, kamera Topik'e yakın; Topik göz kırpar, sağa sola bakınır. Logo + OYNA. Duraklatma ve oyun sonundaki "Ana Menü" de buraya döner (run sıfırlanır).
 2. **Lobi:** OYNA'dan sonra karakter seç (Topik, Mıknato, Mermo), Market'e gir. HUD diliyle: başlık, coin, her karakter için kart (portre `Art/UI/Characters/Icon_*.png` ← `build_blobs.py`, ad, pasif açıklaması; kilitliyse soluk + koşul rozeti), altın MARKET tuşu ve geri (giriş ekranına) tuşu. Karta dokunmak oyunu başlatır.
 3. Şehirde başlarsın; yerdeki çöpleri, sokak eşyalarını, yayaları yiyerek büyürsün. Senden büyük şeyler seni durdurur (katı), hazard'lar hasar verir.
@@ -97,8 +97,8 @@ Boss'lar sırayla ve tek tek gelir: biri yaşıyorsa sonraki onun ölmesini bekl
 - **Yerdeki yiyecek tier'a göre seyrelir:** tavan 80 × (Tiny 1 · Little 0.85 · Small 0.7 · Medium 0.5 · Large 0.35 · Giant 0.25 · Dev 0.15) — büyüyünce yenen şey zaten büyük (`ConsumableSpawner._tierDensity`). Tier düşerse/restart'ta tekrar dolar.
 - **Yeme temasla olur.** Tier'ın yetmediği obje katıdır (çarparsın, içinden geçemezsin); yetince içinden geçip yersin. Katı kısım yerdeki ayak izidir (direk, gövde); havada büyük çıkıntısı olan eşyalarda (pota panosu, ağaç tacı, lamba kolu, durak/benzinlik tentesi) görünür boy kadar bir **yeme alanı** da var: yiyebilecek boydaysan çıkıntıya değince yenir, küçükken altından geçersin.
 - **Önle yenir.** Blob'un yüzü gidiş yönüne bakar; arkadaki 120°'lik dilim (popo) yemez. Arkadan değen yenebilir obje içinden geçer, yüz ona dönünce yenir; arkadan çarpan araba yenmez ve hasar da vermez. İstisnalar: vakumla çekilenler, Kara Delik, boss'lar (`BlobConsumption.RearAngle`).
-- **Polis yutulurken ısırır:** tier tam yetiyorsa 5, bir tier üstündeysen 2.5, daha büyüksen 0 hasar.
-- **Polis kaçar:** blob onu yiyebilecek boydayken görünce kaçar.
+- **Polis yutulurken ısırır:** tier tam yetiyorsa 5, bir tier üstündeysen 2.5, daha büyüksen 0 hasar (robot köpek 2 / 1 / 0). Kırmızı parlama + kamera sarsıntısı + titreşim.
+- **Düşmanlar kaçmaz:** blob onları yiyebilecek boyda olsa da saldırmaya devam eder.
 - **Hazard'lar** (ör. araba çarpması) yiyemeyeceğin boydayken hasar verir.
 - Final boss istisnadır: tier değil **fiziksel uzanma** gerekir (bkz. §6).
 
@@ -114,11 +114,11 @@ Ayrıntı ve tüm sayılar **`SKILLS.md`**'de. Özet:
 - **3 karakter**, hepsi top formunda, silahlar otomatik ateşler. Ateş tarzı üçünde aynı (düz, hareketi önden kesen hızlı mermi; sadece mermi modeli farklı); fark Silah Gücü Sv.8 son formunda:
   - **Topik** — top mermisi; pasif: run'a **Hız Sv.2** ile başlar (kaykay baştan var). Baştan açık. Hızlı giderken arkasında hafif rüzgar çizgileri (iki yandan ve tepeden üç ince beyaz iz; `CharacterData._speedTrail`, `SpeedTrail`).
   - **Mıknato** — metal bilye; pasif: Vakum Sv.2 ile başlar. Market'te 500 coin.
-  - **Mermo** — tabanca mermisi; pasif: run'a **Silah Gücü Sv.2** ile başlar (`CharacterData._startingUpgrade`). **3 run bitirince** açılır (ölüm de sayılır).
+  - **Mermo** — siyah korsan (kırmızı göz bandı); pasif: run'a **Havai Fişek Sv.1** ile başlar, atar baştan omzunda (`CharacterData._startingUpgrade`; favori skili de Havai Fişek). **3 run bitirince** açılır (ölüm de sayılır).
 - **İki silah:** karakter silahı şimdilik **sopa** (deneme): saniyede bir, yüzün baktığı yöne 120°'lik yayla kısa menzilde (gövde yüzeyinden 2, Silah Gücü ile 4'e kadar) yaydaki herkese vurur, beyaz hilal izi bırakır. Silah Gücü: Sv.3 arkaya da, Sv.5 yay 180°, Sv.8 tam tur. **Havai Fişek** (kart, Sv.4'te bir kez garanti; 1. miniboss Sv.5'te) uzun menzilli (gövde yüzeyinden 8), yavaş (2 sn'de 1), tek hedefe ağır; **her yöne** ateş eder (kurma/nişan yok), önce boss'a sonra elite.
 - Silah havadaki hedefe (helikopter) otomatik yukarı nişan alır; menzil yatay ölçülür.
 - **Mermiler** karaktere özel model + renkli iz: Topik turuncu şeritli top (döner), Mıknato kırmızı-mavi bantlı çelik bilye (döner), Mermo pirinç kovanlı mermi. Blob büyüdükçe mermi de büyür (Tiny 1× → Dev ~3×, kamera uzaklaştığı için). Modeller `zorse-blender/build_bullets.py`.
-- **Görünür silah** (Silah Gücü'yle form değiştirir; ayrıntı `SKILLS.md`): Topik ve Mıknato'da Silah Gücü alınınca sol yanda belirir (kalkan sağda), Mermo'nun iki yanında baştan keleş var (kalkanı kafada). Silah gövdeye sabit, gidiş yönüne bakar. **Havai Fişek atarı** sol omuzda, ana silahın üstünde (sol = saldırı, sağ = kalkan); renkli roketler, isabette renkli kıvılcım.
+- **Görünür silah** (Silah Gücü'yle form değiştirir; ayrıntı `SKILLS.md`): sopa açıkken üç karakterde de ağaç dalı, sadece vururken görünür (G_Stick_*); sopa kapalıyken karakter silahları (Topik/Mıknato sol yanda, Mermo iki yanda keleş). Mermo'nun kalkanı kafada. Silah gövdeye sabit, gidiş yönüne bakar. **Havai Fişek atarı** sol omuzda, ana silahın üstünde (sol = saldırı, sağ = kalkan); renkli roketler, isabette renkli kıvılcım.
 
 ---
 
@@ -128,13 +128,13 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 
 | Düşman | Nasıl davranır | Nasıl ölür |
 |---|---|---|
-| **Robot köpek** (sürü, erken) | 3'lü sürüyle gelir (1. dk'dan), hızlı (3.4; blob'dan yavaş), az canlı (10: ilk sopa vuruşunda ölür), temasta 4 hasar. Polis renklerinde dört bacaklı devriye robotu (`H_RobotDog` ← `build_robodog.py`; kurulum `Tools → Blob.io → Robot Köpeği Kur`). Polis tavanına sayılmaz, kendi tavanı var | Silah ya da **Little**'dan itibaren yutma. 1 coin |
-| **Polis** (sürü) | Koşar, temasta coplar. Binaların, eşyaların, arabaların etrafından dolanır; yiyebileceğin boydaysan kaçar | Silah ya da Medium'dan itibaren yutma |
+| **Robot köpek** (sürü, erken) | 3'lü sürüyle gelir (1. dk'dan), hızlı (3.4; blob'dan yavaş), az canlı (10: ilk sopa vuruşunda ölür), temasta 4 hasar. Polis renklerinde dört bacaklı devriye robotu (`H_RobotDog` ← `build_robodog.py`; kurulum `Tools → Blob.io → Robot Köpeği Kur`). Görme mesafesi 40: doğduğu andan sana koşar (polis 15). Polis tavanına sayılmaz, kendi tavanı var | Silah ya da **Little**'dan itibaren yutma. 1 coin |
+| **Polis** (sürü) | Koşar, temasta coplar. Binaların, eşyaların, arabaların etrafından dolanır; yiyebileceğin boyda olsan da kaçmaz | Silah ya da Medium'dan itibaren yutma |
 | **Elit polis** | Durur, nişan lazeriyle takip eder, kilitleyip 3'lü mermi atar. Arada bina varsa ateş etmez | Silah ya da Giant'ta yutma. Sandık düşürür |
 | **Miniboss: Polis Tankı** (5. ve 8. seviye) | 2.5 kat büyük; nişan lazeri + kilit + tank topu. Üstünden geçtiği arabaları ve sokak eşyalarını ezer (eşya kendi renklerinde kırıntı + tozla dağılır, `CrushFx`), binaların etrafından dolanır. Uzaktaysa yetişmek için hızlanır | Sadece silahla, yutulamaz. Ölünce ~1.3 sn: beyaz parlama, titreme, patlama kırıntıları, yana yatıp yere gömülür |
 | **Final Boss: Polis Helikopteri** (10. seviye) | Havada uçar, yukarıdan mini roket serisi atar (alevli, değince patlar: alan hasarı). Vurdukça kademe kademe alçalır (irtifa 8 → 7 → 6 → 5), yerde koyulaşan gölgesi ve dönen pervane gölgesi var. Gelince kamera uzaklaşıp ilk 3 sn ikinizi kadraja alır; sonra uzaklık kalır, kamera blob'u ortalar (boss ölünce normale döner; `CameraController._bossIntroDuration`) | **Silahla ölmez.** Blob'un tepesi helikoptere değdiği an yutulur, hangi irtifada olursa olsun (irtifa 5 ≈ 1340 kütle). **Yutulma sahnesi** (~4 sn, blob hasar almaz): yavaş çekimde helikopter dönerek küçülüp kıvılcım iziyle blob'a emilir, kamera yaklaşır, kocaman yutkunma + patlama + güçlü titreşim; zaman normale döner, ~1.3 sn sonra geğirme (şişme + ağızdan kırıntı bulutu), kısa bekleme; sonra KAZANDIN |
 
-- **Eşzamanlı (seviyeye göre):** toplam düşman tavanı `8 + seviye × 2.2`, elit tavanı `2 + (seviye − 5) × 1.5` (en az 1). **Mutlak üst sınır: toplam 30, elit 8** — hiçbir çarpan aşamaz. Robot köpekler bu sayıya dahil değil: ayrı tavan `6 + seviye × 1.2` (en fazla 18; `EnemySpawner._swarmCap*`). Spawn aralığı seviye başı %10 kısalır (seviye 10'da 2 kat sık). `EnemySpawner._policeCap*`, `_eliteCap*`, `_spawnSpeedupPerLevel`. 25 yaya.
+- **Eşzamanlı (seviyeye göre):** toplam düşman tavanı `8 + seviye × 2.2`, elit tavanı `2 + (seviye − 5) × 1.5` (en az 1). **Mutlak üst sınır: toplam 30, elit 8** — hiçbir çarpan aşamaz. Robot köpekler bu sayıya dahil değil: ayrı tavan `8 + seviye × 1` (en fazla 18; `EnemySpawner._swarmCap*`). Spawn aralığı seviye başı %10 kısalır (seviye 10'da 2 kat sık). `EnemySpawner._policeCap*`, `_eliteCap*`, `_spawnSpeedupPerLevel`. 25 yaya.
 - **Can barı:** polis ve elit vurulunca kafasının üstünde kırmızı can barı belirir (kameraya döner; hiç vurulmamış polisde görünmez). Boss'ların barı HUD'da.
 - **Ödüller:** silahla öldürmek XP verir (yukarıda, §3); her düşman coin düşürür; elit ve boss'lar sandık (ekstra kart + coin); boss'lar bonus coin. Kalp: polis %5, elit %100 (+20 can, max canı aşmaz). Can dolu olsa da değince alınır (boşa gider).
 - Coin 20 sn sonra kaybolur (son 3 sn yanıp söner).
@@ -199,7 +199,7 @@ Fiyatlar ve ödüller bu hedeflere göre ayarlanır; ölçülen değer hedeften 
 ## 10. Kontrol, Kamera, Arayüz
 
 - **Dokunmatik:** görünmez sürükleme — parmağın bastığı yerden sürüklediğin yön ve mesafe hareket olur (80 px = tam hız). UI butonuna basınca hareket başlamaz. **Klavye:** WASD / ok tuşları.
-- **Kamera:** üstten 60° eğik; blob büyüdükçe uzaklaşır: yükseklik × (ölçek / başlangıç ölçeği)^0.35 (`CameraController._zoomExponent`; Medium ~×1.6, Dev ~×2.2, en fazla ×4). Blob ekranda yine büyür (Dev'de başlangıçtakinin ~4.5 katı); hasar alınca kısa sarsıntı; final boss gelince ikisini birden kadraja alır.
+- **Kamera:** üstten 65° eğik, başlangıçta 12 yukarıda / 5.6 geride (`CameraController._baseHeight` / `_baseTilt`); blob büyüdükçe uzaklaşır: yükseklik × (ölçek / başlangıç ölçeği)^0.35 (`CameraController._zoomExponent`; Medium ~×1.6, Dev ~×2.2, en fazla ×4). Blob ekranda yine büyür (Dev'de başlangıçtakinin ~4.5 katı); hasar alınca kısa sarsıntı; final boss gelince ikisini birden kadraja alır.
 - **Geri bildirim:** yemede hafif titreşim (iOS haptic), hasarda kırmızı parlama, kalkan vuruşunda kalkan parlar. **Ateş:** her atışta blob ateş yönünün tersine kısa geri teper; mermi namludan iri çıkıp normale iner. **Vuruş:** düşman kısa süre kızarır (boss'lar dahil), boss olmayan geri seker (mermi az, Topik son form patlaması orta, Zırh dikenleri güçlü). **Medium ve üstü lokmada** obje kaybolduğu an onun renklerinde kırıntı küpleri fışkırıp blob'a çekilir (boyla ölçekli), görünüm bir an "yutkunur"; Large/Giant'ta orta, Dev'de güçlü titreşim ve hafif kamera sarsıntısı. Kırıntı renkleri modelin palet renklerinden (`Yeme Efektini Kur`).
 - **HUD:** barlar (can + altında kalkan barı (Zırh varsa), XP, boss can barı); can barı max canla uzar (100 can = normal boy, sağ kenarı sabit, sola doğru yumuşakça uzar; en fazla ~230 can boyu, Can Artışı/Market); sol üstte süre, sağ üstte skor + coin, XP barının solunda seviye, üstünde tier. Skill rozeti / karakter ikonu yok.
 - **Duraklatma:** tuşu üst satırda süre kutusunun yanında. Panel tüm ekranı kaplar (çentik ve alt şerit dahil): Devam / Yeniden Başla / Ana Menü. Ana Menü run'ı terk eder (coin kasaya girmez, run sayılmaz).

@@ -55,7 +55,7 @@ namespace BlobSurvivor.Entities.Weapons
             _renderer.enabled = false;
         }
 
-        // radius: yayın dış kenarı (merkezden), arc: derece. flip: süpürme yönü (vuruşlar sırayla sağdan/soldan).
+        // radius: yayın dış kenarı (merkezden), arc: derece. flip: süpürme yönü (false = soldan sağa, sopanın savrulduğu yön).
         public void Play(Transform follow, Vector3 forward, float radius, float arc, bool flip)
         {
             forward.y = 0f;

@@ -59,7 +59,6 @@ namespace BlobSurvivor.Entities.Enemies
         private float _knockbackDecel;
         private float _aiUpdateTimer;
         private bool _canSeeBlobCached;
-        private bool _edibleByBlobCached;
         private float _damageMultiplier = 1f;
         private float _speedMultiplier = 1f;
         // 2026-11-03: boss yetişme hızı (BossSpawner ekran dışında + uzakken ayarlar), dalga çarpanından ayrı.
@@ -358,12 +357,6 @@ namespace BlobSurvivor.Entities.Enemies
             {
                 _aiUpdateTimer = AIUpdateInterval;
                 _canSeeBlobCached = ComputeCanSeeBlob();
-                _edibleByBlobCached = ComputeEdibleByBlob();
-
-                // 2026-11-03 (Serra): sürü polisi blob onu yiyebilecek boyuttaysa (Medium)
-                // kovalamak yerine kaçar. Elit/boss kaçmaz (UsesSteering = elit değil).
-                if (_edibleByBlobCached && _canSeeBlobCached && !(_currentState is FleeState))
-                    ChangeState(new FleeState());
 
                 // Ayrım (separation) ve engel kaçınma sorguları pahalı (komşu grid taraması / raycast) —
                 // her frame değil, throttle tick'te hesaplanıp cache'lenir. Seek her frame taze kalır
@@ -626,14 +619,7 @@ namespace BlobSurvivor.Entities.Enemies
         }
 
         public bool CanSeeBlob() => _canSeeBlobCached;
-        public bool IsEdibleByBlob => _edibleByBlobCached;
         public float DetectionRange => _detectionRange;
-
-        private bool ComputeEdibleByBlob()
-        {
-            if (!UsesSteering || _data == null || _data.PreventConsumption || BlobTransform == null) return false;
-            return GameEvents.CurrentBlobTier >= _data.RequiredConsumeTier;
-        }
 
         // Elit/boss'ta EnemyData.AttackRange bilinçli bir "menzil/alan saldırısı" değeridir, olduğu gibi
         // kalır. Sıradan sürü düşmanında gerçek temas mesafesine (iki collider'ın o anki dünya-uzayı

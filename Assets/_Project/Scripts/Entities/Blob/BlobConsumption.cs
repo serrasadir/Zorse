@@ -117,7 +117,12 @@ namespace BlobSurvivor.Entities.Blob
             {
                 _blobGrowth.AddMass(massReward);
                 _blobGrowth.PunchScale();
-                if (biteDamage > 0f) _blobHealth.TakeDamage(biteDamage);
+                if (biteDamage > 0f)
+                {
+                    // Isırık: hasar (kırmızı parlama + kamera sarsıntısı OnDamaged'dan) + belirgin titreşim.
+                    _blobHealth.TakeDamage(biteDamage);
+                    Core.Haptics.Impact(1);
+                }
             }
         }
 

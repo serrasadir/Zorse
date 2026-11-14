@@ -128,7 +128,13 @@ namespace BlobSurvivor.Core
                 blob.AddComponent<SpeedTrail>(); // Topik: rüzgar izi (eskisi ClearPreviousRunState'te kare sonunda silinir)
             WeaponVisual weaponVisual = blob.GetComponent<WeaponVisual>();
             if (weaponVisual == null) weaponVisual = blob.AddComponent<WeaponVisual>();
-            weaponVisual.Setup(visual.ModelRenderer, character.WeaponModel, character.WeaponVisibleFromStart);
+            // Sopa açıksa üç karakter de ağaç dalı tutar (G_Stick_*), baştan görünür; kapalıysa karakterin silahı.
+            var startWeapon = character.StartingWeaponPrefab != null
+                ? character.StartingWeaponPrefab.GetComponent<BlobSurvivor.Entities.Weapons.WeaponBase>() : null;
+            bool stick = startWeapon != null && startWeapon.UsesSwingVisual;
+            weaponVisual.Setup(visual.ModelRenderer, stick ? BlobSurvivor.Entities.Weapons.WeaponBase.SwingModel : character.WeaponModel,
+                stick || character.WeaponVisibleFromStart);
+            weaponVisual.HideWhenIdle = stick; // sopa sadece vururken görünür
 
             // Karakter avantajı başlangıç skill'i: UpgradeSystem OnCharacterSelected'da verir.
 

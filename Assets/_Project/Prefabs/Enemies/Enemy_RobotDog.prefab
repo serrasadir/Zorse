@@ -306,7 +306,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Enemies.EnemyBase
   _data: {fileID: 11400000, guid: b84de4b6b5c944af79aac919b4c7c8fb, type: 2}
-  _detectionRange: 15
+  _detectionRange: 40
   _separationRadius: 1
   _separationWeight: 1.5
   _avoidanceLookahead: 1.2

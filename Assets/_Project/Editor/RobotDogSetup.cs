@@ -69,6 +69,7 @@ namespace BlobSurvivor.EditorTools
             var so = new SerializedObject(enemy);
             so.FindProperty("_data").objectReferenceValue = data;
             so.FindProperty("_separationRadius").floatValue = 1f;
+            so.FindProperty("_detectionRange").floatValue = 40f; // yarasa rolü: doğduğu andan sana koşar (doğma penceresi ±30)
             so.ApplyModifiedPropertiesWithoutUndo();
             PrefabUtility.SaveAsPrefabAsset(contents, DogPrefab);
             PrefabUtility.UnloadPrefabContents(contents);
