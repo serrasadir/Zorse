@@ -10981,6 +10981,11 @@ MonoBehaviour:
   _minDistanceFromBlob: 18
   _maxActiveEnemies: 30
   _maxActiveElites: 8
+  _policeCapAtStart: 8
+  _policeCapPerLevel: 2.2
+  _eliteCapAtLevel5: 2
+  _eliteCapPerLevel: 1.5
+  _spawnSpeedupPerLevel: 0.1
 --- !u!4 &222400388
 Transform:
   m_ObjectHideFlags: 0
@@ -13768,6 +13773,8 @@ MonoBehaviour:
   _baseXPThreshold: 20
   _xpGrowthPerLevel: 15
   _xpQuadraticPerLevel: 2
+  _xpLateStartLevel: 4
+  _xpLateQuadratic: 12
   _globalGainScale: 0.35
   _punchDecay: 8
 --- !u!114 &276010511
@@ -53751,6 +53758,14 @@ MonoBehaviour:
   _initialSpawnCount: 40
   _refillCheckInterval: 2
   _despawnDistance: 50
+  _tierDensity:
+  - 1
+  - 0.85
+  - 0.7
+  - 0.5
+  - 0.35
+  - 0.25
+  - 0.15
 --- !u!4 &1043860665
 Transform:
   m_ObjectHideFlags: 0
