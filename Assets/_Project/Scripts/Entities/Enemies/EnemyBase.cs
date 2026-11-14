@@ -819,7 +819,7 @@ namespace BlobSurvivor.Entities.Enemies
 
             _scoreSystem?.AddScore(_data.ScoreValue);
 
-            int coinAmount = _data.IsElite ? Random.Range(5, 11) : PoliceCoin;
+            int coinAmount = _data.CoinOverride > 0 ? _data.CoinOverride : _data.IsElite ? Random.Range(5, 11) : PoliceCoin;
             CoinSource source = IsBoss ? CoinSource.Boss : _data.IsElite ? CoinSource.Elite : CoinSource.Police;
             CoinSpawner.Instance?.SpawnCoin(transform.position, coinAmount, source);
             GameEvents.RaiseEnemyKilled(_data);

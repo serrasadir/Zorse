@@ -18,6 +18,18 @@ namespace BlobSurvivor.Entities.Weapons
         // Kartta Sv.8 açıklamasında gösterilir — karaktere özel son form (bkz. UpgradePanel).
         [SerializeField] private string _ultimateDescription;
 
+        // Sopa (deneme): ana silah mermi yerine yüzün baktığı yöne yay şeklinde vurur, yaydaki herkese.
+        // Vuruş hasarı = _damage × _fireRate × aralık (tek hedefe saniye başı hasar mermiyle aynı kalır).
+        // Silah Gücü: Sv.3 arkaya da vurur · Sv.5 yay 180° · Sv.7 vuruş hızı ×1.3 · Sv.8 tam tur (360°) + hasar ×1.5.
+        [Header("Sopa vuruşu")]
+        [SerializeField] private bool _swing = true;
+        [SerializeField] private float _swingInterval = 1f;
+        [SerializeField] private float _swingArc = 120f;
+        [SerializeField] private float _swingWideArc = 180f;
+        [SerializeField] private float _swingFastFactor = 1.3f;
+        [SerializeField] private float _swingKnockback = 0.4f;
+        [SerializeField] private float _swingUltimateDamage = 1.5f;
+
         private const int EnemyLayerMask = 1 << 14;
         // 2026-11-03: arada bina varsa hedef alınmaz (elit polisin RangedAttackState'iyle aynı kural).
         private const int WallMask = 1 << 16; // Environment: bina engel kutuları + harita duvarı
@@ -103,7 +115,8 @@ namespace BlobSurvivor.Entities.Weapons
         protected virtual void Update()
         {
             _cooldown -= Time.deltaTime;
-            if (_cooldown > 0f || !CanFire) return;
+            if (_cooldown > 0f) return;
+            if (UsesSwing) { Swing(); return; }
 
             int count = FindNearestEnemies(TargetCount);
             if (count == 0) { _cooldown = NoTargetRetry; return; }
@@ -114,8 +127,74 @@ namespace BlobSurvivor.Entities.Weapons
             if (_blobVisual != null) _blobVisual.Recoil(_targets[0].position - transform.position, RecoilStrength);
         }
 
+        private bool UsesSwing => _swing && IsPrimary;
+        private SwingArcFx _swingFxFront, _swingFxBack;
+        private bool _swingFlip;
+
+        private float SwingInterval => _swingInterval / (TargetCount >= 3 ? _swingFastFactor : 1f);
+
+        // Yaydaki (ve Sv.3'ten sonra arka yaydaki) tüm düşmanlara vurur; kimse yoksa sallamaz.
+        private void Swing()
+        {
+            Vector3 origin = transform.position;
+            Vector3 forward = _blobVisual != null && _blobVisual.HasFacing ? _blobVisual.Forward : Vector3.forward;
+            forward.y = 0f;
+            bool full = UltimateActive;
+            bool back = TargetCount >= 2 && !full;
+            float arc = full ? 360f : Pierce > 0 ? _swingWideArc : _swingArc;
+            float cosHalf = Mathf.Cos(arc * 0.5f * Mathf.Deg2Rad);
+            float range = EffectiveRange;
+            float damage = _damage * _fireRate * SwingInterval * (full ? _swingUltimateDamage : 1f);
+
+            int hitCount = Physics.OverlapCapsuleNonAlloc(origin, origin + Vector3.up * VerticalReach, range, _hits, EnemyLayerMask);
+            bool hitFront = false, hitBack = false;
+            for (int i = 0; i < hitCount; i++)
+            {
+                Vector3 flat = _hits[i].transform.position - origin;
+                flat.y = 0f;
+                float mag = flat.magnitude;
+                bool front, rear;
+                if (mag * mag <= OverheadSqr) { front = true; rear = false; } // tam tepedeki (helikopter)
+                else
+                {
+                    float dot = Vector3.Dot(forward, flat) / mag;
+                    front = full || dot >= cosHalf;
+                    rear = back && -dot >= cosHalf;
+                }
+                if (!front && !rear) continue;
+                if (Physics.Linecast(origin, _hits[i].bounds.center, WallMask, QueryTriggerInteraction.Ignore)) continue;
+
+                EnemyBase enemy = _hits[i].GetComponent<EnemyBase>(); // vuruş anında, saniyede bir
+                if (enemy == null) continue;
+                enemy.TakeDamage(damage);
+                enemy.Knockback(flat, _swingKnockback);
+                hitFront |= front;
+                hitBack |= rear;
+            }
+
+            if (!hitFront && !hitBack) { _cooldown = NoTargetRetry; return; }
+
+            _cooldown = SwingInterval;
+            _swingFlip = !_swingFlip;
+            float fxRadius = range;
+            if (hitFront || back) PlaySwingFx(ref _swingFxFront, "SwingArc_Front", forward, fxRadius, arc, _swingFlip);
+            if (back) PlaySwingFx(ref _swingFxBack, "SwingArc_Back", -forward, fxRadius, arc, !_swingFlip);
+            if (_blobVisual != null) _blobVisual.Recoil(-forward, 0.6f); // vuruş yönüne hafif atılma
+        }
+
+        private void PlaySwingFx(ref SwingArcFx fx, string name, Vector3 dir, float radius, float arc, bool flip)
+        {
+            if (fx == null) fx = SwingArcFx.Create(name); // silah başına tek seferlik
+            fx.Play(transform, dir, radius, arc, flip);
+        }
+
+        protected virtual void OnDestroy()
+        {
+            if (_swingFxFront != null) Destroy(_swingFxFront.gameObject);
+            if (_swingFxBack != null) Destroy(_swingFxBack.gameObject);
+        }
+
         protected virtual float RecoilStrength => 1f;
-        protected virtual bool CanFire => true; // Havai Fişek: dönünce kurma süresi
         protected BlobSurvivor.Entities.Blob.BlobVisual Visual => _blobVisual;
 
         public void IncreaseDamage(float amount) => _damage += amount;

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
   _id: firework
   _displayName: "Havai Fişek"
-  _description: "Uzun menzilli ağır atış. Önce boss'a, sonra elit polise nişan alır; sadece önüne ateş eder."
+  _description: "Uzun menzilli ağır atış, her yöne. Önce boss'a, sonra elit polise nişan alır."
   _icon: {fileID: 0}
   _category: 3
   _weight: 10
@@ -22,7 +22,7 @@ MonoBehaviour:
   _maxLevel: 6
   _perLevelValue: 8
   _levelDescriptions:
-  - "Önündeki en güçlü düşmana uzun menzilli ağır atış (25 hasar). Önce boss, sonra elit."
+  - "En güçlü düşmana uzun menzilli ağır atış (25 hasar), her yöne. Önce boss, sonra elit."
   - "Havai Fişek hasarı +8."
   - "Havai Fişek atış hızı %30 artar."
   - "Havai Fişek hasarı +8."

@@ -47,12 +47,18 @@ namespace BlobSurvivor.Entities.Enemies
         [SerializeField] private float _eliteCapPerLevel = 1.5f;
         [SerializeField] private float _spawnSpeedupPerLevel = 0.1f; // seviye 10'da 2 kat sık
 
+        // Sürü (robot köpek): polis tavanından ayrı, kendi tavanı; o da seviyeyle artar.
+        [SerializeField] private float _swarmCapAtStart = 6f;
+        [SerializeField] private float _swarmCapPerLevel = 1.2f;
+        [SerializeField] private int _maxActiveSwarm = 18;
+
         private BlobGrowth _growth;
 
         private Transform _blobTransform;
         private float _spawnTimer;
         private int _activeEliteCount;
-        private readonly List<GameObject> _activeEnemies = new List<GameObject>();
+        private readonly List<GameObject> _activeEnemies = new List<GameObject>(); // polis + elit
+        private readonly List<GameObject> _activeSwarm = new List<GameObject>();   // robot köpek
         private readonly Dictionary<EnemyData, ObjectPool<EnemyBase>> _pools = new Dictionary<EnemyData, ObjectPool<EnemyBase>>();
 
         private void OnEnable() => GameEvents.OnCharacterSelected += HandleRestart;
@@ -62,17 +68,22 @@ namespace BlobSurvivor.Entities.Enemies
         // Restart sahneyi yeniden yüklemiyor: önceki run'ın polisleri havuza dönmezse oyuncunun başında kalır.
         private void HandleRestart(CharacterData _)
         {
-            foreach (GameObject go in _activeEnemies)
+            ReturnAll(_activeEnemies);
+            ReturnAll(_activeSwarm);
+            _activeEliteCount = 0;
+            _spawnTimer = 0f;
+        }
+
+        private void ReturnAll(List<GameObject> list)
+        {
+            foreach (GameObject go in list)
             {
                 if (go == null) continue;
                 EnemyBase enemy = go.GetComponent<EnemyBase>();
                 if (enemy != null && enemy.Data != null && _pools.TryGetValue(enemy.Data, out ObjectPool<EnemyBase> pool))
                     pool.Return(enemy);
             }
-
-            _activeEnemies.Clear();
-            _activeEliteCount = 0;
-            _spawnTimer = 0f;
+            list.Clear();
         }
 
         private void Start()
@@ -95,7 +106,7 @@ namespace BlobSurvivor.Entities.Enemies
             CleanupInactive();
             RecycleFarEnemies();
 
-            if (_activeEnemies.Count >= GetEffectiveMaxActive()) return;
+            if (_activeEnemies.Count >= GetEffectiveMaxActive() && _activeSwarm.Count >= GetEffectiveMaxSwarm()) return;
 
             _spawnTimer += Time.deltaTime;
             float density = _waveController.SpawnDensityMultiplier;
@@ -117,6 +128,8 @@ namespace BlobSurvivor.Entities.Enemies
             // Elit tavanı sürüden ayrı — NavMeshAgent pahalı, weighted-random spawn'ın
             // elit sayısını kontrolsüz yükseltmesini engeller (GDD Karar 2).
             if (data.IsElite && _activeEliteCount >= GetEffectiveMaxElites()) return;
+            int room = data.IsSwarm ? GetEffectiveMaxSwarm() - _activeSwarm.Count : GetEffectiveMaxActive() - _activeEnemies.Count;
+            if (room <= 0) return;
 
             EnemyBase prefabBase = data.Prefab.GetComponent<EnemyBase>();
             if (prefabBase == null) return;
@@ -126,6 +139,25 @@ namespace BlobSurvivor.Entities.Enemies
             if (!_pools.ContainsKey(data))
                 _pools[data] = PoolManager.Instance.CreatePool(prefabBase, 5);
 
+            // Sürü (robot köpek): lider noktanın çevresine, tavan elverdiği kadar.
+            int pack = Mathf.Min(data.PackSize, room);
+            for (int i = 0; i < pack; i++)
+            {
+                Vector3 pos = spawnPos;
+                if (i > 0)
+                {
+                    Vector2 off = Random.insideUnitCircle.normalized * PackSpread;
+                    if (!SpawnPositionUtility.TryFindNavMeshPosition(spawnPos + new Vector3(off.x, 0f, off.y), EnemySpawnY, 2f, out pos))
+                        continue;
+                }
+                SpawnOne(data, pos);
+            }
+        }
+
+        private const float PackSpread = 1.2f;
+
+        private void SpawnOne(EnemyData data, Vector3 spawnPos)
+        {
             EnemyBase enemy = _pools[data].Get(spawnPos, Quaternion.identity);
             enemy.WarpTo(spawnPos);
             enemy.SetData(data, _waveController.DamageMultiplier, _waveController.SpeedMultiplier);
@@ -133,7 +165,7 @@ namespace BlobSurvivor.Entities.Enemies
             enemy.OnDeath -= HandleEnemyDeath;
             enemy.OnDeath += HandleEnemyDeath;
 
-            _activeEnemies.Add(enemy.gameObject);
+            (data.IsSwarm ? _activeSwarm : _activeEnemies).Add(enemy.gameObject);
             if (data.IsElite) _activeEliteCount++;
         }
 
@@ -143,11 +175,17 @@ namespace BlobSurvivor.Entities.Enemies
             if (_despawnTimer > 0f || _blobTransform == null) return;
             _despawnTimer = DespawnCheckInterval;
 
+            RecycleFar(_activeEnemies);
+            RecycleFar(_activeSwarm);
+        }
+
+        private void RecycleFar(List<GameObject> list)
+        {
             Vector3 blobPos = _blobTransform.position;
             float despawnSq = _despawnDistance * _despawnDistance;
-            for (int i = _activeEnemies.Count - 1; i >= 0; i--)
+            for (int i = list.Count - 1; i >= 0; i--)
             {
-                GameObject go = _activeEnemies[i];
+                GameObject go = list[i];
                 if ((go.transform.position - blobPos).sqrMagnitude < despawnSq) continue;
 
                 EnemyBase enemy = go.GetComponent<EnemyBase>();
@@ -157,7 +195,7 @@ namespace BlobSurvivor.Entities.Enemies
 
         private void HandleEnemyDeath(EnemyBase enemy)
         {
-            _activeEnemies.Remove(enemy.gameObject);
+            if (!_activeEnemies.Remove(enemy.gameObject)) _activeSwarm.Remove(enemy.gameObject);
 
             if (enemy.Data != null && enemy.Data.IsElite)
                 _activeEliteCount = Mathf.Max(0, _activeEliteCount - 1);
@@ -169,6 +207,9 @@ namespace BlobSurvivor.Entities.Enemies
         // _maxActiveEnemies / _maxActiveElites mutlak tavan: hiçbir çarpan aşamaz (10. dk yoğunluğu sadece spawn'ı hızlandırır).
         private int GetEffectiveMaxActive() =>
             Mathf.RoundToInt(Mathf.Min(_maxActiveEnemies, _policeCapAtStart + _policeCapPerLevel * Level));
+
+        private int GetEffectiveMaxSwarm() =>
+            Mathf.RoundToInt(Mathf.Min(_maxActiveSwarm, _swarmCapAtStart + _swarmCapPerLevel * Level));
 
         private int GetEffectiveMaxElites()
         {
@@ -220,6 +261,7 @@ namespace BlobSurvivor.Entities.Enemies
         private void CleanupInactive()
         {
             _activeEnemies.RemoveAll(go => go == null || !go.activeInHierarchy);
+            _activeSwarm.RemoveAll(go => go == null || !go.activeInHierarchy);
         }
 
         private bool IsGamePlaying()

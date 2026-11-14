@@ -57,7 +57,7 @@
 | Zaman | Olay |
 |---|---|
 | 0–1 dk | Sadece yenebilir objeler, yayalar, arabalar |
-| 1. dk | Polisler gelmeye başlar |
+| 1. dk | Polisler ve robot köpek sürüleri gelmeye başlar |
 | Blob **Medium** olunca (en geç 4. dk) | Elit polisler |
 | 5. dk | Düşman hasarı ×1.2 |
 | 10. dk | Düşman spawn'ı ×2 hızlı (tavan aynı) |
@@ -115,7 +115,7 @@ Ayrıntı ve tüm sayılar **`SKILLS.md`**'de. Özet:
   - **Topik** — top mermisi; pasif: run'a **Hız Sv.2** ile başlar (kaykay baştan var). Baştan açık. Hızlı giderken arkasında hafif rüzgar çizgileri (iki yandan ve tepeden üç ince beyaz iz; `CharacterData._speedTrail`, `SpeedTrail`).
   - **Mıknato** — metal bilye; pasif: Vakum Sv.2 ile başlar. Market'te 500 coin.
   - **Mermo** — tabanca mermisi; pasif: run'a **Silah Gücü Sv.2** ile başlar (`CharacterData._startingUpgrade`). **3 run bitirince** açılır (ölüm de sayılır).
-- **İki silah:** karakter silahı **her yöne** (360°) ama kısa menzille (gövde yüzeyinden 3, Silah Gücü ile 5'e kadar) ateş eder: kaçarken kovalayanı savuşturur, haritayı temizlemez. **Havai Fişek** (kart, Sv.4'te bir kez garanti; 1. miniboss Sv.5'te) uzun menzilli (gövde yüzeyinden 12), yavaş, tek hedefe ağır; sadece **önündeki 120°'ye**, önce boss'a sonra elite nişan alır. Dönünce 1 sn kurulur (fitil kıvılcımı = hazır). Boss ritmi: dön, dur (yüz son yönde kalır), kurulsun, ateş et; lazer kilitlenince yana kaç. Tam tepedeki hedef (helikopter) her zaman vurulur.
+- **İki silah:** karakter silahı şimdilik **sopa** (deneme): saniyede bir, yüzün baktığı yöne 120°'lik yayla kısa menzilde (gövde yüzeyinden 2, Silah Gücü ile 4'e kadar) yaydaki herkese vurur, beyaz hilal izi bırakır. Silah Gücü: Sv.3 arkaya da, Sv.5 yay 180°, Sv.8 tam tur. **Havai Fişek** (kart, Sv.4'te bir kez garanti; 1. miniboss Sv.5'te) uzun menzilli (gövde yüzeyinden 8), yavaş (2 sn'de 1), tek hedefe ağır; **her yöne** ateş eder (kurma/nişan yok), önce boss'a sonra elite.
 - Silah havadaki hedefe (helikopter) otomatik yukarı nişan alır; menzil yatay ölçülür.
 - **Mermiler** karaktere özel model + renkli iz: Topik turuncu şeritli top (döner), Mıknato kırmızı-mavi bantlı çelik bilye (döner), Mermo pirinç kovanlı mermi. Blob büyüdükçe mermi de büyür (Tiny 1× → Dev ~3×, kamera uzaklaştığı için). Modeller `zorse-blender/build_bullets.py`.
 - **Görünür silah** (Silah Gücü'yle form değiştirir; ayrıntı `SKILLS.md`): Topik ve Mıknato'da Silah Gücü alınınca sol yanda belirir (kalkan sağda), Mermo'nun iki yanında baştan keleş var (kalkanı kafada). Silah gövdeye sabit, gidiş yönüne bakar. **Havai Fişek atarı** sol omuzda, ana silahın üstünde (sol = saldırı, sağ = kalkan); renkli roketler, isabette renkli kıvılcım.
@@ -128,12 +128,13 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 
 | Düşman | Nasıl davranır | Nasıl ölür |
 |---|---|---|
+| **Robot köpek** (sürü, erken) | 3'lü sürüyle gelir (1. dk'dan), hızlı (3.4; blob'dan yavaş), az canlı (10: ilk sopa vuruşunda ölür), temasta 4 hasar. Polis renklerinde dört bacaklı devriye robotu (`H_RobotDog` ← `build_robodog.py`; kurulum `Tools → Blob.io → Robot Köpeği Kur`). Polis tavanına sayılmaz, kendi tavanı var | Silah ya da **Little**'dan itibaren yutma. 1 coin |
 | **Polis** (sürü) | Koşar, temasta coplar. Binaların, eşyaların, arabaların etrafından dolanır; yiyebileceğin boydaysan kaçar | Silah ya da Medium'dan itibaren yutma |
 | **Elit polis** | Durur, nişan lazeriyle takip eder, kilitleyip 3'lü mermi atar. Arada bina varsa ateş etmez | Silah ya da Giant'ta yutma. Sandık düşürür |
 | **Miniboss: Polis Tankı** (5. ve 8. seviye) | 2.5 kat büyük; nişan lazeri + kilit + tank topu. Üstünden geçtiği arabaları ve sokak eşyalarını ezer (eşya kendi renklerinde kırıntı + tozla dağılır, `CrushFx`), binaların etrafından dolanır. Uzaktaysa yetişmek için hızlanır | Sadece silahla, yutulamaz. Ölünce ~1.3 sn: beyaz parlama, titreme, patlama kırıntıları, yana yatıp yere gömülür |
 | **Final Boss: Polis Helikopteri** (10. seviye) | Havada uçar, yukarıdan mini roket serisi atar (alevli, değince patlar: alan hasarı). Vurdukça kademe kademe alçalır (irtifa 8 → 7 → 6 → 5), yerde koyulaşan gölgesi ve dönen pervane gölgesi var. Gelince kamera uzaklaşıp ilk 3 sn ikinizi kadraja alır; sonra uzaklık kalır, kamera blob'u ortalar (boss ölünce normale döner; `CameraController._bossIntroDuration`) | **Silahla ölmez.** Blob'un tepesi helikoptere değdiği an yutulur, hangi irtifada olursa olsun (irtifa 5 ≈ 1340 kütle). **Yutulma sahnesi** (~4 sn, blob hasar almaz): yavaş çekimde helikopter dönerek küçülüp kıvılcım iziyle blob'a emilir, kamera yaklaşır, kocaman yutkunma + patlama + güçlü titreşim; zaman normale döner, ~1.3 sn sonra geğirme (şişme + ağızdan kırıntı bulutu), kısa bekleme; sonra KAZANDIN |
 
-- **Eşzamanlı (seviyeye göre):** toplam düşman tavanı `8 + seviye × 2.2`, elit tavanı `2 + (seviye − 5) × 1.5` (en az 1). **Mutlak üst sınır: toplam 30, elit 8** — hiçbir çarpan aşamaz. Spawn aralığı seviye başı %10 kısalır (seviye 10'da 2 kat sık). `EnemySpawner._policeCap*`, `_eliteCap*`, `_spawnSpeedupPerLevel`. 25 yaya.
+- **Eşzamanlı (seviyeye göre):** toplam düşman tavanı `8 + seviye × 2.2`, elit tavanı `2 + (seviye − 5) × 1.5` (en az 1). **Mutlak üst sınır: toplam 30, elit 8** — hiçbir çarpan aşamaz. Robot köpekler bu sayıya dahil değil: ayrı tavan `6 + seviye × 1.2` (en fazla 18; `EnemySpawner._swarmCap*`). Spawn aralığı seviye başı %10 kısalır (seviye 10'da 2 kat sık). `EnemySpawner._policeCap*`, `_eliteCap*`, `_spawnSpeedupPerLevel`. 25 yaya.
 - **Can barı:** polis ve elit vurulunca kafasının üstünde kırmızı can barı belirir (kameraya döner; hiç vurulmamış polisde görünmez). Boss'ların barı HUD'da.
 - **Ödüller:** silahla öldürmek XP verir (yukarıda, §3); her düşman coin düşürür; elit ve boss'lar sandık (ekstra kart + coin); boss'lar bonus coin. Kalp: polis %5, elit %100 (+20 can, max canı aşmaz). Can dolu olsa da değince alınır (boşa gider).
 - Coin 20 sn sonra kaybolur (son 3 sn yanıp söner).

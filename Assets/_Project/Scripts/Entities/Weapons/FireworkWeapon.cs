@@ -5,9 +5,9 @@ using BlobSurvivor.Entities.Enemies;
 
 namespace BlobSurvivor.Entities.Weapons
 {
-    // Havai Fişek: ikincil silah (kart). Uzun menzil, yavaş, tek hedefe ağır; sadece ön koniye, önce boss sonra elit.
+    // Havai Fişek: ikincil silah (kart). Uzun menzil, yavaş, tek hedefe ağır; her yöne, önce boss sonra elit.
     // Ana silah sürüyü savuşturur, bu boss'u indirir. FireworkEffect kurar ve seviyeler.
-    // Görünür atar sol omuzda (sol = saldırı, sağ = kalkan) (G_Firework_1..4, zorse-blender/build_firework.py), gövdeye sabit = ateş konisi.
+    // Görünür atar sol omuzda (sol = saldırı, sağ = kalkan) (G_Firework_1..4, zorse-blender/build_firework.py), gövdeye sabit.
     public class FireworkWeapon : WeaponBase
     {
         private const float BossCost = 0f;
@@ -25,31 +25,15 @@ namespace BlobSurvivor.Entities.Weapons
         private Transform _burstTarget;
         private WeaponVisual _launcher;
 
-        // Kurma: yüz (= atar) _armAngle'dan fazla dönerse _armTime boyunca ateş edemez. Dön-dur-kur-ateş ritmi.
-        private float _armTime = 1f;
-        private float _armCos = Mathf.Cos(30f * Mathf.Deg2Rad);
-        private float _armTimer;
-        private Vector3 _armDir;
-
         public override bool IsPrimary => false;
         protected override float RecoilStrength => 2.6f;
 
-        public void Setup(Projectile prefab, float fireRate, float damage, float range, float arc)
+        public void Setup(Projectile prefab, float fireRate, float damage, float range)
         {
-            Configure(prefab, fireRate, damage, range, arc);
+            Configure(prefab, fireRate, damage, range, 360f);
             _launcher = gameObject.AddComponent<WeaponVisual>(); // run başına tek seferlik; obje silinince gider
             _launcher.Setup(Visual != null ? Visual.ModelRenderer : null, Model, false, "Firework"); // FireworkEffect SetForm(1) ile "pop" eder
         }
-
-        public void SetArming(float seconds, float angle)
-        {
-            _armTime = Mathf.Max(0f, seconds);
-            _armCos = Mathf.Cos(angle * Mathf.Deg2Rad);
-            _armTimer = _armTime; // yeni takılan atar da önce kurulur
-            _armDir = Visual != null ? Visual.Forward : Vector3.forward;
-        }
-
-        protected override bool CanFire => _armTimer <= 0f;
 
         public void SetForm(int form) => _launcher?.SetForm(form);
         public void SetPriorityDamageScale(float scale) => _priorityDamageScale = Mathf.Max(1f, scale);
@@ -65,18 +49,6 @@ namespace BlobSurvivor.Entities.Weapons
 
         protected override void Update()
         {
-            if (Visual != null)
-            {
-                Vector3 facing = Visual.Forward;
-                if (Vector3.Dot(facing, _armDir) < _armCos)
-                {
-                    _armDir = facing;
-                    _armTimer = _armTime;
-                }
-            }
-            bool wasArming = _armTimer > 0f;
-            _armTimer -= Time.deltaTime;
-            if (wasArming && _armTimer <= 0f) PlayAtRear(FireworkBurstFx.Spark); // kuruldu: fitil tutuşur
             base.Update();
             if (_burstLeft <= 0) return;
             _burstTimer -= Time.deltaTime;

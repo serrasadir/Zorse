@@ -12,11 +12,7 @@ namespace BlobSurvivor.Systems
         [SerializeField] private Projectile _projectilePrefab;
         [SerializeField] private float _fireRate = 0.5f;
         [SerializeField] private float _damage = 25f;
-        [SerializeField] private float _range = 12f;
-        [SerializeField, Range(30f, 360f)] private float _fireArc = 120f;
-        [Tooltip("Yön bu açıdan fazla değişince ateş edebilmek için beklenen kurma süresi (sn).")]
-        [SerializeField] private float _armTime = 1f;
-        [SerializeField] private float _armAngle = 30f;
+        [SerializeField] private float _range = 8f;
 
         [Header("Kilometre taşları")]
         [SerializeField] private int _fireRateLevel = 3;
@@ -37,8 +33,7 @@ namespace BlobSurvivor.Systems
                 var go = new GameObject("FireworkWeapon");
                 go.transform.SetParent(blobRoot.transform, false); // Awake parent'tan BlobVisual'ı bulur
                 weapon = go.AddComponent<FireworkWeapon>();
-                weapon.Setup(_projectilePrefab, _fireRate, _damage, _range, _fireArc);
-                weapon.SetArming(_armTime, _armAngle);
+                weapon.Setup(_projectilePrefab, _fireRate, _damage, _range);
             }
 
             if (level == _fireRateLevel) weapon.MultiplyFireRate(_fireRateFactor);

@@ -83,7 +83,7 @@ namespace BlobSurvivor.EditorTools
         private const float PedestrianY = 0.1f;      // yol ve kaldırım (0.14) arası: ayak ikisinde de batmıyor
         private const float PedestrianMapHalfExtent = 19f;
         private const float CarY = 0.06f;            // yol yüzeyinin (0.05) hemen üstü, modellerin pivotu tabanda
-        private const float PoliceRootY = 0.6f;      // EnemySpawner.EnemySpawnY (0.65) eksi yol yüksekliği (0.05)
+        internal const float PoliceRootY = 0.6f;      // EnemySpawner.EnemySpawnY (0.65) eksi yol yüksekliği (0.05)
         private const float EliteRootY = 1f;         // NavMeshAgent.baseOffset: pivot NavMesh'in 1 birim üstünde
         private const float CoinModelY = 0.2f;       // CoinSpawner kökü 0.15'te tutar; merkez 0.35'te kaldırımın üstünde kalır
 
@@ -747,7 +747,7 @@ namespace BlobSurvivor.EditorTools
             Debug.Log($"[CityKitPipeline] Coin modeli uygulandı: {applied}.");
         }
 
-        private static bool ApplyEnemyModel(string prefabPath, string mesh, float modelY, Material material)
+        internal static bool ApplyEnemyModel(string prefabPath, string mesh, float modelY, Material material)
         {
             GameObject contents = PrefabUtility.LoadPrefabContents(prefabPath);
             Transform oldModel = contents.transform.Find("Model");
@@ -941,7 +941,7 @@ namespace BlobSurvivor.EditorTools
             return material;
         }
 
-        private static Material GetPaletteMaterial()
+        internal static Material GetPaletteMaterial()
         {
             Material material = AssetDatabase.LoadAssetAtPath<Material>(PaletteMaterialPath);
             if (material != null) return material;

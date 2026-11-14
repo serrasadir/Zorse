@@ -138,19 +138,19 @@ Mıknato run'a Sv.2 ile başlar; çarpanı yok, değerler herkesle aynı.
   - **Mıknato:** bilye tüfeği (kırmızı mıknatıs halkalı çelik namlu, tepede bilye dolu cam hazne). Tek → çift → üçlü → uzun namlu, altın halkalar.
   - **Mermo:** iki yanda keleş. Kısa keleş (tel dipçik) → ahşap dipçikli, bantlı ikiz şarjör → tambur şarjör + dürbün → altın ağızlı keleş pompalı.
   - Silah gövdeye sabit, gidiş yönüne bakar (hedefe dönmez). Modeller `zorse-blender/build_weapons.py` → `Resources/FX/Weapons/G_<Kar>_1..4` (118–502 üçgen); `WeaponVisual` görünüm renderer'ına child takar (aynı materyal), `CharacterData._weaponModel` / `_weaponVisibleFromStart`.
-- **Temel silah (3 karakter aynı):** saniyede **2.5 atış × 4 hasar** (saniye başına 10), menzil **gövde yüzeyinden 3** (blob büyüdükçe menzil de büyür; Tiny'de merkezden 3.25, Dev'de 5.5), **her yöne** (360°; prefab'da `_fireArc`). Silah Gücü'nün +hasar seviyeleri +0.5 menzil de verir (Sv.6'da yüzeyden 5). Mermiler küçük ve hızlı. Uzun menzil ve boss işi Havai Fişek'in.
+- **Temel silah — sopa (deneme, 3 karakter aynı; silah modeli değişmedi):** mermi yok. Saniyede **1 vuruş × 10 hasar**, yüzün baktığı yöne **120°'lik yay**, menzildeki yaydaki **herkese** vurur (hafif geri itme). Menzil **gövde yüzeyinden 2** (Silah Gücü +hasar seviyeleri +0.5; Sv.6'da 4). Kimse yoksa sallamaz. Görsel: beyaz hilal izi bir uçtan öbürüne süpürülür (`SwingArcFx`, materyal `Resources/FX/SpeedTrail`); vuruşlar sırayla sağdan/soldan. Kaçarken arkandakine vurmaz (Sv.3'e kadar). Kod: `WeaponBase` → `_swing` (kapatılırsa eski mermi silahı + karakter son formları geri gelir), `_swingInterval`, `_swingArc`. Uzun menzil ve boss işi Havai Fişek'in.
 
-| Sv. | Kazanılan | Mermi hasarı | Hedef başına sn. hasar |
+| Sv. | Kazanılan | Vuruş hasarı | Sn. başı hasar (hedef başına) |
 |---|---|---|---|
-| 0 | – | 4 | 10 |
-| 1 | +2 hasar, +0.5 menzil | 6 | 15 |
-| 2 | +2 hasar, +0.5 menzil | 8 | 20 |
-| 3 | ⭐ **Çift hedef:** en yakın 2 düşmana aynı anda ateş | 8 | 20 (×2 hedef) |
-| 4 | +2 hasar, +0.5 menzil | 10 | 25 |
-| 5 | ⭐ **Delip geçme:** mermi ilk düşmanı delip arkasındakine de vurur | 10 | 25 |
-| 6 | +2 hasar, +0.5 menzil | 12 | 30 |
-| 7 | ⭐ **Üçlü hedef** | 12 | 30 (×3 hedef) |
-| 8 | ⭐ **Son form** (karaktere özel, aşağıda) | 12 | – |
+| 0 | – | 10 | 10 |
+| 1 | +5 hasar, +0.5 menzil | 15 | 15 |
+| 2 | +5 hasar, +0.5 menzil | 20 | 20 |
+| 3 | ⭐ **Arkaya da vurur** (ikinci yay) | 20 | 20 |
+| 4 | +5 hasar, +0.5 menzil | 25 | 25 |
+| 5 | ⭐ **Yay 180°** | 25 | 25 |
+| 6 | +5 hasar, +0.5 menzil | 30 | 30 |
+| 7 | ⭐ **Vuruş hızı ×1.3** | 30 | 39 |
+| 8 | ⭐ **Son form: tam tur (360°)**, hasar ×1.5 | 45 | 58 |
 
 **Son formlar (Sv. 8):**
 | Karakter | Silah | Son form |
@@ -165,12 +165,11 @@ Mıknato run'a Sv.2 ile başlar; çarpanı yok, değerler herkesle aynı.
 ---
 
 ### 🎆 Havai Fişek (ikinci silah)
-- **Ne yapar:** Karakter silahının yanına ikinci, otomatik bir silah ekler. Uzun menzilli, yavaş, tek hedefe ağır roket. **Sadece önündeki 120°'ye** ateş eder; hedef önceliği **boss > elit > en yakın**. Delmez, alan hasarı yok: sürüyü değil boss'u indirir. Herkesin kartı (karakter pasifi değil).
-- **Kurma süresi:** Yön (= atarın baktığı yer) **30°'den fazla** değişince **1 sn** ateş edemez; kurulunca fitilden küçük sarı kıvılcım çıkar. Düz giderken ya da dururken kurulu kalır. Ritim: dön, dur, kur, ateş. Kartı ilk alınca da önce kurulur. `FX_Firework.asset` → `Arm Time` / `Arm Angle`.
+- **Ne yapar:** Karakter silahının yanına ikinci, otomatik bir silah ekler. Uzun menzilli, yavaş, tek hedefe ağır roket. **Her yöne** (360°) ateş eder, nişan/kurma yok; hedef önceliği **boss > elit > en yakın**. Delmez, alan hasarı yok: sürüyü değil boss'u indirir. Herkesin kartı (karakter pasifi değil).
 - **Garanti:** Oyuncu 4. seviyeye gelince (1. miniboss 5'te) henüz almadıysa o kart ekranında bir kez kesin çıkar (`UpgradeData._guaranteedAtLevel`). Sonra normal ağırlıkla.
-- **Temel:** **2 sn'de 1 atış × 25 hasar** (12.5/sn), menzil **gövde yüzeyinden 12**. **Max:** 6 · **Ağırlık:** 10 · Seviye başına +8 hasar (kilometre taşı olmayan seviyelerde)
+- **Temel:** **2 sn'de 1 atış × 25 hasar** (12.5/sn), menzil **gövde yüzeyinden 8**. **Max:** 6 · **Ağırlık:** 10 · Seviye başına +8 hasar (kilometre taşı olmayan seviyelerde)
 - **Kod:** `FireworkEffect` (değerler `FX_Firework.asset`) → `FireworkWeapon` (`WeaponBase` alt sınıfı, `IsPrimary = false`; blob'un `FireworkWeapon` child'ı). Mermi `Prefabs/Weapons/FireworkRocket.prefab` (`FireworkProjectile`, model `X_Firework` ← `build_bullets.py`, Mermi Modellerini Uygula kurar). Efektler `FireworkBurstFx` (EatCrumbs havuzu).
-- **Görünür atar:** **sol omuzda**, ana silahın üstünde (kural: sol = saldırı, sağ = kalkan). Alçak ve neredeyse yatay, Mermo'nun kafadaki kalkanının altında, keleşinin üstünde kalır. Gövdeye sabit, öne bakar (= ateş konisi). Sokak hurdası karton havai fişek tüpü; form yeni mekanikle değişir: **Sv.1-2** kırmızı-beyaz tek tüp + fitil → **Sv.3-4** kalın mavi-sarı tüp → **Sv.5** üstte trafik konisi nişangahı → **Sv.6** karton kutuda çift tüp, altın bant. İlk alınca "pop" eder. Modeller `zorse-blender/build_firework.py` → `Resources/FX/Weapons/G_Firework_1..4` (192–470 üçgen; önizleme en büyük kalkan + silahla çizilir).
+- **Görünür atar:** **sol omuzda**, ana silahın üstünde (kural: sol = saldırı, sağ = kalkan). Alçak ve neredeyse yatay, Mermo'nun kafadaki kalkanının altında, keleşinin üstünde kalır. Gövdeye sabit, öne bakar (roket hedefe doğru çıkar). Sokak hurdası karton havai fişek tüpü; form yeni mekanikle değişir: **Sv.1-2** kırmızı-beyaz tek tüp + fitil → **Sv.3-4** kalın mavi-sarı tüp → **Sv.5** üstte trafik konisi nişangahı → **Sv.6** karton kutuda çift tüp, altın bant. İlk alınca "pop" eder. Modeller `zorse-blender/build_firework.py` → `Resources/FX/Weapons/G_Firework_1..4` (192–470 üçgen; önizleme en büyük kalkan + silahla çizilir).
 - **Efektler:** Her roket sıradaki renkte (kırmızı, yeşil, mavi, sarı, pembe, camgöbeği): gövde ve iz o renk. Durduğu yerde (düşman, duvar ya da menzil sonunda havada) o renkte kıvılcım patlaması. Atışta atarın arkasından gri duman, blob karakter silahının ~2.6 katı geri teper, hafif titreşim.
 
 | Sv. | Kazanılan | Hasar | Atış aralığı | Saniyede hasar |
@@ -272,7 +271,7 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 | **Ne zaman** | 1. dk'dan itibaren | Blob **Medium** olunca (en geç 4. dk) |
 | **Can** | 50 | 250 |
 | **Saldırı** | Yakın dövüş, 10 hasar, saniyede 1 | Tabanca: 0.5 sn nişan lazeri → **3'lü seri**, mermi başına 10 hasar, menzil 7.5. Arada bina varsa ateş etmez |
-| **Hız** | 2.7 | 2.1 |
+| **Hız** | 2.3 | 2.1 |
 | **Yutulma** | Medium blob | Giant blob |
 | **Davranış** | Blob onu yiyebiliyorsa **kaçar** | Kaçmaz |
 | **Ödül** | 3 mass, 2 coin, %5 kalp | 20 mass, 5–10 coin, **sandık** (35 coin + ekstra kart), %100 kalp |

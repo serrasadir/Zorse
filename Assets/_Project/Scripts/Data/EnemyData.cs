@@ -60,6 +60,12 @@ namespace BlobSurvivor.Data
         [Tooltip("Tank: üstünden geçtiği arabaları ve küçük şehir eşyalarını ezer (TankCrusher). Binalar hariç.")]
         [SerializeField] private bool _crushesObstacles;
 
+        [Header("Sürü / ödül")]
+        [Tooltip("Bir spawn'da kaç tane birlikte doğar (robot köpek sürüsü). Toplam düşman tavanını aşmaz.")]
+        [SerializeField] private int _packSize = 1;
+        [Tooltip("Ölünce düşen coin. 0 = varsayılan (polis 2, elit 5–10).")]
+        [SerializeField] private int _coinOverride;
+
         public string DisplayName => _displayName;
         public GameObject Prefab => _prefab;
         public float MaxHealth => _maxHealth;
@@ -87,5 +93,9 @@ namespace BlobSurvivor.Data
         public float HeartDropChance => _heartDropChance;
         public bool RequiresConsumptionToDie => _requiresConsumptionToDie;
         public bool CrushesObstacles => _crushesObstacles;
+        public int PackSize => Mathf.Max(1, _packSize);
+        // Sürüyle gelen (robot köpek) polis tavanına sayılmaz, kendi tavanı var (EnemySpawner).
+        public bool IsSwarm => _packSize > 1;
+        public int CoinOverride => _coinOverride;
     }
 }

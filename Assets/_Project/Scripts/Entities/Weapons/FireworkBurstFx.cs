@@ -29,17 +29,6 @@ namespace BlobSurvivor.Entities.Weapons
             Next().PlayBurst(point, SmokeA, SmokeB, size * 0.9f, 7, 1.2f, 2.5f);
         }
 
-        // Kurma bitti: fitilden küçük sarı-turuncu kıvılcım.
-        public static void Spark(Vector3 point, float blobScale)
-        {
-            if (!Ensure()) return;
-            float size = Mathf.Clamp(Mathf.Sqrt(blobScale / 0.5f), 1f, 3f);
-            Next().PlayBurst(point, Spark1, Spark2, size * 0.6f, 6, 1.8f, -3f);
-        }
-
-        private static readonly Color Spark1 = new Color(0.96f, 0.77f, 0.27f); // palet "yellow"
-        private static readonly Color Spark2 = new Color(0.96f, 0.64f, 0.36f); // palet "orange"
-
         private static EatCrumbs Next()
         {
             EatCrumbs fx = s_pool[s_next];

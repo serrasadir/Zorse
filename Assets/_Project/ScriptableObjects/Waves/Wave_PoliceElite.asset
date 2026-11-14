@@ -18,6 +18,8 @@ MonoBehaviour:
     SpawnWeight: 0.85
   - EnemyData: {fileID: 11400000, guid: 8f18c9a576bf44b6938e43b0bf8f57f5, type: 2}
     SpawnWeight: 0.15
+  - EnemyData: {fileID: 11400000, guid: b84de4b6b5c944af79aac919b4c7c8fb, type: 2}
+    SpawnWeight: 0.25
   _spawnRate: 2.5
   _waveName: PoliceElite
   _unlockByBlobTier: 1
