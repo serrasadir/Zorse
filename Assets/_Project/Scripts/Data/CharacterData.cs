@@ -11,26 +11,19 @@ namespace BlobSurvivor.Data
         [SerializeField] private Sprite _icon;
         [SerializeField, TextArea] private string _description;
 
-        [Header("Başlangıç Silahı")]
-        [SerializeField] private GameObject _startingWeaponPrefab;
-
         [Header("Görünüm")]
         [Tooltip("Blob'un child'ı olarak takılan model (yüz +Z'de, çap 1, pivot merkez). Boş = varsayılan küre.")]
         [SerializeField] private GameObject _blobVisualPrefab;
-        [Tooltip("Zırh kalkanı yanda süzülmek yerine kafada şapka gibi durur (Fişek: yanlarda keleşleri var).")]
+        [Tooltip("Zırh kalkanı yanda süzülmek yerine kafada şapka gibi durur (Fişek).")]
         [SerializeField] private bool _armorOnHead;
         [Tooltip("Hızlı giderken arkada hafif rüzgar çizgileri (Topik: hız pasifi).")]
         [SerializeField] private bool _speedTrail;
-        [Tooltip("Silah Gücü görseli: Resources/FX/Weapons/G_<bu>_1..4 (build_weapons.py). Boş = silah görünmez.")]
-        [SerializeField] private string _weaponModel;
-        [Tooltip("Silah Sv.0'dan görünür (Fişek). Kapalıysa Silah Gücü alınınca belirir.")]
-        [SerializeField] private bool _weaponVisibleFromStart;
 
         [Header("Kart Çekimi")]
-        [Tooltip("Bu karakterde kart ekranında daha sık çıkan skill (Topik Hız, Mıknato Vakum, Fişek Havai Fişek, Dalcık Silah Gücü, Cano Can Emme).")]
+        [Tooltip("Bu karakterde kart ekranında daha sık çıkan skill (Topik Hız, Mıknato Vakum, Fişek Havai Fişek, Dalcık Sopa, Cano Can Emme).")]
         [SerializeField] private UpgradeData _favoredUpgrade;
-        [Tooltip("Favori skill'in ağırlık çarpanı. 2 ≈ kart ekranlarının %41'i yerine %63'ünde çıkar.")]
-        [SerializeField] private float _favoredWeightMultiplier = 2f;
+        [Tooltip("Favori skill'in ağırlık çarpanı. 3 ≈ kart ekranlarının %41'i yerine %75'inde çıkar.")]
+        [SerializeField] private float _favoredWeightMultiplier = 3f;
         [Tooltip("Run'a bu skill bu seviyede başlar (karakter pasifi). 0 = yok.")]
         [SerializeField] private UpgradeData _startingUpgrade;
         [SerializeField] private int _startingUpgradeLevel;
@@ -46,12 +39,9 @@ namespace BlobSurvivor.Data
         public string DisplayName => _displayName;
         public Sprite Icon => _icon;
         public string Description => _description;
-        public GameObject StartingWeaponPrefab => _startingWeaponPrefab;
         public GameObject BlobVisualPrefab => _blobVisualPrefab;
         public bool ArmorOnHead => _armorOnHead;
         public bool SpeedTrail => _speedTrail;
-        public string WeaponModel => _weaponModel;
-        public bool WeaponVisibleFromStart => _weaponVisibleFromStart;
         public UpgradeData FavoredUpgrade => _favoredUpgrade;
         public float FavoredWeightMultiplier => _favoredWeightMultiplier;
         public UpgradeData StartingUpgrade => _startingUpgrade;

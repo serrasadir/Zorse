@@ -12,7 +12,7 @@ namespace BlobSurvivor.Entities.Weapons
         [SerializeField] private float _speed = 12f;
         [SerializeField] private float _lifetime = 3f;
         [SerializeField] private float _hitRadius = 0.3f;
-        // Görsel (Tools → Blob.io → Mermi Modellerini Uygula kurar).
+        // Görsel (Tools → Blob.io → Mermi Modellerini Uygula kurar; şu an Havai Fişek roketi).
         [SerializeField] private Transform _spinModel;
         [SerializeField] private float _spinSpeed;
         [SerializeField] private float _knockback = 0.15f;
@@ -41,12 +41,7 @@ namespace BlobSurvivor.Entities.Weapons
         private ObjectPool<Projectile> _pool;
         private float _elapsed;
 
-        // 2026-11-03: Silah Gücü yolu — Sv.5 delip geçme, Sv.8 karaktere özel son form (alt sınıflar okur).
-        private int _pierceRemaining;
-        private EnemyBase _lastPierced;
-
         protected float Damage { get; private set; }
-        protected bool IsUltimate { get; private set; }
         protected Vector3 Direction { get; set; }
 
         // Restart sahneyi yeniden yüklemiyor: havadaki mermiler yeni run'a taşınmasın (EnemyProjectile ile aynı).
@@ -65,14 +60,11 @@ namespace BlobSurvivor.Entities.Weapons
 
         private void HandleRestart(CharacterData _) => ReturnToPool();
 
-        public void Launch(ObjectPool<Projectile> pool, Vector3 direction, float damage, int pierce = 0, bool ultimate = false)
+        public void Launch(ObjectPool<Projectile> pool, Vector3 direction, float damage)
         {
             _pool = pool;
             Direction = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
             Damage = damage;
-            _pierceRemaining = pierce;
-            _lastPierced = null;
-            IsUltimate = ultimate;
             _elapsed = 0f;
             _popTime = 0f;
             transform.localScale = _baseScale * (_visualScale * PopScale);
@@ -86,31 +78,14 @@ namespace BlobSurvivor.Entities.Weapons
 
         protected virtual void OnLaunched() { }
 
-        // Yatay hareketin dışında bu frame'e özel ek yer değiştirme (ör. CannonProjectile'ın
-        // yay yüksekliği) — sadece SphereCast'in bu hareketi de "görmesi" için var, varsayılan sıfır.
-        protected virtual Vector3 GetExtraMotion() => Vector3.zero;
-
         protected virtual void Update()
         {
             // SphereCast başlangıçta içinde olduğu collider'ı görmez: polis mermiye doğru yürüyüp onu içine aldıysa
             // (ya da mermi bir eşyanın yüzeyinde polisin içinde durduysa) mermi geçip gidiyordu. Her kare yerinde bakılır.
             if (CheckOverlap()) return;
 
-            Vector3 extraMotion = GetExtraMotion();
-            Vector3 castDirection;
-            float travelDistance;
-
-            if (extraMotion == Vector3.zero)
-            {
-                castDirection = Direction;
-                travelDistance = _speed * Time.deltaTime;
-            }
-            else
-            {
-                Vector3 frameMotion = Direction * (_speed * Time.deltaTime) + extraMotion;
-                travelDistance = frameMotion.magnitude;
-                castDirection = travelDistance > 0f ? frameMotion / travelDistance : Direction;
-            }
+            Vector3 castDirection = Direction;
+            float travelDistance = _speed * Time.deltaTime;
 
             // 2026-11-03: eskiden tek SphereCast vardı ve pas geçilen hitten sonra kalan yol sorgusuz gidiliyordu
             // (arkadaki duvar/düşman o karede görülmüyordu); ayrıca mermi merkezi temas noktasına ışınlanıyordu.
@@ -173,11 +148,9 @@ namespace BlobSurvivor.Entities.Weapons
                 EnemyBase enemy = other.GetComponent<EnemyBase>();
                 if (enemy != null)
                 {
-                    if (enemy == _lastPierced) return false; // az önce deldiği düşmanı tekrar vurmasın
                     enemy.TakeDamage(Damage);
                     KnockbackEnemy(enemy);
                     OnHitEnemy(enemy);
-                    if (TryPierce(enemy)) return false;
                     OnImpact();
                     ReturnToPool();
                     return true;
@@ -201,15 +174,6 @@ namespace BlobSurvivor.Entities.Weapons
         private static bool IsWall(Collider other) =>
             other.gameObject.layer == EnvironmentLayer
             || (other.TryGetComponent(out CityConsumable city) && city.BlocksProjectiles);
-
-        // Delme hakkı varsa harcar ve true döner — mermi yoluna devam eder.
-        protected bool TryPierce(EnemyBase enemy)
-        {
-            if (_pierceRemaining <= 0) return false;
-            _pierceRemaining--;
-            _lastPierced = enemy;
-            return true;
-        }
 
         protected virtual void OnHitEnemy(EnemyBase enemy) { }
 

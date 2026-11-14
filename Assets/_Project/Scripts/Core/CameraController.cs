@@ -12,8 +12,8 @@ namespace BlobSurvivor.Core
         [SerializeField] private float _followSmoothing = 5f;
 
         [Header("Height & Angle")]
-        [SerializeField] private float _baseHeight = 15f;
-        [SerializeField] private float _baseTilt = 60f;
+        [SerializeField] private float _baseHeight = 10f;
+        [SerializeField] private float _baseTilt = 65f;
 
         // 2026-11-03 (Serra: "bir süre sonra kamera tamamen blob'u kapsıyor"): kamera blob büyüdükçe uzaklaşır,
         // ama büyümeden YAVAŞ — blob ekranda yine de büyür, büyüme hissi korunur. Yükseklik çarpanı

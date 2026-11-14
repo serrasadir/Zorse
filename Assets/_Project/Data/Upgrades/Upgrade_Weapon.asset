@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: Upgrade_Weapon
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
   _id: weapon
-  _displayName: "Silah G\xFCc\xFC"
-  _description: "Silah\u0131n\u0131 g\xFC\xE7lendir derim."
+  _displayName: Sopa
+  _description: "Sopan\u0131 g\xFC\xE7lendirir."
   _icon: {fileID: 0}
   _category: 3
   _weight: 10
   _effect: {fileID: 11400000, guid: 7b9e904a57210460688f9d50741701d3, type: 2}
   _maxLevel: 8
-  _perLevelValue: 2
+  _perLevelValue: 5
   _levelDescriptions:
   - "Vuru\u015F hasar\u0131 +5, menzil +0.5."
   - "Vuru\u015F hasar\u0131 +5, menzil +0.5."

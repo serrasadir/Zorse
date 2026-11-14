@@ -15,14 +15,11 @@ MonoBehaviour:
   _displayName: Topik
   _icon: {fileID: 21300000, guid: b4bb6b97abdc64b2185f28ca7055a0b8, type: 3}
   _description: "H\u0131z skiliyle ba\u015Flar (Sv.2)."
-  _startingWeaponPrefab: {fileID: 1195012648784995356, guid: 8dc57e157854348fd95c73a2d2e69c1d, type: 3}
   _blobVisualPrefab: {fileID: 615227606570224158, guid: cd6d3df7377774fe1be7116da0c42426, type: 3}
-  _speedTrail: 1
   _armorOnHead: 0
-  _weaponModel: Topik
-  _weaponVisibleFromStart: 0
+  _speedTrail: 1
   _favoredUpgrade: {fileID: 11400000, guid: 1c02eed465f3d411cb8c57a3242128c3, type: 2}
-  _favoredWeightMultiplier: 2
+  _favoredWeightMultiplier: 3
   _startingUpgrade: {fileID: 11400000, guid: 1c02eed465f3d411cb8c57a3242128c3, type: 2}
   _startingUpgradeLevel: 2
   _saveId: Topik

@@ -108,20 +108,20 @@ Boss'lar sırayla ve tek tek gelir: biri yaşıyorsa sonraki onun ölmesini bekl
 
 Ayrıntı ve tüm sayılar **`SKILLS.md`**'de. Özet:
 
-- **8 skill:** Silah Gücü, Havai Fişek (ikinci silah, boss avcısı), Zırh (kalkan), Can Emme (vurduğun hasarın %2/sv'si can), Can Artışı, Hız, Attract (Vakum), Sindirim.
+- **8 skill:** Sopa, Havai Fişek (ikinci silah, boss avcısı), Zırh (kalkan), Can Emme (vurduğun hasarın %2/sv'si can), Can Artışı, Hız, Attract (Vakum), Sindirim.
 - **1 evrim:** Attract + Sindirim (max) → **Kara Delik**. Evrim kartı ★ ve altın renkle gelir. Seçilince evrim anı oynar (ağır çekim, kasırga blob'a çöker, indigo şok dalgası, ekranda ★ KARA DELİK); sonra blob'un altında siyah olay ufku ve siyah-lacivert kasırga kalır.
 - Max seviyedeki skill havuzdan çıkar; birden çok level aynı anda atlanırsa kartlar sırayla gelir; run bittiyse kart açılmaz.
-- **5 karakter**, hepsi top formunda, silahlar otomatik. Fark başlangıç skill'inde (o skill favori, kartta ×2) ve sopa kapalıyken Silah Gücü Sv.8 son formunda. Ayrıntı `SKILLS.md` §4:
-  - **Topik** — top mermisi; pasif: run'a **Hız Sv.2** ile başlar (kaykay baştan var). Baştan açık. Hızlı giderken arkasında hafif rüzgar çizgileri (iki yandan ve tepeden üç ince beyaz iz; `CharacterData._speedTrail`, `SpeedTrail`).
-  - **Mıknato** — metal bilye; pasif: Vakum Sv.2 ile başlar. Market'te 500 coin.
+- **5 karakter**, hepsi top formunda, silahlar otomatik. Ana silah herkeste aynı (sopa); fark başlangıç skill'inde (o skill favori, kartta ×3). Ayrıntı `SKILLS.md` §4:
+  - **Topik** — pasif: run'a **Hız Sv.2** ile başlar (kaykay baştan var). Baştan açık. Hızlı giderken arkasında hafif rüzgar çizgileri (iki yandan ve tepeden üç ince beyaz iz; `CharacterData._speedTrail`, `SpeedTrail`).
+  - **Mıknato** — pasif: Vakum Sv.2 ile başlar. Market'te 500 coin.
   - **Fişek** — siyah korsan (kırmızı göz bandı); pasif: run'a **Havai Fişek Sv.1** ile başlar, atar baştan omzunda (`CharacterData._startingUpgrade`; favori skili de Havai Fişek). Market'te 1.000 coin.
-  - **Dalcık** — pasif: run'a **Silah Gücü (sopa) Sv.2** ile başlar (20 hasar, menzil 3). Satılmaz: **5 run bitirince** açılır (ölüm de sayılır). Oyuncuya "oynamaya devam et" hedefi; Market'te ilerlemesi görünür. Görünüm henüz yok (varsayılan küre).
+  - **Dalcık** — pasif: run'a **Sopa Sv.2** ile başlar (20 hasar, menzil 3). Satılmaz: **5 run bitirince** açılır (ölüm de sayılır). Oyuncuya "oynamaya devam et" hedefi; Market'te ilerlemesi görünür. Görünüm henüz yok (varsayılan küre).
   - **Cano** — pasif: run'a **Can Emme Sv.2** ile başlar (hasarın %4'ü can). Market'te 1.500 coin. Görünüm henüz yok (varsayılan küre).
 - Kilit koşulu `CharacterData`'da: `_marketPrice` (> 0 = Market'te satılır), `_requiredCompletedRuns`, `_saveId` (kayıtta satın alım kimliği).
-- **İki silah:** karakter silahı şimdilik **sopa** (deneme): saniyede bir, yüzün baktığı yöne 120°'lik yayla kısa menzilde (gövde yüzeyinden 2, Silah Gücü ile 4'e kadar) yaydaki herkese vurur, beyaz hilal izi bırakır. Silah Gücü: Sv.3 arkaya da, Sv.5 yay 180°, Sv.8 tam tur. **Havai Fişek** (kart, Sv.4'te bir kez garanti; 1. miniboss Sv.5'te) uzun menzilli (gövde yüzeyinden 8), yavaş (2 sn'de 1), tek hedefe ağır; **her yöne** ateş eder (kurma/nişan yok), önce boss'a sonra elite.
+- **İki silah:** ana silah **sopa** (ağaç dalı, `StickWeapon`): saniyede bir, yüzün baktığı yöne 120°'lik yayla kısa menzilde (gövde yüzeyinden 2, Sopa skill'iyle 4'e kadar) yaydaki herkese vurur, beyaz hilal izi bırakır. Sopa skill'i: Sv.3 arkaya da, Sv.5 yay 180°, Sv.8 tam tur. **Havai Fişek** (kart, Sv.4'te bir kez garanti; 1. miniboss Sv.5'te) uzun menzilli (gövde yüzeyinden 8), yavaş (2 sn'de 1), tek hedefe ağır; **her yöne** ateş eder (kurma/nişan yok), önce boss'a sonra elite.
 - Silah havadaki hedefe (helikopter) otomatik yukarı nişan alır; menzil yatay ölçülür.
-- **Mermiler** karaktere özel model + renkli iz: Topik turuncu şeritli top (döner), Mıknato kırmızı-mavi bantlı çelik bilye (döner), Fişek pirinç kovanlı mermi. Blob büyüdükçe mermi de büyür (Tiny 1× → Dev ~3×, kamera uzaklaştığı için). Modeller `zorse-blender/build_bullets.py`.
-- **Görünür silah** (Silah Gücü'yle form değiştirir; ayrıntı `SKILLS.md`): sopa açıkken bütün karakterlerde ağaç dalı, sadece vururken görünür (G_Stick_*); sopa kapalıyken karakter silahları (Topik/Mıknato sol yanda, Fişek iki yanda keleş; Dalcık ve Cano Topik'in topunu kullanır). Fişek'in kalkanı kafada. Silah gövdeye sabit, gidiş yönüne bakar. **Havai Fişek atarı** sol omuzda, ana silahın üstünde (sol = saldırı, sağ = kalkan); renkli roketler, isabette renkli kıvılcım.
+- **Havai Fişek roketi** model + renkli iz (`X_Firework`, `zorse-blender/build_bullets.py`). Blob büyüdükçe roket de büyür (Tiny 1× → Dev ~3×, kamera uzaklaştığı için).
+- **Görünür silah** (Sopa skill'iyle form değiştirir; ayrıntı `SKILLS.md`): bütün karakterlerde ağaç dalı, sadece vururken görünür, yay boyunca savrulur (G_Stick_*). **Havai Fişek atarı** sol omuzda, ana silahın üstünde (sol = saldırı, sağ = kalkan); renkli roketler, isabette renkli kıvılcım.
 
 ---
 
@@ -205,7 +205,7 @@ Fiyatlar ve ödüller bu hedeflere göre ayarlanır; ölçülen değer hedeften 
 ## 10. Kontrol, Kamera, Arayüz
 
 - **Dokunmatik:** görünmez sürükleme — parmağın bastığı yerden sürüklediğin yön ve mesafe hareket olur (80 px = tam hız). UI butonuna basınca hareket başlamaz. **Klavye:** WASD / ok tuşları.
-- **Kamera:** üstten 65° eğik, başlangıçta 12 yukarıda / 5.6 geride (`CameraController._baseHeight` / `_baseTilt`); blob büyüdükçe uzaklaşır: yükseklik × (ölçek / başlangıç ölçeği)^0.35 (`CameraController._zoomExponent`; Medium ~×1.6, Dev ~×2.2, en fazla ×4). Blob ekranda yine büyür (Dev'de başlangıçtakinin ~4.5 katı); hasar alınca kısa sarsıntı; final boss gelince ikisini birden kadraja alır.
+- **Kamera:** üstten 65° eğik, başlangıçta 10 yukarıda / 4.7 geride (`CameraController._baseHeight` / `_baseTilt`); blob büyüdükçe uzaklaşır: yükseklik × (ölçek / başlangıç ölçeği)^0.35 (`CameraController._zoomExponent`; Medium ~×1.6, Dev ~×2.2, en fazla ×4). Blob ekranda yine büyür (Dev'de başlangıçtakinin ~4.5 katı); hasar alınca kısa sarsıntı; final boss gelince ikisini birden kadraja alır.
 - **Geri bildirim:** yemede hafif titreşim (iOS haptic), hasarda kırmızı parlama, kalkan vuruşunda kalkan parlar. **Ateş:** her atışta blob ateş yönünün tersine kısa geri teper; mermi namludan iri çıkıp normale iner. **Vuruş:** düşman kısa süre kızarır (boss'lar dahil), boss olmayan geri seker (mermi az, Topik son form patlaması orta, Zırh dikenleri güçlü). **Medium ve üstü lokmada** obje kaybolduğu an onun renklerinde kırıntı küpleri fışkırıp blob'a çekilir (boyla ölçekli), görünüm bir an "yutkunur"; Large/Giant'ta orta, Dev'de güçlü titreşim ve hafif kamera sarsıntısı. Kırıntı renkleri modelin palet renklerinden (`Yeme Efektini Kur`).
 - **HUD:** barlar (can + altında kalkan barı (Zırh varsa), XP, boss can barı); can barı max canla uzar (100 can = normal boy, sağ kenarı sabit, sola doğru yumuşakça uzar; en fazla ~230 can boyu, Can Artışı/Market); sol üstte süre, sağ üstte skor + coin, XP barının solunda seviye, üstünde tier. Skill rozeti / karakter ikonu yok.
 - **Duraklatma:** tuşu üst satırda süre kutusunun yanında. Panel tüm ekranı kaplar (çentik ve alt şerit dahil): Devam / Yeniden Başla / Ana Menü. Ana Menü run'ı terk eder (coin kasaya girmez, run sayılmaz).

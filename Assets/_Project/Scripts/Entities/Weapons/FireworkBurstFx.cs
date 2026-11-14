@@ -14,7 +14,7 @@ namespace BlobSurvivor.Entities.Weapons
         private static EatCrumbs[] s_pool;
         private static int s_next;
 
-        // size ≈ blob ölçeğine göre mermi boyu (WeaponBase BulletScale ile aynı mertebe).
+        // size ≈ blob ölçeğine göre mermi boyu (WeaponBase.BulletScale ile aynı mertebe).
         public static void Burst(Vector3 point, Color color, float size)
         {
             if (!Ensure()) return;

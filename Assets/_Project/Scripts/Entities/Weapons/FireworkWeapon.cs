@@ -6,7 +6,7 @@ using BlobSurvivor.Entities.Enemies;
 namespace BlobSurvivor.Entities.Weapons
 {
     // Havai Fişek: ikincil silah (kart). Uzun menzil, yavaş, tek hedefe ağır; her yöne, önce boss sonra elit.
-    // Ana silah sürüyü savuşturur, bu boss'u indirir. FireworkEffect kurar ve seviyeler.
+    // Sopa sürüyü savuşturur, bu boss'u indirir. FireworkEffect kurar ve seviyeler.
     // Görünür atar sol omuzda (sol = saldırı, sağ = kalkan) (G_Firework_1..4, zorse-blender/build_firework.py), gövdeye sabit.
     public class FireworkWeapon : WeaponBase
     {
@@ -25,7 +25,6 @@ namespace BlobSurvivor.Entities.Weapons
         private Transform _burstTarget;
         private WeaponVisual _launcher;
 
-        public override bool IsPrimary => false;
         protected override float RecoilStrength => 2.6f;
 
         public void Setup(Projectile prefab, float fireRate, float damage, float range)

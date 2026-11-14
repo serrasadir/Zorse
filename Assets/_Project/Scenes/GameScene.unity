@@ -51249,7 +51249,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Core.CameraController
   _target: {fileID: 276010515}
   _followSmoothing: 5
-  _baseHeight: 12
+  _baseHeight: 10
   _baseTilt: 64.98
   _zoomExponent: 0.35
   _maxHeightMultiplier: 4
@@ -69373,6 +69373,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Core.GameManager
   _defaultCharacter: {fileID: 11400000, guid: 62879a103c4f64e5da5c37be42243c31, type: 2}
+  _stickWeaponPrefab: {fileID: 1195012648784995356, guid: 8dc57e157854348fd95c73a2d2e69c1d, type: 3}
 --- !u!4 &1359305929
 Transform:
   m_ObjectHideFlags: 0

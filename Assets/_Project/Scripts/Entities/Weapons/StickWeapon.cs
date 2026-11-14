@@ -1,0 +1,131 @@
+using UnityEngine;
+using BlobSurvivor.Entities.Blob;
+using BlobSurvivor.Entities.Enemies;
+
+namespace BlobSurvivor.Entities.Weapons
+{
+    // Ana silah (bütün karakterlerde): ağaç dalı sopa. Yüzün baktığı yöne yay şeklinde vurur, yaydaki herkese;
+    // kimse yoksa sallamaz, bina arkasındakine vurmaz. Sopa skill'i (SopaUpgradeEffect) güçlendirir:
+    // +hasar/+menzil seviyeleri · Sv.3 arkaya da · Sv.5 yay 180° · Sv.7 vuruş hızı ×1.3 · Sv.8 tam tur + hasar ×1.5.
+    // GameManager her run başında blob'un child'ı olarak kurar (prefab: Prefabs/Weapons/StickWeapon).
+    public class StickWeapon : MonoBehaviour
+    {
+        [SerializeField] private float _hitDamage = 10f;
+        [Tooltip("Menzil gövde YÜZEYİNDEN (Vakum gibi): blob büyüdükçe menzil de onunla büyür.")]
+        [SerializeField] private float _range = 2f;
+        [SerializeField] private float _interval = 1f;
+        [SerializeField] private float _arc = 120f;
+        [SerializeField] private float _wideArc = 180f;
+        [SerializeField] private float _fastFactor = 1.3f;
+        [SerializeField] private float _knockback = 0.4f;
+        [SerializeField] private float _fullCircleDamage = 1.5f;
+
+        private const int EnemyLayerMask = 1 << 14;
+        private const int WallMask = 1 << 16; // Environment: bina engel kutuları + harita duvarı
+        // Menzil yatay ölçülür: blob'un üstünde bu yüksekliğe kadar uçan hedef (helikopter) de sayılır.
+        private const float VerticalReach = 14f;
+        private const float OverheadSqr = 0.25f; // tam tepedeki hedef her yayda sayılır
+        private const float NoTargetRetry = 0.1f; // menzilde kimse yokken her kare Overlap atmasın
+
+        private readonly Collider[] _hits = new Collider[32];
+        private float _cooldown;
+        private Transform _blobRoot;
+        private BlobVisual _blobVisual;
+        private WeaponVisual _stickVisual;
+        private float _bodyLocalRadius = 0.5f; // blob'un katı SphereCollider'ı (yeme trigger'ı değil)
+        private SwingArcFx _fxFront, _fxBack;
+
+        // Sopa skill'i açar; restart'ta silah yeniden yaratıldığı için kendiliğinden sıfırlanır.
+        private bool _backSwing, _wide, _fast, _fullCircle;
+
+        public void AddDamage(float damage, float range)
+        {
+            _hitDamage += damage;
+            _range += range;
+        }
+
+        public void EnableBackSwing() => _backSwing = true;
+        public void EnableWideArc() => _wide = true;
+        public void EnableFastSwing() => _fast = true;
+        public void EnableFullCircle() => _fullCircle = true;
+
+        private float Interval => _interval / (_fast ? _fastFactor : 1f);
+        private float EffectiveRange => (_blobRoot != null ? _blobRoot.localScale.x * _bodyLocalRadius : 0f) + _range;
+
+        private void Awake()
+        {
+            _blobVisual = GetComponentInParent<BlobVisual>();
+            _blobRoot = transform.parent;
+            if (_blobRoot == null) return;
+            _stickVisual = _blobRoot.GetComponent<WeaponVisual>();
+            foreach (SphereCollider c in _blobRoot.GetComponents<SphereCollider>())
+                if (!c.isTrigger) { _bodyLocalRadius = c.radius; break; }
+        }
+
+        private void Update()
+        {
+            _cooldown -= Time.deltaTime;
+            if (_cooldown > 0f) return;
+            _cooldown = Swing() ? Interval : NoTargetRetry;
+        }
+
+        // Yaydaki (Sv.3'ten sonra arka yaydaki de) tüm düşmanlara vurur. Kimseye değmezse false.
+        private bool Swing()
+        {
+            Vector3 origin = transform.position;
+            Vector3 forward = _blobVisual != null && _blobVisual.HasFacing ? _blobVisual.Forward : Vector3.forward;
+            forward.y = 0f;
+            bool full = _fullCircle;
+            bool back = _backSwing && !full;
+            float arc = full ? 360f : _wide ? _wideArc : _arc;
+            float cosHalf = Mathf.Cos(arc * 0.5f * Mathf.Deg2Rad);
+            float range = EffectiveRange;
+            float damage = _hitDamage * (full ? _fullCircleDamage : 1f);
+
+            int hitCount = Physics.OverlapCapsuleNonAlloc(origin, origin + Vector3.up * VerticalReach, range, _hits, EnemyLayerMask);
+            bool hitFront = false, hitBack = false;
+            for (int i = 0; i < hitCount; i++)
+            {
+                Vector3 flat = _hits[i].transform.position - origin;
+                flat.y = 0f;
+                float mag = flat.magnitude;
+                bool front, rear;
+                if (mag * mag <= OverheadSqr) { front = true; rear = false; }
+                else
+                {
+                    float dot = Vector3.Dot(forward, flat) / mag;
+                    front = full || dot >= cosHalf;
+                    rear = back && -dot >= cosHalf;
+                }
+                if (!front && !rear) continue;
+                if (Physics.Linecast(origin, _hits[i].bounds.center, WallMask, QueryTriggerInteraction.Ignore)) continue;
+
+                EnemyBase enemy = _hits[i].GetComponent<EnemyBase>(); // vuruş anında, saniyede bir
+                if (enemy == null) continue;
+                enemy.TakeDamage(damage);
+                enemy.Knockback(flat, _knockback);
+                hitFront |= front;
+                hitBack |= rear;
+            }
+            if (!hitFront && !hitBack) return false;
+
+            PlayFx(ref _fxFront, "SwingArc_Front", forward, range, arc);
+            if (back) PlayFx(ref _fxBack, "SwingArc_Back", -forward, range, arc);
+            if (_blobVisual != null) _blobVisual.Recoil(-forward, 0.6f); // vuruş yönüne hafif atılma
+            if (_stickVisual != null) _stickVisual.PlaySwing(arc, full);
+            return true;
+        }
+
+        private void PlayFx(ref SwingArcFx fx, string name, Vector3 dir, float radius, float arc)
+        {
+            if (fx == null) fx = SwingArcFx.Create(name); // silah başına tek seferlik
+            fx.Play(transform, dir, radius, arc, false);
+        }
+
+        private void OnDestroy()
+        {
+            if (_fxFront != null) Destroy(_fxFront.gameObject);
+            if (_fxBack != null) Destroy(_fxBack.gameObject);
+        }
+    }
+}
