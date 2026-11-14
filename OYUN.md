@@ -16,7 +16,7 @@
 | **Tür** | Roguelite / bullet-heaven / survival; "yiyerek büyü" |
 | **Platform** | iOS (TestFlight'ta, sürüm 0.1.x — canlıya çıkana kadar 0, son hane = build no). Android sonra; PC/Steam port post-launch |
 | **Motor** | Unity 6, URP, New Input System, AI Navigation |
-| **Run süresi** | Zaman sınırı yok; hedef ~25 dk. Final boss 11. seviyede (en geç 21. dk) gelir, ne zaman yutulursa run o zaman biter |
+| **Run süresi** | Zaman sınırı yok; hedef ~25 dk. Final boss 10. seviyede (en geç 21. dk) gelir, ne zaman yutulursa run o zaman biter |
 | **İş modeli** | F2P + kozmetik IAP + rewarded reklam, **sıfır pay-to-win** (henüz kodda yok) |
 | **Referanslar** | Vampire Survivors · Katamari Damacy · Hole.io · Brotato |
 
@@ -60,7 +60,7 @@
 | 1. dk | Polisler gelmeye başlar |
 | Blob **Medium** olunca (en geç 4. dk) | Elit polisler |
 | 5. dk | Düşman hasarı ×1.2 |
-| 10. dk | Düşman yoğunluğu ×2 |
+| 10. dk | Düşman spawn'ı ×2 hızlı (tavan aynı) |
 | 15. dk | Düşman hızı ×1.15 |
 | 20. dk | Düşman hasarı ×3 |
 
@@ -69,8 +69,8 @@ Boss'lar seviyeye bağlı, en geç süre yedek:
 | Boss | Seviye | En geç |
 |---|---|---|
 | 1. Miniboss (polis tankı) | **5** (~310 kütle, Medium) | 9. dk |
-| 2. Miniboss (güçlü tank) | **8** (~860 kütle, Large) | 15. dk |
-| **Final boss: polis helikopteri** | **11** (~1815 kütle) | 21. dk |
+| 2. Miniboss (güçlü tank) | **8** (~1030 kütle, Large) | 15. dk |
+| **Final boss: polis helikopteri** | **10** (~2100 kütle, Dev) | 21. dk |
 
 Boss'lar sırayla ve tek tek gelir: biri yaşıyorsa sonraki onun ölmesini bekler; final boss beklemez (miniboss sahnedeyse çekilir). Kart ekranı açıkken boss çıkmaz. Seviye birden ikisini aşarsa sadece sonraki çıkar. Değerler `BossData_Miniboss.asset` → `RequiredLevel` / `LatestTime`.
 
@@ -78,9 +78,9 @@ Boss'lar sırayla ve tek tek gelir: biri yaşıyorsa sonraki onun ölmesini bekl
 
 ## 4. Büyüme, Tier ve Yeme
 
-- **Ölçek:** `0.5 × (1 + kütle × 0.1) ^ 0.45` = blob'un çapı (birim). Yeme anında kısa şişme (punch).
+- **Ölçek:** `0.5 × (1 + kütle × 0.1) ^ 0.45` = blob'un çapı (birim). Yeme anında kısa şişme (punch): yenen şey 1 tier altındaysa tam (%15), 2 tier altındaysa hafif (%4), 3+ tier altındaysa yok. Polis/boss yutunca hep tam.
 - **Hız:** `1 / sıra ^ 0.24` (sıra: Tiny 1, Little 1.5, Small 2 … Dev 6; `TierLayers.SlowdownRank`) × karakter/skill/meta çarpanları.
-- **XP eşiği:** `20 + seviye × 15 + seviye² × 2` (geç oyunda bina yerken seviye yağmuru olmasın diye karesel; `BlobGrowth._xpQuadraticPerLevel`).
+- **XP eşiği:** `20 + seviye × 15 + seviye² × 2 + max(0, seviye − 4)² × 12` (geç oyunda bina yerken seviye yağmuru olmasın diye karesel; son terim ilk 5 seviyeye dokunmadan ileriki seviyelerin aralığını açar; `BlobGrowth._xpQuadraticPerLevel`, `_xpLateStartLevel`, `_xpLateQuadratic`).
 
 | Tier | Kütle | Blob çapı | Ne yer |
 |---|---|---|---|
@@ -94,6 +94,7 @@ Boss'lar sırayla ve tek tek gelir: biri yaşıyorsa sonraki onun ölmesini bekl
 
 - **Tier boydan gelir** (`Editor/TierRules.cs`): obje, blob o tier'a yeni girdiğindeki çapından en fazla %5 büyükse o tier'da yenir. Boy = kenarların geometrik ortalaması; uzun ince objelerde en uzun kenarın yarısı daha büyükse o. Şehir kurulumu bunu otomatik uygular; elle ayar için `Tools → Blob.io → Tier'ları Boya Göre Kur`. Polis ve elit istisna: tier'ları tasarım gereği `EnemyData`'da. Elle istisnalar `TierRules.TierShift`'te (oyun hissi): sokak lambası (`P_Lamp2`) bir tier aşağı (Small), telefon kulübesi bir tier yukarı (Medium).
 - **Şehir objesi kütlesi tier'a göre:** 2 / 3 / 4 / 10 / 25 / 50 / 80. Hareketli araba 15 (otobüs 25), yaya 1 (iri 3), yerdeki yiyecek 1–3.
+- **Yerdeki yiyecek tier'a göre seyrelir:** tavan 80 × (Tiny 1 · Little 0.85 · Small 0.7 · Medium 0.5 · Large 0.35 · Giant 0.25 · Dev 0.15) — büyüyünce yenen şey zaten büyük (`ConsumableSpawner._tierDensity`). Tier düşerse/restart'ta tekrar dolar.
 - **Yeme temasla olur.** Tier'ın yetmediği obje katıdır (çarparsın, içinden geçemezsin); yetince içinden geçip yersin. Katı kısım yerdeki ayak izidir (direk, gövde); havada büyük çıkıntısı olan eşyalarda (pota panosu, ağaç tacı, lamba kolu, durak/benzinlik tentesi) görünür boy kadar bir **yeme alanı** da var: yiyebilecek boydaysan çıkıntıya değince yenir, küçükken altından geçersin.
 - **Önle yenir.** Blob'un yüzü gidiş yönüne bakar; arkadaki 120°'lik dilim (popo) yemez. Arkadan değen yenebilir obje içinden geçer, yüz ona dönünce yenir; arkadan çarpan araba yenmez ve hasar da vermez. İstisnalar: vakumla çekilenler, Kara Delik, boss'lar (`BlobConsumption.RearAngle`).
 - **Polis yutulurken ısırır:** tier tam yetiyorsa 5, bir tier üstündeysen 2.5, daha büyüksen 0 hasar.
@@ -130,9 +131,9 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 | **Polis** (sürü) | Koşar, temasta coplar. Binaların, eşyaların, arabaların etrafından dolanır; yiyebileceğin boydaysan kaçar | Silah ya da Medium'dan itibaren yutma |
 | **Elit polis** | Durur, nişan lazeriyle takip eder, kilitleyip 3'lü mermi atar. Arada bina varsa ateş etmez | Silah ya da Giant'ta yutma. Sandık düşürür |
 | **Miniboss: Polis Tankı** (5. ve 8. seviye) | 2.5 kat büyük; nişan lazeri + kilit + tank topu. Üstünden geçtiği arabaları ve sokak eşyalarını ezer (eşya kendi renklerinde kırıntı + tozla dağılır, `CrushFx`), binaların etrafından dolanır. Uzaktaysa yetişmek için hızlanır | Sadece silahla, yutulamaz. Ölünce ~1.3 sn: beyaz parlama, titreme, patlama kırıntıları, yana yatıp yere gömülür |
-| **Final Boss: Polis Helikopteri** (11. seviye) | Havada uçar, yukarıdan mini roket serisi atar (alevli, değince patlar: alan hasarı). Vurdukça kademe kademe alçalır (irtifa 8 → 7 → 6 → 5), yerde koyulaşan gölgesi ve dönen pervane gölgesi var. Gelince kamera ikinizi kadraja alır | **Silahla ölmez.** Blob'un tepesi helikoptere değdiği an yutulur, hangi irtifada olursa olsun (irtifa 5 ≈ 1340 kütle). **Yutulma sahnesi** (~4 sn, blob hasar almaz): yavaş çekimde helikopter dönerek küçülüp kıvılcım iziyle blob'a emilir, kamera yaklaşır, kocaman yutkunma + patlama + güçlü titreşim; zaman normale döner, ~1.3 sn sonra geğirme (şişme + ağızdan kırıntı bulutu), kısa bekleme; sonra KAZANDIN |
+| **Final Boss: Polis Helikopteri** (10. seviye) | Havada uçar, yukarıdan mini roket serisi atar (alevli, değince patlar: alan hasarı). Vurdukça kademe kademe alçalır (irtifa 8 → 7 → 6 → 5), yerde koyulaşan gölgesi ve dönen pervane gölgesi var. Gelince kamera ikinizi kadraja alır | **Silahla ölmez.** Blob'un tepesi helikoptere değdiği an yutulur, hangi irtifada olursa olsun (irtifa 5 ≈ 1340 kütle). **Yutulma sahnesi** (~4 sn, blob hasar almaz): yavaş çekimde helikopter dönerek küçülüp kıvılcım iziyle blob'a emilir, kamera yaklaşır, kocaman yutkunma + patlama + güçlü titreşim; zaman normale döner, ~1.3 sn sonra geğirme (şişme + ağızdan kırıntı bulutu), kısa bekleme; sonra KAZANDIN |
 
-- **Eşzamanlı:** en fazla 30 düşman (10. dk'dan sonra 60), bunların en fazla 15'i elit; 25 yaya.
+- **Eşzamanlı (seviyeye göre):** toplam düşman tavanı `8 + seviye × 2.2`, elit tavanı `2 + (seviye − 5) × 1.5` (en az 1). **Mutlak üst sınır: toplam 30, elit 8** — hiçbir çarpan aşamaz. Spawn aralığı seviye başı %10 kısalır (seviye 10'da 2 kat sık). `EnemySpawner._policeCap*`, `_eliteCap*`, `_spawnSpeedupPerLevel`. 25 yaya.
 - **Can barı:** polis ve elit vurulunca kafasının üstünde kırmızı can barı belirir (kameraya döner; hiç vurulmamış polisde görünmez). Boss'ların barı HUD'da.
 - **Ödüller:** silahla öldürmek XP verir (yukarıda, §3); her düşman coin düşürür; elit ve boss'lar sandık (ekstra kart + coin); boss'lar bonus coin. Kalp: polis %5, elit %100 (+20 can, max canı aşmaz). Can dolu olsa da değince alınır (boşa gider).
 - Coin 20 sn sonra kaybolur (son 3 sn yanıp söner).

@@ -10980,7 +10980,7 @@ MonoBehaviour:
   _despawnDistance: 50
   _minDistanceFromBlob: 18
   _maxActiveEnemies: 30
-  _maxActiveElites: 15
+  _maxActiveElites: 8
 --- !u!4 &222400388
 Transform:
   m_ObjectHideFlags: 0

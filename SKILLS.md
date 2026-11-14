@@ -6,7 +6,7 @@
 
 ## 1. Genel kurallar
 
-**Seviye atlama.** Yediğin her şeyin mass'ı aynı zamanda XP'dir. Bir sonraki level için gereken XP `20 + level × 15 + level² × 2`: 1. level 20 XP, 2. level 37, 3. level 58, … 10. level 317. Karesel terim geç oyunda (bina = 25–50 XP) seviye atlamanın çok hızlanmasını önler.
+**Seviye atlama.** Yediğin her şeyin mass'ı aynı zamanda XP'dir. Bir sonraki level için gereken XP `20 + level × 15 + level² × 2 + max(0, level − 4)² × 12`: 1. level 20 XP, 2. level 37, 3. level 58, … 5. level 112, 8. level 331, 10. level 617, 11. level 802 (Giant bina ~17 XP, Dev bina ~28 XP). Karesel terimler geç oyunda (bina = 25–50 XP) seviye atlamanın çok hızlanmasını önler; son terim ilk 5 seviyeyi değiştirmez.
 
 **Kart ekranı.** Level atlayınca oyun durur ve 3 kart gelir. Biri seçilir.
 - Kartlar ağırlıklı rastgele çekilir: çoğu skill ağırlık **10**, Can Emme **8**, Can Artışı **4**. Ağırlığı düşük olan daha seyrek gelir.
@@ -301,7 +301,7 @@ Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Elit polisin nişan-kilit
 
 | | Final Boss |
 |---|---|
-| **Geliş** | **11. seviye** (en geç 21. dk). Bir miniboss yaşıyorsa beklemez, miniboss çekilir |
+| **Geliş** | **10. seviye** (en geç 21. dk). Bir miniboss yaşıyorsa beklemez, miniboss çekilir |
 | **Can** | 9000. **Silahla ölmez** (can 1'in altına inmez) |
 | **İrtifa** (kızakların yerden yüksekliği) | Başta **8** → can %75'te **7** → %50'de **6** → %25'te **5**. Yumuşak iner, geri yükselmez |
 | **Saldırı** | Mini roket serisi, yukarıdan: 1 sn nişan lazeri (son 0.4 sn kilit) → **6 roket × 6 hasar** (0.12 sn arayla), 2 sn bekleme. Menzil 10 (yatay). Arada bina varsa ateş etmez. Roketler blob'a, yere ya da duvara değince patlar: blob yüzeyi patlamaya **1.2 birim** yakınsa hasar alır (ıskalayıp yanına düşen de vurur). Mermi: `HeliRocketBullet` (Helikopter Mermi Roketini Kur) |

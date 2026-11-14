@@ -55,6 +55,9 @@ def main():
 
     # --- XP eğrisi (BlobGrowth, sahne)
     xb, xg, xq = (yaml_num(scene, k) for k in ("_baseXPThreshold", "_xpGrowthPerLevel", "_xpQuadraticPerLevel"))
+    # Sahnede yoksa kod varsayılanı (BlobGrowth._xpLateStartLevel / _xpLateQuadratic)
+    xls = yaml_num(scene, "_xpLateStartLevel", 4)
+    xlq = yaml_num(scene, "_xpLateQuadratic", 12)
 
     out = []
     p = out.append
@@ -85,11 +88,11 @@ def main():
     p("\n## XP eğrisi\n")
     p("| Seviye | O seviye XP | Toplam |\n|---|---|---|")
     cum = 0
-    for lvl in range(1, 11):
-        need = xb + (lvl - 1) * xg + (lvl - 1) ** 2 * xq
+    for lvl in range(1, 12):
+        need = xb + (lvl - 1) * xg + (lvl - 1) ** 2 * xq + max(0, lvl - 1 - xls) ** 2 * xlq
         cum += need
-        if lvl in (1, 4, 7, 10):
-            p(f"| {lvl} → {lvl + 1} | {need:.0f} | {cum:,.0f} |")
+        if lvl in (1, 5, 6, 8, 9, 11):
+            p(f"| {lvl - 1} → {lvl} | {need:.0f} | {cum:,.0f} |")
 
     p("\n## Upgrade'ler\n")
     p("| Skill | Ağırlık | Max | Seviye başı |\n|---|---|---|---|")

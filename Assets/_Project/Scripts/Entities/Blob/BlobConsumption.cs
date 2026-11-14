@@ -130,7 +130,7 @@ namespace BlobSurvivor.Entities.Blob
         {
             if (_blobGrowth == null) return;
             _blobGrowth.AddMass(mass);
-            _blobGrowth.PunchScale();
+            _blobGrowth.PunchScale(tier);
             _scoreSystem?.AddScore(score);
             _eatEffects.Play(tier, bounds, crumbA, crumbB);
         }
@@ -139,7 +139,7 @@ namespace BlobSurvivor.Entities.Blob
         {
             if (_blobGrowth == null) return;
             _blobGrowth.AddMass(consumable.MassValue);
-            _blobGrowth.PunchScale();
+            _blobGrowth.PunchScale(consumable.RequiredTier);
 
             _scoreSystem?.AddScore(consumable.Data.ScoreValue);
 

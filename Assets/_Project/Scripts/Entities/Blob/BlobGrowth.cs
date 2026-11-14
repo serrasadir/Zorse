@@ -36,6 +36,9 @@ namespace BlobSurvivor.Entities.Blob
         // Geç oyunda büyük objeler (bina 25–50 kütle = XP) doğrusal eşiği saniyeler içinde aşıyordu.
         // Eşik = taban + seviye × artış + seviye² × bu değer. Erken oyunu az, geç oyunu çok yavaşlatır.
         [SerializeField] private float _xpQuadraticPerLevel = 2f;
+        // İlk seviyeler aynı kalır; bu seviyeden sonra aralık ek olarak (seviye − başlangıç)² × değer açılır.
+        [SerializeField] private int _xpLateStartLevel = 4;
+        [SerializeField] private float _xpLateQuadratic = 12f;
 
         // Genel büyüme hızı: yenen her şeyin kütlesi (= XP) bununla çarpılır. 1 = eski hız.
         [Header("Genel Büyüme Hızı")]
@@ -152,7 +155,8 @@ namespace BlobSurvivor.Entities.Blob
         }
 
         private float ThresholdFor(int level) =>
-            _baseXPThreshold + level * _xpGrowthPerLevel + level * level * _xpQuadraticPerLevel;
+            _baseXPThreshold + level * _xpGrowthPerLevel + level * level * _xpQuadraticPerLevel
+            + Mathf.Pow(Mathf.Max(0, level - _xpLateStartLevel), 2) * _xpLateQuadratic;
 
         // Her yeme anında (BlobConsumption) çağrılır. BlobTierMeshes ağız açma için dinler.
         public event System.Action OnPunched;
@@ -160,6 +164,15 @@ namespace BlobSurvivor.Entities.Blob
         public void PunchScale(float punchAmount = 0.15f)
         {
             _punch = Mathf.Max(_punch, punchAmount);
+            OnPunched?.Invoke();
+        }
+
+        // Şişme yenen şeyin tier'ına göre: 1 altı tam, 2 altı hafif, 3+ altı yok (büyükken ufak lokmalar ekranı titretmesin).
+        public void PunchScale(BlobTier foodTier)
+        {
+            int gap = (int)CurrentTier - (int)foodTier;
+            float amount = gap <= 1 ? 0.15f : gap == 2 ? 0.04f : 0f;
+            _punch = Mathf.Max(_punch, amount);
             OnPunched?.Invoke();
         }
 

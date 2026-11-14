@@ -3,6 +3,7 @@ using UnityEngine;
 using BlobSurvivor.Core;
 using BlobSurvivor.Data;
 using BlobSurvivor.Systems;
+using BlobSurvivor.Entities.Blob;
 
 namespace BlobSurvivor.Entities.Enemies
 {
@@ -38,6 +39,15 @@ namespace BlobSurvivor.Entities.Enemies
         // 8 -> 4 (31 Ağu 2026): toplam tavan 200'den 15'e inince eski 8 orantısız kaldı (nüfusun
         // yarısından fazlası elit olabilirdi) — perf tavanı hâlâ geçerli ama oyun hissi için düşürüldü.
         [SerializeField] private int _maxActiveElites = 4;
+        // Seviyeye göre baskı: başta az polis, seviye arttıkça tavan ve spawn hızı artar.
+        // Yukarıdaki iki tavan üst sınır olarak kalır.
+        [SerializeField] private float _policeCapAtStart = 8f;
+        [SerializeField] private float _policeCapPerLevel = 2.2f;
+        [SerializeField] private float _eliteCapAtLevel5 = 2f;
+        [SerializeField] private float _eliteCapPerLevel = 1.5f;
+        [SerializeField] private float _spawnSpeedupPerLevel = 0.1f; // seviye 10'da 2 kat sık
+
+        private BlobGrowth _growth;
 
         private Transform _blobTransform;
         private float _spawnTimer;
@@ -68,8 +78,14 @@ namespace BlobSurvivor.Entities.Enemies
         private void Start()
         {
             GameObject blob = GameObject.FindWithTag("Blob");
-            if (blob != null) _blobTransform = blob.transform;
+            if (blob != null)
+            {
+                _blobTransform = blob.transform;
+                _growth = blob.GetComponent<BlobGrowth>();
+            }
         }
+
+        private int Level => _growth != null ? _growth.CurrentLevel : 0;
 
         private void Update()
         {
@@ -82,7 +98,8 @@ namespace BlobSurvivor.Entities.Enemies
             if (_activeEnemies.Count >= GetEffectiveMaxActive()) return;
 
             _spawnTimer += Time.deltaTime;
-            if (_spawnTimer >= _waveController.CurrentWave.SpawnRate)
+            float density = _waveController.SpawnDensityMultiplier;
+            if (_spawnTimer >= _waveController.CurrentWave.SpawnRate / ((1f + _spawnSpeedupPerLevel * Level) * density))
             {
                 _spawnTimer = 0f;
                 SpawnEnemy();
@@ -99,7 +116,7 @@ namespace BlobSurvivor.Entities.Enemies
 
             // Elit tavanı sürüden ayrı — NavMeshAgent pahalı, weighted-random spawn'ın
             // elit sayısını kontrolsüz yükseltmesini engeller (GDD Karar 2).
-            if (data.IsElite && _activeEliteCount >= _maxActiveElites) return;
+            if (data.IsElite && _activeEliteCount >= GetEffectiveMaxElites()) return;
 
             EnemyBase prefabBase = data.Prefab.GetComponent<EnemyBase>();
             if (prefabBase == null) return;
@@ -149,10 +166,14 @@ namespace BlobSurvivor.Entities.Enemies
                 pool.Return(enemy);
         }
 
-        private int GetEffectiveMaxActive()
+        // _maxActiveEnemies / _maxActiveElites mutlak tavan: hiçbir çarpan aşamaz (10. dk yoğunluğu sadece spawn'ı hızlandırır).
+        private int GetEffectiveMaxActive() =>
+            Mathf.RoundToInt(Mathf.Min(_maxActiveEnemies, _policeCapAtStart + _policeCapPerLevel * Level));
+
+        private int GetEffectiveMaxElites()
         {
-            float densityMultiplier = _waveController != null ? _waveController.SpawnDensityMultiplier : 1f;
-            return Mathf.RoundToInt(_maxActiveEnemies * densityMultiplier);
+            float cap = _eliteCapAtLevel5 + _eliteCapPerLevel * (Level - 5);
+            return Mathf.Clamp(Mathf.RoundToInt(cap), 1, _maxActiveElites);
         }
 
         private EnemyData SelectEnemyData(WaveData wave)

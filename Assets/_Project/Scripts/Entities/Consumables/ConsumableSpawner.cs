@@ -21,6 +21,9 @@ namespace BlobSurvivor.Entities
         // oyuncunun etrafı boşalıyordu. Bu mesafeden uzaktakiler havuza döner, refill onları yakına getirir
         // (Enemy/PedestrianSpawner ile aynı desen). Şehir objeleri (CityConsumable) bu listede değil.
         [SerializeField] private float _despawnDistance = 50f;
+        // Tier büyüdükçe yenen şeyler zaten büyüyor: yerdeki yiyecek tavanı tier'a göre azalır (Tiny → Dev).
+        [SerializeField] private float[] _tierDensity = { 1f, 0.85f, 0.7f, 0.5f, 0.35f, 0.25f, 0.15f };
+        private BlobTier _tier = BlobTier.Tiny;
 
         private Transform _blobTransform;
         private readonly List<GameObject> _activeConsumables = new List<GameObject>();
@@ -82,7 +85,7 @@ namespace BlobSurvivor.Entities
 
         private void RefillIfNeeded()
         {
-            int deficit = _maxActive - _activeConsumables.Count;
+            int deficit = EffectiveMax - _activeConsumables.Count;
             if (deficit <= 0) return;
             int toSpawn = Mathf.Min(deficit, 5);
             for (int i = 0; i < toSpawn; i++)
@@ -159,11 +162,22 @@ namespace BlobSurvivor.Entities
                 pool.Return(target);
         }
 
+        private int EffectiveMax
+        {
+            get
+            {
+                if (_tierDensity == null || _tierDensity.Length == 0) return _maxActive;
+                int i = Mathf.Clamp((int)_tier - 1, 0, _tierDensity.Length - 1);
+                return Mathf.RoundToInt(_maxActive * _tierDensity[i]);
+            }
+        }
+
         private void OnTierChanged(BlobTier newTier)
         {
-            // Bonus da tavana uyar — eskiden tavanı aşıp run'dan run'a birikiyordu (ResetGrowth da tetikliyor).
+            // Tavan tier'a göre; fazlası yenip uzakta havuza döndükçe azalır (ResetGrowth Tiny'ye geri açar).
+            _tier = newTier;
             CleanupInactive();
-            int bonus = Mathf.Min((int)newTier * 5, _maxActive - _activeConsumables.Count);
+            int bonus = Mathf.Min((int)newTier * 5, EffectiveMax - _activeConsumables.Count);
             for (int i = 0; i < bonus; i++)
                 SpawnRandom(newTier);
         }
