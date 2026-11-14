@@ -17,28 +17,30 @@ namespace BlobSurvivor.Data
         [Header("Görünüm")]
         [Tooltip("Blob'un child'ı olarak takılan model (yüz +Z'de, çap 1, pivot merkez). Boş = varsayılan küre.")]
         [SerializeField] private GameObject _blobVisualPrefab;
-        [Tooltip("Zırh kalkanı yanda süzülmek yerine kafada şapka gibi durur (Mermo: yanlarda keleşleri var).")]
+        [Tooltip("Zırh kalkanı yanda süzülmek yerine kafada şapka gibi durur (Fişek: yanlarda keleşleri var).")]
         [SerializeField] private bool _armorOnHead;
         [Tooltip("Hızlı giderken arkada hafif rüzgar çizgileri (Topik: hız pasifi).")]
         [SerializeField] private bool _speedTrail;
         [Tooltip("Silah Gücü görseli: Resources/FX/Weapons/G_<bu>_1..4 (build_weapons.py). Boş = silah görünmez.")]
         [SerializeField] private string _weaponModel;
-        [Tooltip("Silah Sv.0'dan görünür (Mermo). Kapalıysa Silah Gücü alınınca belirir.")]
+        [Tooltip("Silah Sv.0'dan görünür (Fişek). Kapalıysa Silah Gücü alınınca belirir.")]
         [SerializeField] private bool _weaponVisibleFromStart;
 
         [Header("Kart Çekimi")]
-        [Tooltip("Bu karakterde kart ekranında daha sık çıkan skill (Topik Hız, Mıknato Vakum, Mermo Silah Gücü).")]
+        [Tooltip("Bu karakterde kart ekranında daha sık çıkan skill (Topik Hız, Mıknato Vakum, Fişek Havai Fişek, Dalcık Silah Gücü, Cano Can Emme).")]
         [SerializeField] private UpgradeData _favoredUpgrade;
         [Tooltip("Favori skill'in ağırlık çarpanı. 2 ≈ kart ekranlarının %41'i yerine %63'ünde çıkar.")]
         [SerializeField] private float _favoredWeightMultiplier = 2f;
-        [Tooltip("Run'a bu skill bu seviyede başlar (Topik Hız, Mıknato Vakum, Mermo Silah Gücü; Sv.2). 0 = yok.")]
+        [Tooltip("Run'a bu skill bu seviyede başlar (karakter pasifi). 0 = yok.")]
         [SerializeField] private UpgradeData _startingUpgrade;
         [SerializeField] private int _startingUpgradeLevel;
 
-        // Kilit: true ise Market'te MiknatoCharacter satın alınana kadar kilitli (sadece Mıknato).
         [Header("Kilit")]
-        [SerializeField] private bool _requiresMarketUnlock;
-        [Tooltip("Bu kadar run bitirilince açılır (ölümle biten run da sayılır). 0 = koşul yok. Mermo: 3.")]
+        [Tooltip("Kayıtta karakterin kimliği (satın alım). Değiştirme: alınmış karakter kilitlenir.")]
+        [SerializeField] private string _saveId;
+        [Tooltip("Market → Karakterler sekmesinde coin fiyatı. 0 = satılmaz.")]
+        [SerializeField] private int _marketPrice;
+        [Tooltip("Bu kadar run bitirilince açılır (ölümle biten run da sayılır). 0 = koşul yok. Dalcık: 5.")]
         [SerializeField] private int _requiredCompletedRuns;
 
         public string DisplayName => _displayName;
@@ -54,7 +56,10 @@ namespace BlobSurvivor.Data
         public float FavoredWeightMultiplier => _favoredWeightMultiplier;
         public UpgradeData StartingUpgrade => _startingUpgrade;
         public int StartingUpgradeLevel => _startingUpgradeLevel;
-        public bool RequiresMarketUnlock => _requiresMarketUnlock;
+        public string SaveId => string.IsNullOrEmpty(_saveId) ? name : _saveId;
+        public int MarketPrice => _marketPrice;
+        // Market'in Karakterler sekmesinde: satılan ya da run'la açılan (Topik ikisi de değil).
+        public bool ShownInMarket => _marketPrice > 0 || _requiredCompletedRuns > 0;
         public int RequiredCompletedRuns => _requiredCompletedRuns;
     }
 }

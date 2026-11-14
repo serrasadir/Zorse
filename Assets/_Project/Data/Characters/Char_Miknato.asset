@@ -24,5 +24,6 @@ MonoBehaviour:
   _favoredWeightMultiplier: 2
   _startingUpgrade: {fileID: 11400000, guid: 9a1a53f3539f54aa9a01b50dfc7fccc9, type: 2}
   _startingUpgradeLevel: 2
-  _requiresMarketUnlock: 1
+  _saveId: Miknato
+  _marketPrice: 500
   _requiredCompletedRuns: 0

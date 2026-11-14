@@ -7814,7 +7814,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7c8bd0cd7f646ce920c23ee73ac860a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Systems.Meta.MetaProgression
-  _miknatoCost: 500
   _speedBaseCost: 200
   _speedCostPerLevel: 150
   _maxHealthBaseCost: 200
@@ -54163,6 +54162,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 62879a103c4f64e5da5c37be42243c31, type: 2}
   - {fileID: 11400000, guid: 163d3216462284ea7913753f74f789d5, type: 2}
   - {fileID: 11400000, guid: 32fe6e60a91564162baea6a02ef146d0, type: 2}
+  - {fileID: 11400000, guid: e1f6b4ceb9b9423d804b4fc77e75f194, type: 2}
+  - {fileID: 11400000, guid: 0c101c5530fc4ec1932e5993050874a9, type: 2}
   _buttons:
   - {fileID: 350069776}
   - {fileID: 34943073}

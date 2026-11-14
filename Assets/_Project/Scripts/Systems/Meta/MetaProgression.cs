@@ -1,13 +1,14 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using BlobSurvivor.Core;
+using BlobSurvivor.Data;
 
 namespace BlobSurvivor.Systems.Meta
 {
     public enum MetaStatType
     {
-        MiknatoCharacter,
         Speed,
         MaxHealth,
         MassGain,
@@ -18,14 +19,17 @@ namespace BlobSurvivor.Systems.Meta
     [Serializable]
     public class MetaProgressionSaveData
     {
+        public int version;
         public int credit;
-        public bool miknatoUnlocked;
+        public bool miknatoUnlocked; // eski kayıt (version < 2); yüklenince unlockedCharacters'a taşınır
+        public List<string> unlockedCharacters = new List<string>(); // Market'te alınan karakterler (CharacterData.SaveId)
+        public bool devAllCharacters; // DEV paneli: tüm karakterler açık
         public int speedLevel;
         public int maxHealthLevel;
         public int massGainLevel;
         public int coinGainLevel;
         public bool xpMultiplierPurchased;
-        public int completedRuns; // ölümle ya da kazanarak biten run sayısı (Mermo kilidi)
+        public int completedRuns; // ölümle ya da kazanarak biten run sayısı (Dalcık kilidi)
     }
 
     // M20 (GDD_v2.md §8, Karar 7): run içi coin'in kalıcı Market kredisine dönüşmesi + satın alınan
@@ -36,7 +40,6 @@ namespace BlobSurvivor.Systems.Meta
         public static MetaProgression Instance { get; private set; }
 
         [Header("Maliyetler (Market kalemi başına, GDD §8)")]
-        [SerializeField] private int _miknatoCost = 500;
         [SerializeField] private int _speedBaseCost = 200;
         [SerializeField] private int _speedCostPerLevel = 150;
         [SerializeField] private int _maxHealthBaseCost = 200;
@@ -57,16 +60,16 @@ namespace BlobSurvivor.Systems.Meta
         // Kademeli statların (Hız/Can/Kütle/Coin) üst sınırı: Market'in bitecek bir hedefi olsun (OYUN.md Hedefler).
         public const int MaxStatLevel = 5;
 
+        private const int SaveVersion = 2;
         private const string FileName = "meta_progression.json";
         private string FilePath => Path.Combine(Application.persistentDataPath, FileName);
 
-        private MetaProgressionSaveData _data = new MetaProgressionSaveData();
+        private MetaProgressionSaveData _data = new MetaProgressionSaveData { version = SaveVersion };
 
         // Kredi ya da satın alım değişince (Market/Lobi tazelenir).
         public event Action Changed;
 
         public int Credit => _data.credit;
-        public bool MiknatoUnlocked => _data.miknatoUnlocked;
         public int CompletedRuns => _data.completedRuns;
         public int SpeedLevel => _data.speedLevel;
         public int MaxHealthLevel => _data.maxHealthLevel;
@@ -111,7 +114,7 @@ namespace BlobSurvivor.Systems.Meta
         }
 
         // Ölümde %50, tamamlanan run'da %100 (GDD §8).
-        // Her biten run (ölüm de) sayılır — Mermo 3 run sonra açılır (CharacterData.RequiredCompletedRuns).
+        // Her biten run (ölüm de) sayılır — Dalcık 5 run sonra açılır (CharacterData.RequiredCompletedRuns).
         private void HandleGameOver() => FinishRun(0.5f);
         private void HandleRunComplete(RunEndReason reason) => FinishRun(1f);
 
@@ -128,7 +131,6 @@ namespace BlobSurvivor.Systems.Meta
         {
             switch (type)
             {
-                case MetaStatType.MiknatoCharacter: return _miknatoCost;
                 case MetaStatType.Speed: return _speedBaseCost + SpeedLevel * _speedCostPerLevel;
                 case MetaStatType.MaxHealth: return _maxHealthBaseCost + MaxHealthLevel * _maxHealthCostPerLevel;
                 case MetaStatType.MassGain: return _massGainBaseCost + MassGainLevel * _massGainCostPerLevel;
@@ -143,7 +145,6 @@ namespace BlobSurvivor.Systems.Meta
         {
             switch (type)
             {
-                case MetaStatType.MiknatoCharacter: return MiknatoUnlocked;
                 case MetaStatType.XpMultiplier: return XpMultiplierPurchased;
                 case MetaStatType.Speed: return SpeedLevel >= MaxStatLevel;
                 case MetaStatType.MaxHealth: return MaxHealthLevel >= MaxStatLevel;
@@ -164,7 +165,6 @@ namespace BlobSurvivor.Systems.Meta
 
             switch (type)
             {
-                case MetaStatType.MiknatoCharacter: _data.miknatoUnlocked = true; break;
                 case MetaStatType.Speed: _data.speedLevel++; break;
                 case MetaStatType.MaxHealth: _data.maxHealthLevel++; break;
                 case MetaStatType.MassGain: _data.massGainLevel++; break;
@@ -176,6 +176,33 @@ namespace BlobSurvivor.Systems.Meta
             return true;
         }
 
+        // ---------------------------------------------------------------- karakter kilitleri
+
+        // Market fiyatı (MarketPrice > 0) satın alınınca, run koşulu (RequiredCompletedRuns) o kadar run bitince açılır.
+        public bool IsCharacterUnlocked(CharacterData c)
+        {
+            if (c == null) return false;
+            if (_data.devAllCharacters) return true;
+            if (c.MarketPrice > 0 && !_data.unlockedCharacters.Contains(c.SaveId)) return false;
+            return CharacterRunsLeft(c) == 0;
+        }
+
+        public bool IsCharacterPurchased(CharacterData c) =>
+            c != null && (c.MarketPrice <= 0 || _data.devAllCharacters || _data.unlockedCharacters.Contains(c.SaveId));
+
+        public int CharacterRunsLeft(CharacterData c) =>
+            c == null || _data.devAllCharacters ? 0 : Mathf.Max(0, c.RequiredCompletedRuns - _data.completedRuns);
+
+        public bool TryPurchaseCharacter(CharacterData c)
+        {
+            if (c == null || c.MarketPrice <= 0 || IsCharacterPurchased(c)) return false;
+            if (_data.credit < c.MarketPrice) return false;
+            _data.credit -= c.MarketPrice;
+            _data.unlockedCharacters.Add(c.SaveId);
+            Save();
+            return true;
+        }
+
         // Test araçları (DevCheats, PerfOverlay dev paneli).
         public void DevAddCredit(int amount)
         {
@@ -183,22 +210,26 @@ namespace BlobSurvivor.Systems.Meta
             Save();
         }
 
-        public void DevSetMiknatoUnlocked(bool unlocked)
+        public void DevUnlockAllCharacters()
         {
-            _data.miknatoUnlocked = unlocked;
+            _data.devAllCharacters = true;
             Save();
         }
 
-        public void DevUnlockAllCharacters()
+        // Satın alınan karakterler ve biten run sayısı sıfırlanır (coin ve kalıcı güçler kalır).
+        public void DevLockCharacters()
         {
-            _data.miknatoUnlocked = true;
-            _data.completedRuns = Mathf.Max(_data.completedRuns, 99);
+            _data.devAllCharacters = false;
+            _data.unlockedCharacters.Clear();
+            _data.completedRuns = 0;
             Save();
         }
+
+        public bool DevAllCharactersUnlocked => _data.devAllCharacters;
 
         public void DevReset()
         {
-            _data = new MetaProgressionSaveData();
+            _data = new MetaProgressionSaveData { version = SaveVersion };
             Save();
         }
 
@@ -217,6 +248,17 @@ namespace BlobSurvivor.Systems.Meta
             }
         }
 
+        // v1 → v2: Mıknato bayrağı listeye; 3 run ile açılmış Mermo (artık Market'te satılan Fişek) korunur.
+        private void Migrate()
+        {
+            if (_data.version >= SaveVersion) return;
+            if (_data.miknatoUnlocked && !_data.unlockedCharacters.Contains("Miknato")) _data.unlockedCharacters.Add("Miknato");
+            if (_data.completedRuns >= 3 && !_data.unlockedCharacters.Contains("Fisek")) _data.unlockedCharacters.Add("Fisek");
+            _data.miknatoUnlocked = false;
+            _data.version = SaveVersion;
+            Save();
+        }
+
         private void Load()
         {
             if (!File.Exists(FilePath)) return;
@@ -226,6 +268,8 @@ namespace BlobSurvivor.Systems.Meta
                 string json = File.ReadAllText(FilePath);
                 MetaProgressionSaveData loaded = JsonUtility.FromJson<MetaProgressionSaveData>(json);
                 if (loaded != null) _data = loaded;
+                if (_data.unlockedCharacters == null) _data.unlockedCharacters = new List<string>();
+                Migrate();
             }
             catch (Exception e)
             {

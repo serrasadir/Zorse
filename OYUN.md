@@ -43,14 +43,14 @@
 
 0. **Açılış (sadece uygulama ilk açılırken):** Zorse Studio giriş videosu oynar (3 sn, dikey, sesli; koyu gri zemin ekranın kalanını doldurur), bitince söner (`StudioSplash`, video `Resources/UI/zorse-intro.mp4`). Video açılamazsa eski hâl: siyahta logo (`Resources/UI/zorse-logo.png`).
 1. **Giriş ekranı:** arkada canlı şehir, kamera Topik'e yakın; Topik göz kırpar, sağa sola bakınır. Logo + OYNA. Duraklatma ve oyun sonundaki "Ana Menü" de buraya döner (run sıfırlanır).
-2. **Lobi:** OYNA'dan sonra karakter seç (Topik, Mıknato, Mermo), Market'e gir. HUD diliyle: başlık, coin, her karakter için kart (portre `Art/UI/Characters/Icon_*.png` ← `build_blobs.py`, ad, pasif açıklaması; kilitliyse soluk + koşul rozeti), altın MARKET tuşu ve geri (giriş ekranına) tuşu. Karta dokunmak oyunu başlatır.
+2. **Lobi:** OYNA'dan sonra karakter seç (Topik, Mıknato, Fişek, Dalcık, Cano; 4'ten fazla karakterde kartlar alçalır), Market'e gir. HUD diliyle: başlık, coin, her karakter için kart (portre `Art/UI/Characters/Icon_*.png` ← `build_blobs.py`, ad, pasif açıklaması; kilitliyse soluk + koşul rozeti), altın MARKET tuşu ve geri (giriş ekranına) tuşu. Karta dokunmak oyunu başlatır.
 3. Şehirde başlarsın; yerdeki çöpleri, sokak eşyalarını, yayaları yiyerek büyürsün. Senden büyük şeyler seni durdurur (katı), hazard'lar hasar verir.
 4. Kütle = XP; yenen her şeyin kütlesi genel büyüme hızıyla (×0.35, `BlobGrowth._globalGainScale`) çarpılır. Silahla öldürülen düşman sadece XP verir, kütle vermez (büyüme yemeğe bağlı): polis 1, elit 7, 1. tank 80, 2. tank 130 (`EnemyData._killXp`). Level atlayınca oyun durur, **3 karttan 1** seçilir. Aynı skill tekrar seçilirse seviye atlar (en fazla 8).
 5. Polisler gelir, zamanla ve büyüdükçe baskı artar; boss'lar belirli **seviyelerde** gelir (takılan oyuncuya en geç belirli bir dakikada).
 6. Run iki şekilde biter:
    - **Ölüm** → "Game Over!" ekranı, coin'in %50'si kasaya.
    - **Final boss (helikopter) yutulursa** → "KAZANDIN!" ekranı, coin'in %100'ü kasaya.
-7. Kasadaki coin Market'te kalıcı statlara ve Mıknato'ya harcanır.
+7. Kasadaki coin Market'te kalıcı statlara ve karakterlere harcanır.
 
 ### Zaman çizelgesi
 
@@ -111,14 +111,17 @@ Ayrıntı ve tüm sayılar **`SKILLS.md`**'de. Özet:
 - **8 skill:** Silah Gücü, Havai Fişek (ikinci silah, boss avcısı), Zırh (kalkan), Can Emme (vurduğun hasarın %2/sv'si can), Can Artışı, Hız, Attract (Vakum), Sindirim.
 - **1 evrim:** Attract + Sindirim (max) → **Kara Delik**. Evrim kartı ★ ve altın renkle gelir. Seçilince evrim anı oynar (ağır çekim, kasırga blob'a çöker, indigo şok dalgası, ekranda ★ KARA DELİK); sonra blob'un altında siyah olay ufku ve siyah-lacivert kasırga kalır.
 - Max seviyedeki skill havuzdan çıkar; birden çok level aynı anda atlanırsa kartlar sırayla gelir; run bittiyse kart açılmaz.
-- **3 karakter**, hepsi top formunda, silahlar otomatik ateşler. Ateş tarzı üçünde aynı (düz, hareketi önden kesen hızlı mermi; sadece mermi modeli farklı); fark Silah Gücü Sv.8 son formunda:
+- **5 karakter**, hepsi top formunda, silahlar otomatik. Fark başlangıç skill'inde (o skill favori, kartta ×2) ve sopa kapalıyken Silah Gücü Sv.8 son formunda. Ayrıntı `SKILLS.md` §4:
   - **Topik** — top mermisi; pasif: run'a **Hız Sv.2** ile başlar (kaykay baştan var). Baştan açık. Hızlı giderken arkasında hafif rüzgar çizgileri (iki yandan ve tepeden üç ince beyaz iz; `CharacterData._speedTrail`, `SpeedTrail`).
   - **Mıknato** — metal bilye; pasif: Vakum Sv.2 ile başlar. Market'te 500 coin.
-  - **Mermo** — siyah korsan (kırmızı göz bandı); pasif: run'a **Havai Fişek Sv.1** ile başlar, atar baştan omzunda (`CharacterData._startingUpgrade`; favori skili de Havai Fişek). **3 run bitirince** açılır (ölüm de sayılır).
+  - **Fişek** — siyah korsan (kırmızı göz bandı); pasif: run'a **Havai Fişek Sv.1** ile başlar, atar baştan omzunda (`CharacterData._startingUpgrade`; favori skili de Havai Fişek). Market'te 1.000 coin.
+  - **Dalcık** — pasif: run'a **Silah Gücü (sopa) Sv.2** ile başlar (20 hasar, menzil 3). Satılmaz: **5 run bitirince** açılır (ölüm de sayılır). Oyuncuya "oynamaya devam et" hedefi; Market'te ilerlemesi görünür. Görünüm henüz yok (varsayılan küre).
+  - **Cano** — pasif: run'a **Can Emme Sv.2** ile başlar (hasarın %4'ü can). Market'te 1.500 coin. Görünüm henüz yok (varsayılan küre).
+- Kilit koşulu `CharacterData`'da: `_marketPrice` (> 0 = Market'te satılır), `_requiredCompletedRuns`, `_saveId` (kayıtta satın alım kimliği).
 - **İki silah:** karakter silahı şimdilik **sopa** (deneme): saniyede bir, yüzün baktığı yöne 120°'lik yayla kısa menzilde (gövde yüzeyinden 2, Silah Gücü ile 4'e kadar) yaydaki herkese vurur, beyaz hilal izi bırakır. Silah Gücü: Sv.3 arkaya da, Sv.5 yay 180°, Sv.8 tam tur. **Havai Fişek** (kart, Sv.4'te bir kez garanti; 1. miniboss Sv.5'te) uzun menzilli (gövde yüzeyinden 8), yavaş (2 sn'de 1), tek hedefe ağır; **her yöne** ateş eder (kurma/nişan yok), önce boss'a sonra elite.
 - Silah havadaki hedefe (helikopter) otomatik yukarı nişan alır; menzil yatay ölçülür.
-- **Mermiler** karaktere özel model + renkli iz: Topik turuncu şeritli top (döner), Mıknato kırmızı-mavi bantlı çelik bilye (döner), Mermo pirinç kovanlı mermi. Blob büyüdükçe mermi de büyür (Tiny 1× → Dev ~3×, kamera uzaklaştığı için). Modeller `zorse-blender/build_bullets.py`.
-- **Görünür silah** (Silah Gücü'yle form değiştirir; ayrıntı `SKILLS.md`): sopa açıkken üç karakterde de ağaç dalı, sadece vururken görünür (G_Stick_*); sopa kapalıyken karakter silahları (Topik/Mıknato sol yanda, Mermo iki yanda keleş). Mermo'nun kalkanı kafada. Silah gövdeye sabit, gidiş yönüne bakar. **Havai Fişek atarı** sol omuzda, ana silahın üstünde (sol = saldırı, sağ = kalkan); renkli roketler, isabette renkli kıvılcım.
+- **Mermiler** karaktere özel model + renkli iz: Topik turuncu şeritli top (döner), Mıknato kırmızı-mavi bantlı çelik bilye (döner), Fişek pirinç kovanlı mermi. Blob büyüdükçe mermi de büyür (Tiny 1× → Dev ~3×, kamera uzaklaştığı için). Modeller `zorse-blender/build_bullets.py`.
+- **Görünür silah** (Silah Gücü'yle form değiştirir; ayrıntı `SKILLS.md`): sopa açıkken bütün karakterlerde ağaç dalı, sadece vururken görünür (G_Stick_*); sopa kapalıyken karakter silahları (Topik/Mıknato sol yanda, Fişek iki yanda keleş; Dalcık ve Cano Topik'in topunu kullanır). Fişek'in kalkanı kafada. Silah gövdeye sabit, gidiş yönüne bakar. **Havai Fişek atarı** sol omuzda, ana silahın üstünde (sol = saldırı, sağ = kalkan); renkli roketler, isabette renkli kıvılcım.
 
 ---
 
@@ -171,13 +174,15 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 | Market kalemi | Fiyat | Sınır |
 |---|---|---|
 | Mıknato (karakter) | 500 | tek sefer |
+| Fişek (karakter) | 1.000 | tek sefer |
+| Cano (karakter) | 1.500 | tek sefer |
 | +%5 hız | 200, her alımda +150 | Sv.5 (+%25) |
 | +10 max can | 200, her alımda +150 | Sv.5 (+50) |
 | +%5 kütle kazancı (XP'yi de artırır) | 300, her alımda +200 | Sv.5 (+%25) |
 | +%5 coin kazancı | 300, her alımda +200 | Sv.5 (+%25) |
 | XP çarpanı +%25 | 1000 | tek sefer |
 
-Sınıra gelen satırda fiyat yerine MAX yazar. Hepsinin toplamı 13.500 coin. Coin kazancı kesirli birikir (1 coin × 1.05 kaybolmaz). Kayıt yerel JSON'da (`meta_progression.json`).
+Sınıra gelen satırda fiyat yerine MAX yazar. Hepsinin toplamı 16.000 coin (karakterler 3.000). Coin kazancı kesirli birikir (1 coin × 1.05 kaybolmaz). Kayıt yerel JSON'da (`meta_progression.json`).
 
 ### Denge hedefleri
 
@@ -186,8 +191,9 @@ Fiyatlar ve ödüller bu hedeflere göre ayarlanır; ölçülen değer hedeften 
 | Hedef | Değer |
 |---|---|
 | Mıknato açılışı | 2.–3. run |
-| Market'in yarısı (~6.750 coin) | ~15. run |
-| Market'in tamamı (13.500 coin) | ~40. run |
+| Fişek / Dalcık / Cano açılışı | ~5. / 5. (run sayısı) / ~7. run |
+| Market'in yarısı (~8.000 coin) | ~17. run |
+| Market'in tamamı (16.000 coin) | ~45. run |
 | Coin'in elit + sandıktan gelen payı | %40–55 (kaçan/toplayan oyun da kazansın) |
 | Yerde kaybolan coin | toplananın %15'inden az |
 | Run başına kart (ölüm / kazanma) | ~12 / ~30 |
@@ -206,7 +212,7 @@ Fiyatlar ve ödüller bu hedeflere göre ayarlanır; ölçülen değer hedeften 
 - **Haber bandı** (üstte, Plague Inc. tarzı): 30 sn'de bir yeni başlık; blob büyüdükçe haberler onunla ilgili olur. Metinler `NewsHeadlines.asset`'te.
 - Uygulama arka plana atılınca oyun otomatik duraklar.
 - **Ekranlar:** Açılış logosu, giriş, lobi, Market, kart seçimi, Game Over / KAZANDIN.
-- **Market ekranı:** lobiden açılır, lobi diliyle (aynı başlık/coin rozeti/geri tuşu yerleşimi, altın "MARKET" başlığı). Üstte Mıknato kartı (portre, pasif, "YENİ KARAKTER", fiyat), altında "KALICI GÜÇLER" satırları: ad, seviye (Sv. x), etki + şu anki toplam, sağda fiyat hapı (yetiyorsa altın, yetmiyorsa gri, alınmışsa yeşil ALINDI/AÇIK). Satıra dokunmak satın alır (satır ve coin rozeti zıplar); coin yetmezse rozet kırmızı sallanır. Düzen `MarketPanel` içinde kodla kurulur.
+- **Market ekranı:** lobiden açılır, lobi diliyle (aynı başlık/coin rozeti/geri tuşu yerleşimi, altın "MARKET" başlığı). Başlığın altında iki sekme: **KARAKTERLER** (açılışta; Topik hariç her karakter: portre, ad, pasif, fiyat hapı ya da Dalcık için "x/5 run" + ilerleme çubuğu; açılınca yeşil AÇIK) ve **GÜÇLER** ("KALICI GÜÇLER" satırları: ad, seviye (Sv. x), etki + şu anki toplam, sağda fiyat hapı (yetiyorsa altın, yetmiyorsa gri, alınmışsa yeşil ALINDI/MAX)). Satıra dokunmak satın alır (satır ve coin rozeti zıplar); coin yetmezse rozet kırmızı sallanır. Düzen `MarketPanel` içinde kodla kurulur.
 - **Seviye atlama ekranı:** HUD diliyle, tüm ekran. Gölgeli altın "SEVİYE ATLADIN!" + "Bir güç seç"; 3 koyu kart: ad, sağ üstte rozet (YENİ yeşil / Sv. x/8 / EVRİM altın), seviyeye özel açıklama; evrim kartı altın tonlu. Kartlar sırayla belirir; yanlışlıkla seçilmesin diye ilk 0.4 sn dokunulmaz.
 - **Oyun sonu ekranı:** HUD diliyle (yarı saydam gece mavisi panel, kalın beyaz yazı, coin altın), tüm ekran. Başlık GAME OVER (kırmızımsı) ya da KAZANDIN! (altın) + alt satır, rekor kırıldıysa YENİ REKOR! rozeti, kart: Süre / Skor / Rekor / Toplanan coin / Kazanılan coin (+kasaya giren; ölümde toplananın %50'si, kazanınca %100). Kart yumuşakça açılır, skor ve coin'ler sayarak yükselir. Butonlar: Tekrar Oyna, Ana Menü (lobiye döner, coin zaten kasaya girmiştir).
 - Ses yok (henüz).
