@@ -115,12 +115,13 @@ def quake(mat):
 
 # ------------------------------------------------------------------ Sindirim Gazı
 def gas(mat):
-    top, bottom = (0.75, 1.0, 0.5, 0.40), (0.28, 0.62, 0.18, 0.22)
-    rnd = random.Random(5)
+    # Sadece kenar halkası: alanın sınırını gösterir, içi açık (blob çevresini Vakum doldurur, düşmanlar görünsün).
+    top, bottom = (0.70, 1.0, 0.45, 0.30), (0.30, 0.65, 0.20, 0.12)
+    rnd = random.Random(8)
     bm = bmesh.new()
     col = bm.loops.layers.color.new("Col")
 
-    def lump(center, r, squash=0.8, segs=8, rings=5):
+    def lump(center, r, squash=0.75, segs=8, rings=5):
         vs = bmesh.ops.create_uvsphere(bm, u_segments=segs, v_segments=rings, radius=1.0)["verts"]
         for v in vs:
             nrm = v.co.copy()
@@ -128,30 +129,29 @@ def gas(mat):
         for f in {f for v in vs for f in v.link_faces}:
             f.smooth = True
             for l in f.loops:
-                h = max(0.0, min(1.0, l.vert.co.z / 0.6))
+                h = max(0.0, min(1.0, l.vert.co.z / 0.45))
                 l[col] = tuple(bottom[i] + (top[i] - bottom[i]) * h for i in range(4))
 
-    def cloud(c, size):
-        lump(c + Vector((0, 0, size * 0.55)), size)
-        for _ in range(rnd.randint(2, 3)):
-            a = rnd.uniform(0, math.tau); off = size * rnd.uniform(0.55, 0.8); s = size * rnd.uniform(0.55, 0.75)
-            lump(c + Vector((math.cos(a) * off, math.sin(a) * off, s * 0.5)), s)
-
-    for i in range(7):
-        a = i / 7 * math.tau + rnd.uniform(-0.15, 0.15); rr = rnd.uniform(0.78, 0.88)
-        cloud(Vector((math.cos(a) * rr, math.sin(a) * rr, 0)), rnd.uniform(0.2, 0.25))
-    for i in range(3):
-        a = i / 3 * math.tau + 0.5; rr = rnd.uniform(0.35, 0.5)
-        cloud(Vector((math.cos(a) * rr, math.sin(a) * rr, 0)), rnd.uniform(0.12, 0.15))
-    for i in range(6):  # yükselen kabarcıklar
-        a = rnd.uniform(0, math.tau); rr = rnd.uniform(0.45, 0.9)
-        lump(Vector((math.cos(a) * rr, math.sin(a) * rr, rnd.uniform(0.5, 0.8))), rnd.uniform(0.035, 0.055), 1.0, 6, 4)
+    n = 10
+    for i in range(n):
+        a = i / n * math.tau + rnd.uniform(-0.1, 0.1)
+        rr = rnd.uniform(0.93, 1.0)
+        s = rnd.uniform(0.13, 0.17)
+        c = Vector((math.cos(a) * rr, math.sin(a) * rr, 0))
+        lump(c + Vector((0, 0, s * 0.5)), s)
+        t = Vector((-math.sin(a), math.cos(a), 0))
+        s2 = s * rnd.uniform(0.55, 0.7)
+        lump(c + t * s * rnd.choice((-0.8, 0.8)) + Vector((0, 0, s2 * 0.45)), s2)
+    for i in range(5):  # kenardan yükselen kabarcıklar
+        a = rnd.uniform(0, math.tau)
+        lump(Vector((math.cos(a) * 0.95, math.sin(a) * 0.95, rnd.uniform(0.35, 0.6))), rnd.uniform(0.03, 0.045), 1.0, 6, 4)
     return finish(bm, "FX_Gas", mat)
 
 
 # ------------------------------------------------------------------ Kaygan Zemin
 def slime(mat):
-    edge, mid, shine = (0.30, 0.70, 0.20, 0.55), (0.55, 0.92, 0.35, 0.65), (0.92, 1.0, 0.85, 0.85)
+    # Turkuaz sabunlu su + beyaz köpük (yeşil gazla karışmasın).
+    edge, mid, shine, foam = (0.20, 0.62, 0.74, 0.50), (0.45, 0.86, 0.93, 0.58), (0.95, 1.0, 1.0, 0.85), (1.0, 1.0, 1.0, 0.9)
     rnd = random.Random(3)
     bm = bmesh.new()
     col = bm.loops.layers.color.new("Col")
@@ -184,6 +184,15 @@ def slime(mat):
     for i in range(5):
         a = rnd.uniform(0, math.tau); d = rnd.uniform(0.62, 0.85)
         blob(Vector((math.cos(a) * d, math.sin(a) * d, 0)), rnd.uniform(0.05, 0.09), 8, 0.1, 0.02, 10 + i, highlight=False)
+    for i in range(7):  # sabun köpüğü
+        a = rnd.uniform(0, math.tau); d = rnd.uniform(0.1, 0.38); r = rnd.uniform(0.03, 0.06)
+        vs = bmesh.ops.create_uvsphere(bm, u_segments=6, v_segments=4, radius=r)["verts"]
+        for v in vs:
+            v.co.z = max(v.co.z, 0) * 0.9
+            v.co += Vector((math.cos(a) * d, math.sin(a) * d, 0.035))
+        for f in {f for v in vs for f in v.link_faces}:
+            f.smooth = True
+            paint(f, foam)
     return finish(bm, "FX_Slime", mat)
 
 

@@ -17,6 +17,8 @@ namespace BlobSurvivor.Entities.Blob
         private const float DropInterval = 0.25f;
         private const float TickInterval = 0.2f;
         private const float MinDropDistance = 0.3f;
+        private const float SplatSize = 0.75f;     // leke çapı = iz genişliği × bu
+        private const float SplatSpacing = 1.4f;   // iki leke arası en az = iz yarı genişliği × bu
         private const float WidthFactor = 0.8f;   // iz yarı genişliği = gövde yarıçapı × bu + sabit
         private const float WidthExtra = 0.3f;
         private const float SlipCooldown = 1.5f;
@@ -28,7 +30,8 @@ namespace BlobSurvivor.Entities.Blob
         private const string SplatMeshPath = "FX/Slime/FX_Slime";
         private const float SplatGrow = 0.12f, SplatFade = 0.5f, SplatY = 0.15f;
         private static readonly Color SlimeTint = Color.white;
-        private static readonly Color AcidTint = new Color(1f, 0.95f, 0.35f, 1f);
+        // Asit: sabunlu turkuaz daha koyu, kimyasal maviye döner (yeşile değil: gazla karışmasın).
+        private static readonly Color AcidTint = new Color(0.85f, 0.7f, 1f, 1f);
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
 
         private readonly Vector3[] _points = new Vector3[MaxPoints];
@@ -84,7 +87,7 @@ namespace BlobSurvivor.Entities.Blob
             }
             _splats[index].position = new Vector3(point.x, SplatY, point.z);
             _splats[index].rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
-            _splatScale[index] = HalfWidth * 2f * Random.Range(0.95f, 1.15f); // model yarıçapı 0.5
+            _splatScale[index] = HalfWidth * 2f * SplatSize * Random.Range(0.9f, 1.1f); // model yarıçapı 0.5
             _splatRenderers[index].enabled = true;
         }
 
@@ -93,6 +96,8 @@ namespace BlobSurvivor.Entities.Blob
             if (_splatRoot == null) return;
             float now = Time.time;
             Color tint = AcidDps > 0f ? AcidTint : SlimeTint;
+            Vector3 blob = transform.position;
+            float body = transform.localScale.x * _bodyLocalRadius;
             for (int i = 0; i < MaxPoints; i++)
             {
                 MeshRenderer r = _splatRenderers[i];
@@ -102,9 +107,14 @@ namespace BlobSurvivor.Entities.Blob
                 if (left <= 0f) { r.enabled = false; continue; }
                 float grow = Mathf.Clamp01(age / SplatGrow);
                 float fade = Mathf.Clamp01(left / SplatFade);
+                // Blob lekenin üstündeyken görünmez: leke blob ayrıldıkça arkasında belirir (blob çevresini Vakum doldurur).
+                Vector3 d = _splats[i].position - blob;
+                d.y = 0f;
+                float reveal = Mathf.Clamp01((d.magnitude - body) / (_splatScale[i] * 0.5f + 0.01f));
+                grow = Mathf.Min(grow, reveal);
                 float s = _splatScale[i] * (0.6f + 0.4f * grow) * (0.7f + 0.3f * fade);
                 _splats[i].localScale = new Vector3(s, 1f, s);
-                tint.a = fade;
+                tint.a = fade * reveal;
                 _block.SetColor(BaseColorId, tint);
                 r.SetPropertyBlock(_block);
             }
@@ -120,7 +130,8 @@ namespace BlobSurvivor.Entities.Blob
                 Vector3 p = transform.position;
                 p.y = 0f;
                 int last = (_head - 1 + MaxPoints) % MaxPoints;
-                if (_count == 0 || (p - _points[last]).sqrMagnitude > MinDropDistance * MinDropDistance)
+                float spacing = Mathf.Max(MinDropDistance, HalfWidth * SplatSpacing); // lekeler aralıklı
+                if (_count == 0 || (p - _points[last]).sqrMagnitude > spacing * spacing)
                 {
                     _points[_head] = p;
                     _times[_head] = now;
