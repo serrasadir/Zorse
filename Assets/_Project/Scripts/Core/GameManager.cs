@@ -164,7 +164,13 @@ namespace BlobSurvivor.Core
 
             // Skill efektleri blob'a component olarak eklenir; kalırsa bonuslar yeni run'a sızar.
             RemoveComponent<BlackHoleComponent>(blob);
-            RemoveComponent<LifestealComponent>(blob);
+            // Skill bileşenleri hemen silinir: başlangıç skill'i (BlobSkills'e yazan Hız vb.) aynı karede yenisini kurar.
+            DestroyNow<BlobSkills>(blob); // OnDestroy hız çarpanını ve ölüm kancasını sıfırlar
+            DestroyNow<SlipTrail>(blob);
+            DestroyNow<GroundQuake>(blob);
+            DestroyNow<DigestGas>(blob);
+            DestroyNow<SplitDrops>(blob);
+            BlobSkills.ResetStatics();
             RemoveComponent<SpeedTrail>(blob);
             RemoveComponent<ArmorShield>(blob); // Zırh baloncuğu + dikenler (kalkan havuzunu ResetHealth sıfırlar)
 
@@ -172,6 +178,12 @@ namespace BlobSurvivor.Core
             blob.GetComponent<BlobHealth>()?.ResetHealth();
 
             ResetBlobPosition(blob);
+        }
+
+        private static void DestroyNow<T>(GameObject blob) where T : Component
+        {
+            T component = blob.GetComponent<T>();
+            if (component != null) DestroyImmediate(component);
         }
 
         private static void RemoveComponent<T>(GameObject blob) where T : Component

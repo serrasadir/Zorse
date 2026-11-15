@@ -29847,15 +29847,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Systems.UpgradeSystem
   _allUpgrades:
+  - {fileID: 11400000, guid: bfcdcf59c7e9e4d83b18c0271b27d009, type: 2}
+  - {fileID: 11400000, guid: 9a1a53f3539f54aa9a01b50dfc7fccc9, type: 2}
+  - {fileID: 11400000, guid: 46f8f3a75f472a74ab515431f7b1fd41, type: 2}
+  - {fileID: 11400000, guid: a6ce4a3fe7ebafc4d94a30635a5ce2c6, type: 2}
+  - {fileID: 11400000, guid: 1c02eed465f3d411cb8c57a3242128c3, type: 2}
+  - {fileID: 11400000, guid: 124571ac89e96c442a6f1770bcd0528b, type: 2}
+  - {fileID: 11400000, guid: 7a60ab4d1e9804c11a6724b7a567bac7, type: 2}
+  - {fileID: 11400000, guid: 9231d870b0224dadb1833c18cac33f88, type: 2}
+  - {fileID: 11400000, guid: 5443b37109b0ba7499f8feab163b0297, type: 2}
+  - {fileID: 11400000, guid: 5eaeb07a5b0010e41b092d7239ea57a5, type: 2}
+  - {fileID: 11400000, guid: 775dfb0561db0944c8b5e64e9a8781f7, type: 2}
   - {fileID: 11400000, guid: 0bca2b7b110d8493f9d8b759fa9ecf94, type: 2}
   - {fileID: 11400000, guid: 5d7022e263ca744989d9ef07f8cd063f, type: 2}
   - {fileID: 11400000, guid: 4364a766d570f459e9257b0a0df70913, type: 2}
-  - {fileID: 11400000, guid: 1c02eed465f3d411cb8c57a3242128c3, type: 2}
-  - {fileID: 11400000, guid: 9a1a53f3539f54aa9a01b50dfc7fccc9, type: 2}
-  - {fileID: 11400000, guid: 7a60ab4d1e9804c11a6724b7a567bac7, type: 2}
-  - {fileID: 11400000, guid: bfcdcf59c7e9e4d83b18c0271b27d009, type: 2}
-  - {fileID: 11400000, guid: 9231d870b0224dadb1833c18cac33f88, type: 2}
+  - {fileID: 11400000, guid: 2d749e7792d40614ba8d563ec2c224bc, type: 2}
+  - {fileID: 11400000, guid: 4ece4ffecd7760646b2d585fa0fb012c, type: 2}
   _choiceCount: 3
+  _activeSlots: 3
+  _passiveSlots: 3
+  _allMaxHealFraction: 0.3
 --- !u!4 &582339428
 Transform:
   m_ObjectHideFlags: 0

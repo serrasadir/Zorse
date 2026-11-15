@@ -89,7 +89,36 @@ namespace BlobSurvivor.Entities.Blob
             float adjusted = amount * _massGainMultiplier * _globalGainScale;
             CurrentMass += adjusted;
             RecalculateTier();
+            OnMassGained?.Invoke(adjusted);
             AddXP(adjusted);
+        }
+
+        // Yer Sarsıntısı kütle sayar (çarpanlar uygulanmış miktar).
+        public event System.Action<float> OnMassGained;
+
+        // Bölünme parçası toplanınca: kaybedilen kütle geri gelir (çarpan ve XP yok, zaten kazanılmıştı).
+        public void RestoreMass(float amount)
+        {
+            if (amount <= 0f) return;
+            CurrentMass += amount;
+            RecalculateTier();
+        }
+
+        // Bölünme: kütlenin oranını kaybeder ve en az bir tier düşer. XP/seviye değişmez. Kaybedilen kütleyi döner.
+        public float LoseMassForSplit(float fraction)
+        {
+            float target = CurrentMass * (1f - Mathf.Clamp01(fraction));
+            for (int i = _tierThresholds.Length - 1; i > 0; i--)
+            {
+                if (_tierThresholds[i].Tier != CurrentTier) continue;
+                target = Mathf.Min(target, _tierThresholds[i].MassRequired - 0.01f);
+                break;
+            }
+            target = Mathf.Max(0f, target);
+            float lost = CurrentMass - target;
+            CurrentMass = target;
+            RecalculateTier();
+            return lost;
         }
 
         // Silahla öldürülen düşman: sadece XP (büyüme yemeğe bağlı kalır). Market XP çarpanı uygulanır.

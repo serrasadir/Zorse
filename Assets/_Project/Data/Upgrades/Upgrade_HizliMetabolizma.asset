@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a39f692a12e49499b3cddabf07df41, type: 3}
+  m_Name: Upgrade_HizliMetabolizma
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
+  _id: hizli_metabolizma
+  _displayName: "H\u0131zl\u0131 Metabolizma"
+  _description: "B\xFCy\xFCd\xFCk\xE7e gelen yava\u015Flama \u2212%15."
+  _icon: {fileID: 0}
+  _kind: 1
+  _weight: 10
+  _effect: {fileID: 11400000, guid: 9e990d9b8ccd971409cfe2cb3c28c10e, type: 2}
+  _maxLevel: 5
+  _perLevelValue: 0
+  _levelDescriptions:
+  - "B\xFCy\xFCd\xFCk\xE7e gelen yava\u015Flama \u2212%15."
+  - "Yava\u015Flama \u2212%30."
+  - "Tier atlay\u0131nca 3 sn +%30 h\u0131z."
+  - "Yava\u015Flama \u2212%45."
+  - "Yava\u015Flama \u2212%60, b\xFCy\xFCk lokmadan sonra 1 sn h\u0131z."
+  _isEvolution: 0

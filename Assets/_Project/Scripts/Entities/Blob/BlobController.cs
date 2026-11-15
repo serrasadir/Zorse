@@ -50,10 +50,18 @@ namespace BlobSurvivor.Entities.Blob
 
         public float GetSpeedMultiplier() => _speedMultiplier;
 
+        // Skill'lerden gelen anlık hız çarpanı (Yara Öfkesi, Hızlı Metabolizma, Hız Sv.5); BlobSkills yazar.
+        public float SkillSpeedFactor { get; set; } = 1f;
+        // Hızlı Metabolizma: büyüme yavaşlamasını oranla azaltır (0..1, 1 = yok). İlke 3: tamamen kaldırılmaz.
+        public float SlowdownReduction { get; set; }
+
+        public bool IsMoving => InputManager.Instance != null && InputManager.Instance.MoveDirection.sqrMagnitude > 0.01f;
+
         private float SpeedScaleModifier()
         {
-            if (_blobGrowth == null) return 1f;
-            return 1f / Mathf.Pow(TierLayers.SlowdownRank(_blobGrowth.CurrentTier), _tierSlowdownExponent);
+            if (_blobGrowth == null) return SkillSpeedFactor;
+            float exponent = _tierSlowdownExponent * (1f - Mathf.Clamp(SlowdownReduction, 0f, 0.9f));
+            return SkillSpeedFactor / Mathf.Pow(TierLayers.SlowdownRank(_blobGrowth.CurrentTier), exponent);
         }
     }
 }

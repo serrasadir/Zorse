@@ -46,8 +46,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c2015c8aa80546e38bb9da811ed5eaf0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Weapons.FireworkProjectile
-  _speed: 22
-  _lifetime: 0.75
+  _speed: 10
+  _lifetime: 1.6
   _hitRadius: 0.45
   _spinModel: {fileID: 1275867955775357903}
   _spinSpeed: 0

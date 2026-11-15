@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a39f692a12e49499b3cddabf07df41, type: 3}
+  m_Name: Upgrade_YerSarsintisi
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
+  _id: yer_sarsintisi
+  _displayName: "Yer Sars\u0131nt\u0131s\u0131"
+  _description: "Darbe ald\u0131k\xE7a dolar: her 15 hasarda yere vurur, \xE7evreye
+    15 hasar."
+  _icon: {fileID: 0}
+  _kind: 0
+  _weight: 10
+  _effect: {fileID: 11400000, guid: 3dc1823b7885bb141b275c6a20c25acd, type: 2}
+  _maxLevel: 5
+  _perLevelValue: 0
+  _levelDescriptions:
+  - "Darbe ald\u0131k\xE7a dolar: her 15 hasarda yere vurur, \xE7evreye 15 hasar."
+  - "Sars\u0131nt\u0131 hasar\u0131 22."
+  - "Sars\u0131nt\u0131 0.5 sn sersemletir."
+  - "Her 12 hasarda bir, alan geni\u015Fler."
+  - "DEPREM: her 3. sars\u0131nt\u0131 3 kat hasar, 2 kat alan."
+  _isEvolution: 0

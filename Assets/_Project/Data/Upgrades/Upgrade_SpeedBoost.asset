@@ -13,11 +13,18 @@ MonoBehaviour:
   m_Name: Upgrade_SpeedBoost
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
   _id: speed_boost
-  _displayName: "H\u0131z Art\u0131\u015F\u0131"
-  _description: "Usain Boltun \xE7izmelerini alabilirsin."
+  _displayName: "H\u0131z"
+  _description: "Hareket h\u0131z\u0131 +%15. Kaykay!"
   _icon: {fileID: 0}
-  _category: 0
+  _kind: 1
   _weight: 10
   _effect: {fileID: 11400000, guid: 713ea15d49caa48b78b29e5dd6cc4312, type: 2}
-  _maxLevel: 8
-  _perLevelValue: 0.15
+  _maxLevel: 5
+  _perLevelValue: 0
+  _levelDescriptions:
+  - "Hareket h\u0131z\u0131 +%15. Kaykay!"
+  - "H\u0131z +%30."
+  - "ALEVL\u0130 KAYKAY: h\u0131z +%38."
+  - "H\u0131z +%45."
+  - "ROKET: 2 sn durmadan gidince +%20 h\u0131z."
+  _isEvolution: 0

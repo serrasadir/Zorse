@@ -13,20 +13,18 @@ MonoBehaviour:
   m_Name: Upgrade_Regen
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
   _id: regen_boost
-  _displayName: Can Emme
-  _description: "Vurdu\u011Fun hasar\u0131n bir k\u0131sm\u0131 can olarak sana d\u00F6ner."
+  _displayName: Rejenerasyon
+  _description: Saniyede 0.5 can yenilenir.
   _icon: {fileID: 0}
-  _category: 0
-  _weight: 8
+  _kind: 1
+  _weight: 10
   _effect: {fileID: 11400000, guid: 1778c5772844549ff804c1ac7668af1f, type: 2}
-  _maxLevel: 8
-  _perLevelValue: 0.02
+  _maxLevel: 5
+  _perLevelValue: 0
   _levelDescriptions:
-  - "Vurdu\u011Fun hasar\u0131n %2'si kadar can kazan\u0131rs\u0131n."
-  - "Vurdu\u011Fun hasar\u0131n %4'\u00FC kadar can kazan\u0131rs\u0131n."
-  - "Vurdu\u011Fun hasar\u0131n %6's\u0131 kadar can kazan\u0131rs\u0131n."
-  - "Vurdu\u011Fun hasar\u0131n %8'i kadar can kazan\u0131rs\u0131n."
-  - "Vurdu\u011Fun hasar\u0131n %10'u kadar can kazan\u0131rs\u0131n."
-  - "Vurdu\u011Fun hasar\u0131n %12'si kadar can kazan\u0131rs\u0131n."
-  - "Vurdu\u011Fun hasar\u0131n %14'\u00FC kadar can kazan\u0131rs\u0131n."
-  - "Vurdu\u011Fun hasar\u0131n %16's\u0131 kadar can kazan\u0131rs\u0131n."
+  - Saniyede 0.5 can yenilenir.
+  - Saniyede 1 can.
+  - "3 sn hasar almazsan yenilenme 2 kat\u0131."
+  - Saniyede 1.5 can.
+  - "Saniyede 2 can, tier atlay\u0131nca can\u0131n %20'si dolar."
+  _isEvolution: 0

@@ -75,8 +75,15 @@ namespace BlobSurvivor.Entities.Loot
             BlobHealth health = other.GetComponent<BlobHealth>();
             if (health == null) return;
 
-            health.Heal(_healAmount);
+            health.Heal(_healAmount * BlobSkills.HeartMultiplier); // Can Artışı Sv.3/5
             ReturnToPool();
+        }
+
+        // Vakum Sv.5: kalp blob'a çekilir (sallanma taban konumdan hesaplandığı için tabanı taşır).
+        public void PullToward(Vector3 target, float step)
+        {
+            Vector3 flatTarget = new Vector3(target.x, _basePosition.y, target.z);
+            _basePosition = Vector3.MoveTowards(_basePosition, flatTarget, step);
         }
 
         private void ReturnToPool()

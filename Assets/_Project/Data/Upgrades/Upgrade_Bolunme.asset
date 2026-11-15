@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a39f692a12e49499b3cddabf07df41, type: 3}
+  m_Name: Upgrade_Bolunme
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
+  _id: bolunme
+  _displayName: "B\xF6l\xFCnme"
+  _description: "\xD6l\xFCmc\xFCl darbede \xF6lmek yerine b\xF6l\xFCn\xFCrs\xFCn:
+    k\xFCtlenin %30'u gider, bir tier d\xFC\u015Fersin, 2 sn dokunulmazs\u0131n.
+    Run'da bir kez."
+  _icon: {fileID: 0}
+  _kind: 2
+  _weight: 3
+  _effect: {fileID: 11400000, guid: b5e647f4c7e8fa3489678c4a571304e8, type: 2}
+  _maxLevel: 1
+  _perLevelValue: 0
+  _levelDescriptions:
+  - "\xD6l\xFCmc\xFCl darbede \xF6lmek yerine b\xF6l\xFCn\xFCrs\xFCn: k\xFCtlenin
+    %30'u gider, bir tier d\xFC\u015Fersin, 2 sn dokunulmazs\u0131n. Run'da bir kez."
+  _isEvolution: 0

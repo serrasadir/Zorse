@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d055010eba650a4ab4f3505eff08b02, type: 3}
+  m_Name: FX_Tetikci
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Systems.TriggerFingerEffect
+  _reductionByLevel:
+  - 0.08
+  - 0.16
+  - 0.16
+  - 0.24
+  - 0.24
+  _repeatEvery: 5
+  _killRefund: 0.2

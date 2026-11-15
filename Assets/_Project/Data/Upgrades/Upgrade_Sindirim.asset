@@ -14,11 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
   _id: Sindirim
   _displayName: Sindirim
-  _description: "Metabolizman h\u0131zland\u0131. Ayn\u0131 lokma, daha \xE7ok kilo."
+  _description: "Yedi\u011Fin her \u015Feyden k\xFCtle +%10."
   _icon: {fileID: 0}
-  _category: 4
+  _kind: 1
   _weight: 10
   _effect: {fileID: 11400000, guid: 30ccd600f613647db97fdf4b61daef7c, type: 2}
-  _maxLevel: 8
-  _perLevelValue: 0.05
+  _maxLevel: 5
+  _perLevelValue: 0
+  _levelDescriptions:
+  - "Yedi\u011Fin her \u015Feyden k\xFCtle +%10."
+  - "K\xFCtle +%20."
+  - "A\u011EIR LOKMA: kendi boyundaki lokmalar +%25 k\xFCtle."
+  - "K\xFCtle +%30."
+  - "OBUR: her 10. lokma \xD73 k\xFCtle."
   _isEvolution: 0

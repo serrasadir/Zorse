@@ -5,40 +5,36 @@ using BlobSurvivor.Entities.Weapons;
 
 namespace BlobSurvivor.Systems
 {
-    // 2026-11-03 (Serra: "oyuncu hissetsin, level aldığıma değiyor desin"): Silah Gücü artık her seviyede
-    // "+hasar" değil — kilometre taşı seviyelerinde yeni bir yetenek açılır, aradakiler hasar verir.
-    //   Sv.3 çift hedef · Sv.5 delip geçme · Sv.7 üçlü hedef · Sv.8 karaktere özel son form
-    // Kart açıklamaları Upgrade_Weapon.asset'in Level Descriptions listesinde (bu seviyelerle uyumlu tutulmalı).
+    // Sopa (aktif, karakterin ana silahı; genel "Silah Gücü" kartı yok, design/gdd/skill-sistemi.md):
+    //   Sv.1 hasar +5, menzil +0.5 · Sv.2 ★ arkaya da vurur · Sv.3 ★ yay 180°, hasar +5 · Sv.4 ★ vuruş hızı ×1.3 ·
+    //   Sv.5 ★ tam tur (360°), hasar ×1.5. WeaponBase'in sopa yolu: TargetCount 2 = arka, Pierce = 180°,
+    //   TargetCount 3 = hızlı, Ultimate = 360°. PerLevelValue (2) × saniyede 2.5 vuruş-eşdeğeri = vuruş başı +5.
     [CreateAssetMenu(fileName = "WeaponUpgradeEffect", menuName = "BlobSurvivor/Effects/Weapon Upgrade")]
     public class WeaponUpgradeEffect : UpgradeEffect
     {
-        [SerializeField] private int _doubleTargetLevel = 3;
-        [SerializeField] private int _pierceLevel = 5;
-        [SerializeField] private int _tripleTargetLevel = 7;
-        [SerializeField] private int _ultimateLevel = 8;
-        [Tooltip("+hasar seviyelerinde menzile eklenir (gövde yüzeyinden).")]
-        [SerializeField] private float _rangePerDamageLevel = 0.5f;
+        [Tooltip("Sv.1'de menzile eklenir (gövde yüzeyinden).")]
+        [SerializeField] private float _rangeAtLevel1 = 0.5f;
 
         public override void Apply(GameObject blobRoot, UpgradeData data)
         {
             var weapon = WeaponBase.FindPrimary(blobRoot); // Havai Fişek değil, karakter silahı
             if (weapon == null) return;
 
-            // UpgradeSystem seviyeyi Apply'dan önce artırıyor — bu, az önce ulaşılan seviye.
-            int level = UpgradeSystem.Instance != null ? UpgradeSystem.Instance.GetLevel(data) : 1;
-
-            if (level == _doubleTargetLevel) weapon.SetTargetCount(2);
-            else if (level == _pierceLevel) weapon.SetPierce(1);
-            else if (level == _tripleTargetLevel) weapon.SetTargetCount(3);
-            else if (level == _ultimateLevel) weapon.EnableUltimate();
-            else
+            int level = LevelOf(data);
+            switch (level)
             {
-                weapon.IncreaseDamage(data.PerLevelValue);
-                weapon.IncreaseRange(_rangePerDamageLevel);
+                case 1:
+                    weapon.IncreaseDamage(data.PerLevelValue);
+                    weapon.IncreaseRange(_rangeAtLevel1);
+                    break;
+                case 2: weapon.SetTargetCount(2); break;
+                case 3: weapon.SetPierce(1); weapon.IncreaseDamage(data.PerLevelValue); break;
+                case 4: weapon.SetTargetCount(3); break;
+                default: weapon.EnableUltimate(); break;
             }
 
-            // Görünür silah: form yeni mekanikle değişir, +hasar seviyeleri modeli değiştirmez.
-            int form = level >= _ultimateLevel ? 4 : level >= _tripleTargetLevel ? 3 : level >= _doubleTargetLevel ? 2 : 1;
+            // Görünür silah: form yeni mekanikle değişir.
+            int form = level >= 5 ? 4 : level >= 4 ? 3 : level >= 2 ? 2 : 1;
             blobRoot.GetComponent<WeaponVisual>()?.SetForm(form);
         }
     }

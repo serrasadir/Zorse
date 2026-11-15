@@ -5,7 +5,7 @@ using BlobSurvivor.Data;
 namespace BlobSurvivor.Entities.Blob
 {
     // 2026-11-06 (Serra: "skill görsel olarak etki versin ki kullanıcı hissetsin"): Hız skilinin görseli, bütün karakterlerde aynı.
-    //   Sv.1-3 kaykay · Sv.4-7 alevli kaykay · Sv.8 alevli kaykay + popoda roket (alev hıza göre uzar, titrer).
+    //   SetLevel eşikleri eski 8 seviyeli: 1 kaykay · 4 alevli kaykay · 8 roket. SpeedBoostEffect 5 seviyeyi 1/4/8e eşler.
     // Modeller zorse-blender/build_speed.py → Resources/FX/Speed (blob görünüm mesh'iyle aynı uzay, pivot blob merkezi).
     // Kaykay varken görünüm Lift kadar kalkar (tekerlekler yere basar); collider/yeme değişmez.
     // SpeedBoostEffect ekler ve seviyeyi verir. Yeni run'da (OnCharacterSelected) sıfırlanır; görünüm yeniden kurulunca

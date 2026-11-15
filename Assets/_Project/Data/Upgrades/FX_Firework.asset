@@ -18,7 +18,7 @@ MonoBehaviour:
   _range: 8
   _fireRateLevel: 3
   _fireRateFactor: 1.3
-  _priorityDamageLevel: 5
+  _priorityDamageLevel: 4
   _priorityDamageScale: 1.5
-  _burstLevel: 6
+  _burstLevel: 5
   _burstCount: 2

@@ -179,6 +179,7 @@ namespace BlobSurvivor.Entities.Enemies
             _damageMultiplier = 1f;
             _speedMultiplier = 1f;
             _catchUpMultiplier = 1f;
+            _slowFactor = 1f; _slowUntil = 0f; _stunUntil = 0f; _statusSpeed = 1f;
             _isDead = false;
             _consumableOverride = false;
             AirborneHeight = 0f; // FinalBossController her kare yeniden ayarlar
@@ -293,6 +294,44 @@ namespace BlobSurvivor.Entities.Enemies
             _knockbackDecel = speed / KnockbackDuration;
         }
 
+        // Skill etkileri: yavaşlatma (Kaygan Zemin, Sindirim Gazı) ve sersemletme (Yer Sarsıntısı). Boss'lar sersemlemez.
+        private float _slowFactor = 1f, _slowUntil, _stunUntil, _statusSpeed = 1f;
+
+        public void ApplySlow(float factor, float duration)
+        {
+            if (_isDead) return;
+            factor = Mathf.Clamp01(factor);
+            if (Time.time >= _slowUntil || factor <= _slowFactor) _slowFactor = factor; // en güçlüsü kalır
+            _slowUntil = Mathf.Max(_slowUntil, Time.time + duration);
+        }
+
+        public void Stun(float duration)
+        {
+            if (_isDead || IsBoss) return;
+            _stunUntil = Mathf.Max(_stunUntil, Time.time + duration);
+        }
+
+        public bool IsStunned => Time.time < _stunUntil;
+        public bool IsDead => _isDead;
+
+        // Kaygan Zemin Sv.3: izde kayma. Bekleme dolmadan tekrar sersemlemez (izde kalan hep donmasın).
+        private float _nextSlipAt;
+        public void Slip(float duration, float cooldown)
+        {
+            if (Time.time < _nextSlipAt) return;
+            _nextSlipAt = Time.time + duration + cooldown;
+            Stun(duration);
+        }
+
+        private void UpdateStatus()
+        {
+            float now = Time.time;
+            float s = now < _stunUntil ? 0f : now < _slowUntil ? _slowFactor : 1f;
+            if (Mathf.Approximately(s, _statusSpeed)) return;
+            _statusSpeed = s;
+            ApplyAgentSpeed();
+        }
+
         private void UpdateKnockback()
         {
             if (_knockbackVelocity.sqrMagnitude < 0.0001f) return;
@@ -379,6 +418,7 @@ namespace BlobSurvivor.Entities.Enemies
             if (UsesSteering && _hasSteerTarget)
                 ApplySteeringMovement();
 
+            UpdateStatus();
             UpdateKnockback();
             if (UsesSteering)
                 transform.position = MapBounds.Clamp(transform.position, _agent != null ? _agent.radius : 0.5f);
@@ -473,7 +513,7 @@ namespace BlobSurvivor.Entities.Enemies
             if (moveDir.sqrMagnitude < 0.0001f) return;
             moveDir.Normalize();
 
-            float speed = _data.MoveSpeed * _speedMultiplier * _catchUpMultiplier;
+            float speed = _data.MoveSpeed * _speedMultiplier * _catchUpMultiplier * _statusSpeed;
             _steeringVelocity = moveDir * speed;
             Vector3 step = ClampStepAgainstEnvironment(_steeringVelocity * Time.deltaTime);
             transform.position += step;
@@ -565,7 +605,7 @@ namespace BlobSurvivor.Entities.Enemies
 
         private void ApplyAgentSpeed()
         {
-            if (_agent != null && _data != null) _agent.speed = _data.MoveSpeed * _speedMultiplier * _catchUpMultiplier;
+            if (_agent != null && _data != null) _agent.speed = _data.MoveSpeed * _speedMultiplier * _catchUpMultiplier * _statusSpeed;
         }
 
         public void ChangeState(IEnemyState newState)
@@ -647,6 +687,7 @@ namespace BlobSurvivor.Entities.Enemies
 
         public void PerformAttack()
         {
+            if (IsStunned) return; // sersemken vurmaz
             PlayLunge(MeleeLungeDistance, MeleeLungePitch);
             _blobHealth?.TakeDamage(_data.Damage * _damageMultiplier);
         }
@@ -712,7 +753,7 @@ namespace BlobSurvivor.Entities.Enemies
         {
             // Havuz atış anında veriden çözülür: boss'larda veri spawn'dan SONRA SetData ile gelir,
             // OnEnable'daki ısınma prefab'ın eski verisine bakar (yanlış/eksik havuz). Sözlük araması, sadece atışta.
-            if (_data.ProjectilePrefab == null || PoolManager.Instance == null) return;
+            if (_data.ProjectilePrefab == null || PoolManager.Instance == null || IsStunned) return;
             _projectilePool = PoolManager.Instance.CreatePool(_data.ProjectilePrefab, InitialProjectilePoolSize);
 
             PlayLunge(RecoilDistance, RecoilPitch);

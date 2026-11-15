@@ -13,21 +13,18 @@ MonoBehaviour:
   m_Name: Upgrade_Weapon
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
   _id: weapon
-  _displayName: "Silah G\xFCc\xFC"
-  _description: "Silah\u0131n\u0131 g\xFC\xE7lendir derim."
+  _displayName: Sopa
+  _description: "Vuru\u015F hasar\u0131 +5, menzil +0.5."
   _icon: {fileID: 0}
-  _category: 3
+  _kind: 0
   _weight: 10
   _effect: {fileID: 11400000, guid: 7b9e904a57210460688f9d50741701d3, type: 2}
-  _maxLevel: 8
+  _maxLevel: 5
   _perLevelValue: 2
   _levelDescriptions:
   - "Vuru\u015F hasar\u0131 +5, menzil +0.5."
-  - "Vuru\u015F hasar\u0131 +5, menzil +0.5."
-  - "Arkaya da vurur."
-  - "Vuru\u015F hasar\u0131 +5, menzil +0.5."
-  - "Vuru\u015F yay\u0131 180\xB0'ye geni\u015Fler."
-  - "Vuru\u015F hasar\u0131 +5, menzil +0.5."
+  - Arkaya da vurur.
+  - "Vuru\u015F yay\u0131 180\xB0, hasar +5."
   - "Vuru\u015F h\u0131z\u0131 %30 artar."
   - "SON FORM: tam tur vuru\u015F (360\xB0), hasar \xD71.5."
   _isEvolution: 0

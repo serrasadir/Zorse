@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a39f692a12e49499b3cddabf07df41, type: 3}
+  m_Name: Upgrade_Tetikci
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
+  _id: tetikci
+  _displayName: "Tetik\xE7i"
+  _description: "Sopa ve Havai Fi\u015Fek %8 daha s\u0131k, Yer Sars\u0131nt\u0131s\u0131
+    daha az darbede dolar."
+  _icon: {fileID: 0}
+  _kind: 1
+  _weight: 10
+  _effect: {fileID: 11400000, guid: bcf9bc19a89fba1468db40a9b6d985a1, type: 2}
+  _maxLevel: 5
+  _perLevelValue: 0
+  _levelDescriptions:
+  - "Sopa ve Havai Fi\u015Fek %8 daha s\u0131k, Yer Sars\u0131nt\u0131s\u0131 daha
+    az darbede dolar."
+  - "Bekleme \u2212%16."
+  - "Her 5. at\u0131\u015F hemen tekrarlan\u0131r."
+  - "Bekleme \u2212%24."
+  - "Her \xF6ld\xFCrmede bekleme 0.2 sn k\u0131sal\u0131r."
+  _isEvolution: 0

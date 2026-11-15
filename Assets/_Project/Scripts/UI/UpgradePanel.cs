@@ -9,7 +9,7 @@ using BlobSurvivor.Entities.Weapons;
 namespace BlobSurvivor.UI
 {
     // Seviye atlama (3 karttan 1). HUD diliyle: koyu yarı saydam kartlar, kalın beyaz ad, sağ üstte rozet
-    // (YENİ / Sv. x/8), altında seviyeye özel açıklama; evrim kartı altın. Kartlar sırayla belirir; oyun sırasında
+    // (YENİ / Sv. x/5) ve altında tür (AKTİF / PASİF / NADİR), altında seviyeye özel açıklama; evrim kartı altın. Kartlar sırayla belirir; oyun sırasında
     // sürüklerken yanlışlıkla seçilmesin diye ilk InputDelay boyunca dokunmaya kapalı. Timescale 0: ölçeksiz zaman.
     // Düzen çalışma zamanında bir kez kurulur (sahnedeki buton/yazılar yeniden biçimlenir).
     public class UpgradePanel : MonoBehaviour
@@ -22,6 +22,10 @@ namespace BlobSurvivor.UI
         private static readonly Color Backdrop = new Color(0.05f, 0.05f, 0.17f, 0.72f);
         private static readonly Color CardColor = new Color(0.05f, 0.05f, 0.17f, 0.88f);
         private static readonly Color EvolutionCard = new Color(0.24f, 0.17f, 0.03f, 0.92f);
+        private static readonly Color RareCard = new Color(0.26f, 0.06f, 0.16f, 0.92f);
+        private static readonly Color ActiveTag = new Color(1f, 0.6f, 0.3f, 1f);
+        private static readonly Color PassiveTag = new Color(0.55f, 0.8f, 1f, 1f);
+        private static readonly Color RareTag = new Color(1f, 0.45f, 0.65f, 1f);
         private static readonly Color Gold = new Color(1f, 0.82f, 0.25f, 1f);
         private static readonly Color Subtle = new Color(1f, 1f, 1f, 0.8f);
         private static readonly Color NewBadge = new Color(0.35f, 0.75f, 0.4f, 1f);
@@ -38,6 +42,7 @@ namespace BlobSurvivor.UI
         private CanvasGroup[] _cardGroups;
         private Image[] _badges;
         private TMP_Text[] _badgeTexts;
+        private TMP_Text[] _kindTexts;
         private float _shownAt = -1f;
 
         private void OnEnable()
@@ -88,7 +93,10 @@ namespace BlobSurvivor.UI
                 if (_upgradeDescTexts != null && i < _upgradeDescTexts.Length && _upgradeDescTexts[i] != null)
                     _upgradeDescTexts[i].text = DescriptionFor(data);
 
-                if (_cardImages[i] != null) _cardImages[i].color = evo ? EvolutionCard : CardColor;
+                bool rare = data.Kind == SkillKind.Rare;
+                if (_cardImages[i] != null) _cardImages[i].color = evo ? EvolutionCard : rare ? RareCard : CardColor;
+                _kindTexts[i].text = evo ? "" : rare ? "NADİR" : data.Kind == SkillKind.Active ? "AKTİF" : "PASİF";
+                _kindTexts[i].color = rare ? RareTag : data.Kind == SkillKind.Active ? ActiveTag : PassiveTag;
                 // 2026-11-03: yeni skill mi, yükseltme mi — seçilince ulaşacağı seviye.
                 _badgeTexts[i].text = evo ? "EVRİM" : current == 0 ? "YENİ" : $"Sv. {current + 1}/{data.MaxLevel}";
                 _badges[i].color = evo ? Gold : current == 0 ? NewBadge : LevelBadge;
@@ -176,6 +184,7 @@ namespace BlobSurvivor.UI
             _cardGroups = new CanvasGroup[n];
             _badges = new Image[n];
             _badgeTexts = new TMP_Text[n];
+            _kindTexts = new TMP_Text[n];
             for (int i = 0; i < n; i++)
             {
                 Button button = _upgradeButtons[i];
@@ -198,7 +207,7 @@ namespace BlobSurvivor.UI
                     StyleText(_upgradeNameTexts[i], rect, new Vector2(-70f, 92f), new Vector2(720f, 80f), 58f, TextAlignmentOptions.Left, Color.white, true);
                 if (i < _upgradeDescTexts.Length && _upgradeDescTexts[i] != null)
                 {
-                    StyleText(_upgradeDescTexts[i], rect, new Vector2(0f, -38f), new Vector2(840f, 170f), 36f, TextAlignmentOptions.TopLeft, Subtle, false);
+                    StyleText(_upgradeDescTexts[i], rect, new Vector2(0f, -50f), new Vector2(840f, 170f), 36f, TextAlignmentOptions.TopLeft, Subtle, false);
                     _upgradeDescTexts[i].textWrappingMode = TextWrappingModes.Normal;
                 }
 
@@ -207,6 +216,7 @@ namespace BlobSurvivor.UI
                 _badges[i].raycastTarget = false;
                 if (rounded != null) { _badges[i].sprite = rounded; _badges[i].type = Image.Type.Sliced; }
                 _badgeTexts[i] = Label("Text", badge, Vector2.zero, badge.sizeDelta, 30f, TextAlignmentOptions.Center, Color.white);
+                _kindTexts[i] = Label("Kind", rect, new Vector2(330f, 50f), new Vector2(200f, 30f), 26f, TextAlignmentOptions.Center, Color.white);
             }
         }
 

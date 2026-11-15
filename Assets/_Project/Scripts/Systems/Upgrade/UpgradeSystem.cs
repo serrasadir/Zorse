@@ -29,8 +29,17 @@ namespace BlobSurvivor.Systems
         private bool _awaitingChoice;
         private int _pendingLevelUps;
         private CharacterData _character; // favori skill'i daha sık çekilir
-        private int _playerLevel;
-        private readonly HashSet<UpgradeData> _guaranteeUsed = new HashSet<UpgradeData>();
+
+        // Skill sistemi (design/gdd/skill-sistemi.md): aynı anda en fazla 3 aktif + 3 pasif. Tür slotu dolunca
+        // o türden yeni skill çekilmez, sadece eldekilerin seviyesi çıkar. Her şey max ise level-up can yeniler.
+        [Header("Slot kuralı")]
+        [SerializeField] private int _activeSlots = 3;
+        [SerializeField] private int _passiveSlots = 3;
+        [Tooltip("Hepsi max iken level atlayınca yenilenen can (max canın oranı).")]
+        [SerializeField, Range(0f, 1f)] private float _allMaxHealFraction = 0.3f;
+
+        public int ActiveSlots => _activeSlots;
+        public int PassiveSlots => _passiveSlots;
 
         private void Awake()
         {
@@ -77,8 +86,6 @@ namespace BlobSurvivor.Systems
             _dynamicUpgrades.Clear();
             _awaitingChoice = false;
             _pendingLevelUps = 0;
-            _playerLevel = 0;
-            _guaranteeUsed.Clear();
             GrantStartingUpgrade(character);
         }
 
@@ -108,7 +115,6 @@ namespace BlobSurvivor.Systems
             // run bitmiş ekranın üstünde açılıyordu. Run bittiyse (ölüm ya da tamamlandı) level-up yok sayılır.
             GameState state = GameManager.Instance != null ? GameManager.Instance.CurrentState : GameState.Playing;
             if (state == GameState.GameOver || state == GameState.RunComplete) return;
-            _playerLevel = Mathf.Max(_playerLevel, level);
 
             if (_awaitingChoice)
             {
@@ -125,7 +131,13 @@ namespace BlobSurvivor.Systems
             if (_allUpgrades == null || _allUpgrades.Length == 0) return false;
 
             UpgradeData[] choices = SelectUpgrades();
-            if (choices == null || choices.Length == 0) return false; // her şey max — level-up ödülsüz geçer
+            if (choices == null || choices.Length == 0)
+            {
+                // Her şey max (ya da slotlar dolu ve eldekiler max): kart yok, can yenilenir.
+                var health = _blobRoot != null ? _blobRoot.GetComponent<BlobSurvivor.Entities.Blob.BlobHealth>() : null;
+                if (health != null) health.Heal(health.MaxHealth * _allMaxHealFraction);
+                return false;
+            }
 
             _awaitingChoice = true;
             GameEvents.RaiseUpgradeChoicesReady(choices);
@@ -188,53 +200,55 @@ namespace BlobSurvivor.Systems
         private float WeightOf(UpgradeData u) =>
             _character != null && u == _character.FavoredUpgrade ? u.Weight * _character.FavoredWeightMultiplier : u.Weight;
 
+        // Bu türden kaç farklı skill alındı (slot tutanlar).
+        public int OwnedCount(SkillKind kind)
+        {
+            int n = 0;
+            foreach (var pair in _levels)
+                if (pair.Value > 0 && pair.Key != null && pair.Key.UsesSlot && pair.Key.Kind == kind) n++;
+            return n;
+        }
+
+        private bool SlotFull(SkillKind kind) =>
+            kind == SkillKind.Active ? OwnedCount(SkillKind.Active) >= _activeSlots
+            : kind == SkillKind.Passive && OwnedCount(SkillKind.Passive) >= _passiveSlots;
+
+        // Kart havuzuna girebilir mi: max değil, yeni skill ise türünün slotu boş.
+        private bool Offerable(UpgradeData u)
+        {
+            if (u == null) return false;
+            int level = GetLevel(u);
+            if (level >= u.MaxLevel) return false;
+            return level > 0 || !u.UsesSlot || !SlotFull(u.Kind);
+        }
+
         private UpgradeData[] SelectUpgrades()
         {
             var pool = new List<UpgradeData>();
             foreach (var u in _allUpgrades)
-            {
-                if (u != null && GetLevel(u) < u.MaxLevel) pool.Add(u);
-            }
+                if (Offerable(u)) pool.Add(u);
             foreach (var u in _dynamicUpgrades)
-            {
-                if (u != null && GetLevel(u) < u.MaxLevel && !pool.Contains(u)) pool.Add(u);
-            }
+                if (Offerable(u) && !pool.Contains(u)) pool.Add(u);
             if (pool.Count == 0) return null;
 
             int count = Mathf.Min(_choiceCount, pool.Count);
             var selected = new UpgradeData[count];
-            int first = 0;
 
-            // Garantili kart (bir kez): seviyesine gelinmiş, hiç alınmamış.
-            for (int j = 0; j < pool.Count; j++)
-            {
-                UpgradeData u = pool[j];
-                if (u.GuaranteedAtLevel <= 0 || _playerLevel < u.GuaranteedAtLevel) continue;
-                if (GetLevel(u) > 0 || _guaranteeUsed.Contains(u)) continue;
-                _guaranteeUsed.Add(u);
-                selected[0] = u;
-                pool.RemoveAt(j);
-                first = 1;
-                break;
-            }
-
-            for (int i = first; i < count; i++)
+            for (int i = 0; i < count; i++)
             {
                 float total = 0f;
                 foreach (var u in pool) total += WeightOf(u);
 
                 float roll = Random.Range(0f, total);
                 float cumulative = 0f;
+                int pick = pool.Count - 1; // float yuvarlaması: son eleman
                 for (int j = 0; j < pool.Count; j++)
                 {
                     cumulative += WeightOf(pool[j]);
-                    if (roll <= cumulative)
-                    {
-                        selected[i] = pool[j];
-                        pool.RemoveAt(j);
-                        break;
-                    }
+                    if (roll <= cumulative) { pick = j; break; }
                 }
+                selected[i] = pool[pick];
+                pool.RemoveAt(pick);
             }
 
             return selected;

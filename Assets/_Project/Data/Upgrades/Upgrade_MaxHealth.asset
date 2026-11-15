@@ -14,11 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
   _id: health_boost
   _displayName: "Can Art\u0131\u015F\u0131"
-  _description: "Bu kadar yemeye can\u0131n\u0131n daha fazla olmas\u0131n\u0131
-    beklerdin de\u011Fil mi?"
+  _description: Max can +15.
   _icon: {fileID: 0}
-  _category: 0
-  _weight: 4
+  _kind: 1
+  _weight: 10
   _effect: {fileID: 11400000, guid: 84ee39ec89e8e495c958449ce3ee1ea3, type: 2}
-  _maxLevel: 8
-  _perLevelValue: 10
+  _maxLevel: 5
+  _perLevelValue: 0
+  _levelDescriptions:
+  - Max can +15.
+  - Max can +30.
+  - Kalpler %50 daha fazla can verir.
+  - Max can +45.
+  - Max can +60, kalpler 2 kat can verir.
+  _isEvolution: 0

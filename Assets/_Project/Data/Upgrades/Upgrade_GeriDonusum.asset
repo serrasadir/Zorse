@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a39f692a12e49499b3cddabf07df41, type: 3}
+  m_Name: Upgrade_GeriDonusum
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
+  _id: geri_donusum
+  _displayName: "Geri D\xF6n\xFC\u015F\xFCm"
+  _description: "E\u015Fya yedik\xE7e can: lokma ba\u015F\u0131na +1 (yayalar say\u0131lmaz)."
+  _icon: {fileID: 0}
+  _kind: 1
+  _weight: 10
+  _effect: {fileID: 11400000, guid: 196904f5cda1d044c98390d9c6660809, type: 2}
+  _maxLevel: 5
+  _perLevelValue: 0
+  _levelDescriptions:
+  - "E\u015Fya yedik\xE7e can: lokma ba\u015F\u0131na +1 (yayalar say\u0131lmaz)."
+  - "Lokma ba\u015F\u0131na +2 can."
+  - 'HURDACI: araba yutunca +25 can.'
+  - "Lokma ba\u015F\u0131na +3 can."
+  - "Can doluyken fazlas\u0131 20'lik ge\xE7ici kalkan olur."
+  _isEvolution: 0

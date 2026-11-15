@@ -6,8 +6,8 @@ namespace BlobSurvivor.Entities.Blob
     // 2026-11-04 (Serra: "zırh çalışıyor mu emin olamadım, görsel olarak destekleyelim"): Zırh skill'inin görseli
     // ve dikenleri. Kalkan havuzunun kendisi BlobHealth'te; bu bileşen onun event'lerini dinler.
     // - Görsel: blob'un sağ yanında süzülen, yüzü dışa bakan, gidiş yönüyle dönen "sokak eşyası" kalkan. Seviyeyle form değişir, her form yeni bir mekanikle aynı anda gelir:
-    //     Form 0 Sv.1-2 çöp kutusu kapağı · Form 1 Sv.3-5 dikenli girilmez tabelası (dikenler) ·
-    //     Form 2 Sv.6-7 dikenli menhol kapağı (güçlü dikenler) · Form 3 Sv.8 altın menhol (şok dalgası)
+    //     Form 0 Sv.1-2 çöp kutusu kapağı · Form 1 Sv.3 girilmez tabelası · Form 2 Sv.4 menhol kapağı · Form 3 Sv.5 altın menhol
+    //   (Yeni sette Zırh hasar vermez: ArmorEffect dikenleri ve şok dalgasını 0 verir; kod yolu ileride lazım olursa duruyor.)
     //   Modeller: zorse-blender/build_armor_shields.py → Resources/FX/Shield (tek palet materyali).
     //   Kalkan azaldıkça koyulaşır, vuruşta parlar ve şişer, kırılınca dönerek küçülüp kaybolur,
     //   dolmaya başlayınca geri "pop" eder. Kesin değer HUD'daki kalkan barında.

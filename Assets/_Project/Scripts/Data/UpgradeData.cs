@@ -3,6 +3,9 @@ using BlobSurvivor.Systems;
 
 namespace BlobSurvivor.Data
 {
+    // Skill türü (design/gdd/skill-sistemi.md): aktif ve pasif ayrı slotlara girer (3 + 3). Nadir kart slot tutmaz.
+    public enum SkillKind { Active, Passive, Rare }
+
     [CreateAssetMenu(fileName = "UpgradeData", menuName = "BlobSurvivor/Upgrade Data")]
     public class UpgradeData : ScriptableObject
     {
@@ -10,19 +13,16 @@ namespace BlobSurvivor.Data
         [SerializeField] private string _displayName;
         [SerializeField] private string _description;
         [SerializeField] private Sprite _icon;
+        [SerializeField] private SkillKind _kind = SkillKind.Passive;
         [SerializeField] private int _weight = 10;
         [SerializeField] private UpgradeEffect _effect;
 
         [Header("Leveling")]
-        [SerializeField] private int _maxLevel = 8;
+        [SerializeField] private int _maxLevel = 5;
         [SerializeField] private float _perLevelValue;
         [Tooltip("İsteğe bağlı: seviyeye özel kart açıklaması (0. eleman = Sv.1). Boş/eksikse Description gösterilir. " +
                  "{ultimate} yazısı aktif silahın son form açıklamasıyla değiştirilir.")]
         [SerializeField] private string[] _levelDescriptions;
-
-        [Tooltip("0 = yok. Oyuncu bu seviyeye gelince (henüz almadıysa) ilk kart ekranında bir kez garanti çıkar — " +
-                 "ör. Havai Fişek 1. miniboss'tan (Sv.5) önce.")]
-        [SerializeField] private int _guaranteedAtLevel;
 
         [Header("Evrim (B17)")]
         [Tooltip("true ise UpgradePanel bu kartı görsel olarak (★ + altın renk) işaretler — EvolutionSystem tarafından havuza dinamik eklenen çıktı skillerinde kullanılır.")]
@@ -32,12 +32,14 @@ namespace BlobSurvivor.Data
         public string DisplayName => _displayName;
         public string Description => _description;
         public Sprite Icon => _icon;
+        public SkillKind Kind => _kind;
         public int Weight => _weight;
         public UpgradeEffect Effect => _effect;
         public int MaxLevel => _maxLevel;
         public float PerLevelValue => _perLevelValue;
         public bool IsEvolution => _isEvolution;
-        public int GuaranteedAtLevel => _guaranteedAtLevel;
+        // Evrim ve nadir kart slot tutmaz.
+        public bool UsesSlot => !_isEvolution && _kind != SkillKind.Rare;
 
         // Seçilince ulaşılacak seviyenin açıklaması; tanımlı değilse genel açıklama.
         public string GetDescriptionForLevel(int level)
@@ -48,5 +50,16 @@ namespace BlobSurvivor.Data
                 return _levelDescriptions[index];
             return _description;
         }
+
+#if UNITY_EDITOR
+        // Skill Setini Kur menüsü (Editor) için.
+        public void EditorSetup(string id, string displayName, SkillKind kind, int weight, UpgradeEffect effect,
+            int maxLevel, float perLevel, string[] levelDescriptions)
+        {
+            _id = id; _displayName = displayName; _kind = kind; _weight = weight; _effect = effect;
+            _maxLevel = maxLevel; _perLevelValue = perLevel; _levelDescriptions = levelDescriptions;
+            _description = levelDescriptions != null && levelDescriptions.Length > 0 ? levelDescriptions[0] : displayName;
+        }
+#endif
     }
 }

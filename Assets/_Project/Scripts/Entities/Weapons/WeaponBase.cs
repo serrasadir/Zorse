@@ -21,7 +21,7 @@ namespace BlobSurvivor.Entities.Weapons
 
         // Sopa (deneme): ana silah mermi yerine yüzün baktığı yöne yay şeklinde vurur, yaydaki herkese.
         // Vuruş hasarı = _damage × _fireRate × aralık (tek hedefe saniye başı hasar mermiyle aynı kalır).
-        // Silah Gücü: Sv.3 arkaya da vurur · Sv.5 yay 180° · Sv.7 vuruş hızı ×1.3 · Sv.8 tam tur (360°) + hasar ×1.5.
+        // Sopa kartı (WeaponUpgradeEffect): Sv.2 arkaya da vurur · Sv.3 yay 180° · Sv.4 vuruş hızı ×1.3 · Sv.5 tam tur (360°) + hasar ×1.5.
         [Header("Sopa vuruşu")]
         [SerializeField] private bool _swing = true;
         [SerializeField] private float _swingInterval = 1f;
@@ -124,7 +124,7 @@ namespace BlobSurvivor.Entities.Weapons
 
             for (int i = 0; i < count; i++)
                 Fire(_targets[i]);
-            _cooldown = 1f / _fireRate;
+            _cooldown = NextCooldown(1f / _fireRate);
             if (_blobVisual != null) _blobVisual.Recoil(_targets[0].position - transform.position, RecoilStrength);
         }
 
@@ -149,7 +149,7 @@ namespace BlobSurvivor.Entities.Weapons
             float arc = full ? 360f : Pierce > 0 ? _swingWideArc : _swingArc;
             float cosHalf = Mathf.Cos(arc * 0.5f * Mathf.Deg2Rad);
             float range = EffectiveRange;
-            float damage = _damage * _fireRate * SwingInterval * (full ? _swingUltimateDamage : 1f);
+            float damage = _damage * _fireRate * SwingInterval * (full ? _swingUltimateDamage : 1f) * BlobSkills.WeaponDamageScale;
 
             int hitCount = Physics.OverlapCapsuleNonAlloc(origin, origin + Vector3.up * VerticalReach, range, _hits, EnemyLayerMask);
             bool hitFront = false, hitBack = false;
@@ -179,7 +179,7 @@ namespace BlobSurvivor.Entities.Weapons
 
             if (!hitFront && !hitBack) { _cooldown = NoTargetRetry; return; }
 
-            _cooldown = SwingInterval;
+            _cooldown = NextCooldown(SwingInterval);
             float fxRadius = range;
             if (hitFront || back) PlaySwingFx(ref _swingFxFront, "SwingArc_Front", forward, fxRadius, arc, false); // soldan sağa, sopayla aynı
             if (back) PlaySwingFx(ref _swingFxBack, "SwingArc_Back", -forward, fxRadius, arc, false);
@@ -196,6 +196,27 @@ namespace BlobSurvivor.Entities.Weapons
         {
             if (fx == null) fx = SwingArcFx.Create(name); // silah başına tek seferlik
             fx.Play(transform, dir, radius, arc, flip);
+        }
+
+        // Tetikçi: bekleme çarpanı, her N. atışın hemen tekrarı, öldürmede bekleme iadesi (BlobSkills statikleri).
+        private const float RepeatDelay = 0.12f;
+        private int _shotCount;
+
+        private float NextCooldown(float interval)
+        {
+            _shotCount++;
+            int every = BlobSkills.RepeatEvery;
+            if (every > 0 && _shotCount % every == 0) return RepeatDelay;
+            return interval * BlobSkills.CooldownScale;
+        }
+
+        protected virtual void OnEnable() => BlobSurvivor.Core.GameEvents.OnEnemyKilled += HandleEnemyKilled;
+
+        protected virtual void OnDisable() => BlobSurvivor.Core.GameEvents.OnEnemyKilled -= HandleEnemyKilled;
+
+        private void HandleEnemyKilled(BlobSurvivor.Data.EnemyData _)
+        {
+            if (BlobSkills.KillCooldownRefund > 0f) _cooldown -= BlobSkills.KillCooldownRefund;
         }
 
         protected virtual void OnDestroy()
@@ -307,7 +328,7 @@ namespace BlobSurvivor.Entities.Weapons
             Vector3 muzzle = new Vector3(transform.position.x, MuzzleHeight, transform.position.z);
             Projectile projectile = _projectilePool.Get(muzzle, rotation);
             projectile.SetVisualScale(BulletScale());
-            projectile.Launch(_projectilePool, direction, _damage * damageScale, Pierce, UltimateActive);
+            projectile.Launch(_projectilePool, direction, _damage * damageScale * BlobSkills.WeaponDamageScale, Pierce, UltimateActive);
             return projectile;
         }
     }

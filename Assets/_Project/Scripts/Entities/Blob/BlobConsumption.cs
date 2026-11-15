@@ -113,10 +113,13 @@ namespace BlobSurvivor.Entities.Blob
 
             // TryConsumeByBlob düşmanı havuza döndürür; hasar ondan önce okunur.
             float biteDamage = enemy.GetConsumeDamage(effectiveTier);
+            BlobTier foodTier = enemy.Data != null ? enemy.Data.RequiredConsumeTier : effectiveTier;
             if (enemy.TryConsumeByBlob(effectiveTier, out float massReward))
             {
-                _blobGrowth.AddMass(massReward);
+                _blobGrowth.AddMass(massReward * SkillMass(EatKind.Enemy, foodTier));
+                Skills?.OnAte(EatKind.Enemy, foodTier);
                 _blobGrowth.PunchScale();
+                if (Skills != null && Skills.NoBiteDamage) biteDamage = 0f; // Yara Öfkesi Sv.5
                 if (biteDamage > 0f)
                 {
                     // Isırık: hasar (kırmızı parlama + kamera sarsıntısı OnDamaged'dan) + belirgin titreşim.
@@ -134,16 +137,24 @@ namespace BlobSurvivor.Entities.Blob
         public void ConsumeVehicle(float mass, int score, BlobTier tier, Bounds bounds, Color crumbA, Color crumbB)
         {
             if (_blobGrowth == null) return;
-            _blobGrowth.AddMass(mass);
+            _blobGrowth.AddMass(mass * SkillMass(EatKind.Vehicle, tier));
+            Skills?.OnAte(EatKind.Vehicle, tier);
             _blobGrowth.PunchScale(tier);
             _scoreSystem?.AddScore(score);
             _eatEffects.Play(tier, bounds, crumbA, crumbB);
         }
 
+        // Skill kancaları (BlobSkills kendini burada kaydeder; skill yoksa null).
+        public BlobSkills Skills { get; set; }
+
+        private float SkillMass(EatKind kind, BlobTier tier) => Skills != null ? Skills.MassMultiplier(kind, tier) : 1f;
+
         private void Consume(IConsumable consumable, GameObject obj)
         {
             if (_blobGrowth == null) return;
-            _blobGrowth.AddMass(consumable.MassValue);
+            EatKind kind = Skills != null && obj.GetComponent<Pedestrians.PedestrianController>() != null ? EatKind.Pedestrian : EatKind.Object;
+            _blobGrowth.AddMass(consumable.MassValue * SkillMass(kind, consumable.RequiredTier));
+            Skills?.OnAte(kind, consumable.RequiredTier);
             _blobGrowth.PunchScale(consumable.RequiredTier);
 
             _scoreSystem?.AddScore(consumable.Data.ScoreValue);

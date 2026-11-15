@@ -44,6 +44,7 @@ namespace BlobSurvivor.Entities.Blob
         private void OnDestroy()
         {
             if (_fx != null) Destroy(_fx); // restart'ta bileşen silinir (GameManager), efekt de gider
+            RestoreMouth();
         }
 
         // --- Menzil efekti: zeminde menzil boyunca dönen hafif kasırga (iki spiral rüzgar katmanı, içe doğru döner). ---
@@ -174,23 +175,59 @@ namespace BlobSurvivor.Entities.Blob
                 RefreshPulledTargets();
             }
 
-            float step = _pullSpeed * Time.deltaTime;
+            float step = _pullSpeed * PullSpeedMultiplier * Time.deltaTime;
             for (int i = 0; i < _pulledTargets.Count; i++)
             {
                 Transform target = _pulledTargets[i];
                 if (target == null) continue;
                 target.position = Vector3.MoveTowards(target.position, transform.position, step);
             }
+            for (int i = 0; i < _pulledHearts.Count; i++)
+                if (_pulledHearts[i] != null && _pulledHearts[i].isActiveAndEnabled)
+                    _pulledHearts[i].PullToward(transform.position, step);
+        }
+
+        // Vakum seviyeleri (VacuumEffect yazar): Sv.3 Geniş Ağız (yeme alanı büyür), Sv.4 çekme hızı, Sv.5 coin + kalp.
+        public float PullSpeedMultiplier { get; set; } = 1f;
+        public bool PullPickups { get; set; }
+        private readonly List<Loot.HeartPickup> _pulledHearts = new List<Loot.HeartPickup>();
+        private SphereCollider _mouth;
+        private float _mouthBaseRadius;
+
+        public void SetReach(float reach) => Reach = Mathf.Max(Reach, reach);
+
+        public void SetMouthScale(float scale)
+        {
+            if (_mouth == null)
+            {
+                foreach (SphereCollider c in GetComponents<SphereCollider>())
+                    if (c.isTrigger) { _mouth = c; _mouthBaseRadius = c.radius; break; }
+                if (_mouth == null) return;
+            }
+            _mouth.radius = _mouthBaseRadius * scale;
+        }
+
+        private void RestoreMouth()
+        {
+            if (_mouth != null) _mouth.radius = _mouthBaseRadius;
         }
 
         private void RefreshPulledTargets()
         {
             _pulledTargets.Clear();
+            _pulledHearts.Clear();
 
             int count = Physics.OverlapSphereNonAlloc(transform.position, EffectiveRadius, _hits, s_consumableMask);
             for (int i = 0; i < count; i++)
             {
                 if (_hits[i].gameObject == gameObject) continue;
+
+                if (PullPickups)
+                {
+                    if (_hits[i].GetComponent<Coins.CoinPickup>() != null) { _pulledTargets.Add(_hits[i].transform); continue; }
+                    var heart = _hits[i].GetComponent<Loot.HeartPickup>();
+                    if (heart != null) { _pulledHearts.Add(heart); continue; }
+                }
 
                 var consumable = _hits[i].GetComponent<IConsumable>();
                 if (consumable == null || !consumable.IsVacuumable) continue;

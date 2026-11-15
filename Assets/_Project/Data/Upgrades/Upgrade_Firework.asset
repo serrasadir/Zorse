@@ -13,20 +13,20 @@ MonoBehaviour:
   m_Name: Upgrade_Firework
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
   _id: firework
-  _displayName: "Havai Fişek"
-  _description: "Uzun menzilli ağır atış, her yöne. Önce boss'a, sonra elit polise nişan alır."
+  _displayName: "Havai Fi\u015Fek"
+  _description: "Uzaktaki hedefe a\u011F\u0131r roket: 2 sn'de bir, 25 hasar. \xD6nce
+    boss ve elit."
   _icon: {fileID: 0}
-  _category: 3
+  _kind: 0
   _weight: 10
   _effect: {fileID: 11400000, guid: 4b6f5e91380841d3ae34b407d156aa34, type: 2}
-  _maxLevel: 6
+  _maxLevel: 5
   _perLevelValue: 8
   _levelDescriptions:
-  - "En güçlü düşmana uzun menzilli ağır atış (25 hasar), her yöne. Önce boss, sonra elit."
-  - "Havai Fişek hasarı +8."
-  - "Havai Fişek atış hızı %30 artar."
-  - "Havai Fişek hasarı +8."
-  - "Boss ve elit polise %50 fazla hasar."
-  - "SON FORM: her atış art arda 2 roket."
-  _guaranteedAtLevel: 4
+  - "Uzaktaki hedefe a\u011F\u0131r roket: 2 sn'de bir, 25 hasar. \xD6nce boss ve
+    elit."
+  - "Roket hasar\u0131 +8."
+  - "At\u0131\u015F h\u0131z\u0131 %30 artar."
+  - "Boss ve elite \xD71.5 hasar, roket hasar\u0131 +8."
+  - "SON FORM: her at\u0131\u015Fta 2 roket."
   _isEvolution: 0

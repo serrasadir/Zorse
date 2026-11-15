@@ -4,8 +4,8 @@ using BlobSurvivor.Entities.Weapons;
 
 namespace BlobSurvivor.Systems
 {
-    // Havai Fişek skill'i. Sv.1 silahı kurar; sonra kilometre taşları (kart metinleri Upgrade_FireworkWeapon.asset'te):
-    //   Sv.2/4 +hasar (PerLevelValue) · Sv.3 atış hızı · Sv.5 boss/elit ek hasar · Sv.6 son form: çift atış
+    // Havai Fişek (aktif). Sv.1 silahı kurar (2 sn de 1 roket, 25 hasar); sonra (kart metinleri Upgrade_Firework.asset):
+    //   Sv.2 +hasar (PerLevelValue) · Sv.3 atış hızı ×1.3 · Sv.4 boss/elit ×1.5 + hasar · Sv.5 son form: çift atış
     [CreateAssetMenu(fileName = "FireworkEffect", menuName = "BlobSurvivor/Effects/Heavy Weapon")]
     public class FireworkEffect : UpgradeEffect
     {
@@ -17,9 +17,9 @@ namespace BlobSurvivor.Systems
         [Header("Kilometre taşları")]
         [SerializeField] private int _fireRateLevel = 3;
         [SerializeField] private float _fireRateFactor = 1.3f;
-        [SerializeField] private int _priorityDamageLevel = 5;
+        [SerializeField] private int _priorityDamageLevel = 4;
         [SerializeField] private float _priorityDamageScale = 1.5f;
-        [SerializeField] private int _burstLevel = 6;
+        [SerializeField] private int _burstLevel = 5;
         [SerializeField] private int _burstCount = 2;
 
         public override void Apply(GameObject blobRoot, UpgradeData data)
@@ -37,7 +37,7 @@ namespace BlobSurvivor.Systems
             }
 
             if (level == _fireRateLevel) weapon.MultiplyFireRate(_fireRateFactor);
-            else if (level == _priorityDamageLevel) weapon.SetPriorityDamageScale(_priorityDamageScale);
+            else if (level == _priorityDamageLevel) { weapon.SetPriorityDamageScale(_priorityDamageScale); weapon.IncreaseDamage(data.PerLevelValue); }
             else if (level == _burstLevel) weapon.SetBurst(_burstCount);
             else if (level > 1) weapon.IncreaseDamage(data.PerLevelValue);
 

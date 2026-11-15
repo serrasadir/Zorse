@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a39f692a12e49499b3cddabf07df41, type: 3}
+  m_Name: Upgrade_KayganZemin
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
+  _id: kaygan_zemin
+  _displayName: Kaygan Zemin
+  _description: "Arkanda kaygan iz: i\xE7indeki d\xFC\u015Fmanlar %30 yava\u015Flar."
+  _icon: {fileID: 0}
+  _kind: 0
+  _weight: 10
+  _effect: {fileID: 11400000, guid: 77f43dc887f9ec74ca9ff7a8b2e7e39d, type: 2}
+  _maxLevel: 5
+  _perLevelValue: 0
+  _levelDescriptions:
+  - "Arkanda kaygan iz: i\xE7indeki d\xFC\u015Fmanlar %30 yava\u015Flar."
+  - "\u0130z daha uzun kal\u0131r (3 sn)."
+  - "Robot k\xF6pekler izde kayar."
+  - "\u0130zdekiler %50 yava\u015Flar."
+  - "AS\u0130T \u0130Z: yutamad\u0131klar\u0131na saniyede 5 hasar."
+  _isEvolution: 0
