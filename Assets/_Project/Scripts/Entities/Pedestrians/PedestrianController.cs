@@ -51,6 +51,11 @@ namespace BlobSurvivor.Entities.Pedestrians
 
         private MeshFilter _modelFilter;
 
+        // Bizden küçük blob çarpınca tekme: blob'a döner, geriye yaslanıp öne savrulur, kısa durur.
+        private const float KickDuration = 0.4f;
+        private float _kickTime = -1f;
+        private Vector3 _kickToward;
+
         private PedestrianData PedData => Data as PedestrianData;
 
         // 2026-09-06 (Serra): yayalar dünyayı canlandıran arka plan NPC'leri — Vakum'un onları
@@ -69,6 +74,7 @@ namespace BlobSurvivor.Entities.Pedestrians
             _stuckTimer = StuckCheckInterval;
             _stuckCheckPos = transform.position;
             _retryPickAt = 0f;
+            _kickTime = -1f;
 
             if (_blobTransform == null)
             {
@@ -103,9 +109,42 @@ namespace BlobSurvivor.Entities.Pedestrians
                 _avoidanceCached = ComputeAvoidance();
             }
 
+            if (_kickTime >= 0f)
+            {
+                UpdateKick();
+                return;
+            }
+
             Move();
             ApplyBob();
             CheckStuck();
+        }
+
+        public void PlayKick(Vector3 blobPosition)
+        {
+            _kickToward = blobPosition - transform.position;
+            _kickToward.y = 0f;
+            if (_kickToward.sqrMagnitude < 0.0001f) _kickToward = transform.forward;
+            _kickTime = 0f;
+        }
+
+        private void UpdateKick()
+        {
+            _kickTime += Time.deltaTime;
+            float t = _kickTime / KickDuration;
+            Quaternion face = Quaternion.LookRotation(_kickToward.normalized);
+            if (t >= 1f)
+            {
+                _kickTime = -1f;
+                transform.rotation = face;
+                _stuckTimer = StuckCheckInterval;
+                _stuckCheckPos = transform.position;
+                return;
+            }
+            // Önce geriye yaslanır (ayak kalkar), sonra öne savrulur, dik duruşa döner.
+            float lean = t < 0.35f ? -35f * (t / 0.35f) : Mathf.Lerp(-35f, 20f, Mathf.Sin((t - 0.35f) / 0.65f * Mathf.PI));
+            if (t > 0.75f) lean *= 1f - (t - 0.75f) / 0.25f;
+            transform.rotation = face * Quaternion.Euler(lean, 0f, 0f);
         }
 
         // Görsel çeşitlilik: PedestrianData.VariantMeshes'ten rastgele biri (havuzdan her çıkışta yeniden).

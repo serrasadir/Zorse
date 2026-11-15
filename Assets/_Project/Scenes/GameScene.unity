@@ -51170,7 +51170,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 80
+  field of view: 45
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -51196,13 +51196,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 998712585}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.5, y: 0, z: 0, w: 0.8660254}
-  m_LocalPosition: {x: -0.41, y: 15, z: -6}
+  m_LocalRotation: {x: 0.53729963, y: 0, z: 0, w: 0.8433915}
+  m_LocalPosition: {x: 0, y: 12, z: -7.98}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 60, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 65, y: 0, z: 0}
 --- !u!114 &998712589
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -51261,8 +51261,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Core.CameraController
   _target: {fileID: 276010515}
   _followSmoothing: 5
-  _baseHeight: 12
-  _baseTilt: 64.98
+  _baseHeight: 23
+  _baseTilt: 60
+  _fieldOfView: 45
   _zoomExponent: 0.35
   _maxHeightMultiplier: 4
   _zoomSmoothing: 1.5

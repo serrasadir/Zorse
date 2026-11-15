@@ -14,6 +14,9 @@ namespace BlobSurvivor.Core
         [Header("Height & Angle")]
         [SerializeField] private float _baseHeight = 15f;
         [SerializeField] private float _baseTilt = 60f;
+        // Dar FOV + uzak kamera = daha az perspektif bozulması (Hole.io gibi minyatür şehir görünümü).
+        // FOV düşürülürse aynı alanı görmek için Base Height da artırılmalı (80°→45°: yükseklik ~2 kat).
+        [SerializeField, Range(20f, 90f)] private float _fieldOfView = 80f;
 
         // 2026-11-03 (Serra: "bir süre sonra kamera tamamen blob'u kapsıyor"): kamera blob büyüdükçe uzaklaşır,
         // ama büyümeden YAVAŞ — blob ekranda yine de büyür, büyüme hissi korunur. Yükseklik çarpanı
@@ -49,6 +52,12 @@ namespace BlobSurvivor.Core
         [SerializeField] private Vector2 _minBounds;
         [SerializeField] private Vector2 _maxBounds;
 
+        // Gölge mesafesi (URP asset) bu kamera uzaklığına göre ayarlanmıştı (yükseklik 12, eğim 65°).
+        private const float ShadowReferenceDistance = 13.24f;
+        private const float ReferenceFov = 80f; // boss çerçeveleme formülü bu FOV'a göre
+
+        private Camera _camera;
+        private float _punch = 1f, _punchTime = -1f, _punchAmount, _punchDuration;
         private BlobGrowth _growth;
         private BlobHealth _health;
         private float _heightMultiplier = 1f;
@@ -69,6 +78,8 @@ namespace BlobSurvivor.Core
 
         private void Start()
         {
+            _camera = GetComponent<Camera>();
+            ApplyFov();
             if (_target != null)
             {
                 _growth = _target.GetComponent<BlobGrowth>();
@@ -82,6 +93,30 @@ namespace BlobSurvivor.Core
 
             _urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
             if (_urpAsset != null) _baseShadowDistance = _urpAsset.shadowDistance;
+            UpdateShadowDistance();
+        }
+
+        private void OnValidate()
+        {
+            if (Application.isPlaying) ApplyFov();
+        }
+
+        private void ApplyFov()
+        {
+            if (_camera == null) _camera = GetComponent<Camera>();
+            if (_camera != null) _camera.fieldOfView = _fieldOfView;
+        }
+
+        // Aynı yer alanını kadraja almak için dar FOV'da kaç kat uzak durmak gerekir.
+        private float FovDistanceFactor =>
+            Mathf.Tan(ReferenceFov * 0.5f * Mathf.Deg2Rad) / Mathf.Tan(_fieldOfView * 0.5f * Mathf.Deg2Rad);
+
+        // Gölge mesafesi kameradan ölçülür: kamera referanstan ne kadar uzaksa o kadar artır ki blob'un çevresinde gölge kalsın.
+        private void UpdateShadowDistance()
+        {
+            if (_urpAsset == null || _baseShadowDistance < 0f) return;
+            float distance = _heightMultiplier * _baseHeight / Mathf.Sin(_baseTilt * Mathf.Deg2Rad);
+            _urpAsset.shadowDistance = _baseShadowDistance + Mathf.Max(0f, distance - ShadowReferenceDistance);
         }
 
         private void OnDestroy()
@@ -119,10 +154,30 @@ namespace BlobSurvivor.Core
             Vector3 focus = intro ? Vector3.Lerp(_target.position, boss.BodyCenter, _bossFocusWeight) : _target.position;
 
             UpdateZoom(intro ? boss : null);
+            _punch = UpdatePunch();
 
             Vector3 desiredPos = CalculatePosition(focus);
             _followPosition = Vector3.Lerp(_followPosition, desiredPos, Time.deltaTime * _followSmoothing);
             transform.position = _followPosition + ShakeOffset();
+        }
+
+        // Kısa yakınlaşıp geri uzaklaşma (yaya tekmesi vb. anı vurgulamak için). amount 0.2 = %20 yaklaş.
+        public void PunchZoom(float amount, float duration)
+        {
+            _punchAmount = amount;
+            _punchDuration = Mathf.Max(0.05f, duration);
+            _punchTime = 0f;
+        }
+
+        private float UpdatePunch()
+        {
+            if (_punchTime < 0f) return 1f;
+            _punchTime += Time.deltaTime;
+            float t = _punchTime / _punchDuration;
+            if (t >= 1f) { _punchTime = -1f; return 1f; }
+            // Hızlı yaklaş, yavaşça geri çekil.
+            float k = t < 0.2f ? Mathf.SmoothStep(0f, 1f, t / 0.2f) : 1f - Mathf.SmoothStep(0f, 1f, (t - 0.2f) / 0.8f);
+            return 1f - _punchAmount * k;
         }
 
         // Hasar ve büyük lokmalar (EatEffects) çağırır; süren sarsıntıdan güçlüyse onu ezer.
@@ -170,7 +225,7 @@ namespace BlobSurvivor.Core
                 flat.y = 0f;
                 // Helikopterin irtifası + aralarındaki mesafe + pay kadar yükseklik; kamera helikopterin altına düşmesin.
                 // Boss gelince en az _bossZoomBoost kat uzaklaşır ("bir anda" hissi), üst sınır blob zoom'unu kısmaz.
-                float needed = Mathf.Max(target * _bossZoomBoost, (bossPos.y + flat.magnitude + _bossFramingPadding) / _baseHeight);
+                float needed = Mathf.Max(target * _bossZoomBoost, (bossPos.y + flat.magnitude + _bossFramingPadding) * FovDistanceFactor / _baseHeight);
                 target = Mathf.Min(Mathf.Max(_bossMaxHeightMultiplier, target), needed);
                 smoothing = _bossFramingSmoothing;
                 _heldBossZoom = Mathf.Max(_heldBossZoom, _heightMultiplier);
@@ -188,16 +243,12 @@ namespace BlobSurvivor.Core
             _heightMultiplier = Mathf.Lerp(_heightMultiplier, target, dt * smoothing);
 
             // Gölge mesafesi sadece belirgin değişimde güncellenir (asset property'si, her kare dokunmaya gerek yok).
-            if (_urpAsset != null && _baseShadowDistance >= 0f && Mathf.Abs(_heightMultiplier - previous) > 0.001f)
-            {
-                float extraDistance = (_heightMultiplier - 1f) * _baseHeight / Mathf.Sin(_baseTilt * Mathf.Deg2Rad);
-                _urpAsset.shadowDistance = _baseShadowDistance + extraDistance;
-            }
+            if (Mathf.Abs(_heightMultiplier - previous) > 0.001f) UpdateShadowDistance();
         }
 
         private Vector3 CalculatePosition(Vector3 targetPos)
         {
-            float height = _baseHeight * _heightMultiplier;
+            float height = _baseHeight * _heightMultiplier * _punch;
             float tiltRad = _baseTilt * Mathf.Deg2Rad;
             float zOffset = -height / Mathf.Tan(tiltRad);
 

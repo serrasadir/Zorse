@@ -98,8 +98,10 @@ namespace BlobSurvivor.UI
                 _kindTexts[i].text = evo ? "" : rare ? "NADİR" : data.Kind == SkillKind.Active ? "AKTİF" : "PASİF";
                 _kindTexts[i].color = rare ? RareTag : data.Kind == SkillKind.Active ? ActiveTag : PassiveTag;
                 // 2026-11-03: yeni skill mi, yükseltme mi — seçilince ulaşacağı seviye.
-                _badgeTexts[i].text = evo ? "EVRİM" : current == 0 ? "YENİ" : $"Sv. {current + 1}/{data.MaxLevel}";
-                _badges[i].color = evo ? Gold : current == 0 ? NewBadge : LevelBadge;
+                // Sopa herkeste baştan var (temel silah): kartı "YENİ" değil yükseltme olarak gösterilir.
+                bool isNew = current == 0 && !(data.Effect is BlobSurvivor.Systems.WeaponUpgradeEffect);
+                _badgeTexts[i].text = evo ? "EVRİM" : isNew ? "YENİ" : $"Sv. {current + 1}/{data.MaxLevel}";
+                _badges[i].color = evo ? Gold : isNew ? NewBadge : LevelBadge;
                 _badgeTexts[i].color = evo ? new Color(0.12f, 0.08f, 0.02f, 1f) : Color.white;
                 _upgradeButtons[i].interactable = false; // InputDelay sonra açılır
             }

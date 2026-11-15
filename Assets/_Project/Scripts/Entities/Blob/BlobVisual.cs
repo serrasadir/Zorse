@@ -26,6 +26,12 @@ namespace BlobSurvivor.Entities.Blob
         private const float RecoilDistance = 0.09f; // kök ölçeğinde: çapın ~%9'u
         private Vector3 _recoilOffset;
         private float _lift;                         // şu anki yükseklik (Lift'e yumuşakça gider)
+        // Tekmelenince itilme yönünde takla atar (gövde ortası etrafında; model pivotu tabanda olabilir).
+        private float _tumbleTime = -1f, _tumbleDuration, _tumbleTurns;
+        private Vector3 _tumbleAxis;
+        private Vector3 _centerLocal;                // görünüm pivotundan gövde ortasına (kök-yerel)
+        private const int TumbleBounces = 3;
+        private const float TumbleBounceHeight = 1.4f;
 
         // Görünümü kök-yerel yukarı kaldırır (Hız skili kaykayı: tekerlekler yere bassın). Sadece görsel; collider aynı.
         public float Lift { get; set; }
@@ -61,6 +67,7 @@ namespace BlobSurvivor.Entities.Blob
             _gulpTime = -1f;
             _recoilTime = -1f;
             _recoilOffset = Vector3.zero;
+            _tumbleTime = -1f;
             Lift = _lift = 0f;
 
             ModelRenderer = null;
@@ -81,6 +88,9 @@ namespace BlobSurvivor.Entities.Blob
             if (_defaultRenderer != null) _defaultRenderer.enabled = false;
             ModelRenderer = instance.GetComponentInChildren<Renderer>();
             _flash?.SetRenderer(ModelRenderer);
+            _centerLocal = ModelRenderer != null
+                ? Vector3.up * transform.InverseTransformPoint(ModelRenderer.bounds.center).y
+                : Vector3.zero;
         }
 
         private void LateUpdate()
@@ -116,7 +126,41 @@ namespace BlobSurvivor.Entities.Blob
             UpdateGulp(dt);
             UpdateRecoil(dt);
             _lift = Mathf.MoveTowards(_lift, Lift, dt * 1.2f);
-            _visual.localPosition = _recoilOffset + Vector3.up * _lift;
+            _visual.localPosition = _recoilOffset + Vector3.up * _lift + UpdateTumble(dt);
+        }
+
+        // turns: kaç tam takla. Yön dünya uzayında (yatay).
+        public void Tumble(Vector3 direction, float turns, float duration)
+        {
+            if (_visual == null) return;
+            direction.y = 0f;
+            if (direction.sqrMagnitude < 0.0001f) return;
+            _tumbleAxis = Vector3.Cross(Vector3.up, direction.normalized);
+            _tumbleTurns = turns;
+            _tumbleDuration = Mathf.Max(0.05f, duration);
+            _tumbleTime = 0f;
+        }
+
+        // Taklayı uygular; gövde ortası yerinde kalsın diye gereken pozisyon kaymasını döner.
+        private Vector3 UpdateTumble(float dt)
+        {
+            if (_tumbleTime < 0f) return Vector3.zero;
+            _tumbleTime += dt;
+            float t = _tumbleTime / _tumbleDuration;
+            if (t >= 1f)
+            {
+                _tumbleTime = -1f;
+                return Vector3.zero;
+            }
+            float eased = 1f - (1f - t) * (1f - t); // hızlı başlar, yavaşlayarak durur
+            Quaternion roll = Quaternion.AngleAxis(eased * 360f * _tumbleTurns, _tumbleAxis);
+            _visual.rotation = roll * _facing;
+            Vector3 c = transform.rotation * _centerLocal;
+            // Seke seke: her sekme bir öncekinin yarısı yükseklikte (kök-yerel; 0.5 = gövde yarıçapı).
+            float phase = t * TumbleBounces;
+            int bounce = Mathf.Min((int)phase, TumbleBounces - 1);
+            float hop = Mathf.Sin((phase - bounce) * Mathf.PI) * TumbleBounceHeight * Mathf.Pow(0.5f, bounce);
+            return transform.InverseTransformVector(c - roll * c) + Vector3.up * hop;
         }
 
         // Silah ateşlenince görünüm ateş yönünün tersine kısa bir tepme yapar (sadece görsel child).
