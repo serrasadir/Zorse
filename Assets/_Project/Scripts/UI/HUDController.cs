@@ -239,14 +239,32 @@ namespace BlobSurvivor.UI
 
         private void OnScoreChanged(int score)
         {
-            if (_scoreText != null)
-                _scoreText.text = score.ToString("N0");
+            if (_scoreText == null) return;
+            _scoreText.text = score.ToString("N0");
+            if (_scoreText.text.Length != _scoreLength) { _scoreLength = _scoreText.text.Length; FitScorePanel(); }
         }
 
         private void OnCoinsChanged(int coins)
         {
-            if (_coinText != null)
-                _coinText.text = $"{coins:N0} coin";
+            if (_coinText == null) return;
+            _coinText.text = $"{coins:N0} coin";
+            if (_coinText.text.Length != _coinLength) { _coinLength = _coinText.text.Length; FitScorePanel(); }
+        }
+
+        // Skor/coin kutusu metne göre genişler (sağ kenar sabit); yalnız hane sayısı değişince ölçülür.
+        private const float ScorePanelMinWidth = 240f, ScorePanelPadding = 16f;
+        private RectTransform _scorePanel;
+        private int _scoreLength = -1, _coinLength = -1;
+
+        private void FitScorePanel()
+        {
+            if (_scorePanel == null) return;
+            float width = 0f;
+            if (_scoreText != null) width = Mathf.Max(width, _scoreText.preferredWidth);
+            if (_coinText != null) width = Mathf.Max(width, _coinText.preferredWidth);
+            Vector2 size = _scorePanel.sizeDelta;
+            size.x = Mathf.Max(ScorePanelMinWidth, width + ScorePanelPadding * 2f);
+            _scorePanel.sizeDelta = size;
         }
 
         private void OnSurvivalTimeUpdated(float time)
@@ -266,14 +284,12 @@ namespace BlobSurvivor.UI
         private void OnTierChanged(BlobTier tier)
         {
             if (_tierText != null)
-                _tierText.text = tier.ToString().ToUpper();
+                _tierText.text = TierNames.Get(tier);
         }
 
         private void OnXPChanged(int xp)
         {
-            if (_xpBar == null) return;
-            if (_blobGrowth == null) _blobGrowth = FindAnyObjectByType<Entities.Blob.BlobGrowth>();
-            if (_blobGrowth == null) return;
+            if (_xpBar == null || _blobGrowth == null) return;
             _xpBar.maxValue = _blobGrowth.XPThreshold;
             _xpBar.value = _blobGrowth.CurrentXP;
         }
@@ -281,7 +297,7 @@ namespace BlobSurvivor.UI
         private void OnLevelUp(int level)
         {
             if (_levelText != null)
-                _levelText.text = $"Lv.{level}";
+                _levelText.SetText("Sv. {0}", level);
         }
 
         private void OnCharacterSelected(CharacterData data)
@@ -296,6 +312,11 @@ namespace BlobSurvivor.UI
                 _blobHealth.OnShieldChanged += OnShieldChanged;
                 OnShieldChanged(_blobHealth.ShieldCurrent, _blobHealth.ShieldMax);
             }
+
+            // Restart sahneyi yüklemez: seviye/tier/XP yazıları yeni run'ın değerleriyle başlar.
+            OnLevelUp(_blobGrowth != null ? _blobGrowth.CurrentLevel : 0);
+            OnTierChanged(GameEvents.CurrentBlobTier);
+            OnXPChanged(0);
         }
 
         // 2026-11-04 (Serra: "HUD çok karışık, ikon/rozet tasarımı yok, kaldıralım. Barlar kalsın"): barlara dokunulmaz;
@@ -303,7 +324,6 @@ namespace BlobSurvivor.UI
         // Hepsi HUD'un altında kalır: lobi HUD'u kapatınca onlar da kapanır.
         private static readonly Color PanelColor = new Color(0.05f, 0.05f, 0.17f, 0.55f);
         private static readonly Color CoinColor = new Color(1f, 0.82f, 0.25f, 1f);
-        private static readonly Color SubtleColor = new Color(1f, 1f, 1f, 0.85f);
         private const float TopOffset = 104f; // haber bandının (y -30, 58 yüksek) altı
         private const float Edge = 24f;
 
@@ -317,21 +337,22 @@ namespace BlobSurvivor.UI
             RectTransform timerPanel = CreatePanel("TimerPanel", layout, new Vector2(0f, 1f), new Vector2(Edge, -TopOffset), new Vector2(190f, 72f));
             PlaceText(_timerText, timerPanel, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 50f, TextAlignmentOptions.Center, Color.white);
 
-            RectTransform scorePanel = CreatePanel("ScorePanel", layout, new Vector2(1f, 1f), new Vector2(-Edge, -TopOffset), new Vector2(240f, 104f));
+            RectTransform scorePanel = CreatePanel("ScorePanel", layout, new Vector2(1f, 1f), new Vector2(-Edge, -TopOffset), new Vector2(ScorePanelMinWidth, 104f));
+            _scorePanel = scorePanel;
             PlaceText(_scoreText, scorePanel, new Vector2(0f, 1f), Vector2.one, new Vector2(16f, -60f), new Vector2(-16f, -6f), 44f,
                 TextAlignmentOptions.Right, Color.white);
             if (_coinText == null) _coinText = CreateText("CoinText", scorePanel, "0 coin");
-            PlaceText(_coinText, scorePanel, Vector2.zero, new Vector2(1f, 0f), new Vector2(16f, 8f), new Vector2(-16f, 44f), 28f,
+            PlaceText(_coinText, scorePanel, Vector2.zero, new Vector2(1f, 0f), new Vector2(16f, 6f), new Vector2(-16f, 46f), 32f,
                 TextAlignmentOptions.Right, CoinColor);
 
             // Seviye XP barının solunda, tier XP barının üstünde: barla birlikte hareket eder.
             RectTransform xp = _xpBar != null ? _xpBar.GetComponent<RectTransform>() : null;
             if (xp != null)
             {
-                PlaceText(_levelText, xp, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(-150f, -14f), new Vector2(-12f, 14f), 30f,
+                PlaceText(_levelText, xp, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(-150f, -18f), new Vector2(-12f, 18f), 32f,
                     TextAlignmentOptions.Right, Color.white);
-                PlaceText(_tierText, xp, new Vector2(0f, 1f), Vector2.one, new Vector2(0f, 4f), new Vector2(0f, 38f), 24f,
-                    TextAlignmentOptions.Right, SubtleColor);
+                PlaceText(_tierText, xp, new Vector2(0f, 1f), Vector2.one, new Vector2(0f, 4f), new Vector2(0f, 44f), 32f,
+                    TextAlignmentOptions.Right, Color.white);
             }
         }
 

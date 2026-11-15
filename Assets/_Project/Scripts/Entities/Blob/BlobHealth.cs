@@ -29,6 +29,7 @@ namespace BlobSurvivor.Entities.Blob
         public float ShieldMax => _shieldMax;
         public event System.Action<float, float> OnShieldChanged; // current, max
         public event System.Action<float> OnShieldHit;            // kalkanın yuttuğu hasar
+        public event System.Action<float> OnBonusShieldHit;       // geçici kalkanın (Geri Dönüşüm) yuttuğu hasar
         public event System.Action OnShieldBroken;
 
         // Geri Dönüşüm Sv.5: can doluyken fazla iyileşme geçici kalkana döner (Zırh'tan önce yer, yenilenmez).
@@ -131,6 +132,7 @@ namespace BlobSurvivor.Entities.Blob
                 float absorbed = Mathf.Min(BonusShield, remainingDamage);
                 BonusShield -= absorbed;
                 remainingDamage -= absorbed;
+                if (absorbed > 0f) OnBonusShieldHit?.Invoke(absorbed);
             }
 
             if (ShieldCurrent > 0f && remainingDamage > 0f)

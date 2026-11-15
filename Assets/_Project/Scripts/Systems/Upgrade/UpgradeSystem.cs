@@ -41,6 +41,41 @@ namespace BlobSurvivor.Systems
         public int ActiveSlots => _activeSlots;
         public int PassiveSlots => _passiveSlots;
 
+        // Slot tutan sahip olunan skill'ler, alım sırasıyla (HUD slot şeridi). Başlangıç skill'i ilk; Sopa Sv.0'da yok.
+        private readonly List<UpgradeData> _ownedActives = new List<UpgradeData>();
+        private readonly List<UpgradeData> _ownedPassives = new List<UpgradeData>();
+        public IReadOnlyList<UpgradeData> OwnedActives => _ownedActives;
+        public IReadOnlyList<UpgradeData> OwnedPassives => _ownedPassives;
+
+        // Seviye yazan tek yer: ilk kez sahip olunan slotlu skill sıralı listeye eklenir.
+        private void SetLevel(UpgradeData data, int level)
+        {
+            _levels[data] = level;
+            if (level <= 0 || !data.UsesSlot) return;
+            List<UpgradeData> list = data.Kind == SkillKind.Active ? _ownedActives : _ownedPassives;
+            if (list.Contains(data)) return;
+            list.Add(data);
+#if UNITY_EDITOR
+            Debug.Log($"[UpgradeSystem] Slotlar: aktif [{Names(_ownedActives)}] pasif [{Names(_ownedPassives)}]");
+#endif
+        }
+
+        private void ClearOwned()
+        {
+            _levels.Clear();
+            _ownedActives.Clear();
+            _ownedPassives.Clear();
+        }
+
+#if UNITY_EDITOR
+        private static string Names(List<UpgradeData> list)
+        {
+            var parts = new string[list.Count];
+            for (int i = 0; i < list.Count; i++) parts[i] = list[i].Abbreviation;
+            return string.Join(", ", parts);
+        }
+#endif
+
         private void Awake()
         {
             Instance = this;
@@ -54,7 +89,7 @@ namespace BlobSurvivor.Systems
         private void Start()
         {
             _blobRoot = GameObject.FindWithTag("Blob");
-            _levels.Clear();
+            ClearOwned();
             _dynamicUpgrades.Clear();
         }
 
@@ -82,7 +117,7 @@ namespace BlobSurvivor.Systems
         private void HandleRestart(CharacterData character)
         {
             _character = character;
-            _levels.Clear();
+            ClearOwned();
             _dynamicUpgrades.Clear();
             _awaitingChoice = false;
             _pendingLevelUps = 0;
@@ -97,7 +132,7 @@ namespace BlobSurvivor.Systems
             int target = Mathf.Min(character.StartingUpgradeLevel, data.MaxLevel);
             for (int level = 1; level <= target; level++)
             {
-                _levels[data] = level;
+                SetLevel(data, level);
                 if (data.Effect != null) data.Effect.Apply(_blobRoot, data);
                 GameEvents.RaiseUpgradeApplied(data, level);
             }
@@ -150,7 +185,7 @@ namespace BlobSurvivor.Systems
             _awaitingChoice = false;
 
             int newLevel = GetLevel(data) + 1;
-            _levels[data] = newLevel;
+            SetLevel(data, newLevel);
 
             if (_blobRoot != null && data.Effect != null)
                 data.Effect.Apply(_blobRoot, data);
@@ -189,7 +224,7 @@ namespace BlobSurvivor.Systems
                 if (u == null || u.Id != id) continue;
                 int level = GetLevel(u);
                 if (level >= u.MaxLevel) return $"{u.DisplayName} zaten max ({level}/{u.MaxLevel}).";
-                _levels[u] = level + 1;
+                SetLevel(u, level + 1);
                 if (_blobRoot != null && u.Effect != null) u.Effect.Apply(_blobRoot, u);
                 GameEvents.RaiseUpgradeApplied(u, level + 1);
                 return $"{u.DisplayName} Sv.{level + 1}/{u.MaxLevel}";

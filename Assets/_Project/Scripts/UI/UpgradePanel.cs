@@ -98,7 +98,7 @@ namespace BlobSurvivor.UI
                 _kindTexts[i].color = rare ? RareTag : data.Kind == SkillKind.Active ? ActiveTag : PassiveTag;
                 // Yeni skill mi, sahip olunan mı: sahip olunanda şu anki seviye (açıklama bir sonrakini anlatır).
                 // Sopa herkeste baştan var (temel silah): Sv.0'da da "YENİ" değil sahip olunan gibi görünür.
-                bool isNew = current == 0 && !(data.Effect is BlobSurvivor.Systems.WeaponUpgradeEffect);
+                bool isNew = current == 0 && !data.IsBaseWeapon;
                 _badgeTexts[i].text = evo ? "EVRİM" : isNew ? "YENİ" : $"Sv. {current}/{data.MaxLevel}";
                 _badges[i].color = evo ? Gold : isNew ? NewBadge : LevelBadge;
                 _badgeTexts[i].color = evo ? new Color(0.12f, 0.08f, 0.02f, 1f) : Color.white;
@@ -171,8 +171,9 @@ namespace BlobSurvivor.UI
             // Eski başlık ("SEVİYE ATLADIN!") gizlenir, yerine gölgeli büyük başlık.
             foreach (Transform c in panel)
                 if (c.GetComponent<Button>() == null) c.gameObject.SetActive(false);
-            Shadowed(panel, new Vector2(0f, 640f), "SEVİYE ATLADIN!", 96f, Gold);
-            var sub = Label("Subtitle", panel, new Vector2(0f, 540f), new Vector2(900f, 60f), 40f, TextAlignmentOptions.Center, Subtle);
+            // Konumlar: seviye-atlama-kartlari.md §5.1 (y 472-630 slot şeridine ayrılı, boş).
+            Shadowed(panel, new Vector2(0f, 775f), "SEVİYE ATLADIN!", 96f, Gold);
+            var sub = Label("Subtitle", panel, new Vector2(0f, 685f), new Vector2(900f, 60f), 40f, TextAlignmentOptions.Center, Subtle);
             sub.text = "Bir güç seç";
             sub.fontStyle = FontStyles.Normal;
 
@@ -188,7 +189,7 @@ namespace BlobSurvivor.UI
                 Button button = _upgradeButtons[i];
                 if (button == null) continue;
                 var rect = (RectTransform)button.transform;
-                Place(rect, panel, new Vector2(0f, 280f - i * 350f), new Vector2(920f, 310f));
+                Place(rect, panel, new Vector2(0f, 270f - i * 372f), new Vector2(920f, 340f));
                 _cards[i] = rect;
                 _cardImages[i] = button.targetGraphic as Image;
                 if (_cardImages[i] != null && rounded != null) { _cardImages[i].sprite = rounded; _cardImages[i].type = Image.Type.Sliced; }
@@ -202,19 +203,26 @@ namespace BlobSurvivor.UI
                 if (_cardGroups[i] == null) _cardGroups[i] = button.gameObject.AddComponent<CanvasGroup>();
 
                 if (i < _upgradeNameTexts.Length && _upgradeNameTexts[i] != null)
-                    StyleText(_upgradeNameTexts[i], rect, new Vector2(-70f, 92f), new Vector2(720f, 80f), 58f, TextAlignmentOptions.Left, Color.white, true);
+                {
+                    StyleText(_upgradeNameTexts[i], rect, new Vector2(-140f, 112f), new Vector2(620f, 80f), 58f, TextAlignmentOptions.Left, Color.white, true);
+                    AutoSize(_upgradeNameTexts[i], 44f, 58f);
+                }
                 if (i < _upgradeDescTexts.Length && _upgradeDescTexts[i] != null)
                 {
-                    StyleText(_upgradeDescTexts[i], rect, new Vector2(0f, -50f), new Vector2(840f, 170f), 36f, TextAlignmentOptions.TopLeft, Subtle, false);
+                    // Kutu en fazla 3 satır alır (32 px'te 4. satır sığmaz); sığmayan son "…" ile kesilir.
+                    StyleText(_upgradeDescTexts[i], rect, new Vector2(0f, -30f), new Vector2(840f, 130f), 36f, TextAlignmentOptions.TopLeft, Subtle, false);
                     _upgradeDescTexts[i].textWrappingMode = TextWrappingModes.Normal;
+                    _upgradeDescTexts[i].overflowMode = TextOverflowModes.Ellipsis;
+                    AutoSize(_upgradeDescTexts[i], 32f, 36f);
                 }
 
-                RectTransform badge = NewRect("Badge", rect, new Vector2(330f, 96f), new Vector2(200f, 60f));
+                RectTransform badge = NewRect("Badge", rect, new Vector2(330f, 114f), new Vector2(220f, 64f));
                 _badges[i] = badge.gameObject.AddComponent<Image>();
                 _badges[i].raycastTarget = false;
                 if (rounded != null) { _badges[i].sprite = rounded; _badges[i].type = Image.Type.Sliced; }
-                _badgeTexts[i] = Label("Text", badge, Vector2.zero, badge.sizeDelta, 30f, TextAlignmentOptions.Center, Color.white);
-                _kindTexts[i] = Label("Kind", rect, new Vector2(330f, 50f), new Vector2(200f, 30f), 26f, TextAlignmentOptions.Center, Color.white);
+                _badgeTexts[i] = Label("Text", badge, Vector2.zero, badge.sizeDelta, 34f, TextAlignmentOptions.Center, Color.white);
+                AutoSize(_badgeTexts[i], 28f, 34f);
+                _kindTexts[i] = Label("Kind", rect, new Vector2(330f, 50f), new Vector2(220f, 40f), 32f, TextAlignmentOptions.Center, Color.white);
             }
         }
 
@@ -252,6 +260,13 @@ namespace BlobSurvivor.UI
             t.textWrappingMode = TextWrappingModes.NoWrap;
             t.overflowMode = TextOverflowModes.Overflow;
             t.raycastTarget = false;
+        }
+
+        private static void AutoSize(TMP_Text t, float min, float max)
+        {
+            t.enableAutoSizing = true;
+            t.fontSizeMin = min;
+            t.fontSizeMax = max;
         }
 
         private static RectTransform NewRect(string name, RectTransform parent, Vector2 pos, Vector2 size)

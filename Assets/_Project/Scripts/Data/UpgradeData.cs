@@ -28,6 +28,13 @@ namespace BlobSurvivor.Data
         [Tooltip("true ise UpgradePanel bu kartı görsel olarak (★ + altın renk) işaretler — EvolutionSystem tarafından havuza dinamik eklenen çıktı skillerinde kullanılır.")]
         [SerializeField] private bool _isEvolution;
 
+        [Header("HUD")]
+        [Tooltip("2 harflik kısaltma (ikon gelene kadar slot şeridinde). Boşsa adın ilk 2 harfi.")]
+        [SerializeField] private string _abbr;
+        [Tooltip("Temel silah (Sopa): Sv.0'da da sahip olunan gibi görünür.")]
+        [SerializeField] private bool _isBaseWeapon;
+        private string _abbrCache;
+
         public string Id => _id;
         public string DisplayName => _displayName;
         public string Description => _description;
@@ -38,6 +45,21 @@ namespace BlobSurvivor.Data
         public int MaxLevel => _maxLevel;
         public float PerLevelValue => _perLevelValue;
         public bool IsEvolution => _isEvolution;
+        public bool IsBaseWeapon => _isBaseWeapon;
+
+        public string Abbreviation
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(_abbr)) return _abbr;
+                if (_abbrCache == null)
+                {
+                    string name = _displayName ?? "";
+                    _abbrCache = (name.Length > 2 ? name.Substring(0, 2) : name).ToUpper(new System.Globalization.CultureInfo("tr-TR"));
+                }
+                return _abbrCache;
+            }
+        }
         // Evrim ve nadir kart slot tutmaz.
         public bool UsesSlot => !_isEvolution && _kind != SkillKind.Rare;
 
@@ -54,11 +76,18 @@ namespace BlobSurvivor.Data
 #if UNITY_EDITOR
         // Skill Setini Kur menüsü (Editor) için.
         public void EditorSetup(string id, string displayName, SkillKind kind, int weight, UpgradeEffect effect,
-            int maxLevel, float perLevel, string[] levelDescriptions)
+            int maxLevel, float perLevel, string[] levelDescriptions, string abbr, bool isBaseWeapon)
         {
+            _abbr = abbr; _isBaseWeapon = isBaseWeapon; _abbrCache = null;
             _id = id; _displayName = displayName; _kind = kind; _weight = weight; _effect = effect;
             _maxLevel = maxLevel; _perLevelValue = perLevel; _levelDescriptions = levelDescriptions;
             _description = levelDescriptions != null && levelDescriptions.Length > 0 ? levelDescriptions[0] : displayName;
+        }
+
+        // Skill seti dışındaki asset'ler (evrim) için: yalnız HUD alanları, diğerleri korunur.
+        public void EditorSetLabel(string abbr, bool isBaseWeapon)
+        {
+            _abbr = abbr; _isBaseWeapon = isBaseWeapon; _abbrCache = null;
         }
 #endif
     }

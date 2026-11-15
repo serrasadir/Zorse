@@ -147,7 +147,7 @@ namespace BlobSurvivor.Entities.Enemies
                 DismissActiveBoss();
             }
 
-            SpawnStage(stages[due]);
+            SpawnStage(stages[due], isFinal);
             _nextStageIndex = due + 1;
         }
 
@@ -159,12 +159,12 @@ namespace BlobSurvivor.Entities.Enemies
 
             DismissActiveBoss();
             BossStage stage = _bossData.Stages[_nextStageIndex];
-            SpawnStage(stage);
+            SpawnStage(stage, _nextStageIndex == _bossData.Stages.Length - 1);
             _nextStageIndex++;
             return $"Aşama {_nextStageIndex}/{_bossData.Stages.Length}: {stage.EnemyData?.DisplayName}";
         }
 
-        private void SpawnStage(BossStage stage)
+        private void SpawnStage(BossStage stage, bool isFinal)
         {
             EnemyData data = stage.EnemyData;
             if (data?.Prefab == null) return;
@@ -186,9 +186,10 @@ namespace BlobSurvivor.Entities.Enemies
             _activeBoss = boss;
             _activeStage = stage;
             _lastReportedHealth = -1f;
+            GameEvents.RaiseBossSpawned(data.HudName, isFinal);
 
 #if UNITY_EDITOR
-            Debug.Log($"[BossSpawner] Spawn: {data.DisplayName} — CurrentHealth={boss.CurrentHealth}, MaxHealth={boss.MaxHealth}");
+            Debug.Log($"[BossSpawner] Spawn ({(isFinal ? "final" : "ara")}, HUD: {data.HudName}): {data.DisplayName} — CurrentHealth={boss.CurrentHealth}, MaxHealth={boss.MaxHealth}");
 #endif
         }
 

@@ -29,6 +29,7 @@ namespace BlobSurvivor.UI
         // 2026-11-04: pause tuşu HUD'un üst satırına, süre kutusunun sağına (HUDController.LayoutHud ile aynı stil/hiza).
         private static readonly Color HudPanelColor = new Color(0.05f, 0.05f, 0.17f, 0.55f);
         private static readonly Color SecondaryColor = new Color(0.16f, 0.16f, 0.3f, 1f);
+        private const float PauseHitSize = 120f, PauseVisualSize = 88f;
 
         private void PlacePauseButton()
         {
@@ -40,13 +41,54 @@ namespace BlobSurvivor.UI
             root.offsetMin = Vector2.zero;
             root.offsetMax = Vector2.zero;
 
+            // Dokunma alanı 120x120 (görünmez), görsel 88x88; süre kutusuyla (190x72, üstten 104) ortadan hizalı, arada 24 px.
             RectTransform rect = _pauseButton.GetComponent<RectTransform>();
-            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0f, 1f);
-            rect.anchoredPosition = new Vector2(24f + 190f + 12f, -104f);
-            rect.sizeDelta = new Vector2(72f, 72f);
-            if (_pauseButton.targetGraphic != null) _pauseButton.targetGraphic.color = HudPanelColor;
+            rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = new Vector2(24f + 190f + 24f + PauseVisualSize * 0.5f, -104f - 72f * 0.5f);
+            rect.sizeDelta = new Vector2(PauseHitSize, PauseHitSize);
+
+            Image hit = _pauseButton.targetGraphic as Image;
+            if (hit == null) hit = _pauseButton.GetComponent<Image>();
+            Sprite sprite = hit != null ? hit.sprite : null;
+            Image.Type spriteType = hit != null ? hit.type : Image.Type.Simple;
+            if (hit != null)
+            {
+                hit.color = new Color(1f, 1f, 1f, 0f); // görünmez ama ışın alır
+                hit.raycastTarget = true;
+            }
+
+            var visualGo = new GameObject("Visual", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            visualGo.layer = _pauseButton.gameObject.layer;
+            var visualRect = (RectTransform)visualGo.transform;
+            visualRect.SetParent(rect, false);
+            visualRect.SetAsFirstSibling();
+            visualRect.anchorMin = visualRect.anchorMax = visualRect.pivot = new Vector2(0.5f, 0.5f);
+            visualRect.anchoredPosition = Vector2.zero;
+            visualRect.sizeDelta = new Vector2(PauseVisualSize, PauseVisualSize);
+            Image visual = visualGo.GetComponent<Image>();
+            visual.sprite = sprite;
+            visual.type = spriteType;
+            visual.color = HudPanelColor;
+            visual.raycastTarget = false;
+            _pauseButton.targetGraphic = visual; // basılı tonu görsele
+
             TMP_Text label = _pauseButton.GetComponentInChildren<TMP_Text>(true);
-            if (label != null) label.fontSize = 34f;
+            if (label != null)
+            {
+                RectTransform labelRect = label.rectTransform;
+                labelRect.SetParent(visualRect, false);
+                labelRect.anchorMin = Vector2.zero;
+                labelRect.anchorMax = Vector2.one;
+                labelRect.offsetMin = labelRect.offsetMax = Vector2.zero;
+                labelRect.localScale = Vector3.one;
+                label.text = "II";
+                label.fontSize = 40f;
+                label.enableAutoSizing = false;
+                label.fontStyle = FontStyles.Bold;
+                label.alignment = TextAlignmentOptions.Center;
+                label.raycastTarget = false;
+            }
         }
 
         // Devam'ın altına Yeniden Başla + Ana Menü (Devam butonunun kopyası; bir kerelik UI kurulumu).

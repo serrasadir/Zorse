@@ -29863,6 +29863,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2d749e7792d40614ba8d563ec2c224bc, type: 2}
   - {fileID: 11400000, guid: 4ece4ffecd7760646b2d585fa0fb012c, type: 2}
   _choiceCount: 3
+  _activeSlots: 3
+  _passiveSlots: 3
+  _allMaxHealFraction: 0.3
 --- !u!4 &582339428
 Transform:
   m_ObjectHideFlags: 0

@@ -17,9 +17,12 @@ MonoBehaviour:
   _description: "Uzanmaya \xFC\u015Fendin, hakl\u0131s\u0131n. Art\u0131k evren sana
     geliyor."
   _icon: {fileID: 0}
-  _category: 4
+  _kind: 1
   _weight: 10
   _effect: {fileID: 11400000, guid: 4c4e5f515aa3a44cabdb9e469611129d, type: 2}
   _maxLevel: 1
   _perLevelValue: 0
+  _levelDescriptions: []
   _isEvolution: 1
+  _abbr: KD
+  _isBaseWeapon: 0

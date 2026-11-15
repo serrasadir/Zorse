@@ -30,3 +30,5 @@ MonoBehaviour:
   - "Boss ve elite \xD71.5 hasar, roket hasar\u0131 +8."
   - "SON FORM: her at\u0131\u015Fta 2 roket."
   _isEvolution: 0
+  _abbr: HF
+  _isBaseWeapon: 0

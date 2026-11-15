@@ -87,6 +87,18 @@ namespace BlobSurvivor.EditorTools
                 weight: 3),
         };
 
+        // HUD kısaltmaları (hud.md §4.3), skill id'sine göre. Kara Delik evrim asset'i ayrıca yazılır.
+        private static readonly Dictionary<string, string> Abbr = new Dictionary<string, string>
+        {
+            { "vacuum", "VK" }, { "kaygan_zemin", "KZ" }, { "weapon", "SP" }, { "firework", "HF" },
+            { "yer_sarsintisi", "YS" }, { "sindirim_gazi", "SG" }, { "damage_reduction", "ZR" },
+            { "Sindirim", "SN" }, { "geri_donusum", "GD" }, { "hizli_metabolizma", "HM" }, { "speed_boost", "HZ" },
+            { "tetikci", "TT" }, { "health_boost", "CA" }, { "regen_boost", "RJ" }, { "yara_ofkesi", "YÖ" },
+            { "bolunme", "BÖ" },
+        };
+        private const string BaseWeaponId = "weapon"; // Sopa
+        private const string KaraDelikAsset = "Upgrade_KaraDelik";
+
         [MenuItem("Tools/Blob.io/Skill Setini Kur")]
         public static void Run()
         {
@@ -96,10 +108,18 @@ namespace BlobSurvivor.EditorTools
                 UpgradeEffect fx = LoadOrCreate(Folder + s.Fx + ".asset", s.Effect) as UpgradeEffect;
                 var data = LoadOrCreate(Folder + s.Asset + ".asset", typeof(UpgradeData)) as UpgradeData;
                 if (fx == null || data == null) { Debug.LogError($"[SkillSetSetup] {s.Name} kurulamadı."); continue; }
-                data.EditorSetup(s.Id, s.Name, s.Kind, s.Weight, fx, s.MaxLevel, s.PerLevel, s.Levels);
+                if (!Abbr.TryGetValue(s.Id, out string abbr)) Debug.LogWarning($"[SkillSetSetup] {s.Name} için kısaltma yok.");
+                data.EditorSetup(s.Id, s.Name, s.Kind, s.Weight, fx, s.MaxLevel, s.PerLevel, s.Levels, abbr, s.Id == BaseWeaponId);
                 EditorUtility.SetDirty(data);
                 pool.Add(data);
             }
+            var karaDelik = AssetDatabase.LoadAssetAtPath<UpgradeData>(Folder + KaraDelikAsset + ".asset");
+            if (karaDelik != null)
+            {
+                karaDelik.EditorSetLabel("KD", false);
+                EditorUtility.SetDirty(karaDelik);
+            }
+            else Debug.LogWarning("[SkillSetSetup] " + KaraDelikAsset + " bulunamadı, kısaltması yazılmadı.");
             AssetDatabase.SaveAssets();
 
             UpgradeSystem system = UnityEngine.Object.FindAnyObjectByType<UpgradeSystem>(FindObjectsInactive.Include);

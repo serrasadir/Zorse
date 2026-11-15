@@ -27,6 +27,7 @@ namespace BlobSurvivor.UI
 
         private const float IntroTime = 0.28f;
         private const float CountTime = 0.9f;
+        private const float InputDelay = 0.4f; // sürüklerken ölünce parmağı kaldırmak butona basmasın
 
         private bool _built;
         private CanvasGroup _group;
@@ -80,6 +81,7 @@ namespace BlobSurvivor.UI
             _record.gameObject.SetActive(score != null && score.HasNewHighScore);
             SetCounters(0f);
 
+            SetButtonsInteractable(false);
             _shownAt = Time.unscaledTime;
             _group.alpha = 0f;
             _content.localScale = Vector3.one * 0.92f;
@@ -89,6 +91,7 @@ namespace BlobSurvivor.UI
         {
             if (_shownAt < 0f || _panel == null || !_panel.activeSelf) return;
             float e = Time.unscaledTime - _shownAt;
+            if (e >= InputDelay) SetButtonsInteractable(true);
 
             float intro = Mathf.Clamp01(e / IntroTime);
             _group.alpha = intro;
@@ -98,6 +101,12 @@ namespace BlobSurvivor.UI
             float count = Mathf.Clamp01((e - IntroTime) / CountTime);
             SetCounters(1f - (1f - count) * (1f - count));
             if (count >= 1f) _shownAt = -1f;
+        }
+
+        private void SetButtonsInteractable(bool on)
+        {
+            if (_restartButton != null && _restartButton.interactable != on) _restartButton.interactable = on;
+            if (_menuButton != null && _menuButton.interactable != on) _menuButton.interactable = on;
         }
 
         private void SetCounters(float k)
@@ -214,6 +223,9 @@ namespace BlobSurvivor.UI
                 image.color = color;
                 if (sprite != null) { image.sprite = sprite; image.type = Image.Type.Sliced; }
             }
+            ColorBlock colors = button.colors;
+            colors.disabledColor = Color.white; // giriş korumasında soluk görünmesin
+            button.colors = colors;
             TMP_Text label = button.GetComponentInChildren<TMP_Text>(true);
             if (label != null)
             {

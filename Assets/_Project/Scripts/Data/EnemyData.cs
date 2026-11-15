@@ -11,6 +11,8 @@ namespace BlobSurvivor.Data
     public class EnemyData : ScriptableObject
     {
         [SerializeField] private string _displayName;
+        [Tooltip("Oyuncuya görünen ad (boss barı, olay bandı). Boşsa DisplayName.")]
+        [SerializeField] private string _hudName;
         [SerializeField] private GameObject _prefab;
         [SerializeField] private float _maxHealth;
         [SerializeField] private float _damage;
@@ -67,6 +69,7 @@ namespace BlobSurvivor.Data
         [SerializeField] private int _coinOverride;
 
         public string DisplayName => _displayName;
+        public string HudName => string.IsNullOrEmpty(_hudName) ? _displayName : _hudName;
         public GameObject Prefab => _prefab;
         public float MaxHealth => _maxHealth;
         public float Damage => _damage;
