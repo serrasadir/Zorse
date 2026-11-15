@@ -27,7 +27,7 @@ namespace BlobSurvivor.UI
         }
 
         // 2026-11-04: pause tuşu HUD'un üst satırına, süre kutusunun sağına (HUDController.LayoutHud ile aynı stil/hiza).
-        private static readonly Color HudPanelColor = new Color(0.05f, 0.05f, 0.17f, 0.55f);
+        private static readonly Color PauseVisualColor = new Color(0.05f, 0.05f, 0.17f, 0.85f);
         private static readonly Color SecondaryColor = new Color(0.16f, 0.16f, 0.3f, 1f);
         private const float PauseHitSize = 120f, PauseVisualSize = 88f;
 
@@ -66,12 +66,26 @@ namespace BlobSurvivor.UI
             visualRect.anchorMin = visualRect.anchorMax = visualRect.pivot = new Vector2(0.5f, 0.5f);
             visualRect.anchoredPosition = Vector2.zero;
             visualRect.sizeDelta = new Vector2(PauseVisualSize, PauseVisualSize);
+            // Koyu yuvarlak: daire sprite'ı, sahnedeki tuşun alfası (0.55 koyu zeminde kayboluyordu).
             Image visual = visualGo.GetComponent<Image>();
-            visual.sprite = sprite;
-            visual.type = spriteType;
-            visual.color = HudPanelColor;
+            Sprite circle = Resources.Load<Sprite>("UI/Shapes/UI_Circle");
+            visual.sprite = circle != null ? circle : sprite;
+            visual.type = circle != null ? Image.Type.Simple : spriteType;
+            visual.preserveAspect = circle != null;
+            visual.color = PauseVisualColor;
             visual.raycastTarget = false;
             _pauseButton.targetGraphic = visual; // basılı tonu görsele
+
+            // Ton çarpanı görseli soluklaştırmasın (disabled dahil beyaz); önceki tween'den kalan renk sıfırlanır.
+            ColorBlock colors = _pauseButton.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = Color.white;
+            colors.selectedColor = Color.white;
+            colors.pressedColor = new Color(0.8f, 0.8f, 0.9f, 1f);
+            colors.disabledColor = Color.white;
+            colors.colorMultiplier = 1f;
+            _pauseButton.colors = colors;
+            visual.canvasRenderer.SetColor(Color.white);
 
             TMP_Text label = _pauseButton.GetComponentInChildren<TMP_Text>(true);
             if (label != null)

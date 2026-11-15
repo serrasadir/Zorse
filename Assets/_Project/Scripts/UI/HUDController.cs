@@ -44,11 +44,21 @@ namespace BlobSurvivor.UI
         private Slider _shieldBar;
         private Entities.Blob.BlobHealth _blobHealth;
 
+        // Yerleşim (hud.md §3.1, safe area üstünden ref px): A boss adı + barı, B süre/skor, C can/kalkan/XP, D slot şeridi.
+        private const float BossNameHeight = 44f, BossBarTop = 50f, BossBarHeight = 24f;
+        private const float HealthLeft = 84f;   // solda düşük can işaretine (48 + 12) yer
+        private const float HealthTop = 216f, HealthHeight = 28f;
+        private const float XpTop = 296f, XpHeight = 20f, XpLeft = 172f, XpRightInset = 244f;
+        private const float RowTextTop = 286f, RowTextHeight = 40f, LevelTextWidth = 140f, TierTextWidth = 200f;
+        private const float StripTop = 338f, StripSlot = 72f;
+
         private void Awake()
         {
             LayoutHud();
-            AnchorHealthBarRight();
+            LayoutBars();
             CreateShieldBar();
+            CreateBossName();
+            CreateSlotStrip();
             if (_bossHealthContainer != null)
                 _bossHealthContainer.SetActive(false);
         }
@@ -64,6 +74,7 @@ namespace BlobSurvivor.UI
             GameEvents.OnLevelUp += OnLevelUp;
             GameEvents.OnCharacterSelected += OnCharacterSelected;
             GameEvents.OnBossHealthChanged += OnBossHealthChanged;
+            GameEvents.OnBossSpawned += OnBossSpawned;
             GameEvents.OnUpgradeApplied += OnUpgradeApplied;
         }
 
@@ -78,6 +89,7 @@ namespace BlobSurvivor.UI
             GameEvents.OnLevelUp -= OnLevelUp;
             GameEvents.OnCharacterSelected -= OnCharacterSelected;
             GameEvents.OnBossHealthChanged -= OnBossHealthChanged;
+            GameEvents.OnBossSpawned -= OnBossSpawned;
             GameEvents.OnUpgradeApplied -= OnUpgradeApplied;
             if (_blobHealth != null) _blobHealth.OnShieldChanged -= OnShieldChanged;
         }
@@ -138,6 +150,78 @@ namespace BlobSurvivor.UI
             _bannerShadow.alpha = alpha * EvolutionShadow.a;
         }
 
+        // --- Barlar: sahnedeki konum/boy yerine üst bloğa taşınır (bir kez). ---
+        private void LayoutBars()
+        {
+            RectTransform layout = CreateLayoutRoot();
+            if (layout == null) return;
+
+            if (_healthBar != null)
+            {
+                _healthRect = (RectTransform)_healthBar.transform;
+                _healthRect.SetParent(layout, false);
+                _healthRect.anchorMin = _healthRect.anchorMax = _healthRect.pivot = new Vector2(0f, 1f); // sol kenar sabit, sağa uzar
+                _healthRect.anchoredPosition = new Vector2(HealthLeft, -HealthTop);
+                _healthRect.sizeDelta = new Vector2(HealthBaseWidth, HealthHeight);
+                _healthRect.localScale = Vector3.one;
+                _healthWidthTarget = HealthBaseWidth;
+                NormalizeSlider(_healthBar);
+            }
+
+            if (_xpBar != null)
+            {
+                var xp = (RectTransform)_xpBar.transform;
+                xp.SetParent(layout, false);
+                xp.anchorMin = new Vector2(0f, 1f);
+                xp.anchorMax = new Vector2(1f, 1f);
+                xp.pivot = new Vector2(0.5f, 1f);
+                xp.offsetMin = new Vector2(XpLeft, -(XpTop + XpHeight));
+                xp.offsetMax = new Vector2(-XpRightInset, -XpTop);
+                xp.localScale = Vector3.one;
+                NormalizeSlider(_xpBar);
+            }
+
+            RectTransform boss = _bossHealthContainer != null ? _bossHealthContainer.transform as RectTransform
+                : _bossHealthBar != null ? (RectTransform)_bossHealthBar.transform : null;
+            if (boss != null)
+            {
+                boss.SetParent(layout, false);
+                boss.anchorMin = new Vector2(0f, 1f);
+                boss.anchorMax = new Vector2(1f, 1f);
+                boss.pivot = new Vector2(0.5f, 1f);
+                boss.offsetMin = new Vector2(Edge, -(BossBarTop + BossBarHeight));
+                boss.offsetMax = new Vector2(-Edge, -BossBarTop);
+                boss.localScale = Vector3.one;
+            }
+            if (_bossHealthBar != null) NormalizeSlider(_bossHealthBar);
+        }
+
+        // Varsayılan Slider'da zemin/dolgu barın orta yarısını kaplıyor, dolgu tutamak payı bırakıyor: bar tam boyu kullansın.
+        private static void NormalizeSlider(Slider slider)
+        {
+            slider.transition = Selectable.Transition.None;
+            slider.interactable = false;
+            if (slider.handleRect != null && slider.handleRect.parent != null && slider.handleRect.parent != slider.transform)
+                slider.handleRect.parent.gameObject.SetActive(false);
+            Transform background = slider.transform.Find("Background");
+            if (background != null) StretchFull((RectTransform)background);
+            RectTransform fill = slider.fillRect;
+            if (fill != null)
+            {
+                if (fill.parent != slider.transform) StretchFull((RectTransform)fill.parent);
+                fill.offsetMin = fill.offsetMax = Vector2.zero;
+            }
+            foreach (Graphic g in slider.GetComponentsInChildren<Graphic>(true))
+                g.raycastTarget = false;
+        }
+
+        private static void StretchFull(RectTransform rect)
+        {
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = rect.offsetMax = Vector2.zero;
+        }
+
         private void CreateShieldBar()
         {
             if (_healthBar == null) return;
@@ -153,13 +237,13 @@ namespace BlobSurvivor.UI
                 _shieldBar.handleRect = null;
             }
 
-            // Can barının hemen altına, aynı genişlikte, onun %45'i kalınlığında.
+            // Can barının hemen altına, aynı genişlikte, onun %45'i kalınlığında (en az 12).
             RectTransform rect = copy.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(0f, 0f);
             rect.anchorMax = new Vector2(1f, 0f);
             rect.pivot = new Vector2(0.5f, 1f);
             rect.anchoredPosition = new Vector2(0f, -3f);
-            rect.sizeDelta = new Vector2(0f, Mathf.Max(6f, healthRect.rect.height * 0.45f));
+            rect.sizeDelta = new Vector2(0f, Mathf.Max(12f, HealthHeight * 0.45f));
             rect.localScale = Vector3.one;
 
             foreach (Image image in copy.GetComponentsInChildren<Image>(true))
@@ -181,13 +265,39 @@ namespace BlobSurvivor.UI
             _shieldBar.value = current;
         }
 
+        // --- Boss: ad bar üstünde (A bölgesi); boss varken haber bandı gizlenir (bar onun yerini alır). ---
+        private TMP_Text _bossName;
+        private Transform _ticker;
+
+        private void CreateBossName()
+        {
+            RectTransform layout = CreateLayoutRoot();
+            if (layout == null) return;
+            _bossName = CreateText("BossName", layout, "");
+            PlaceText(_bossName, layout, new Vector2(0f, 1f), Vector2.one, new Vector2(Edge, -BossNameHeight), new Vector2(-Edge, 0f), 34f,
+                TextAlignmentOptions.Center, Color.white);
+            _bossName.gameObject.SetActive(false);
+            // NewsTicker kendi CanvasGroup'unu kullanıyor: ona dokunmadan ölçekle gizlenir (geçici; asıl yeri NewsTicker).
+            NewsTicker ticker = FindAnyObjectByType<NewsTicker>(FindObjectsInactive.Include);
+            _ticker = ticker != null ? ticker.transform : null;
+        }
+
+        private void OnBossSpawned(string hudName, bool isFinal)
+        {
+            if (_bossName != null) _bossName.SetText(hudName ?? "");
+        }
+
         // B18: max<=0 => aktif boss yok (A15/A16 bu sözleşmeyle RaiseBossHealthChanged çağırıyor).
         private void OnBossHealthChanged(float current, float max)
         {
             bool hasActiveBoss = max > 0f;
 
-            if (_bossHealthContainer != null)
+            if (_bossHealthContainer != null && _bossHealthContainer.activeSelf != hasActiveBoss)
+            {
                 _bossHealthContainer.SetActive(hasActiveBoss);
+                if (_bossName != null) _bossName.gameObject.SetActive(hasActiveBoss);
+                if (_ticker != null) _ticker.localScale = hasActiveBoss ? Vector3.zero : Vector3.one;
+            }
 
             if (_bossHealthBar != null && hasActiveBoss)
             {
@@ -203,30 +313,17 @@ namespace BlobSurvivor.UI
                 _healthBar.maxValue = max;
                 _healthBar.value = current;
             }
-            // Max can arttıkça bar uzar (Can Artışı, Market): 100 can = sahnedeki boy, üst sınır ekran payı.
+            // Max can arttıkça bar uzar (Can Artışı, Market): 100 can = temel boy, üst sınır ekran payı.
             if (_healthRect != null)
-                _healthWidthTarget = Mathf.Clamp(_healthBaseWidth * max / HealthReferenceMax, _healthBaseWidth, HealthMaxWidth);
+                _healthWidthTarget = Mathf.Clamp(HealthBaseWidth * max / HealthReferenceMax, HealthBaseWidth, HealthMaxWidth);
         }
 
-        // --- Can barı boyu: sağ kenar sabit, sola uzar (sağda ekran kenarına ~40 px var). ---
+        // --- Can barı boyu: sol kenar sabit, sağa uzar. ---
         private const float HealthReferenceMax = 100f;
-        private const float HealthMaxWidth = 460f;      // 1080 genişlikte soldaki seviye yazısına çarpmadan
+        private const float HealthBaseWidth = 400f, HealthMaxWidth = 720f;
         private const float HealthGrowSpeed = 6f;
         private RectTransform _healthRect;
-        private float _healthBaseWidth, _healthWidthTarget;
-
-        private void AnchorHealthBarRight()
-        {
-            if (_healthBar == null) return;
-            _healthRect = _healthBar.GetComponent<RectTransform>();
-            _healthBaseWidth = _healthRect.sizeDelta.x;
-            _healthWidthTarget = _healthBaseWidth;
-            // Pivot sağ kenara: genişlik değişince sadece sol kenar oynar (ekrandaki konum aynı kalır).
-            Vector2 pos = _healthRect.anchoredPosition;
-            pos.x += _healthBaseWidth * (1f - _healthRect.pivot.x);
-            _healthRect.pivot = new Vector2(1f, _healthRect.pivot.y);
-            _healthRect.anchoredPosition = pos;
-        }
+        private float _healthWidthTarget;
 
         private void UpdateHealthWidth()
         {
@@ -319,12 +416,27 @@ namespace BlobSurvivor.UI
             OnXPChanged(0);
         }
 
-        // 2026-11-04 (Serra: "HUD çok karışık, ikon/rozet tasarımı yok, kaldıralım. Barlar kalsın"): barlara dokunulmaz;
-        // yazılar çalışma zamanında yerleşir (sahne kurulumu yok). Sol üst süre, sağ üst skor + coin, seviye/tier XP barının yanında.
-        // Hepsi HUD'un altında kalır: lobi HUD'u kapatınca onlar da kapanır.
+        // --- Slot şeridi (K19): D bölgesi, sol hizalı. Kendi olaylarını dinler. ---
+        private SkillSlotStrip _slotStrip;
+
+        private void CreateSlotStrip()
+        {
+            RectTransform layout = CreateLayoutRoot();
+            if (layout == null) return;
+            Sprite rounded = null;
+            Transform background = _healthBar != null ? _healthBar.transform.Find("Background") : null;
+            Image bgImage = background != null ? background.GetComponent<Image>() : null;
+            if (bgImage != null) rounded = bgImage.sprite;
+            _slotStrip = SkillSlotStrip.Create(layout, "SlotStrip", StripSlot, rounded);
+            var rect = (RectTransform)_slotStrip.transform;
+            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = new Vector2(Edge, -StripTop);
+        }
+
+        // Yazılar ve barlar çalışma zamanında yerleşir (sahne kurulumu yok). Hepsi HUD'un altında: lobi HUD'u kapatınca onlar da kapanır.
         private static readonly Color PanelColor = new Color(0.05f, 0.05f, 0.17f, 0.55f);
         private static readonly Color CoinColor = new Color(1f, 0.82f, 0.25f, 1f);
-        private const float TopOffset = 104f; // haber bandının (y -30, 58 yüksek) altı
+        private const float TopOffset = 104f; // A bölgesinin (haber bandı / boss barı) altı
         private const float Edge = 24f;
 
         private void LayoutHud()
@@ -345,19 +457,17 @@ namespace BlobSurvivor.UI
             PlaceText(_coinText, scorePanel, Vector2.zero, new Vector2(1f, 0f), new Vector2(16f, 6f), new Vector2(-16f, 46f), 32f,
                 TextAlignmentOptions.Right, CoinColor);
 
-            // Seviye XP barının solunda, tier XP barının üstünde: barla birlikte hareket eder.
-            RectTransform xp = _xpBar != null ? _xpBar.GetComponent<RectTransform>() : null;
-            if (xp != null)
-            {
-                PlaceText(_levelText, xp, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(-150f, -18f), new Vector2(-12f, 18f), 32f,
-                    TextAlignmentOptions.Right, Color.white);
-                PlaceText(_tierText, xp, new Vector2(0f, 1f), Vector2.one, new Vector2(0f, 4f), new Vector2(0f, 44f), 32f,
-                    TextAlignmentOptions.Right, Color.white);
-            }
+            // C bölgesi XP satırı: solda "Sv. N", sağda tier adı (XP barı aralarında).
+            PlaceText(_levelText, layout, new Vector2(0f, 1f), new Vector2(0f, 1f),
+                new Vector2(Edge, -(RowTextTop + RowTextHeight)), new Vector2(Edge + LevelTextWidth, -RowTextTop), 32f,
+                TextAlignmentOptions.Left, Color.white);
+            PlaceText(_tierText, layout, new Vector2(1f, 1f), new Vector2(1f, 1f),
+                new Vector2(-Edge - TierTextWidth, -(RowTextTop + RowTextHeight)), new Vector2(-Edge, -RowTextTop), 32f,
+                TextAlignmentOptions.Right, Color.white);
         }
 
-        // HUD'un kendi rect'i sahnede daraltılmış (barlar onun köşelerine göre konumlu); yazılar için güvenli alanı
-        // kaplayan bir child açılır — HUD'un daralma/kaymasının tersi uygulanır.
+        // HUD'un kendi rect'i sahnede daraltılmış; yazılar ve barlar için güvenli alanı kaplayan bir child açılır —
+        // HUD'un daralma/kaymasının tersi uygulanır.
         private RectTransform CreateLayoutRoot()
         {
             RectTransform hud = transform as RectTransform;
@@ -370,7 +480,7 @@ namespace BlobSurvivor.UI
             go.layer = gameObject.layer;
             RectTransform rect = (RectTransform)go.transform;
             rect.SetParent(hud, false);
-            rect.SetAsFirstSibling(); // barların altında çizilsin
+            rect.SetAsFirstSibling();
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
             rect.pivot = new Vector2(0.5f, 0.5f);
