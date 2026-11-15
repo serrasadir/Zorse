@@ -17,16 +17,14 @@ namespace BlobSurvivor.Entities.Blob
 
         private Rigidbody _rigidbody;
         private BlobGrowth _blobGrowth;
-        private BlobHealth _health;
         private BlobVisual _visual;
         private float _speedMultiplier = 1f;
 
-        // Yiyemediğimiz (bizden büyük) yayaya çarpınca yaya bizi tekmeler: geri savrulur, yuvarlanırız, az can gider.
+        // Yiyemediğimiz (bizden büyük) yayaya çarpınca yaya bizi tekmeler: geri savrulur, yuvarlanırız. Can gitmez.
         // [0] = yaya bir tier büyük, [1] = iki+ tier büyük (daha sert).
         // Savrulma mesafesi ≈ hız × süre / 2: ~5 ve ~7.5 birim. Anı okutmak için kısa ağır çekim + kamera yakınlaşması.
         private static readonly float[] KickSpeed = { 14f, 18f };
         private static readonly float[] KickTime = { 0.7f, 0.85f };
-        private static readonly float[] KickDamage = { 1f, 2f };
         private static readonly float[] KickRolls = { 2f, 3f };
         private static readonly float[] DizzyTime = { 1.4f, 2f };
         private static readonly float[] KickZoom = { 0.3f, 0.38f };    // kamera bu oranda yaklaşıp geri çekilir
@@ -44,7 +42,6 @@ namespace BlobSurvivor.Entities.Blob
         {
             _rigidbody = GetComponent<Rigidbody>();
             _blobGrowth = GetComponent<BlobGrowth>();
-            _health = GetComponent<BlobHealth>();
             _visual = GetComponent<BlobVisual>();
 
             _rigidbody.linearDamping = _drag;
@@ -112,7 +109,6 @@ namespace BlobSurvivor.Entities.Blob
             DizzyStars.Play(gameObject, DizzyTime[i]);
             if (_camera == null) _camera = FindAnyObjectByType<CameraController>(); // ilk tekmede bir kez
             if (_camera != null) _camera.PunchZoom(KickZoom[i], KickZoomTime);
-            if (_health != null) _health.TakeDamage(KickDamage[i]);
             _slowMoStart = Time.unscaledTime;
         }
 
