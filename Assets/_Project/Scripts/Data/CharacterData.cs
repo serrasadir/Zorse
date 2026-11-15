@@ -20,7 +20,7 @@ namespace BlobSurvivor.Data
         [SerializeField] private bool _speedTrail;
 
         [Header("Kart Çekimi")]
-        [Tooltip("Bu karakterde kart ekranında daha sık çıkan skill (Topik Hız, Mıknato Vakum, Fişek Havai Fişek, Dalcık Sopa, Cano Can Emme).")]
+        [Tooltip("Bu karakterde kart ekranında daha sık çıkan skill (Topik Hız, Mıknato Vakum, Fişek Havai Fişek, Dalcık Sopa, Cano Geri Dönüşüm).")]
         [SerializeField] private UpgradeData _favoredUpgrade;
         [Tooltip("Favori skill'in ağırlık çarpanı. 3 ≈ kart ekranlarının %41'i yerine %75'inde çıkar.")]
         [SerializeField] private float _favoredWeightMultiplier = 3f;

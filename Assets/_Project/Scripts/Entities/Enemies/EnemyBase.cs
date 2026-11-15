@@ -26,7 +26,7 @@ namespace BlobSurvivor.Entities.Enemies
         private static int s_walkMask = -1;
 
         public event System.Action<EnemyBase> OnDeath;
-        // Oyuncunun düşmana gerçekten işlettiği hasar (Can Emme dinler). Kilitli final boss'ta boşa giden sayılmaz.
+        // Oyuncunun düşmana gerçekten işlettiği hasar. Kilitli final boss'ta boşa giden sayılmaz.
         public static event System.Action<float> OnDamageDealt;
 
         public EnemyData Data => _data;
