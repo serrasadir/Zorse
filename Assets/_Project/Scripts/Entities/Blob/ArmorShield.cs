@@ -37,7 +37,7 @@ namespace BlobSurvivor.Entities.Blob
         private const float ShieldTilt = -20f;         // X ekseni; eksi = yüz yukarı bakar
         private const float TurnSpeed = 10f;           // yöne dönme yumuşaklığı
         private const float MinTurnSpeedSqr = 0.3f * 0.3f;
-        // Kafada (CharacterData.ArmorOnHead, Mermo): tepede şapka gibi yatar, ön kenarı gidiş yönünde, hafif geriye yatık.
+        // Kafada (CharacterData.ArmorOnHead): tepede şapka gibi yatar, ön kenarı gidiş yönünde, hafif geriye yatık.
         public static bool OnHead;                      // GameManager her run başında yazar
         private static readonly Vector3 HeadOffset = new Vector3(0f, 0.47f, -0.02f);
         private static readonly Quaternion HeadRotation =

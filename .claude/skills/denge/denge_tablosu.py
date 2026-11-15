@@ -36,10 +36,17 @@ def main():
 
     # --- Market (MetaProgression, sahnedeki değerler kodu ezer)
     meta = {k: yaml_num(scene, k) for k in [
-        "_miknatoCost", "_speedBaseCost", "_speedCostPerLevel", "_maxHealthBaseCost", "_maxHealthCostPerLevel",
+        "_speedBaseCost", "_speedCostPerLevel", "_maxHealthBaseCost", "_maxHealthCostPerLevel",
         "_massGainBaseCost", "_massGainCostPerLevel", "_coinGainBaseCost", "_coinGainCostPerLevel",
         "_xpMultiplierCost", "_speedBonusPerLevel", "_maxHealthBonusPerLevel", "_massGainBonusPerLevel",
         "_coinGainBonusPerLevel", "_xpMultiplierBonus"]}
+    # Karakterler (Data/Characters/Char_*.asset: _marketPrice > 0 = Market'te satılır, _requiredCompletedRuns)
+    import glob
+    chars = []
+    for f in sorted(glob.glob("Assets/_Project/Data/Characters/Char_*.asset")):
+        t = read(f)
+        name = re.search(r"_displayName: (.*)", t).group(1).strip().strip('"').encode().decode("unicode_escape")
+        chars.append((name, yaml_num(t, "_marketPrice", 0) or 0, yaml_num(t, "_requiredCompletedRuns", 0) or 0))
     max_level = int(code_const("Assets/_Project/Scripts/Systems/Meta/MetaProgression.cs",
                                r"MaxStatLevel = (\d+)", ("0",))[0])
 
@@ -71,7 +78,7 @@ def main():
     p("\n## Market\n")
     p(f"Kademeli statların sınırı: Sv.{max_level}\n")
     p("| Kalem | Seviye başı etki | Sv.1 fiyat | Sınıra kadar toplam |\n|---|---|---|---|")
-    total = meta["_miknatoCost"] + meta["_xpMultiplierCost"]
+    total = meta["_xpMultiplierCost"] + sum(c[1] for c in chars)
     for name, base, step, eff, unit in [
         ("Hız", "_speedBaseCost", "_speedCostPerLevel", "_speedBonusPerLevel", "%"),
         ("Max Can", "_maxHealthBaseCost", "_maxHealthCostPerLevel", "_maxHealthBonusPerLevel", ""),
@@ -81,7 +88,9 @@ def main():
         total += cost
         e = meta[eff] * 100 if unit == "%" else meta[eff]
         p(f"| {name} | +{e:g}{unit} | {meta[base]:.0f} | {cost:,.0f} |")
-    p(f"| Mıknato | karakter | {meta['_miknatoCost']:.0f} | {meta['_miknatoCost']:.0f} |")
+    for name, price, runs in sorted(chars, key=lambda c: c[1]):
+        if price > 0: p(f"| {name} | karakter | {price:.0f} | {price:.0f} |")
+        elif runs > 0: p(f"| {name} | karakter | {runs:.0f} run (satılmaz) | 0 |")
     p(f"| XP Çarpanı | +{meta['_xpMultiplierBonus'] * 100:g}% XP | {meta['_xpMultiplierCost']:.0f} | {meta['_xpMultiplierCost']:.0f} |")
     p(f"\n**Market toplamı:** {total:,.0f} coin")
 
@@ -122,8 +131,9 @@ def main():
           f"(kasaya {avg('coinsBanked'):.0f}) · polis {avg('policeKills'):.0f} · elit {avg('eliteKills'):.1f} · son seviye {avg('finalLevel'):.1f}\n")
         banked = avg("coinsBanked") or 1
         p("| Hedef (OYUN.md) | Ölçülen |\n|---|---|")
-        p(f"| Mıknato 2.–3. run | {meta['_miknatoCost'] / banked:.1f}. run |")
-        p(f"| Market'in tamamı ~40. run | {total / banked:.0f}. run |")
+        for name, price, runs in sorted(chars, key=lambda c: c[1]):
+            if price > 0: p(f"| {name} açılışı | {price / banked:.1f}. run |")
+        p(f"| Market'in tamamı ~45. run | {total / banked:.0f}. run |")
         p(f"| Elit + sandık payı %40–55 | %{elite_share * 100:.0f} |")
         p(f"| Kaybolan coin < %15 | %{expired * 100:.0f} |")
 

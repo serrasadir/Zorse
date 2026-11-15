@@ -7814,7 +7814,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7c8bd0cd7f646ce920c23ee73ac860a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Systems.Meta.MetaProgression
-  _miknatoCost: 500
   _speedBaseCost: 200
   _speedCostPerLevel: 150
   _maxHealthBaseCost: 200
@@ -29864,9 +29863,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2d749e7792d40614ba8d563ec2c224bc, type: 2}
   - {fileID: 11400000, guid: 4ece4ffecd7760646b2d585fa0fb012c, type: 2}
   _choiceCount: 3
-  _activeSlots: 3
-  _passiveSlots: 3
-  _allMaxHealFraction: 0.3
 --- !u!4 &582339428
 Transform:
   m_ObjectHideFlags: 0
@@ -51196,13 +51192,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 998712585}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.53729963, y: 0, z: 0, w: 0.8433915}
-  m_LocalPosition: {x: 0, y: 12, z: -7.98}
+  m_LocalRotation: {x: 0.5, y: 0, z: 0, w: 0.8660254}
+  m_LocalPosition: {x: -0.41, y: 15, z: -6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 65, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 60, y: 0, z: 0}
 --- !u!114 &998712589
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -54175,6 +54171,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 62879a103c4f64e5da5c37be42243c31, type: 2}
   - {fileID: 11400000, guid: 163d3216462284ea7913753f74f789d5, type: 2}
   - {fileID: 11400000, guid: 32fe6e60a91564162baea6a02ef146d0, type: 2}
+  - {fileID: 11400000, guid: e1f6b4ceb9b9423d804b4fc77e75f194, type: 2}
+  - {fileID: 11400000, guid: 0c101c5530fc4ec1932e5993050874a9, type: 2}
   _buttons:
   - {fileID: 350069776}
   - {fileID: 34943073}
@@ -69384,6 +69382,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Core.GameManager
   _defaultCharacter: {fileID: 11400000, guid: 62879a103c4f64e5da5c37be42243c31, type: 2}
+  _stickWeaponPrefab: {fileID: 1195012648784995356, guid: 8dc57e157854348fd95c73a2d2e69c1d, type: 3}
 --- !u!4 &1359305929
 Transform:
   m_ObjectHideFlags: 0

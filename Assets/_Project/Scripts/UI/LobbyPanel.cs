@@ -67,18 +67,10 @@ namespace BlobSurvivor.UI
 
         public RectTransform PanelRect => _panel != null ? (RectTransform)_panel.transform : null;
 
-        // Market'te satılan karakter (Mıknato).
-        public CharacterData MarketCharacter
-        {
-            get
-            {
-                foreach (CharacterData c in _characters)
-                    if (c != null && c.RequiresMarketUnlock) return c;
-                return null;
-            }
-        }
+        // Market'in Karakterler sekmesi bu sırayla listeler (ShownInMarket olanlar).
+        public CharacterData[] Characters => _characters;
 
-        // Market'in geri tuşu bunu çağırır. Market'te Mıknato satın alınmış olabileceğinden
+        // Market'in geri tuşu bunu çağırır. Market'te karakter satın alınmış olabileceğinden
         // kilit durumu her Show()'da yeniden değerlendirilir.
         public void Show()
         {
@@ -93,22 +85,20 @@ namespace BlobSurvivor.UI
             if (_hud != null) _hud.SetActive(false);
         }
 
-        // Kilitler: Mıknato Market'te 500 krediyle (RequiresMarketUnlock), Mermo 3 run bitirince
-        // (RequiredCompletedRuns, ölüm de sayılır). Kilitliyken kart soluk, koşul rozette yazar.
+        // Kilitler: Market'te coin'le (CharacterData.MarketPrice) ya da run sayısıyla (RequiredCompletedRuns,
+        // ölüm de sayılır; Dalcık). Kilitliyken kart soluk, koşul rozette yazar.
         private void RefreshCharacterButtons()
         {
             Build();
             MetaProgression meta = MetaProgression.Instance;
-            bool miknatoUnlocked = meta == null || meta.MiknatoUnlocked;
-            int completedRuns = meta != null ? meta.CompletedRuns : int.MaxValue;
             if (_credit != null) _credit.text = $"{(meta != null ? meta.Credit : 0):N0} coin";
 
             for (int i = 0; i < _buttons.Length; i++)
             {
                 if (i >= _characters.Length || _characters[i] == null) continue;
                 CharacterData data = _characters[i];
-                bool marketLocked = data.RequiresMarketUnlock && !miknatoUnlocked;
-                int runsLeft = Mathf.Max(0, data.RequiredCompletedRuns - completedRuns);
+                bool marketLocked = meta != null && !meta.IsCharacterPurchased(data);
+                int runsLeft = meta != null ? meta.CharacterRunsLeft(data) : 0;
                 bool locked = marketLocked || runsLeft > 0;
                 string lockReason = marketLocked ? "Market'te açılır" : $"{runsLeft} run sonra açılır";
 
@@ -159,9 +149,23 @@ namespace BlobSurvivor.UI
             RectTransform chip = Box("CreditChip", panel, new Vector2(0f, 650f), new Vector2(360f, 72f), rounded, CardColor);
             _credit = Text("Credit", chip, Vector2.zero, chip.sizeDelta, 38f, TextAlignmentOptions.Center, Gold);
 
-            _cards = new Card[_buttons.Length];
-            for (int i = 0; i < _buttons.Length; i++)
-                if (_buttons[i] != null) _cards[i] = BuildCard(_buttons[i], panel, new Vector2(0f, 330f - i * 390f), rounded);
+            // Sahnede 3 buton var; fazla karakter için ilki bir kez kopyalanır (listener'lar Start'ta bağlanır).
+            if (_buttons.Length > 0 && _buttons[0] != null && _characters.Length > _buttons.Length)
+            {
+                var all = new Button[_characters.Length];
+                for (int i = 0; i < all.Length; i++)
+                    all[i] = i < _buttons.Length ? _buttons[i] : Instantiate(_buttons[0], _buttons[0].transform.parent);
+                _buttons = all;
+            }
+
+            // 3 karta kadar büyük kart; fazlası başlık ile Market düğmesi arasına sığacak kadar alçak.
+            int count = _buttons.Length;
+            float height = count <= 3 ? 340f : 240f;
+            float pitch = count <= 3 ? 390f : 260f;
+            float top = count <= 3 ? 330f : -65f + (count - 1) * 0.5f * pitch;
+            _cards = new Card[count];
+            for (int i = 0; i < count; i++)
+                if (_buttons[i] != null) _cards[i] = BuildCard(_buttons[i], panel, new Vector2(0f, top - i * pitch), height, rounded);
 
             if (_marketButton != null)
             {
@@ -216,10 +220,11 @@ namespace BlobSurvivor.UI
             image.raycastTarget = false;
         }
 
-        private Card BuildCard(Button button, RectTransform panel, Vector2 pos, Sprite rounded)
+        private Card BuildCard(Button button, RectTransform panel, Vector2 pos, float height, Sprite rounded)
         {
             var rect = (RectTransform)button.transform;
-            Place(rect, panel, pos, new Vector2(900f, 340f));
+            Place(rect, panel, pos, new Vector2(900f, height));
+            float k = height / 340f;
             StyleImage(button.targetGraphic as Image, CardColor, rounded);
             foreach (Transform c in rect) c.gameObject.SetActive(false); // eski "Button" yazısı
             ColorBlock colors = button.colors;
@@ -231,19 +236,19 @@ namespace BlobSurvivor.UI
             if (group == null) group = button.gameObject.AddComponent<CanvasGroup>();
             var card = new Card { Group = group };
 
-            RectTransform frame = Box("PortraitFrame", rect, new Vector2(-300f, 0f), new Vector2(270f, 270f), rounded, new Color(1f, 1f, 1f, 0.06f));
-            var portraitRect = NewRect("Portrait", frame, new Vector2(0f, 6f), new Vector2(250f, 250f));
+            RectTransform frame = Box("PortraitFrame", rect, new Vector2(-300f - (1f - k) * 50f, 0f), new Vector2(270f, 270f) * k, rounded, new Color(1f, 1f, 1f, 0.06f));
+            var portraitRect = NewRect("Portrait", frame, new Vector2(0f, 6f * k), new Vector2(250f, 250f) * k);
             card.Portrait = portraitRect.gameObject.AddComponent<Image>();
             card.Portrait.preserveAspect = true;
             card.Portrait.raycastTarget = false;
 
-            card.Name = Text("Name", rect, new Vector2(140f, 86f), new Vector2(560f, 90f), 70f, TextAlignmentOptions.Left, Color.white);
-            card.Description = Text("Description", rect, new Vector2(140f, -34f), new Vector2(560f, 150f), 34f, TextAlignmentOptions.TopLeft, Subtle);
+            card.Name = Text("Name", rect, new Vector2(140f, 86f * k), new Vector2(560f, 90f * k), 70f * Mathf.Sqrt(k), TextAlignmentOptions.Left, Color.white);
+            card.Description = Text("Description", rect, new Vector2(140f, -34f * k), new Vector2(560f, 150f * k), 34f * Mathf.Sqrt(k), TextAlignmentOptions.TopLeft, Subtle);
             card.Description.fontStyle = FontStyles.Normal;
             card.Description.textWrappingMode = TextWrappingModes.Normal;
 
-            card.LockBadge = Box("LockBadge", rect, new Vector2(140f, -128f), new Vector2(560f, 58f), rounded, new Color(1f, 0.82f, 0.25f, 0.95f));
-            card.Lock = Text("Text", card.LockBadge, Vector2.zero, card.LockBadge.sizeDelta, 30f, TextAlignmentOptions.Center,
+            card.LockBadge = Box("LockBadge", rect, new Vector2(140f, -128f * k), new Vector2(560f, 58f * Mathf.Sqrt(k)), rounded, new Color(1f, 0.82f, 0.25f, 0.95f));
+            card.Lock = Text("Text", card.LockBadge, Vector2.zero, card.LockBadge.sizeDelta, 30f * Mathf.Sqrt(k), TextAlignmentOptions.Center,
                 new Color(0.12f, 0.08f, 0.02f, 1f));
             return card;
         }

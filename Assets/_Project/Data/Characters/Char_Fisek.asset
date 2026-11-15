@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7327bc0f29c4e47d18cf0f07416aa5f5, type: 3}
+  m_Name: Char_Fisek
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.CharacterData
+  _displayName: "Fi\u015Fek"
+  _icon: {fileID: 21300000, guid: 4fc5348db9ec247088268cd8c00b2e00, type: 3}
+  _description: "Havai Fi\u015Fek skiliyle ba\u015Flar (Sv.1)."
+  _blobVisualPrefab: {fileID: 830980558916555298, guid: a16d69c32a2c2450ea858a7de3c6022f, type: 3}
+  _armorOnHead: 0
+  _speedTrail: 0
+  _favoredUpgrade: {fileID: 11400000, guid: 9231d870b0224dadb1833c18cac33f88, type: 2}
+  _favoredWeightMultiplier: 3
+  _startingUpgrade: {fileID: 11400000, guid: 9231d870b0224dadb1833c18cac33f88, type: 2}
+  _startingUpgradeLevel: 1
+  _saveId: Fisek
+  _marketPrice: 1000
+  _requiredCompletedRuns: 0

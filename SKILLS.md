@@ -10,14 +10,14 @@
 
 **Kart ekranı.** Level atlayınca oyun durur ve 3 kart gelir. Biri seçilir.
 - Kartlar ağırlıklı rastgele çekilir: çoğu skill ağırlık **10**, Can Emme **8**, Can Artışı **4**. Ağırlığı düşük olan daha seyrek gelir.
-- **Karakterin favori skill'i ×2 ağırlıkla** çekilir (kart ekranlarının ~%41'i yerine ~%63'ünde çıkar): Topik → Hız, Mıknato → Vakum, Mermo → Havai Fişek. `CharacterData._favoredUpgrade` / `_favoredWeightMultiplier`.
+- **Karakterin favori skill'i (pasifi) ×3 ağırlıkla** çekilir (ağırlığı 10 olan skill kart ekranlarının ~%41'i yerine ~%75'inde çıkar; Cano'nun Can Emme'si 8 ağırlıklı: ~%34 yerine ~%67): Topik → Hız, Mıknato → Vakum, Fişek → Havai Fişek, Dalcık → Sopa, Cano → Can Emme. `CharacterData._favoredUpgrade` / `_favoredWeightMultiplier`.
 - Max seviyeye ulaşan skill havuzdan çıkar, bir daha gelmez.
 - Havuzda 3'ten az skill kalırsa daha az kart gelir. Hepsi maxlıysa level-up ödülsüz geçer. Bunun için 63 seçim gerekir, pratikte ulaşılamaz.
-- Kartın adının yanında **YENİ** (ilk kez alıyorsun) ya da **Sv. 3/8** (bu seçimle ulaşacağın seviye) yazar.
+- Kartın sağ üstünde **YENİ** (yeşil, ilk kez alıyorsun) ya da **mavi Sv. 2/8** (sahip olduğun skill'in şu anki seviyesi) yazar; altındaki açıklama bu seçimle gelecek seviyeyi anlatır.
 - Tek lokmada birden fazla level atlarsan kart ekranları arka arkaya gelir, seviye kaybolmaz.
 - Elit sandığı da bir kart ekranı açar.
 - **Garantili kart:** `UpgradeData._guaranteedAtLevel` > 0 olan skill, oyuncu o seviyeye gelince (henüz almadıysa) ilk kart ekranında bir kez kesin çıkar. Şu an sadece Havai Fişek (Sv.4).
-- **Başlangıç skill'i:** `CharacterData._startingUpgrade` + seviye: run o skill o seviyede başlar (Mermo: Havai Fişek Sv.1).
+- **Başlangıç skill'i:** `CharacterData._startingUpgrade` + seviye: run o skill o seviyede başlar (Fişek: Havai Fişek Sv.1, Dalcık: Sopa Sv.2, Cano: Can Emme Sv.2).
 
 **Run sonu.** Skiller run'a özeldir. Ölüm ya da restart hepsini sıfırlar.
 
@@ -54,7 +54,7 @@
 - **Dikenler (Sv.3+):** Kalkan sağlamken blob'a değen her düşman 0.5 sn'de bir hasar alır (Sv.3: sn'de 6, Sv.6: sn'de 10); kızarır ve 0.8 birim dışa seker (şok dalgasında 1.6). Seni kovalayıp yakın dövüşe giren polis kendini yorar. Kalkan kırıkken dikenler çalışmaz.
 - **Şok dalgası (Sv.8):** Kalkan kırıldığı an blob'un 2 birim dışına kadar tüm düşmanlara **25 hasar**.
 - **HUD:** Can barının hemen altında ince mavi kalkan barı (Zırh alınana kadar gizli).
-- **Görsel:** Blob'un sağ yanında süzülen, yüzü dışa bakan, gidiş yönüyle dönen **sokak eşyası kalkan**. **Mermo'da kafada** şapka gibi durur (`CharacterData._armorOnHead`): tepede yatay, ön kenarı gidiş yönünde, hafif geriye yatık, %80 boy; kırılınca fırıldak gibi döner. Form seviyeyle, yeni mekanikle aynı anda değişir: **Sv.1-2** çöp kutusu kapağı → **Sv.3-5** dikenli "girilmez" tabelası (dikenler) → **Sv.6-7** dikenli menhol kapağı (güçlü dikenler) → **Sv.8** altın menhol kapağı + kızıl mücevher (şok dalgası). Kalkan azaldıkça koyulaşır, vuruşta parlar ve şişer, kırılınca dönerek küçülüp kaybolur, dolmaya başlayınca geri "pop" eder; yeni form da pop ile gelir. Modeller `zorse-blender/build_armor_shields.py` → `Resources/FX/Shield` (148–220 üçgen).
+- **Görsel:** Blob'un sağ yanında süzülen, yüzü dışa bakan, gidiş yönüyle dönen **sokak eşyası kalkan**. İstenirse karakter başına kafada şapka gibi durabilir (`CharacterData._armorOnHead`: tepede yatay, %80 boy; kırılınca fırıldak gibi döner); şu an hiçbir karakterde açık değil (Fişek'in tepesinde fitil var). Form seviyeyle, yeni mekanikle aynı anda değişir: **Sv.1-2** çöp kutusu kapağı → **Sv.3-5** dikenli "girilmez" tabelası (dikenler) → **Sv.6-7** dikenli menhol kapağı (güçlü dikenler) → **Sv.8** altın menhol kapağı + kızıl mücevher (şok dalgası). Kalkan azaldıkça koyulaşır, vuruşta parlar ve şişer, kırılınca dönerek küçülüp kaybolur, dolmaya başlayınca geri "pop" eder; yeni form da pop ile gelir. Modeller `zorse-blender/build_armor_shields.py` → `Resources/FX/Shield` (148–220 üçgen).
 
 **Örnek:** Sv.3, kalkan 40. Bir polis seni 10'ar vuruyor: ilk 4 vuruşu kalkan yer, canın hiç azalmaz. Bu sürede polis sana değdiği için saniyede 6 hasar alır (50 canlı polis ~8 sn'de düşer). 4 sn kaçarsan kalkan 2 sn'de geri dolar.
 **Örnek:** Helikopterin 36 hasarlık serisini Sv.4'teki 50'lik kalkan tamamen yer.
@@ -129,11 +129,11 @@ Mıknato run'a Sv.2 ile başlar; çarpanı yok, değerler herkesle aynı.
 
 ---
 
-### 🔫 Silah Gücü (sopa)
-- **Ne yapar:** Ana silahı (sopa) güçlendirir. Her seviye "+hasar" değil: kilometre taşı seviyelerinde yeni bir yetenek açılır. Kart, o seviyede ne kazanacağını yazar.
+### 🪵 Sopa
+- **Ne yapar:** Ana silahı (ağaç dalı sopa) güçlendirir. Her seviye "+hasar" değil: kilometre taşı seviyelerinde yeni bir yetenek açılır. Kart, o seviyede ne kazanacağını yazar.
 - **Max:** 8 · **Ağırlık:** 10
-- **Kod:** `WeaponUpgradeEffect` (kilometre taşı seviyeleri) → `WeaponBase` (`_swing`, `_swingInterval`, `_swingArc`, `_swingWideArc`, `_swingFastFactor`, `_swingUltimateDamage`). Kart metinleri `Upgrade_Weapon.asset` → Level Descriptions.
-- **Temel sopa (3 karakter aynı, mermi yok):** saniyede **1 vuruş × 10 hasar**, yüzün baktığı yöne **120°'lik yay**, menzildeki yaydaki **herkese** vurur (hafif geri itme, bina arkasındakine vurmaz). Menzil **gövde yüzeyinden 2** (+hasar seviyeleri +0.5; Sv.6'da 4). Kimse yoksa sallamaz. Tek hedefe saniye başı hasar eski mermiyle aynı (vuruş hasarı = mermi hasarı × 2.5). Kaçarken arkandakine vurmaz (Sv.3'e kadar). Uzun menzil ve boss işi Havai Fişek'in.
+- **Kod:** `WeaponUpgradeEffect` (kilometre taşı seviyeleri; +hasar `Upgrade_Weapon.asset` → Per Level Value 5) → `StickWeapon` (`Prefabs/Weapons/StickWeapon.prefab`, `GameManager._stickWeaponPrefab`: `_hitDamage`, `_range`, `_interval`, `_arc`, `_wideArc`, `_fastFactor`, `_fullCircleDamage`). Kart metinleri `Upgrade_Weapon.asset` → Level Descriptions.
+- **Temel sopa (bütün karakterlerde aynı):** saniyede **1 vuruş × 10 hasar**, yüzün baktığı yöne **120°'lik yay**, menzildeki yaydaki **herkese** vurur (hafif geri itme, bina arkasındakine vurmaz). Menzil **gövde yüzeyinden 2** (+hasar seviyeleri +0.5; Sv.6'da 4). Kimse yoksa sallamaz. Kaçarken arkandakine vurmaz (Sv.3'e kadar). Uzun menzil ve boss işi Havai Fişek'in.
 - **Görsel:** **ağaç dalı** (`G_Stick_1..4` ← `zorse-blender/build_stick.py`), **sadece vururken görünür**: blob'un ortasından gidiş yönüne çıkar, yay boyunca soldan sağa savrulur (`WeaponVisual.PlaySwing` / `HideWhenIdle`; Sv.5'te 180°, Sv.8'de tam tur; çift uçlu formların arka ucu arka yayı süpürür), arkasında beyaz hilal izi (`SwingArcFx`, materyal `Resources/FX/SpeedTrail`). Formlar: **Sv.0-2** yapraklı eğri dal → **Sv.3-6** çift uçlu topuzlu sopa, kırmızı bantlı → **Sv.7** topuzlarda çiviler → **Sv.8** altın bantlı, uçlarında altın yaprak ve pembe çiçek. Yeni form "pop" ile gelir.
 
 | Sv. | Kazanılan | Vuruş hasarı | Sn. başı hasar (hedef başına) |
@@ -151,7 +151,6 @@ Mıknato run'a Sv.2 ile başlar; çarpanı yok, değerler herkesle aynı.
 **Örnek:** Sv.5'te 4 polis önünden geliyor: tek vuruş (25) 180°'lik yaydaki dördüne de değer; 50 canlı polis 2 vuruşta düşer. Robot köpek (10 can) her seviyede tek vuruşta ölür.
 **Not:** Tek bir elite (250 can) Sv.8'de saniyede ~58 hasar = ~4.5 sn.
 
-**Sopa kapalıyken** (`WeaponBase._swing = false`, prefab'larda): eski mermi silahları geri gelir: saniyede 2.5 atış × 4 hasar, menzil yüzeyden 2, her yöne; Silah Gücü Sv.3 çift hedef, Sv.5 delip geçme, Sv.7 üçlü hedef, Sv.8 karakter son formu (Topik **Büyük Patlama**: isabette 5 birimlik patlama · Mıknato **Sekme**: güdümlü bilye 2 düşmana daha seker · Mermo **Pompalı**: 40°'de 5 saçma, her biri %60). Görünür silahlar `G_<Kar>_1..4` (`build_weapons.py`): Topik top, Mıknato bilye tüfeği, Mermo iki yanda keleş; kart metinleri o zaman yeniden yazılmalı.
 
 ---
 
@@ -159,8 +158,8 @@ Mıknato run'a Sv.2 ile başlar; çarpanı yok, değerler herkesle aynı.
 - **Ne yapar:** Karakter silahının yanına ikinci, otomatik bir silah ekler. Uzun menzilli, yavaş, tek hedefe ağır roket. **Her yöne** (360°) ateş eder, nişan/kurma yok; hedef önceliği **boss > elit > en yakın**. Delmez, alan hasarı yok: sürüyü değil boss'u indirir. Herkesin kartı (karakter pasifi değil).
 - **Garanti:** Oyuncu 4. seviyeye gelince (1. miniboss 5'te) henüz almadıysa o kart ekranında bir kez kesin çıkar (`UpgradeData._guaranteedAtLevel`). Sonra normal ağırlıkla.
 - **Temel:** **2 sn'de 1 atış × 25 hasar** (12.5/sn), menzil **gövde yüzeyinden 8**. **Max:** 6 · **Ağırlık:** 10 · Seviye başına +8 hasar (kilometre taşı olmayan seviyelerde)
-- **Kod:** `FireworkEffect` (değerler `FX_Firework.asset`) → `FireworkWeapon` (`WeaponBase` alt sınıfı, `IsPrimary = false`; blob'un `FireworkWeapon` child'ı). Mermi `Prefabs/Weapons/FireworkRocket.prefab` (`FireworkProjectile`, model `X_Firework` ← `build_bullets.py`, Mermi Modellerini Uygula kurar). Efektler `FireworkBurstFx` (EatCrumbs havuzu).
-- **Görünür atar:** **sol omuzda** (kural: sol = saldırı, sağ = kalkan). Alçak ve neredeyse yatay, Mermo'nun kafadaki kalkanının altında kalır. Mermo'da run başından var. Gövdeye sabit, öne bakar (roket hedefe doğru çıkar). Sokak hurdası karton havai fişek tüpü; form yeni mekanikle değişir: **Sv.1-2** kırmızı-beyaz tek tüp + fitil → **Sv.3-4** kalın mavi-sarı tüp → **Sv.5** üstte trafik konisi nişangahı → **Sv.6** karton kutuda çift tüp, altın bant. İlk alınca "pop" eder. Modeller `zorse-blender/build_firework.py` → `Resources/FX/Weapons/G_Firework_1..4` (192–470 üçgen; önizleme en büyük kalkan + silahla çizilir).
+- **Kod:** `FireworkEffect` (değerler `FX_Firework.asset`) → `FireworkWeapon` (`WeaponBase` alt sınıfı; blob'un `FireworkWeapon` child'ı). Mermi `Prefabs/Weapons/FireworkRocket.prefab` (`FireworkProjectile`, model `X_Firework` ← `build_bullets.py`, Mermi Modellerini Uygula kurar). Efektler `FireworkBurstFx` (EatCrumbs havuzu).
+- **Görünür atar:** **sol omuzda** (kural: sol = saldırı, sağ = kalkan). Alçak ve neredeyse yatay. Fişek'te run başından var. Gövdeye sabit, öne bakar (roket hedefe doğru çıkar). Sokak hurdası karton havai fişek tüpü; form yeni mekanikle değişir: **Sv.1-2** kırmızı-beyaz tek tüp + fitil → **Sv.3-4** kalın mavi-sarı tüp → **Sv.5** üstte trafik konisi nişangahı → **Sv.6** karton kutuda çift tüp, altın bant. İlk alınca "pop" eder. Modeller `zorse-blender/build_firework.py` → `Resources/FX/Weapons/G_Firework_1..4` (192–470 üçgen; önizleme en büyük kalkan + silahla çizilir).
 - **Efektler:** Her roket sıradaki renkte (kırmızı, yeşil, mavi, sarı, pembe, camgöbeği): gövde ve iz o renk. Durduğu yerde (düşman, duvar ya da menzil sonunda havada) o renkte kıvılcım patlaması. Atışta atarın arkasından gri duman, blob karakter silahının ~2.6 katı geri teper, hafif titreşim.
 
 | Sv. | Kazanılan | Hasar | Atış aralığı | Saniyede hasar |
@@ -220,38 +219,51 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 
 ---
 
-## 4. Karakterler (3 adet)
+## 4. Karakterler (5 adet)
 
-**Açılma koşulları:**
+**Açılma koşulları** (Market → **KARAKTERLER** sekmesi; Topik orada yok, baştan açık):
 - **Topik:** baştan açık.
-- **Mıknato:** Market'te **500 coin** ile satın alınır (kalıcı). Kasaya run sonunda toplanan coin girer: kazanınca %100'ü, ölünce %50'si.
-- **Mermo:** toplam **3 run** bitirince kendiliğinden açılır. Ölümle biten run da, kazanılan run da sayılır. Sayı kalıcı kayıtta tutulur (`MetaProgression.CompletedRuns`), koşul `Char_Mermo.asset` → `Required Completed Runs`.
-- Kilitli karakter Lobby'de seçilemez; isminin altında koşul yazar: "(Market'te açılır)" ya da "(2 run sonra açılır)".
+- **Mıknato:** Market'te **500 coin** (2.–3. run).
+- **Fişek:** Market'te **1.000 coin** (~5. run).
+- **Cano:** Market'te **1.500 coin** (~7. run).
+- **Dalcık:** satılmaz, **5 run bitirince** kendiliğinden açılır. Ölümle biten run da, kazanılan run da sayılır. Market'teki kartında ilerleme yazar ("3/5 run"). Sayı kalıcı kayıtta tutulur (`MetaProgression.CompletedRuns`), koşul `Char_Dalcik.asset` → `Required Completed Runs`.
+- Kasaya run sonunda toplanan coin girer: kazanınca %100'ü, ölünce %50'si. Satın alınan karakter kalıcıdır (`CharacterData._saveId` kayda yazılır, `_marketPrice` > 0 = Market'te satılır).
+- Kilitli karakter Lobby'de seçilemez; isminin altında koşul yazar: "Market'te açılır" ya da "2 run sonra açılır".
 
-Üç karakter de aynı blob'dur; farkları **görünüm** ve **başlangıç avantajı** (kendi skill'iyle başlar: Topik Hız Sv.2, Mıknato Vakum Sv.2, Mermo Havai Fişek Sv.1). Ana silah üçünde aynı: sopa (yukarıda). Karaktere özel son formlar sadece sopa kapalıyken geçerli.
+**Neden Dalcık run sayısıyla:** coin'le alınan üç karakter "biriktir ve seç" hedefi; Dalcık "oynamaya devam et" hedefi. Başarılı run şartı yeni oyuncu için uzak ve en çok yardıma ihtiyacı olanı (kazanamayanı) cezalandırır; 5 run her oyuncuya sayılabilir, görünür bir hedef verir ve Mıknato ile Fişek'in arasına düşer.
 
-| | 🟠 Topik | 🧲 Mıknato | 🔫 Mermo |
-|---|---|---|---|
-| **Kilit** | Başlangıçta açık | Market'te **500 coin** ile satın alınır | **3 run bitirince** açılır (ölümle biten run da sayılır) |
-| **Görünüm** | Turuncu → kırmızı | Mavi, tepede mıknatıs | **Siyah korsan:** sol gözde kırmızı göz bandı, ipi alından başın arkasına |
-| **Başlangıç avantajı** | Run'a **Hız Sv.2** ile başlar | Run'a **Vakum Sv.2** ile başlar | Run'a **Havai Fişek Sv.1** ile başlar (atar baştan omzunda) |
-| **Sv. 8 son form (sopa kapalıyken)** | **Büyük Patlama:** isabette 5 birimlik patlama | **Sekme:** isabetten sonra 6 birim içindeki 2 düşmana daha seker | **Pompalı:** 40°'lik yelpazede 5 saçma (her biri %60 hasar) |
-| **Oyun tarzı** | Baştan hızlı; kaçarak ve dolaşarak büyür | Toplayıcı; yemi kendine çeker, hızlı büyür | Savaşçı; baştan uzaktan vurur, boss'u erken indirir |
+Beş karakter de aynı blob'dur; farkları **görünüm** ve **başlangıç avantajı** (kendi skill'iyle başlar; o skill favori skili, kart ekranında ×3 ağırlık). Ana silah hepsinde aynı: sopa (yukarıda).
+
+| | 🟠 Topik | 🧲 Mıknato | 🎆 Fişek | 🌿 Dalcık | 💚 Cano |
+|---|---|---|---|---|---|
+| **Kilit** | Baştan açık | Market **500** | Market **1.000** | **5 run bitirince** | Market **1.500** |
+| **Başlangıç avantajı** | **Hız Sv.2** | **Vakum Sv.2** | **Havai Fişek Sv.1** | **Sopa Sv.2** | **Can Emme Sv.2** |
+| **Favori skill (×3)** | Hız | Vakum | Havai Fişek | Sopa | Can Emme |
+| **Görünüm** | Turuncu → kırmızı | Mavi, tepede mıknatıs | Korsan bomba: siyah, göz bandı, tepede fitil | Fıstık yeşili, tepede minik dal | Ahududu kırmızısı, tepede kalp |
+| **Oyun tarzı** | Baştan hızlı; kaçarak büyür | Toplayıcı; yemi kendine çeker | Uzaktan vurur, boss'u erken indirir | Yakın dövüşçü; sürünün içine dalar | Dayanıklı; savaştıkça iyileşir |
 
 ### 🟠 Topik
-- **Pasif:** Run'a **Hız Artışı Sv.2** ile başlar (çarpan 1.3; kaykay baştan görünür). Kart ekranında sıradaki Sv.3 çıkar, Hız favori skili (×2 ağırlık). `Char_Topik.asset` → `Starting Upgrade` / `Starting Upgrade Level`. Rüzgar izi (`SpeedTrail`) sadece görsel.
+- **Pasif:** Run'a **Hız Artışı Sv.2** ile başlar (çarpan 1.3; kaykay baştan görünür). Kart ekranında sıradaki Sv.3 çıkar, Hız favori skili (×3 ağırlık). `Char_Topik.asset` → `Starting Upgrade` / `Starting Upgrade Level`. Rüzgar izi (`SpeedTrail`) sadece görsel.
 - **Görünüm:** turuncu → kırmızı; hızlı giderken arkasında rüzgar izi.
 
 ### 🧲 Mıknato
-- **Pasif:** Run'a **Vakum Sv.2** ile başlar (menzil gövde yüzeyinden 1.9; kart ekranında sıradaki Sv.3). Vakum favori skili (×2 ağırlık). `Char_Miknato.asset` → `Starting Upgrade` / `Starting Upgrade Level`.
+- **Pasif:** Run'a **Vakum Sv.2** ile başlar (menzil gövde yüzeyinden 1.9; kart ekranında sıradaki Sv.3). Vakum favori skili (×3 ağırlık). `Char_Miknato.asset`.
 - **Görünüm:** mavi, tepede kırmızı at nalı mıknatıs.
 - **Örnek:** Diğer karakterler Vakum'u kart olarak beklerken Mıknato ilk saniyeden çevresini toplar. Erken büyüme ve erken level demek. Kara Delik evrimine (Vakum 8 + Sindirim 8) en doğal giden karakter.
-- **Not:** Market'te 500 coin'lik kilidi var (satın alınan karakter).
 
-### 🔫 Mermo
-- **Başlangıç:** Run'a **Havai Fişek Sv.1** ile başlar: atar baştan sol omzunda, 2 sn'de bir 25 hasarlık roket (menzil gövde yüzeyinden 8). Havai Fişek favori skili (×2 ağırlık). `Char_Mermo.asset` → `Starting Upgrade` / `Starting Upgrade Level` / `Favored Upgrade`.
-- **Görünüm:** siyah gövde (kömür → gece siyahı), sol gözde kırmızı korsan göz bandı, ipi alından çaprazlama başın arkasına ve kulağına (`build_blobs.py`: `eye_patch`). Siyahta okunsun diye kaşları açık gri, ağzı koyu kırmızı. Kalkanı kafada.
-- **Son form (sopa kapalıyken):** Pompalı yakın mesafede çok güçlü (5 saçma × %60 = 3 kat hasar).
+### 🎆 Fişek
+- **Pasif:** Run'a **Havai Fişek Sv.1** ile başlar: atar baştan sol omzunda, 2 sn'de bir 25 hasarlık roket (menzil gövde yüzeyinden 8). Havai Fişek favori skili (×3 ağırlık). `Char_Fisek.asset`.
+- **Görünüm:** korsan bomba: siyah gövde (kömür → gece siyahı), sol gözde kırmızı göz bandı; bandı kafayı tek düz halka olarak çapraz sarar. Tepede metal ağızlık ve yanan fitil (`build_blobs.py`: `eye_patch`, `fuse_top`; model adları hâlâ `CH_Mermo_*`). Siyahta okunsun diye kaşları açık gri, ağzı koyu kırmızı. Kalkanı diğerleri gibi sağ yanda.
+
+### 🌿 Dalcık
+- **Pasif:** Run'a **Sopa Sv.2** ile başlar: sopa ilk saniyeden **20 hasar**, menzil gövde yüzeyinden **3** (diğerlerinde 10 hasar, 2 menzil). Kart ekranında sıradaki Sv.3 (⭐ arkaya da vurur) çıkar; Sopa favori skili (×3 ağırlık), kilometre taşlarına (Sv.5 180°, Sv.8 tam tur) en hızlı giden karakter. `Char_Dalcik.asset`.
+- **Örnek:** Polis 50 can: diğerleri 5 vuruşta, Dalcık 3 vuruşta indirir. Elit (250 can) Sv.2'de ~13 sn.
+- **Görünüm:** fıstık yeşili (çimden ayrılsın diye sarımsı), tepede minicik kısa dal: ucunda tek koyu yeşil yaprak, yanında kesik budak (sopadan esinlenme). `build_blobs.py` → `CH_Dalcik_T1..T5`, portre `Icon_Dalcik.png`.
+
+### 💚 Cano
+- **Pasif:** Run'a **Can Emme Sv.2** ile başlar: vurduğu hasarın **%4**'ü can olarak döner (sopa 10 hasar/sn → saniyede 0.4 can; Havai Fişek gelince artar). Can Emme favori skili (normal ağırlığı 8, Cano'da 24). `Char_Cano.asset`.
+- **Örnek:** Sv.6'ya (%12) diğerlerinden çok önce ulaşır; Sv.5 sopa ile 4 polise vururken (4 × 25 = 100 hasar/sn) saniyede 12 can.
+- **Görünüm:** ahududu kırmızısı (Topik'in kırmızısından pembeye kayık), tepede kısa sap ucunda pembe kalp (oyun kamerasına dönük); T1-T3'te ağız köşesinde minik vampir dişi. `build_blobs.py` → `CH_Cano_T1..T5`, portre `Icon_Cano.png`.
 
 ---
 
@@ -283,7 +295,7 @@ Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Elit polisin nişan-kilit
 | **Yutulma** | **Hiçbir şekilde yutulamaz**, silahla ölür | Aynı |
 | **Ödül** | 150 skor + 5–10 coin + sandık (35 coin + ekstra kart) + **15–25 bonus coin** | 250 skor + 5–10 coin + sandık (35 coin + ekstra kart) + **25–40 bonus coin** |
 
-- **Silahla öldürme süresi:** 1. Miniboss: temel silahla ~60 sn, + Havai Fişek Sv.1 ~27 sn, Silah Gücü 8 ile ~20 sn. 2. Miniboss: ~120 sn / Havai Fişek Sv.1 ~53 sn / ~40 sn. (Temel silahın menzili yüzeyden 3 olduğu için tanka yaklaşmak gerekir.)
+- **Silahla öldürme süresi:** 1. Miniboss: temel silahla ~60 sn, + Havai Fişek Sv.1 ~27 sn, Sopa 8 ile ~20 sn. 2. Miniboss: ~120 sn / Havai Fişek Sv.1 ~53 sn / ~40 sn. (Temel silahın menzili yüzeyden 3 olduğu için tanka yaklaşmak gerekir.)
 - **Ekranda:** Boss can barı HUD'da görünür.
 - **Görsel:** Polis tankı modeli, **2.5 kat büyük** (en dar sokağa sığan en büyük boy) (`CityKitPipeline.MinibossScale`). Ateş edince geri teper.
 - **Kaçış:** Kilit anında (lazer kalınlaşınca) yana kaçan oyuncu mermiyi atlatır. Arada bina varsa ateş etmez, yürür. Menzil 8 (tankın merkezinden): sopadan çok uzun; Havai Fişek'le (gövde yüzeyinden 8, yani merkezden 8 + gövde yarıçapı) aşağı yukarı eşit. Blob büyüdükçe Havai Fişek tankın menzilinin hemen dışından vurabilir.

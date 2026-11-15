@@ -30,6 +30,8 @@ namespace BlobSurvivor.Core
         public static GameManager Instance { get; private set; }
 
         [SerializeField] private CharacterData _defaultCharacter;
+        [Tooltip("Ana silah, bütün karakterlerde aynı (Prefabs/Weapons/StickWeapon).")]
+        [SerializeField] private GameObject _stickWeaponPrefab;
 
         private CharacterData _lastCharacter;
         // 2026-09-06 (Serra): RaiseSurvivalTimeUpdated her frame ateşleniyordu — HUD (her frame string
@@ -123,29 +125,35 @@ namespace BlobSurvivor.Core
             BlobVisual visual = blob.GetComponent<BlobVisual>();
             if (visual == null) visual = blob.AddComponent<BlobVisual>();
             visual.Apply(character.BlobVisualPrefab);
-            ArmorShield.OnHead = character.ArmorOnHead; // Zırh kalkanı kafada mı (Mermo)
+            ArmorShield.OnHead = character.ArmorOnHead; // Zırh kalkanı kafada mı (Fişek)
             if (character.SpeedTrail)
                 blob.AddComponent<SpeedTrail>(); // Topik: rüzgar izi (eskisi ClearPreviousRunState'te kare sonunda silinir)
             WeaponVisual weaponVisual = blob.GetComponent<WeaponVisual>();
             if (weaponVisual == null) weaponVisual = blob.AddComponent<WeaponVisual>();
-            // Sopa açıksa üç karakter de ağaç dalı tutar (G_Stick_*), baştan görünür; kapalıysa karakterin silahı.
-            var startWeapon = character.StartingWeaponPrefab != null
-                ? character.StartingWeaponPrefab.GetComponent<BlobSurvivor.Entities.Weapons.WeaponBase>() : null;
-            bool stick = startWeapon != null && startWeapon.UsesSwingVisual;
-            weaponVisual.Setup(visual.ModelRenderer, stick ? BlobSurvivor.Entities.Weapons.WeaponBase.SwingModel : character.WeaponModel,
-                stick || character.WeaponVisibleFromStart);
-            weaponVisual.HideWhenIdle = stick; // sopa sadece vururken görünür
+            // Herkes ağaç dalı sopa tutar (G_Stick_*), sadece vururken görünür.
+            weaponVisual.Setup(visual.ModelRenderer, StickModel, true);
+            weaponVisual.HideWhenIdle = true;
 
             // Karakter avantajı başlangıç skill'i: UpgradeSystem OnCharacterSelected'da verir.
 
-            if (character.StartingWeaponPrefab != null)
+            if (_stickWeaponPrefab != null)
             {
-                GameObject weapon = Instantiate(character.StartingWeaponPrefab, blob.transform);
+                GameObject weapon = Instantiate(_stickWeaponPrefab, blob.transform);
                 weapon.transform.localPosition = Vector3.zero;
                 weapon.transform.localRotation = Quaternion.identity;
             }
 
             GameEvents.RaiseCharacterSelected(character);
+        }
+
+        private const string StickModel = "Stick"; // Resources/FX/Weapons/G_Stick_1..4
+
+        // Destroy kare sonunda: başlangıç skill'i bu karede eskisini bulmasın diye önce ayrılır.
+        private void DetachAndDestroy(GameObject go, GameObject blob)
+        {
+            if (go == blob) return;
+            go.transform.SetParent(null);
+            Destroy(go);
         }
 
         private void ClearPreviousRunState(GameObject blob)
@@ -154,13 +162,11 @@ namespace BlobSurvivor.Core
             VacuumComponent oldVacuum = blob.GetComponent<VacuumComponent>();
             if (oldVacuum != null) DestroyImmediate(oldVacuum);
 
-            // Karakter silahı + skill'le kurulan Havai Fişek (ikisi de blob'un child'ı).
+            // Sopa + skill'le kurulan Havai Fişek (ikisi de blob'un child'ı).
+            foreach (StickWeapon oldStick in blob.GetComponentsInChildren<StickWeapon>())
+                DetachAndDestroy(oldStick.gameObject, blob);
             foreach (WeaponBase oldWeapon in blob.GetComponentsInChildren<WeaponBase>())
-                if (oldWeapon.gameObject != blob)
-                {
-                    oldWeapon.transform.SetParent(null); // Destroy kare sonunda: başlangıç skill'i bu karede eskisini bulmasın
-                    Destroy(oldWeapon.gameObject);
-                }
+                DetachAndDestroy(oldWeapon.gameObject, blob);
 
             // Skill efektleri blob'a component olarak eklenir; kalırsa bonuslar yeni run'a sızar.
             RemoveComponent<BlackHoleComponent>(blob);

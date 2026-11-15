@@ -89,7 +89,7 @@ namespace BlobSurvivor.Systems
             GrantStartingUpgrade(character);
         }
 
-        // Karakterin başlangıç skill'i (Mermo: Silah Gücü Sv.2): kart seçimiyle aynı yoldan, seviye seviye uygulanır.
+        // Karakterin başlangıç skill'i (Dalcık: Sopa Sv.2): kart seçimiyle aynı yoldan, seviye seviye uygulanır.
         private void GrantStartingUpgrade(CharacterData character)
         {
             if (character == null || character.StartingUpgrade == null || _blobRoot == null) return;

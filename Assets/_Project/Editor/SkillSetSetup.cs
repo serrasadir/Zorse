@@ -55,7 +55,7 @@ namespace BlobSurvivor.EditorTools
             // 3. Saldırı
             S("Upgrade_Weapon", "FX_WeaponUpgrade", typeof(WeaponUpgradeEffect), "weapon", "Sopa", SkillKind.Active, new[] {
                 "Vuruş hasarı +5, menzil +0.5.", "Arkaya da vurur.", "Vuruş yayı 180°, hasar +5.",
-                "Vuruş hızı %30 artar.", "SON FORM: tam tur vuruş (360°), hasar ×1.5." }, perLevel: 2f),
+                "Vuruş hızı %30 artar.", "SON FORM: tam tur vuruş (360°), hasar ×1.5." }, perLevel: 5f),
             S("Upgrade_Firework", "FX_Firework", typeof(FireworkEffect), "firework", "Havai Fişek", SkillKind.Active, new[] {
                 "Uzaktaki hedefe ağır roket: 2 sn'de bir, 25 hasar. Önce boss ve elit.", "Roket hasarı +8.", "Atış hızı %30 artar.",
                 "Boss ve elite ×1.5 hasar, roket hasarı +8.", "SON FORM: her atışta 2 roket." }, perLevel: 8f),

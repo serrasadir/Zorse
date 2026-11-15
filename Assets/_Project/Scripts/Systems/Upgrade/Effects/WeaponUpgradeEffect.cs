@@ -5,36 +5,37 @@ using BlobSurvivor.Entities.Weapons;
 
 namespace BlobSurvivor.Systems
 {
-    // Sopa (aktif, karakterin ana silahı; genel "Silah Gücü" kartı yok, design/gdd/skill-sistemi.md):
-    //   Sv.1 hasar +5, menzil +0.5 · Sv.2 ★ arkaya da vurur · Sv.3 ★ yay 180°, hasar +5 · Sv.4 ★ vuruş hızı ×1.3 ·
-    //   Sv.5 ★ tam tur (360°), hasar ×1.5. WeaponBase'in sopa yolu: TargetCount 2 = arka, Pierce = 180°,
-    //   TargetCount 3 = hızlı, Ultimate = 360°. PerLevelValue (2) × saniyede 2.5 vuruş-eşdeğeri = vuruş başı +5.
+    // Sopa skill'i (5 seviye, skill-sistemi.md): Sv.1 hasar + menzil · Sv.2 arkaya da vurur · Sv.3 yay 180° + hasar ·
+    // Sv.4 vuruş hızı ×1.3 · Sv.5 tam tur (360°) + hasar ×1.5. Hasar: Upgrade_Weapon → Per Level Value (vuruş başı).
+    // Kart açıklamaları Upgrade_Weapon.asset'te (SkillSetSetup yazar; bu seviyelerle uyumlu tutulmalı).
     [CreateAssetMenu(fileName = "WeaponUpgradeEffect", menuName = "BlobSurvivor/Effects/Weapon Upgrade")]
     public class WeaponUpgradeEffect : UpgradeEffect
     {
-        [Tooltip("Sv.1'de menzile eklenir (gövde yüzeyinden).")]
-        [SerializeField] private float _rangeAtLevel1 = 0.5f;
+        [SerializeField] private int _backSwingLevel = 2;
+        [SerializeField] private int _wideArcLevel = 3;
+        [SerializeField] private int _fastSwingLevel = 4;
+        [SerializeField] private int _fullCircleLevel = 5;
+        [Tooltip("Bu seviyelerde +hasar (Per Level Value) ve +menzil gelir; mekanik seviyesiyle aynıysa ikisi birden.")]
+        [SerializeField] private int[] _damageLevels = { 1, 3 };
+        [Tooltip("+hasar seviyelerinde menzile eklenir (gövde yüzeyinden).")]
+        [SerializeField] private float _rangePerDamageLevel = 0.5f;
 
         public override void Apply(GameObject blobRoot, UpgradeData data)
         {
-            var weapon = WeaponBase.FindPrimary(blobRoot); // Havai Fişek değil, karakter silahı
-            if (weapon == null) return;
+            var stick = blobRoot.GetComponentInChildren<StickWeapon>(); // kart seçiminde, karede bir değil
+            if (stick == null) return;
 
+            // UpgradeSystem seviyeyi Apply'dan önce artırıyor: bu, az önce ulaşılan seviye.
             int level = LevelOf(data);
-            switch (level)
-            {
-                case 1:
-                    weapon.IncreaseDamage(data.PerLevelValue);
-                    weapon.IncreaseRange(_rangeAtLevel1);
-                    break;
-                case 2: weapon.SetTargetCount(2); break;
-                case 3: weapon.SetPierce(1); weapon.IncreaseDamage(data.PerLevelValue); break;
-                case 4: weapon.SetTargetCount(3); break;
-                default: weapon.EnableUltimate(); break;
-            }
 
-            // Görünür silah: form yeni mekanikle değişir.
-            int form = level >= 5 ? 4 : level >= 4 ? 3 : level >= 2 ? 2 : 1;
+            if (level == _backSwingLevel) stick.EnableBackSwing();
+            if (level == _wideArcLevel) stick.EnableWideArc();
+            if (level == _fastSwingLevel) stick.EnableFastSwing();
+            if (level == _fullCircleLevel) stick.EnableFullCircle();
+            if (System.Array.IndexOf(_damageLevels, level) >= 0) stick.AddDamage(data.PerLevelValue, _rangePerDamageLevel);
+
+            // Görünür sopa: form yeni mekanikle değişir.
+            int form = level >= _fullCircleLevel ? 4 : level >= _fastSwingLevel ? 3 : level >= _backSwingLevel ? 2 : 1;
             blobRoot.GetComponent<WeaponVisual>()?.SetForm(form);
         }
     }

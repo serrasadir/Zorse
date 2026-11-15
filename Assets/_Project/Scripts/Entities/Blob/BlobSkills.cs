@@ -19,6 +19,15 @@ namespace BlobSurvivor.Entities.Blob
         public static float HeartMultiplier = 1f;    // Can Artışı: kalplerin iyileştirmesi
         public static float WeaponDamageScale = 1f;  // Yara Öfkesi: öfkeliyken silah hasarı
 
+        // Tetikçi'yi silahlar (sopa, Havai Fişek) bununla uygular: atış sayacı silahın kendisinde.
+        public const float RepeatDelay = 0.12f;
+        public static float NextCooldown(ref int shotCount, float interval)
+        {
+            shotCount++;
+            if (RepeatEvery > 0 && shotCount % RepeatEvery == 0) return RepeatDelay;
+            return interval * CooldownScale;
+        }
+
         public static void ResetStatics()
         {
             CooldownScale = 1f;

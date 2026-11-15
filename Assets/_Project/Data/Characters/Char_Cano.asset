@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7327bc0f29c4e47d18cf0f07416aa5f5, type: 3}
+  m_Name: Char_Cano
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.CharacterData
+  _displayName: Cano
+  _icon: {fileID: 21300000, guid: 00cc6d376d8014ea281e733c6f769de9, type: 3}
+  _description: "Can Emme skiliyle ba\u015Flar (Sv.2)."
+  _blobVisualPrefab: {fileID: 4952618270965215112, guid: dcf0633eda93f4de9abb79f3ac98452f, type: 3}
+  _armorOnHead: 0
+  _speedTrail: 0
+  _favoredUpgrade: {fileID: 11400000, guid: 4364a766d570f459e9257b0a0df70913, type: 2}
+  _favoredWeightMultiplier: 3
+  _startingUpgrade: {fileID: 11400000, guid: 4364a766d570f459e9257b0a0df70913, type: 2}
+  _startingUpgradeLevel: 2
+  _saveId: Cano
+  _marketPrice: 1500
+  _requiredCompletedRuns: 0

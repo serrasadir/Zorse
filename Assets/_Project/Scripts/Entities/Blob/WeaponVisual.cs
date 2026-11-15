@@ -3,9 +3,8 @@ using UnityEngine;
 
 namespace BlobSurvivor.Entities.Blob
 {
-    // 2026-11-06: Silah Gücü'nün görünür silahı. Modeller zorse-blender/build_weapons.py → Resources/FX/Weapons/G_<Model>_<form>.
-    // Form, skilin yeni mekaniğiyle değişir (WeaponUpgradeEffect hesaplar): 1 temel · 2 çift hedef · 3 üçlü hedef · 4 son form.
-    // Topik/Mıknato: Silah Gücü alınana kadar silah yok, sonra sol yanda belirir. Mermo: baştan form 1 (iki yanda keleş).
+    // Görünür silah: sopa (G_Stick_*, build_stick.py) ve Havai Fişek atarı (G_Firework_*) → Resources/FX/Weapons/G_<Model>_<form>.
+    // Sopa formu skilin yeni mekaniğiyle değişir (WeaponUpgradeEffect hesaplar): 1 temel · 2 arkaya da · 3 hızlı · 4 tam tur.
     // Mesh blob görünüm mesh'iyle aynı uzayda (pivot = blob merkezi) → görünüm renderer'ının child'ı, aynı materyal;
     // gidiş yönüne dönme, geri tepme, yutkunma kendiliğinden gelir. Silah hedefe dönmez. Ateş/mermi koduna dokunmaz.
     // GameManager.ApplyCharacter her run başında Setup çağırır (eski görünümle eski silah da gider).

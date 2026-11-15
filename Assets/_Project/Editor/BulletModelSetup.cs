@@ -4,9 +4,8 @@ using UnityEngine.Rendering;
 
 namespace BlobSurvivor.EditorTools
 {
-    // Oyuncu mermilerine karaktere özel model + renkli iz (TrailRenderer). Modeller zorse-blender/build_bullets.py
-    // (X_Bullet*.fbx, şehir paleti). Eski hali: 0.12'lik gri küre (Lit varsayılan), yolda görünmüyordu.
-    // Tekrar çalıştırmak güvenli.
+    // Oyuncu mermilerine model + renkli iz (TrailRenderer); şu an sadece Havai Fişek roketi (X_Firework.fbx,
+    // zorse-blender/build_bullets.py, şehir paleti). Tekrar çalıştırmak güvenli.
     internal static class BulletModelSetup
     {
         private const string PaletteMaterialPath = "Assets/_Project/Art/City/Mat_CityPalette.mat";
@@ -23,9 +22,6 @@ namespace BlobSurvivor.EditorTools
 
         private static readonly Entry[] Entries =
         {
-            new Entry { Prefab = "Assets/_Project/Prefabs/Weapons/Cannon.prefab", Mesh = "X_BulletTopik", Trail = new Color(1f, 0.64f, 0.3f), Spin = 720f },
-            new Entry { Prefab = "Assets/_Project/Prefabs/Weapons/MetalBall.prefab", Mesh = "X_BulletMiknato", Trail = new Color(0.55f, 0.82f, 1f), Spin = 540f },
-            new Entry { Prefab = "Assets/_Project/Prefabs/Weapons/Pistol.prefab", Mesh = "X_BulletMermo", Trail = new Color(1f, 0.85f, 0.35f), Spin = 0f },
             // Havai Fişek roketi: iz ve gövde rengi her atışta FireworkProjectile'dan gelir.
             new Entry { Prefab = "Assets/_Project/Prefabs/Weapons/FireworkRocket.prefab", Mesh = "X_Firework", Trail = Color.white, Spin = 0f,
                         RootScale = 1.3f, TrailTime = 0.32f, TrailWidth = 0.24f },

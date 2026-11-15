@@ -8,7 +8,8 @@ using BlobSurvivor.Systems.Meta;
 namespace BlobSurvivor.UI
 {
     // Lobiden açılan Market. Lobi/HUD diliyle: yarı saydam gece mavisi kartlar, kalın beyaz yazı, kredi altın.
-    // Üstte öne çıkan karakter kartı (Mıknato), altında kademeli kalıcı güçler. Satıra dokunmak satın alır;
+    // İki sekme: KARAKTERLER (Topik hariç; coin'le satılanlar + run'la açılan Dalcık, ilerlemesiyle) ve GÜÇLER
+    // (kademeli kalıcı güçler). Satıra dokunmak satın alır;
     // kredi yetmezse kredi rozeti sallanır. Düzen çalışma zamanında bir kez kurulur; sahnedeki eski
     // buton/yazılar gizlenir (sadece _panel ve ilk butonun yuvarlak sprite'ı kullanılır).
     public class MarketPanel : MonoBehaviour
@@ -35,15 +36,20 @@ namespace BlobSurvivor.UI
         private class Row
         {
             public MetaStatType Type;
+            public CharacterData Character; // null = kalıcı güç satırı
             public RectTransform Rect;
             public TMP_Text Name, Detail, Level, Price;
             public Image Pill;
+            public RectTransform Progress, ProgressFill; // run'la açılan karakter
         }
 
         private LobbyPanel _lobby;
-        private CharacterData _character;
-        private Row _characterRow;
+        private readonly System.Collections.Generic.List<Row> _characterRows = new System.Collections.Generic.List<Row>();
         private Row[] _rows;
+        private RectTransform _charactersPage, _statsPage;
+        private Image _charactersTab, _statsTab;
+        private TMP_Text _charactersTabText, _statsTabText;
+        private bool _statsShown;
         private RectTransform _creditChip;
         private TMP_Text _credit;
         private bool _built;
@@ -81,9 +87,20 @@ namespace BlobSurvivor.UI
         private void Purchase(Row row)
         {
             MetaProgression meta = MetaProgression.Instance;
-            if (meta == null || meta.IsPurchased(row.Type)) return;
+            if (meta == null) return;
+            if (row.Character != null)
+            {
+                // Run'la açılan karakter satılmaz; dokununca ilerleme çubuğu zıplar.
+                if (row.Character.MarketPrice <= 0 || meta.IsCharacterPurchased(row.Character))
+                {
+                    if (row.Progress != null && row.Progress.gameObject.activeSelf) StartCoroutine(Punch(row.Progress, 1.08f));
+                    return;
+                }
+            }
+            else if (meta.IsPurchased(row.Type)) return;
 
-            if (meta.TryPurchase(row.Type))
+            bool bought = row.Character != null ? meta.TryPurchaseCharacter(row.Character) : meta.TryPurchase(row.Type);
+            if (bought)
             {
                 StartCoroutine(Punch(row.Rect, 1.06f));
                 StartCoroutine(Punch(_creditChip, 1.1f));
@@ -101,8 +118,52 @@ namespace BlobSurvivor.UI
             if (!_built || meta == null) return;
 
             _credit.text = $"{meta.Credit:N0} coin";
-            if (_characterRow != null) RefreshRow(_characterRow, meta);
+            foreach (Row row in _characterRows) RefreshCharacterRow(row, meta);
             foreach (Row row in _rows) RefreshRow(row, meta);
+        }
+
+        private void RefreshCharacterRow(Row row, MetaProgression meta)
+        {
+            CharacterData c = row.Character;
+            bool unlocked = meta.IsCharacterUnlocked(c);
+            int runsLeft = meta.CharacterRunsLeft(c);
+            row.Progress.gameObject.SetActive(!unlocked && c.RequiredCompletedRuns > 0);
+
+            if (unlocked)
+            {
+                row.Pill.color = Owned;
+                row.Price.color = GoldInk;
+                row.Price.text = "AÇIK";
+                row.Detail.text = $"{c.Description}\n<color=#59D173>Lobide seçebilirsin.</color>";
+            }
+            else if (c.MarketPrice > 0 && !meta.IsCharacterPurchased(c))
+            {
+                bool affordable = meta.Credit >= c.MarketPrice;
+                row.Pill.color = affordable ? Gold : PillLocked;
+                row.Price.color = affordable ? GoldInk : Faint;
+                row.Price.text = $"{c.MarketPrice:N0}";
+                row.Detail.text = c.Description;
+            }
+            else
+            {
+                int done = c.RequiredCompletedRuns - runsLeft;
+                row.Pill.color = PillLocked;
+                row.Price.color = Color.white;
+                row.Price.text = $"{done}/{c.RequiredCompletedRuns} run";
+                row.Detail.text = $"{c.Description}\n<color=#FFD140>{c.RequiredCompletedRuns} run oyna, açılsın.</color>\nÖlüm de sayılır.";
+                row.ProgressFill.anchorMax = new Vector2(Mathf.Clamp01((float)done / c.RequiredCompletedRuns), 1f);
+            }
+        }
+
+        private void ShowTab(bool stats)
+        {
+            _statsShown = stats;
+            _charactersPage.gameObject.SetActive(!stats);
+            _statsPage.gameObject.SetActive(stats);
+            _charactersTab.color = stats ? CardColor : Gold;
+            _statsTab.color = stats ? Gold : CardColor;
+            _charactersTabText.color = stats ? Color.white : GoldInk;
+            _statsTabText.color = stats ? GoldInk : Color.white;
         }
 
         private void RefreshRow(Row row, MetaProgression meta)
@@ -115,8 +176,7 @@ namespace BlobSurvivor.UI
             {
                 row.Pill.color = Owned;
                 row.Price.color = GoldInk;
-                row.Price.text = row.Type == MetaStatType.MiknatoCharacter ? "AÇIK"
-                    : row.Type == MetaStatType.XpMultiplier ? "ALINDI" : "MAX";
+                row.Price.text = row.Type == MetaStatType.XpMultiplier ? "ALINDI" : "MAX";
             }
             else
             {
@@ -130,8 +190,7 @@ namespace BlobSurvivor.UI
                 int level = LevelOf(row.Type, meta);
                 row.Level.text = level > 0 ? $"Sv. {level}/{MetaProgression.MaxStatLevel}" : "";
             }
-            if (row.Type != MetaStatType.MiknatoCharacter) row.Detail.text = DetailOf(row.Type, meta);
-            else if (owned) row.Detail.text = "Lobide seçebilirsin.";
+            row.Detail.text = DetailOf(row.Type, meta);
         }
 
         private static int LevelOf(MetaStatType type, MetaProgression meta)
@@ -216,44 +275,67 @@ namespace BlobSurvivor.UI
             MakeButton(back, Back);
             Text("Label", back, Vector2.zero, back.sizeDelta, 56f, TextAlignmentOptions.Center, Color.white).text = "<";
 
-            _character = _lobby != null ? _lobby.MarketCharacter : null;
-            if (_character != null) _characterRow = BuildCharacterCard(panel, new Vector2(0f, 420f), rounded);
+            // Sekmeler: başlık bloğuyla birlikte üste yapışır.
+            RectTransform tabs = NewRect("Tabs", panel, new Vector2(0f, 540f), new Vector2(900f, 96f));
+            RectTransform charTab = Box("CharactersTab", tabs, new Vector2(-228f, 0f), new Vector2(444f, 96f), rounded, Gold);
+            RectTransform statTab = Box("StatsTab", tabs, new Vector2(228f, 0f), new Vector2(444f, 96f), rounded, CardColor);
+            MakeButton(charTab, () => ShowTab(false));
+            MakeButton(statTab, () => ShowTab(true));
+            _charactersTab = charTab.GetComponent<Image>();
+            _statsTab = statTab.GetComponent<Image>();
+            _charactersTabText = Text("Label", charTab, Vector2.zero, charTab.sizeDelta, 40f, TextAlignmentOptions.Center, GoldInk);
+            _charactersTabText.text = "KARAKTERLER";
+            _statsTabText = Text("Label", statTab, Vector2.zero, statTab.sizeDelta, 40f, TextAlignmentOptions.Center, Color.white);
+            _statsTabText.text = "GÜÇLER";
 
-            Text("SectionLabel", panel, new Vector2(-450f, 222f), new Vector2(900f, 50f), 34f, TextAlignmentOptions.Left, Faint)
+            _charactersPage = NewRect("CharactersPage", panel, Vector2.zero, new Vector2(1080f, 1920f));
+            _statsPage = NewRect("StatsPage", panel, Vector2.zero, new Vector2(1080f, 1920f));
+
+            _characterRows.Clear();
+            if (_lobby != null && _lobby.Characters != null)
+                foreach (CharacterData c in _lobby.Characters)
+                    if (c != null && c.ShownInMarket)
+                        _characterRows.Add(BuildCharacterCard(c, _charactersPage, new Vector2(0f, 340f - _characterRows.Count * 285f), rounded));
+
+            Text("SectionLabel", _statsPage, new Vector2(-450f, 430f), new Vector2(900f, 50f), 34f, TextAlignmentOptions.Left, Faint)
                 .text = "KALICI GÜÇLER · her run'da geçerli";
 
             _rows = new Row[StatRows.Length];
             for (int i = 0; i < StatRows.Length; i++)
-                _rows[i] = BuildStatRow(StatRows[i], panel, new Vector2(0f, 110f - i * 172f), rounded);
+                _rows[i] = BuildStatRow(StatRows[i], _statsPage, new Vector2(0f, 320f - i * 172f), rounded);
 
-            LobbyPanel.PinToEdge(panel, 1f, "Title", "TitleShadow", "CreditChip", "BackButton");
+            LobbyPanel.PinToEdge(panel, 1f, "Title", "TitleShadow", "CreditChip", "BackButton", "Tabs");
+            ShowTab(_statsShown);
         }
 
-        private Row BuildCharacterCard(RectTransform panel, Vector2 pos, Sprite rounded)
+        private Row BuildCharacterCard(CharacterData character, RectTransform parent, Vector2 pos, Sprite rounded)
         {
-            var row = new Row { Type = MetaStatType.MiknatoCharacter };
-            row.Rect = Box("CharacterCard", panel, pos, new Vector2(900f, 300f), rounded, CardColor);
+            var row = new Row { Character = character };
+            row.Rect = Box("Character_" + character.SaveId, parent, pos, new Vector2(900f, 260f), rounded, CardColor);
             MakeButton(row.Rect, () => Purchase(row));
 
-            Box("Accent", row.Rect, new Vector2(0f, 146f), new Vector2(860f, 8f), rounded, new Color(1f, 0.82f, 0.25f, 0.8f));
-
-            RectTransform frame = Box("PortraitFrame", row.Rect, new Vector2(-310f, 0f), new Vector2(240f, 240f), rounded, new Color(1f, 1f, 1f, 0.06f));
-            var portrait = NewRect("Portrait", frame, new Vector2(0f, 6f), new Vector2(220f, 220f)).gameObject.AddComponent<Image>();
+            RectTransform frame = Box("PortraitFrame", row.Rect, new Vector2(-325f, 0f), new Vector2(210f, 210f), rounded, new Color(1f, 1f, 1f, 0.06f));
+            var portrait = NewRect("Portrait", frame, new Vector2(0f, 5f), new Vector2(195f, 195f)).gameObject.AddComponent<Image>();
             portrait.preserveAspect = true;
             portrait.raycastTarget = false;
-            portrait.sprite = _character.Icon;
-            portrait.enabled = _character.Icon != null;
+            portrait.sprite = character.Icon;
+            portrait.enabled = character.Icon != null;
 
-            Text("Tag", row.Rect, new Vector2(120f, 96f), new Vector2(580f, 40f), 28f, TextAlignmentOptions.Left, Gold).text = "YENİ KARAKTER";
-            row.Name = Text("Name", row.Rect, new Vector2(120f, 46f), new Vector2(580f, 80f), 64f, TextAlignmentOptions.Left, Color.white);
-            row.Name.text = _character.DisplayName;
-            row.Detail = Text("Description", row.Rect, new Vector2(20f, -46f), new Vector2(380f, 110f), 30f, TextAlignmentOptions.TopLeft, Subtle);
+            row.Name = Text("Name", row.Rect, new Vector2(45f, 70f), new Vector2(350f, 76f), 58f, TextAlignmentOptions.Left, Color.white);
+            row.Name.text = character.DisplayName;
+            row.Detail = Text("Description", row.Rect, new Vector2(45f, -25f), new Vector2(350f, 110f), 26f, TextAlignmentOptions.TopLeft, Subtle);
             row.Detail.fontStyle = FontStyles.Normal;
             row.Detail.textWrappingMode = TextWrappingModes.Normal;
-            row.Detail.text = _character.Description;
 
-            row.Pill = Box("Price", row.Rect, new Vector2(320f, -70f), new Vector2(200f, 84f), rounded, Gold).GetComponent<Image>();
-            row.Price = Text("Text", (RectTransform)row.Pill.transform, Vector2.zero, new Vector2(200f, 84f), 40f, TextAlignmentOptions.Center, GoldInk);
+            row.Progress = Box("Progress", row.Rect, new Vector2(45f, -100f), new Vector2(350f, 18f), rounded, new Color(1f, 1f, 1f, 0.12f));
+            row.ProgressFill = Box("Fill", row.Progress, Vector2.zero, Vector2.zero, rounded, Gold);
+            row.ProgressFill.anchorMin = Vector2.zero;
+            row.ProgressFill.anchorMax = new Vector2(0f, 1f);
+            row.ProgressFill.pivot = new Vector2(0f, 0.5f);
+            row.ProgressFill.offsetMin = row.ProgressFill.offsetMax = Vector2.zero;
+
+            row.Pill = Box("Price", row.Rect, new Vector2(330f, 0f), new Vector2(200f, 84f), rounded, Gold).GetComponent<Image>();
+            row.Price = Text("Text", (RectTransform)row.Pill.transform, Vector2.zero, new Vector2(200f, 84f), 38f, TextAlignmentOptions.Center, GoldInk);
             return row;
         }
 

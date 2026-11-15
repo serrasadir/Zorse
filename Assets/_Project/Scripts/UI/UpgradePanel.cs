@@ -4,12 +4,11 @@ using TMPro;
 using BlobSurvivor.Core;
 using BlobSurvivor.Data;
 using BlobSurvivor.Systems;
-using BlobSurvivor.Entities.Weapons;
 
 namespace BlobSurvivor.UI
 {
     // Seviye atlama (3 karttan 1). HUD diliyle: koyu yarı saydam kartlar, kalın beyaz ad, sağ üstte rozet
-    // (YENİ / Sv. x/5) ve altında tür (AKTİF / PASİF / NADİR), altında seviyeye özel açıklama; evrim kartı altın. Kartlar sırayla belirir; oyun sırasında
+    // (YENİ / şu anki Sv. x/5, mavi) ve altında tür (AKTİF / PASİF / NADİR), altında seviyeye özel açıklama; evrim kartı altın. Kartlar sırayla belirir; oyun sırasında
     // sürüklerken yanlışlıkla seçilmesin diye ilk InputDelay boyunca dokunmaya kapalı. Timescale 0: ölçeksiz zaman.
     // Düzen çalışma zamanında bir kez kurulur (sahnedeki buton/yazılar yeniden biçimlenir).
     public class UpgradePanel : MonoBehaviour
@@ -29,7 +28,7 @@ namespace BlobSurvivor.UI
         private static readonly Color Gold = new Color(1f, 0.82f, 0.25f, 1f);
         private static readonly Color Subtle = new Color(1f, 1f, 1f, 0.8f);
         private static readonly Color NewBadge = new Color(0.35f, 0.75f, 0.4f, 1f);
-        private static readonly Color LevelBadge = new Color(1f, 1f, 1f, 0.16f);
+        private static readonly Color LevelBadge = new Color(0.25f, 0.55f, 1f, 1f); // sahip olunan skill: mavi
         private static readonly Color ShadowColor = new Color(0.05f, 0.05f, 0.17f, 0.85f);
 
         private const float InputDelay = 0.4f;
@@ -97,10 +96,10 @@ namespace BlobSurvivor.UI
                 if (_cardImages[i] != null) _cardImages[i].color = evo ? EvolutionCard : rare ? RareCard : CardColor;
                 _kindTexts[i].text = evo ? "" : rare ? "NADİR" : data.Kind == SkillKind.Active ? "AKTİF" : "PASİF";
                 _kindTexts[i].color = rare ? RareTag : data.Kind == SkillKind.Active ? ActiveTag : PassiveTag;
-                // 2026-11-03: yeni skill mi, yükseltme mi — seçilince ulaşacağı seviye.
-                // Sopa herkeste baştan var (temel silah): kartı "YENİ" değil yükseltme olarak gösterilir.
+                // Yeni skill mi, sahip olunan mı: sahip olunanda şu anki seviye (açıklama bir sonrakini anlatır).
+                // Sopa herkeste baştan var (temel silah): Sv.0'da da "YENİ" değil sahip olunan gibi görünür.
                 bool isNew = current == 0 && !(data.Effect is BlobSurvivor.Systems.WeaponUpgradeEffect);
-                _badgeTexts[i].text = evo ? "EVRİM" : isNew ? "YENİ" : $"Sv. {current + 1}/{data.MaxLevel}";
+                _badgeTexts[i].text = evo ? "EVRİM" : isNew ? "YENİ" : $"Sv. {current}/{data.MaxLevel}";
                 _badges[i].color = evo ? Gold : isNew ? NewBadge : LevelBadge;
                 _badgeTexts[i].color = evo ? new Color(0.12f, 0.08f, 0.02f, 1f) : Color.white;
                 _upgradeButtons[i].interactable = false; // InputDelay sonra açılır
@@ -136,10 +135,7 @@ namespace BlobSurvivor.UI
         private static string DescriptionFor(UpgradeData data)
         {
             int next = (UpgradeSystem.Instance != null ? UpgradeSystem.Instance.GetLevel(data) : 0) + 1;
-            string text = data.GetDescriptionForLevel(next);
-            return text.Contains("{ultimate}")
-                ? text.Replace("{ultimate}", WeaponBase.CurrentUltimateDescription ?? "Silahın son formuna ulaşır.")
-                : text;
+            return data.GetDescriptionForLevel(next);
         }
 
         private void SelectUpgrade(int index)

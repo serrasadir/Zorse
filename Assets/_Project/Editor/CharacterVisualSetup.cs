@@ -21,8 +21,10 @@ namespace BlobSurvivor.EditorTools
         private static readonly (string mesh, string character)[] Visuals =
         {
             ("CH_Topik", "Char_Topik"),
-            ("CH_Mermo", "Char_Mermo"),
+            ("CH_Mermo", "Char_Fisek"), // Fişek (model adı eski)
             ("CH_Miknato", "Char_Miknato"),
+            ("CH_Dalcik", "Char_Dalcik"),
+            ("CH_Cano", "Char_Cano"),
         };
         private const int TierCount = 5;
 

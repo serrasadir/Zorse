@@ -200,17 +200,13 @@ namespace BlobSurvivor.Core
             }
             else
             {
-                Note($"Coin {meta.Credit:N0} · Mıknato {(meta.MiknatoUnlocked ? "açık" : "kilitli")} · biten run {meta.CompletedRuns}", ref y, cw, s);
+                Note($"Coin {meta.Credit:N0} · karakterler {(meta.DevAllCharactersUnlocked ? "hepsi açık" : "kayıttaki")} · biten run {meta.CompletedRuns}", ref y, cw, s);
                 Note(_runSummary1, ref y, cw, s);
                 Note(_runSummary2, ref y, cw, s);
                 if (Btn(0, y, half, rowH, "+1.000 coin")) { meta.DevAddCredit(1000); _message = $"Coin {meta.Credit:N0}"; }
                 if (Btn(half + gap, y, half, rowH, "+10.000 coin")) { meta.DevAddCredit(10000); _message = $"Coin {meta.Credit:N0}"; }
                 y += rowH + gap;
-                if (Btn(0, y, half, rowH, meta.MiknatoUnlocked ? "Mıknato'yu kilitle" : "Mıknato'yu aç"))
-                {
-                    meta.DevSetMiknatoUnlocked(!meta.MiknatoUnlocked);
-                    _message = meta.MiknatoUnlocked ? "Mıknato açık" : "Mıknato kilitli";
-                }
+                if (Btn(0, y, half, rowH, "Karakterleri kilitle")) { meta.DevLockCharacters(); _message = "Karakterler kilitli, run sayısı 0"; }
                 if (Btn(half + gap, y, half, rowH, "Tüm karakterleri aç")) { meta.DevUnlockAllCharacters(); _message = "Tüm karakterler açık"; }
                 y += rowH + gap;
                 if (Btn(0, y, half, rowH, _confirmReset ? "Emin misin? Sıfırla" : "Kaydı sıfırla"))
