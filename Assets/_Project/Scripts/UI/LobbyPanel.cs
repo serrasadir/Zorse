@@ -39,6 +39,7 @@ namespace BlobSurvivor.UI
         private Card[] _cards;
         private TMP_Text _credit;
         private bool _built;
+        private float _cardHeight;
 
         private void Start()
         {
@@ -158,14 +159,12 @@ namespace BlobSurvivor.UI
                 _buttons = all;
             }
 
-            // 3 karta kadar büyük kart; fazlası başlık ile Market düğmesi arasına sığacak kadar alçak.
+            // 3 karta kadar büyük kart; fazlası başlık ile Market düğmesi arasına sığacak kadar alçak. Yerleri LayoutCards'ta.
             int count = _buttons.Length;
-            float height = count <= 3 ? 340f : 240f;
-            float pitch = count <= 3 ? 390f : 260f;
-            float top = count <= 3 ? 330f : -65f + (count - 1) * 0.5f * pitch;
+            _cardHeight = count <= 3 ? 340f : 240f;
             _cards = new Card[count];
             for (int i = 0; i < count; i++)
-                if (_buttons[i] != null) _cards[i] = BuildCard(_buttons[i], panel, new Vector2(0f, top - i * pitch), height, rounded);
+                if (_buttons[i] != null) _cards[i] = BuildCard(_buttons[i], panel, Vector2.zero, _cardHeight, rounded);
 
             if (_marketButton != null)
             {
@@ -200,6 +199,47 @@ namespace BlobSurvivor.UI
 
             PinToEdge(panel, 1f, "Title", "TitleShadow", "CreditChip", "BackButton", "SettingsButton");
             if (_marketButton != null) PinToEdge((RectTransform)_marketButton.transform, 0f);
+            LayoutCards();
+        }
+
+        // Ekran dönünce (panel boyu değişince) kartlar yeniden dizilir.
+        private void OnRectTransformDimensionsChange()
+        {
+            if (_built) LayoutCards();
+        }
+
+        // Dik ekranda tek sütun (1920'de eski yerleri). Yan ekranda 3'ten fazla kart iki sütuna dizilir (tek kalan ortada),
+        // coin kutusu ile Market düğmesi arasına ortalanır; yine sığmazsa küçülür.
+        private const float ChipBottomFromTop = 960f - 650f + 36f, MarketTopFromBottom = 960f - 800f + 60f, LayoutMargin = 20f;
+        private const float ColumnOffset = 480f;
+
+        private void LayoutCards()
+        {
+            if (_buttons == null || _buttons.Length == 0) return;
+            Rect area = ((RectTransform)_panel.transform).rect;
+            int count = _buttons.Length;
+            bool twoColumns = area.width > area.height && count > 3;
+            float pitch = count <= 3 ? 390f : 260f;
+            int rows = twoColumns ? (count + 1) / 2 : count;
+            float stack = (rows - 1) * pitch + _cardHeight;
+
+            float top = area.height * 0.5f - ChipBottomFromTop - LayoutMargin, bottom = -area.height * 0.5f + MarketTopFromBottom + LayoutMargin;
+            float scale = Mathf.Min(1f, (top - bottom) / stack);
+            // Tek sütunda 1920'deki eski yerleri: 3 kart 330'dan, fazlası −65 merkezli.
+            float center = twoColumns ? (top + bottom) * 0.5f : count <= 3 ? 330f - (count - 1) * 0.5f * pitch : -65f;
+            if (scale < 1f) center = (top + bottom) * 0.5f;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (_buttons[i] == null) continue;
+                int row = twoColumns ? i / 2 : i;
+                float x = 0f;
+                if (twoColumns && !(i == count - 1 && count % 2 == 1)) x = i % 2 == 0 ? -ColumnOffset : ColumnOffset;
+                float y = center + ((rows - 1) * 0.5f - row) * pitch * scale;
+                var rect = (RectTransform)_buttons[i].transform;
+                rect.anchoredPosition = new Vector2(x * scale, y);
+                rect.localScale = new Vector3(scale, scale, 1f);
+            }
         }
 
         // Düzen 1080x1920'ye göre çizildi. Uzun ekranda başlık bloğu üste, Market düğmesi alta yapışır (1920'de konum aynı).

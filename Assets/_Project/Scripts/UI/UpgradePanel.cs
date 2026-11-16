@@ -19,8 +19,9 @@ namespace BlobSurvivor.UI
         [SerializeField] private TMP_Text[] _upgradeDescTexts;
 
         private static readonly Color Backdrop = new Color(0.05f, 0.05f, 0.17f, 0.72f);
-        // Kompakt düzen (ref px, panel merkezine göre): karartma ekranın üstünden HudClearance aşağıda başlar.
-        private const float HudClearance = 470f;
+        // Kompakt düzen (ref px, panel merkezine göre): karartma HUD'un slot şeridinin hemen altından başlar
+        // (çentik/yan ekran fark etmez, FitContent ölçer). Şerit bulunamazsa ekranın üstünden HudClearance.
+        private const float HudClearance = 470f, StripGap = 16f;
         private const float CardTopY = 150f, CardHeight = 290f, CardGap = 16f;
         // İçeriğin üst/alt sınırı (başlık üstü, son kart altı) ve HUD/ekran kenarına bırakılan pay.
         private const float ContentTop = 480f, ContentBottom = CardTopY - 2f * (CardHeight + CardGap) - CardHeight * 0.5f - 20f;
@@ -56,7 +57,7 @@ namespace BlobSurvivor.UI
         private Outline[] _outlines;
         private TMP_Text _subtitle, _activeCount, _passiveCount;
         private CanvasGroup _panelGroup;
-        private RectTransform _content;
+        private RectTransform _content, _dim, _hudStrip;
         private float _fittedHeight = -1f;
         private Sprite _rounded, _circle, _diamond;
         private Entities.Blob.BlobGrowth _growth;
@@ -326,6 +327,9 @@ namespace BlobSurvivor.UI
             foreach (Transform c in panel)
                 if (c.GetComponent<Button>() == null) c.gameObject.SetActive(false);
             var dim = NewRect("Dim", panel, Vector2.zero, Vector2.zero);
+            _dim = dim;
+            SkillSlotStrip strip = FindAnyObjectByType<SkillSlotStrip>();
+            if (strip != null) _hudStrip = (RectTransform)strip.transform;
             dim.anchorMin = Vector2.zero;
             dim.anchorMax = Vector2.one;
             dim.offsetMin = Vector2.zero;
@@ -396,7 +400,7 @@ namespace BlobSurvivor.UI
                     StyleText(_upgradeDescTexts[i], rect, new Vector2(0f, -42f), new Vector2(840f, 120f), 36f, TextAlignmentOptions.TopLeft, Subtle, false);
                     _upgradeDescTexts[i].textWrappingMode = TextWrappingModes.Normal;
                     _upgradeDescTexts[i].overflowMode = TextOverflowModes.Ellipsis;
-                    AutoSize(_upgradeDescTexts[i], 32f, 36f);
+                    AutoSize(_upgradeDescTexts[i], 28f, 36f);
                 }
 
                 RectTransform badge = NewRect("Badge", rect, new Vector2(330f, 94f), new Vector2(220f, 60f));
@@ -423,10 +427,19 @@ namespace BlobSurvivor.UI
         private void FitContent()
         {
             if (_content == null) return;
-            float h = ((RectTransform)_panel.transform).rect.height;
+            var panel = (RectTransform)_panel.transform;
+            float h = panel.rect.height;
             if (Mathf.Approximately(h, _fittedHeight)) return;
             _fittedHeight = h;
-            float top = h * 0.5f - HudClearance - FitMargin, bottom = -h * 0.5f + FitMargin;
+            float clearance = HudClearance;
+            if (_hudStrip != null)
+            {
+                var corners = new Vector3[4];
+                _hudStrip.GetWorldCorners(corners); // [0] sol alt
+                clearance = panel.rect.yMax - panel.InverseTransformPoint(corners[0]).y + StripGap;
+            }
+            _dim.offsetMax = new Vector2(0f, -clearance);
+            float top = h * 0.5f - clearance - FitMargin, bottom = -h * 0.5f + FitMargin;
             float scale = 1f, y = 0f;
             if (ContentTop > top || ContentBottom < bottom)
             {

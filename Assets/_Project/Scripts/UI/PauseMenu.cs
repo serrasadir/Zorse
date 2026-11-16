@@ -6,7 +6,7 @@ using BlobSurvivor.Data;
 
 namespace BlobSurvivor.UI
 {
-    // Üst satırda (süre kutusunun yanında) duraklatma butonu + Devam / Yeniden Başla / Ana Menü / Ayarlar paneli. Bu obje hep aktif kalır; panel ve buton child'larıdır.
+    // Sağ üst köşede (skor/coin kutusunun sağında) duraklatma butonu + Devam / Yeniden Başla / Ana Menü / Ayarlar paneli. Bu obje hep aktif kalır; panel ve buton child'larıdır.
     // Panel OnGamePaused'da açılır: hem butonla hem uygulama arka plana atılınca (GameManager) gelir.
     // Buton sadece run sırasında görünür (lobi ve oyun sonu ekranlarında gizli).
     public class PauseMenu : MonoBehaviour
@@ -26,7 +26,7 @@ namespace BlobSurvivor.UI
             AddPanelButtons();
         }
 
-        // 2026-11-04: pause tuşu HUD'un üst satırına, süre kutusunun sağına (HUDController.LayoutHud ile aynı stil/hiza).
+        // Tuş sağ üst köşede, skor kutusuyla dikeyde ortalı (HUDController.LayoutHud ile aynı stil; kutu PauseReserve kadar solda).
         private static readonly Color PauseVisualColor = new Color(0.05f, 0.05f, 0.17f, 0.85f);
         private static readonly Color SecondaryColor = new Color(0.16f, 0.16f, 0.3f, 1f);
         private const float PauseHitSize = 120f, PauseVisualSize = 88f;
@@ -41,11 +41,12 @@ namespace BlobSurvivor.UI
             root.offsetMin = Vector2.zero;
             root.offsetMax = Vector2.zero;
 
-            // Dokunma alanı 120x120 (görünmez), görsel 88x88; süre kutusuyla (190x72, üstten 104) ortadan hizalı, arada 24 px.
+            // Dokunma alanı 120x120 (görünmez), görsel 88x88; sağ kenardan 24 içeride.
             RectTransform rect = _pauseButton.GetComponent<RectTransform>();
-            rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
+            rect.anchorMin = rect.anchorMax = new Vector2(1f, 1f);
             rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = new Vector2(24f + 190f + 24f + PauseVisualSize * 0.5f, -104f - 72f * 0.5f);
+            rect.anchoredPosition = new Vector2(-24f - PauseVisualSize * 0.5f,
+                -HUDController.ScorePanelTop - HUDController.ScorePanelHeight * 0.5f);
             rect.sizeDelta = new Vector2(PauseHitSize, PauseHitSize);
 
             Image hit = _pauseButton.targetGraphic as Image;

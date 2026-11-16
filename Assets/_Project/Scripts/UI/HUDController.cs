@@ -48,7 +48,9 @@ namespace BlobSurvivor.UI
         private const float BossNameHeight = 44f, BossBarTop = 50f, BossBarHeight = 24f;
         private const float HealthLeft = 84f;   // solda düşük can işaretine (48 + 12) yer
         private const float HealthTop = 216f, HealthHeight = 28f;
-        private const float XpTop = 296f, XpHeight = 20f, XpLeft = 172f, XpRightInset = 244f;
+        // XP barı sabit boy: dik ekranda 1080 genişlikte eski hâli (sağdan 244 içeride), yan ekranda uzamaz
+        // (can barının en uzun hâlinden biraz uzun). Tier adı barın hemen sağında.
+        private const float XpTop = 296f, XpHeight = 20f, XpLeft = 172f, XpWidth = 1080f - XpLeft - 244f, XpTierGap = 20f;
         private const float RowTextTop = 286f, RowTextHeight = 40f, LevelTextWidth = 140f, TierTextWidth = 200f;
         private const float StripTop = 338f, StripSlot = 72f;
 
@@ -174,11 +176,9 @@ namespace BlobSurvivor.UI
             {
                 var xp = (RectTransform)_xpBar.transform;
                 xp.SetParent(layout, false);
-                xp.anchorMin = new Vector2(0f, 1f);
-                xp.anchorMax = new Vector2(1f, 1f);
-                xp.pivot = new Vector2(0.5f, 1f);
-                xp.offsetMin = new Vector2(XpLeft, -(XpTop + XpHeight));
-                xp.offsetMax = new Vector2(-XpRightInset, -XpTop);
+                xp.anchorMin = xp.anchorMax = xp.pivot = new Vector2(0f, 1f);
+                xp.anchoredPosition = new Vector2(XpLeft, -XpTop);
+                xp.sizeDelta = new Vector2(XpWidth, XpHeight);
                 xp.localScale = Vector3.one;
                 NormalizeSlider(_xpBar);
             }
@@ -477,6 +477,9 @@ namespace BlobSurvivor.UI
         private static readonly Color CoinColor = new Color(1f, 0.82f, 0.25f, 1f);
         private const float TopOffset = 104f; // A bölgesinin (haber bandı / boss barı) altı
         private const float Edge = 24f;
+        // Sağ üst köşe duraklatma tuşunun (PauseMenu, 88 + 24 boşluk): skor kutusu onun solunda.
+        public const float PauseReserve = 88f + 24f;
+        public const float ScorePanelTop = TopOffset, ScorePanelHeight = 104f;
 
         private void LayoutHud()
         {
@@ -488,7 +491,8 @@ namespace BlobSurvivor.UI
             RectTransform timerPanel = CreatePanel("TimerPanel", layout, new Vector2(0f, 1f), new Vector2(Edge, -TopOffset), new Vector2(190f, 72f));
             PlaceText(_timerText, timerPanel, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 50f, TextAlignmentOptions.Center, Color.white);
 
-            RectTransform scorePanel = CreatePanel("ScorePanel", layout, new Vector2(1f, 1f), new Vector2(-Edge, -TopOffset), new Vector2(ScorePanelMinWidth, 104f));
+            RectTransform scorePanel = CreatePanel("ScorePanel", layout, new Vector2(1f, 1f), new Vector2(-Edge - PauseReserve, -ScorePanelTop),
+                new Vector2(ScorePanelMinWidth, ScorePanelHeight));
             _scorePanel = scorePanel;
             PlaceText(_scoreText, scorePanel, new Vector2(0f, 1f), Vector2.one, new Vector2(16f, -60f), new Vector2(-16f, -6f), 44f,
                 TextAlignmentOptions.Right, Color.white);
@@ -500,8 +504,9 @@ namespace BlobSurvivor.UI
             PlaceText(_levelText, layout, new Vector2(0f, 1f), new Vector2(0f, 1f),
                 new Vector2(Edge, -(RowTextTop + RowTextHeight)), new Vector2(Edge + LevelTextWidth, -RowTextTop), 32f,
                 TextAlignmentOptions.Left, Color.white);
-            PlaceText(_tierText, layout, new Vector2(1f, 1f), new Vector2(1f, 1f),
-                new Vector2(-Edge - TierTextWidth, -(RowTextTop + RowTextHeight)), new Vector2(-Edge, -RowTextTop), 32f,
+            float tierLeft = XpLeft + XpWidth + XpTierGap;
+            PlaceText(_tierText, layout, new Vector2(0f, 1f), new Vector2(0f, 1f),
+                new Vector2(tierLeft, -(RowTextTop + RowTextHeight)), new Vector2(tierLeft + TierTextWidth, -RowTextTop), 32f,
                 TextAlignmentOptions.Right, Color.white);
         }
 

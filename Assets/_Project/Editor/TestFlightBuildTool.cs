@@ -22,7 +22,7 @@ namespace BlobSurvivor.EditorTools
         private const string OutputPath = "../zorse-ios-build";
         private const string BundleId = "com.zorsestudio.leftnocrumbs";
         private const string TeamId = "66ZS86R987";
-        private const string IconPath = "Assets/_Project/Art/AppIcon/AppIcon_Placeholder.png";
+        private const string IconPath = "Assets/_Project/Art/AppIcon/AppIcon.png";
         // Sürüm = önek + build no (0.1.12 = build 12). Canlıya çıkınca önek değişir (ör. "1.0."); elle girilmez.
         private const string VersionPrefix = "0.1.";
 
@@ -72,8 +72,8 @@ namespace BlobSurvivor.EditorTools
             ApplyIcon();
         }
 
-        // Geçici ikon (gerçek ikon gelene kadar). App Store 1024 "marketing" ikonu olmadan yüklemeyi reddeder;
-        // tüm iOS ikon türlerine aynı görsel verilir, Unity boyutları kendisi üretir.
+        // Uygulama ikonu (Topik portresi, zorse-blender/build_app_icon.py; RGB, saydamlık kanalı yok). App Store 1024
+        // "marketing" ikonu olmadan yüklemeyi reddeder; tüm iOS ikon türlerine aynı görsel verilir, Unity boyutları kendisi üretir.
         private static void ApplyIcon()
         {
             Texture2D icon = AssetDatabase.LoadAssetAtPath<Texture2D>(IconPath);

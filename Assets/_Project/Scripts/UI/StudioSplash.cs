@@ -10,11 +10,15 @@ namespace BlobSurvivor.UI
     // arkada giriş ekranı/şehir bu sırada hazırlanır. Kendi Canvas'ı en üstte (TitleScreen'i örter).
     // Video yoksa ya da açılamazsa eski hâl: Resources/UI/zorse-logo (Sprite) siyahta belirip söner.
     // Sahne kurulumu yok; sahne yüklenince kendini kurar, bitince yok olur.
+    // Isınma: önce zemin açıkken kamera birkaç kare çizer (shader derleme / ilk yükleme burada, video takılmasın);
+    // kareler oturunca kamera kapanır ve video başlar (arkada görünmeyen şehir çizilmez); sönerken kamera geri açılır.
     public class StudioSplash : MonoBehaviour
     {
         private const float FadeIn = 0.4f, Hold = 1.3f, FadeOut = 0.5f;
         private const float PrepareTimeout = 3f;   // video bu sürede hazırlanmazsa atlanır
         private const float MaxVideoTime = 6f;     // bitiş olayı gelmezse güvenlik
+        private const float MaxWarmup = 2f, SmoothFrame = 1f / 30f;
+        private const int SmoothFramesNeeded = 3;
         // Videonun zemin rengi: ekran videodan uzunsa kenarlar aynı renkte kalsın.
         private static readonly Color VideoBackground = new Color32(24, 25, 24, 255);
 
@@ -25,6 +29,10 @@ namespace BlobSurvivor.UI
         private RenderTexture _texture;
         private bool _videoMode, _videoStarted, _videoDone;
         private float _fadeStart = -1f;
+        private bool _warm, _prepared;
+        private float _warmStart = -1f;
+        private int _smoothFrames;
+        private Camera _camera;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Create()
@@ -103,7 +111,7 @@ namespace BlobSurvivor.UI
             _video.audioOutputMode = VideoAudioOutputMode.Direct;
             _video.SetDirectAudioVolume(0, GameSettings.SfxVolume);
             _video.skipOnDrop = true;
-            _video.prepareCompleted += p => { p.Play(); };
+            _video.prepareCompleted += p => { _prepared = true; if (_warm) p.Play(); };
             _video.started += _ => { _videoStarted = true; raw.color = Color.white; };
             _video.loopPointReached += _ => _videoDone = true;
             _video.errorReceived += (_, msg) => { Debug.LogWarning($"[StudioSplash] Video oynatılamadı: {msg}"); _videoDone = true; };
@@ -112,21 +120,44 @@ namespace BlobSurvivor.UI
 
         private void Update()
         {
-            // İlk karede saymaya başla (sahne yükleme süresi girişi yemesin). Ölçeksiz: timeScale'den bağımsız.
+            if (!_warm && !Warmup()) return;
+            // Isınma bitince saymaya başla (sahne yükleme süresi girişi yemesin). Ölçeksiz: timeScale'den bağımsız.
             if (_start < 0f) _start = Time.unscaledTime;
             float t = Time.unscaledTime - _start;
 
             if (_videoMode)
             {
                 bool timedOut = (!_videoStarted && t > PrepareTimeout) || t > MaxVideoTime;
-                if (_fadeStart < 0f && (_videoDone || timedOut)) _fadeStart = Time.unscaledTime;
+                if (_fadeStart < 0f && (_videoDone || timedOut)) { _fadeStart = Time.unscaledTime; RestoreCamera(); }
                 if (_fadeStart >= 0f) FadeAll((Time.unscaledTime - _fadeStart) / FadeOut);
                 return;
             }
 
             if (t < FadeIn) { _group.alpha = t / FadeIn; return; }
             if (t < FadeIn + Hold) { _group.alpha = 1f; return; }
+            RestoreCamera();
             FadeAll((t - FadeIn - Hold) / FadeOut);
+        }
+
+        // Kareler SmoothFramesNeeded kez üst üste akıcı gelince (ya da MaxWarmup dolunca) ısınma biter.
+        private bool Warmup()
+        {
+            float now = Time.unscaledTime;
+            if (_warmStart < 0f) _warmStart = now;
+            else _smoothFrames = Time.unscaledDeltaTime < SmoothFrame ? _smoothFrames + 1 : 0;
+            if (_smoothFrames < SmoothFramesNeeded && now - _warmStart < MaxWarmup) return false;
+
+            _warm = true;
+            _camera = Camera.main;
+            if (_camera != null) _camera.enabled = false;
+            if (_prepared) _video.Play();
+            return true;
+        }
+
+        private void RestoreCamera()
+        {
+            if (_camera != null) _camera.enabled = true;
+            _camera = null;
         }
 
         // Giriş ve zemin birlikte söner: alttan giriş ekranı belirir. Tek seferlik: bitince yok olur.
@@ -139,6 +170,7 @@ namespace BlobSurvivor.UI
         private void OnDestroy()
         {
             AudioManager.Instance?.Release();
+            RestoreCamera();
             if (_video != null) _video.Stop();
             if (_texture != null)
             {
