@@ -5,8 +5,8 @@ using BlobSurvivor.Entities.Enemies;
 namespace BlobSurvivor.Entities.Weapons
 {
     // Ana silah (bütün karakterlerde): ağaç dalı sopa. Yüzün baktığı yöne yay şeklinde vurur, yaydaki herkese;
-    // kimse yoksa sallamaz, bina arkasındakine vurmaz. Sopa skill'i (SopaUpgradeEffect) güçlendirir:
-    // +hasar/+menzil seviyeleri · Sv.3 arkaya da · Sv.5 yay 180° · Sv.7 vuruş hızı ×1.3 · Sv.8 tam tur + hasar ×1.5.
+    // kimse yoksa sallamaz, bina arkasındakine vurmaz. Sopa skill'i (WeaponUpgradeEffect) güçlendirir:
+    // Sv.1 +hasar/+menzil · Sv.2 yay 180° · Sv.3 arkaya da + hasar · Sv.4 vuruş hızı ×1.3 · Sv.5 tam tur + hasar ×1.5.
     // GameManager her run başında blob'un child'ı olarak kurar (prefab: Prefabs/Weapons/StickWeapon).
     public class StickWeapon : MonoBehaviour
     {

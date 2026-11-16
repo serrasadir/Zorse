@@ -51196,7 +51196,7 @@ Transform:
   m_GameObject: {fileID: 998712585}
   serializedVersion: 2
   m_LocalRotation: {x: 0.5, y: 0, z: 0, w: 0.8660254}
-  m_LocalPosition: {x: -0.41, y: 15, z: -6}
+  m_LocalPosition: {x: -0.41, y: 12, z: -6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -51260,7 +51260,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Core.CameraController
   _target: {fileID: 276010515}
   _followSmoothing: 5
-  _baseHeight: 23
+  _baseHeight: 20
   _baseTilt: 60
   _fieldOfView: 45
   _zoomExponent: 0.35

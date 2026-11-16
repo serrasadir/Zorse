@@ -4,7 +4,7 @@ using UnityEngine;
 namespace BlobSurvivor.Entities.Blob
 {
     // Görünür silah: sopa (G_Stick_*, build_stick.py) ve Havai Fişek atarı (G_Firework_*) → Resources/FX/Weapons/G_<Model>_<form>.
-    // Sopa formu skilin yeni mekaniğiyle değişir (WeaponUpgradeEffect hesaplar): 1 temel · 2 arkaya da · 3 hızlı · 4 tam tur.
+    // Sopa formu skilin yeni mekaniğiyle değişir (WeaponUpgradeEffect hesaplar): 1 temel · 2 yay 180° · 3 hızlı · 4 tam tur.
     // Mesh blob görünüm mesh'iyle aynı uzayda (pivot = blob merkezi) → görünüm renderer'ının child'ı, aynı materyal;
     // gidiş yönüne dönme, geri tepme, yutkunma kendiliğinden gelir. Silah hedefe dönmez. Ateş/mermi koduna dokunmaz.
     // GameManager.ApplyCharacter her run başında Setup çağırır (eski görünümle eski silah da gider).

@@ -111,8 +111,8 @@ Tablolarda her satır Sv.1 → Sv.5; ⭐ yeni yetenek açan seviye.
 |---|---|---|---|
 | 0 | – | 10 | 10 |
 | 1 | +5 hasar, +0.5 menzil | 15 | 15 |
-| 2 | ⭐ **Arkaya da vurur** | 15 | 15 |
-| 3 | ⭐ **Yay 180°**, +5 hasar, +0.5 menzil | 20 | 20 |
+| 2 | ⭐ **Yay 180°** | 15 | 15 |
+| 3 | ⭐ **Arkaya da vurur**, +5 hasar, +0.5 menzil | 20 | 20 |
 | 4 | ⭐ **Vuruş hızı ×1.3** | 20 | 26 |
 | 5 | ⭐ **Son form: tam tur (360°)**, hasar ×1.5 | 30 | 39 |
 
@@ -266,7 +266,7 @@ Beş karakter de aynı blob'dur; farkları **görünüm** ve **başlangıç avan
 - **Görünüm:** korsan bomba: siyah gövde, sol gözde kırmızı göz bandı, tepede metal ağızlık ve yanan fitil (`build_blobs.py`; model adları hâlâ `CH_Mermo_*`). Kalkanı diğerleri gibi sağ yanda.
 
 ### 🌿 Dalcık
-- **Pasif:** Run'a **Sopa Sv.2** ile başlar: sopa ilk saniyeden 15 hasar, menzil 2.5 ve **arkaya da vurur**. Sopa favori skili (×3); kilometre taşlarına (Sv.3 180°, Sv.5 tam tur) en hızlı giden karakter. `Char_Dalcik.asset`.
+- **Pasif:** Run'a **Sopa Sv.2** ile başlar: sopa ilk saniyeden 15 hasar, menzil 2.5 ve **180° yayla** vurur. Sopa favori skili (×3); kilometre taşlarına (Sv.3 çift yön, Sv.5 tam tur) en hızlı giden karakter. `Char_Dalcik.asset`.
 - **Görünüm:** fıstık yeşili, tepede minicik kısa dal (`build_blobs.py` → `CH_Dalcik_T1..T5`, portre `Icon_Dalcik.png`).
 
 ### ♻️ Cano

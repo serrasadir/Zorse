@@ -178,7 +178,7 @@ namespace BlobSurvivor.UI
             }
 
             // Geri: giriş ekranına (run zaten sıfır, sadece ekran değişir).
-            RectTransform back = Box("BackButton", panel, new Vector2(-420f, 760f), new Vector2(120f, 100f), rounded, CardColor);
+            RectTransform back = Box("BackButton", panel, new Vector2(-420f, 885f), new Vector2(120f, 100f), rounded, CardColor);
             var backImage = back.GetComponent<Image>();
             backImage.raycastTarget = true;
             var backButton = back.gameObject.AddComponent<Button>();
@@ -186,7 +186,19 @@ namespace BlobSurvivor.UI
             backButton.onClick.AddListener(() => TitleScreen.ShowTitle());
             Text("Label", back, Vector2.zero, back.sizeDelta, 56f, TextAlignmentOptions.Center, Color.white).text = "<";
 
-            PinToEdge(panel, 1f, "Title", "TitleShadow", "CreditChip", "BackButton");
+            // Ayarlar (dişli): sağ üstte, geri tuşunun karşısında.
+            RectTransform gear = Box("SettingsButton", panel, new Vector2(420f, 885f), new Vector2(120f, 100f), rounded, CardColor);
+            var gearImage = gear.GetComponent<Image>();
+            gearImage.raycastTarget = true;
+            var gearButton = gear.gameObject.AddComponent<Button>();
+            gearButton.targetGraphic = gearImage;
+            gearButton.onClick.AddListener(() => SettingsPanel.Open(this, rounded));
+            Image gearIcon = NewRect("Icon", gear, Vector2.zero, new Vector2(64f, 64f)).gameObject.AddComponent<Image>();
+            gearIcon.sprite = Resources.Load<Sprite>("UI/Shapes/UI_Gear");
+            gearIcon.preserveAspect = true;
+            gearIcon.raycastTarget = false;
+
+            PinToEdge(panel, 1f, "Title", "TitleShadow", "CreditChip", "BackButton", "SettingsButton");
             if (_marketButton != null) PinToEdge((RectTransform)_marketButton.transform, 0f);
         }
 

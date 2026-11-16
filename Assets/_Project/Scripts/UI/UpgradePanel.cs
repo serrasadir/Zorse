@@ -22,6 +22,9 @@ namespace BlobSurvivor.UI
         // Kompakt düzen (ref px, panel merkezine göre): karartma ekranın üstünden HudClearance aşağıda başlar.
         private const float HudClearance = 470f;
         private const float CardTopY = 150f, CardHeight = 270f, CardGap = 16f;
+        // İçeriğin üst/alt sınırı (başlık üstü, son kart altı) ve HUD/ekran kenarına bırakılan pay.
+        private const float ContentTop = 480f, ContentBottom = CardTopY - 2f * (CardHeight + CardGap) - CardHeight * 0.5f - 20f;
+        private const float FitMargin = 20f;
         private static readonly Color CardColor = new Color(0.05f, 0.05f, 0.17f, 0.88f);
         private static readonly Color EvolutionCard = new Color(0.24f, 0.17f, 0.03f, 0.92f);
         private static readonly Color RareCard = new Color(0.26f, 0.06f, 0.16f, 0.92f);
@@ -53,6 +56,8 @@ namespace BlobSurvivor.UI
         private Outline[] _outlines;
         private TMP_Text _subtitle, _activeCount, _passiveCount;
         private CanvasGroup _panelGroup;
+        private RectTransform _content;
+        private float _fittedHeight = -1f;
         private Sprite _rounded, _circle, _diamond;
         private Entities.Blob.BlobGrowth _growth;
         private float _shownAt = -1f;
@@ -197,6 +202,7 @@ namespace BlobSurvivor.UI
         private void Update()
         {
             if (_panel == null || !_panel.activeSelf) return;
+            FitContent();
             float now = Time.unscaledTime;
             if (_selected >= 0) { UpdateSelection(now); return; }
             if (_shownAt < 0f) return;
@@ -330,13 +336,16 @@ namespace BlobSurvivor.UI
             dimImage.raycastTarget = false;
 
             // Kompakt düzen: HUD'un altından ekranın ortasına. Slot şeridi kart ekranında yok (HUD'daki görünür kalıyor).
-            Shadowed(panel, new Vector2(0f, 430f), "SEVİYE ATLADIN!", 76f, Gold);
-            _subtitle = Label("Subtitle", panel, new Vector2(0f, 362f), new Vector2(900f, 50f), 36f, TextAlignmentOptions.Center, Subtle);
+            // İçerik ayrı kökte: ekran kısaysa (yan ekran) HUD'un altındaki alana sığacak kadar küçülüp kayar (FitContent).
+            _content = NewRect("Content", panel, Vector2.zero, new Vector2(1000f, ContentTop - ContentBottom));
+            RectTransform content = _content;
+            Shadowed(content, new Vector2(0f, 430f), "SEVİYE ATLADIN!", 76f, Gold);
+            _subtitle = Label("Subtitle", content, new Vector2(0f, 362f), new Vector2(900f, 50f), 36f, TextAlignmentOptions.Center, Subtle);
             _subtitle.text = "Bir güç seç";
             _subtitle.fontStyle = FontStyles.Normal;
 
-            _activeCount = Label("ActiveCount", panel, new Vector2(-160f, 306f), new Vector2(300f, 40f), 32f, TextAlignmentOptions.Center, ActiveTag);
-            _passiveCount = Label("PassiveCount", panel, new Vector2(160f, 306f), new Vector2(300f, 40f), 32f, TextAlignmentOptions.Center, PassiveTag);
+            _activeCount = Label("ActiveCount", content, new Vector2(-160f, 306f), new Vector2(300f, 40f), 32f, TextAlignmentOptions.Center, ActiveTag);
+            _passiveCount = Label("PassiveCount", content, new Vector2(160f, 306f), new Vector2(300f, 40f), 32f, TextAlignmentOptions.Center, PassiveTag);
 
             int n = _upgradeButtons.Length;
             _cards = new RectTransform[n];
@@ -353,7 +362,7 @@ namespace BlobSurvivor.UI
                 Button button = _upgradeButtons[i];
                 if (button == null) continue;
                 var rect = (RectTransform)button.transform;
-                Place(rect, panel, new Vector2(0f, CardTopY - i * (CardHeight + CardGap)), new Vector2(920f, CardHeight));
+                Place(rect, content, new Vector2(0f, CardTopY - i * (CardHeight + CardGap)), new Vector2(920f, CardHeight));
                 _cards[i] = rect;
                 _cardImages[i] = button.targetGraphic as Image;
                 if (_cardImages[i] != null && rounded != null) { _cardImages[i].sprite = rounded; _cardImages[i].type = Image.Type.Sliced; }
@@ -408,6 +417,24 @@ namespace BlobSurvivor.UI
                 if (glyphs != null) _noteTexts[i].spriteAsset = glyphs;
                 _noteTexts[i].gameObject.SetActive(false);
             }
+        }
+
+        // Dik ekranda içerik yerinde durur; HUD'un altına sığmıyorsa o alana ortalanır ve gerekirse küçülür.
+        private void FitContent()
+        {
+            if (_content == null) return;
+            float h = ((RectTransform)_panel.transform).rect.height;
+            if (Mathf.Approximately(h, _fittedHeight)) return;
+            _fittedHeight = h;
+            float top = h * 0.5f - HudClearance - FitMargin, bottom = -h * 0.5f + FitMargin;
+            float scale = 1f, y = 0f;
+            if (ContentTop > top || ContentBottom < bottom)
+            {
+                scale = Mathf.Min(1f, (top - bottom) / (ContentTop - ContentBottom));
+                y = (top + bottom) * 0.5f - scale * (ContentTop + ContentBottom) * 0.5f;
+            }
+            _content.anchoredPosition = new Vector2(0f, y);
+            _content.localScale = new Vector3(scale, scale, 1f);
         }
 
         private static void SetShape(Image image, Sprite sprite)

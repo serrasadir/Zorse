@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
+using BlobSurvivor.Core;
 
 namespace BlobSurvivor.UI
 {
@@ -40,6 +41,7 @@ namespace BlobSurvivor.UI
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080f, 1920f);
             scaler.matchWidthOrHeight = 0f;
+            AdaptiveCanvasScaler.Attach(scaler);
 
             var back = new GameObject("Back", typeof(RectTransform), typeof(Image));
             var br = (RectTransform)back.transform;
@@ -48,6 +50,7 @@ namespace BlobSurvivor.UI
             back.GetComponent<Image>().color = clip != null ? VideoBackground : Color.black; // açılıştan itibaren tıklamayı da tutar
 
             var splash = go.AddComponent<StudioSplash>();
+            AudioManager.Instance?.Hold(); // yağmur açılış bitince başlar
             if (clip != null) splash.SetupVideo(clip);
             else splash.SetupLogo(logo);
         }
@@ -98,6 +101,7 @@ namespace BlobSurvivor.UI
             _video.targetTexture = _texture;
             _video.timeUpdateMode = VideoTimeUpdateMode.UnscaledGameTime;
             _video.audioOutputMode = VideoAudioOutputMode.Direct;
+            _video.SetDirectAudioVolume(0, GameSettings.SfxVolume);
             _video.skipOnDrop = true;
             _video.prepareCompleted += p => { p.Play(); };
             _video.started += _ => { _videoStarted = true; raw.color = Color.white; };
@@ -134,6 +138,7 @@ namespace BlobSurvivor.UI
 
         private void OnDestroy()
         {
+            AudioManager.Instance?.Release();
             if (_video != null) _video.Stop();
             if (_texture != null)
             {

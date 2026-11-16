@@ -6,7 +6,7 @@ using BlobSurvivor.Data;
 
 namespace BlobSurvivor.UI
 {
-    // Üst satırda (süre kutusunun yanında) duraklatma butonu + Devam / Yeniden Başla / Ana Menü paneli. Bu obje hep aktif kalır; panel ve buton child'larıdır.
+    // Üst satırda (süre kutusunun yanında) duraklatma butonu + Devam / Yeniden Başla / Ana Menü / Ayarlar paneli. Bu obje hep aktif kalır; panel ve buton child'larıdır.
     // Panel OnGamePaused'da açılır: hem butonla hem uygulama arka plana atılınca (GameManager) gelir.
     // Buton sadece run sırasında görünür (lobi ve oyun sonu ekranlarında gizli).
     public class PauseMenu : MonoBehaviour
@@ -105,11 +105,13 @@ namespace BlobSurvivor.UI
             }
         }
 
-        // Devam'ın altına Yeniden Başla + Ana Menü (Devam butonunun kopyası; bir kerelik UI kurulumu).
+        // Devam'ın altına Yeniden Başla + Ana Menü + Ayarlar (Devam butonunun kopyası; bir kerelik UI kurulumu).
         private void AddPanelButtons()
         {
             CreatePanelButton("RestartButton", "Yeniden Başla", -200f, () => GameManager.Instance?.StartGame());
             CreatePanelButton("MenuButton", "Ana Menü", -340f, ReturnToMenu);
+            Sprite rounded = _resumeButton.targetGraphic is Image ri ? ri.sprite : null;
+            CreatePanelButton("SettingsButton", "Ayarlar", -480f, () => SettingsPanel.Open(this, rounded));
         }
 
         private void CreatePanelButton(string name, string text, float y, UnityEngine.Events.UnityAction action)

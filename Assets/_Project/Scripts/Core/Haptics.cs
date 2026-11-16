@@ -35,6 +35,7 @@ namespace BlobSurvivor.Core
         // 0 = hafif (her yeme), 1 = orta (Large/Giant lokma), 2 = güçlü (Dev lokma). Güçlü olan seyreltmeyi deler.
         public static void Impact(int strength)
         {
+            if (!GameSettings.Vibration) return; // Ayarlar → Titreşim
             float now = Time.unscaledTime;
             if (strength == 0 && now - _lastTime < MinInterval) return;
             _lastTime = now;

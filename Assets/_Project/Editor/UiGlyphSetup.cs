@@ -8,7 +8,7 @@ using UnityEngine.TextCore;
 namespace BlobSurvivor.EditorTools
 {
     // Tools → Blob.io → UI Glif ve Şekillerini Kur: UI_Glyphs TMP Sprite Asset'i (ok, yukari, asagi, uyari; beyaz,
-    // tint ile renk alır) ve slot şekil sprite'ları (daire, elmas; Resources/UI/Shapes). Hepsi koddan çizilir.
+    // tint ile renk alır) ve slot şekil sprite'ları (daire, elmas, ayarlar dişlisi; Resources/UI/Shapes). Hepsi koddan çizilir.
     // TMP Settings'e dokunmaz: varsayılan sprite asset EmojiOne kalır, UI_Glyphs metinlere ayrıca bağlanır.
     // Tekrar çalıştırmak güvenli.
     public static class UiGlyphSetup
@@ -31,6 +31,7 @@ namespace BlobSurvivor.EditorTools
 
             WriteShape("UI_Circle", Circle);
             WriteShape("UI_Diamond", Diamond);
+            WriteShape("UI_Gear", Gear);
 
             Texture2D sheet = WriteGlyphSheet();
             TMP_SpriteAsset asset = BuildSpriteAsset(sheet);
@@ -43,6 +44,15 @@ namespace BlobSurvivor.EditorTools
 
         private static float Diamond(float u, float v) =>
             Polygon(u, v, new Vector2(0f, 0.96f), new Vector2(-0.96f, 0f), new Vector2(0f, -0.96f), new Vector2(0.96f, 0f));
+
+        // Ayarlar dişlisi: 8 diş, ortası delik.
+        private static float Gear(float u, float v)
+        {
+            float r = Mathf.Sqrt(u * u + v * v);
+            float tooth = Mathf.Clamp01((Mathf.Cos(8f * Mathf.Atan2(v, u)) + 0.3f) * 4f);
+            float body = r - (0.72f + 0.24f * tooth);
+            return Mathf.Max(body, -(r - 0.3f));
+        }
 
         private static float Arrow(float u, float v)
         {
