@@ -23,6 +23,8 @@ namespace BlobSurvivor.UI
         private const string FinalTitle = "HELİKOPTER GELDİ!";
         private const string FinalSub = "Uzan ve yut!";
         private const string BossSub = "Silahla indir";
+        private const string EncircleTitle = "KUŞATILDIN!";
+        private const string EncircleSub = "Yararak çık!";
 
         // (int)BlobTier ile indekslenir (1..7); metinler bir kez kurulur.
         private static readonly string[] TierTitles = BuildTierTitles();
@@ -106,6 +108,7 @@ namespace BlobSurvivor.UI
         {
             GameEvents.OnBlobTierChanged += OnTierChanged;
             GameEvents.OnBossSpawned += OnBossSpawned;
+            GameEvents.OnEncirclement += OnEncirclement;
             GameEvents.OnCharacterSelected += OnRunStarted;
             GameEvents.OnGameOver += Hide;
             GameEvents.OnRunComplete += OnRunComplete;
@@ -115,6 +118,7 @@ namespace BlobSurvivor.UI
         {
             GameEvents.OnBlobTierChanged -= OnTierChanged;
             GameEvents.OnBossSpawned -= OnBossSpawned;
+            GameEvents.OnEncirclement -= OnEncirclement;
             GameEvents.OnCharacterSelected -= OnRunStarted;
             GameEvents.OnGameOver -= Hide;
             GameEvents.OnRunComplete -= OnRunComplete;
@@ -145,6 +149,13 @@ namespace BlobSurvivor.UI
             if (isFinal) Show(FinalTitle, FinalSub, FinalColor, HoldFinal);
             else if (!string.IsNullOrEmpty(hudName)) Show(hudName + " GELDİ!", BossSub, BossColor, HoldBoss);
             else return;
+            Haptics.Impact(2);
+        }
+
+        private void OnEncirclement()
+        {
+            if (!IsPlaying()) return;
+            Show(EncircleTitle, EncircleSub, BossColor, HoldBoss);
             Haptics.Impact(2);
         }
 

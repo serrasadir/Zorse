@@ -34,6 +34,7 @@ namespace BlobSurvivor.Core
         // A16 (Karar 1+8, §4): final boss yenebilir fazdayken yutulunca ateşlenir — "Final boss'un ölümü = yutulması".
         // A17 run-sonu yapısı bunu dinleyip run'ı "tamamlandı/zafer" olarak kapatacak.
         public static event Action OnFinalBossConsumed;
+        public static event Action OnEncirclement; // polis halkası etrafta doğdu
         // A17: run GameOver'dan (ölüm) ayrı olarak "başarıyla" kapanınca ateşlenir (final boss yutuldu / run-timeout).
         public static event Action<RunEndReason> OnRunComplete;
 
@@ -59,6 +60,7 @@ namespace BlobSurvivor.Core
         public static void RaiseBossHealthChanged(float current, float max) => OnBossHealthChanged?.Invoke(current, max);
         public static void RaiseBossSpawned(string hudName, bool isFinal) => OnBossSpawned?.Invoke(hudName, isFinal);
         public static void RaiseFinalBossConsumed() => OnFinalBossConsumed?.Invoke();
+        public static void RaiseEncirclement() => OnEncirclement?.Invoke();
         public static void RaiseRunComplete(RunEndReason reason) => OnRunComplete?.Invoke(reason);
     }
 

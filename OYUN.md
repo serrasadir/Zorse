@@ -59,6 +59,7 @@
 | 0–1 dk | Sadece yenebilir objeler, yayalar, arabalar |
 | 1. dk | Polisler ve robot köpek sürüleri gelmeye başlar |
 | Blob **Medium** olunca (en geç 4. dk) | Elit polisler |
+| 2,5. dk (seviye 3+) | İlk kuşatma, sonra ~110 sn'de bir (§6) |
 | 5. dk | Düşman hasarı ×1.2 |
 | 10. dk | Düşman spawn'ı ×2 hızlı (tavan aynı) |
 | 15. dk | Düşman hızı ×1.15 |
@@ -140,6 +141,9 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 | **Final Boss: Polis Helikopteri** (10. seviye) | Havada uçar, yukarıdan mini roket serisi atar (alevli, değince patlar: alan hasarı). Vurdukça kademe kademe alçalır (irtifa 8 → 7 → 6 → 5), yerde koyulaşan gölgesi ve dönen pervane gölgesi var. Gelince kamera uzaklaşıp ilk 3 sn ikinizi kadraja alır; sonra uzaklık kalır, kamera blob'u ortalar (boss ölünce normale döner; `CameraController._bossIntroDuration`) | **Silahla ölmez.** Blob'un tepesi helikoptere değdiği an yutulur, hangi irtifada olursa olsun (irtifa 5 ≈ 1340 kütle). **Yutulma sahnesi** (~4 sn, blob hasar almaz): yavaş çekimde helikopter dönerek küçülüp kıvılcım iziyle blob'a emilir, kamera yaklaşır, kocaman yutkunma + patlama + güçlü titreşim; zaman normale döner, ~1.3 sn sonra geğirme (şişme + ağızdan kırıntı bulutu), kısa bekleme; sonra KAZANDIN |
 
 - **Eşzamanlı (seviyeye göre):** toplam düşman tavanı `8 + seviye × 2.2`, elit tavanı `2 + (seviye − 5) × 1.5` (en az 1). **Mutlak üst sınır: toplam 30, elit 8** — hiçbir çarpan aşamaz. Robot köpekler bu sayıya dahil değil: ayrı tavan `8 + seviye × 1` (en fazla 18; `EnemySpawner._swarmCap*`). Spawn aralığı seviye başı %10 kısalır (seviye 10'da 2 kat sık). `EnemySpawner._policeCap*`, `_eliteCap*`, `_spawnSpeedupPerLevel`. 25 yaya.
+- **Doğuş yeri — kaçış kapanır:** düşmanlar ekranın hemen dışında doğar (blob'dan en az 10 birim), blob hareket ediyorsa %65'i gidiş yönünün ±70°'lik konisinde (`EnemySpawner._aheadChance`, `_aheadSpread`). Kamerasız yedek: blob çevresinde rastgele.
+- **Arkada kalan öne taşınır:** gidiş yönünün arkasında ve ekran dışında 3 sn kalan düşman (polis, elit, robot köpek) önündeki ekran kenarına ışınlanır ve 6 sn görüş menzilinden bağımsız kovalar (`_relocateAfter`, `_relocateAlert`). Tavan arkadan gelen kuyrukla dolup önü boş bırakmaz. 50 birimden uzaktaki yine havuza döner.
+- **Kuşatma:** 2,5. dk'dan sonra (en az seviye 3, boss yokken) ~110 sn'de bir sıradan polislerden ekran kenarında tam halka: `10 + seviye × 0.6` (en fazla 16). Hepsi 12 sn kovalar; ekranda **KUŞATILDIN! · Yararak çık!** bandı. Polis tavanını en fazla 8 aşabilir (`_encircle*`).
 - **Can barı:** polis ve elit vurulunca kafasının üstünde kırmızı can barı belirir (kameraya döner; hiç vurulmamış polisde görünmez). Boss'ların barı HUD'da.
 - **Ödüller:** silahla öldürmek XP verir (yukarıda, §3); her düşman coin düşürür; elit ve boss'lar sandık (ekstra kart + coin); boss'lar bonus coin. Kalp: polis %5, elit %100 (+20 can, max canı aşmaz). Can dolu olsa da değince alınır (boşa gider).
 - Coin 20 sn sonra kaybolur (son 3 sn yanıp söner).

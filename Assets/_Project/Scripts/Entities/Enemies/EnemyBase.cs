@@ -59,6 +59,7 @@ namespace BlobSurvivor.Entities.Enemies
         private float _knockbackDecel;
         private float _aiUpdateTimer;
         private bool _canSeeBlobCached;
+        private float _alertUntil; // bu ana kadar görüş menzili dışından da kovalar (kuşatma, öne taşıma)
         private float _damageMultiplier = 1f;
         private float _speedMultiplier = 1f;
         // 2026-11-03: boss yetişme hızı (BossSpawner ekran dışında + uzakken ayarlar), dalga çarpanından ayrı.
@@ -176,6 +177,7 @@ namespace BlobSurvivor.Entities.Enemies
             _knockbackVelocity = Vector3.zero;
             _aiUpdateTimer = Random.Range(0f, AIUpdateInterval); // stagger — hepsi aynı anda çalışmasın
             _canSeeBlobCached = false;
+            _alertUntil = 0f;
             _damageMultiplier = 1f;
             _speedMultiplier = 1f;
             _catchUpMultiplier = 1f;
@@ -567,6 +569,7 @@ namespace BlobSurvivor.Entities.Enemies
         private bool ComputeCanSeeBlob()
         {
             if (BlobTransform == null) return false;
+            if (Time.time < _alertUntil) return true;
             float sqrDist = (transform.position - BlobTransform.position).sqrMagnitude;
             return sqrDist <= _detectionRange * _detectionRange;
         }
@@ -659,6 +662,14 @@ namespace BlobSurvivor.Entities.Enemies
         }
 
         public bool CanSeeBlob() => _canSeeBlobCached;
+
+        // Görüş menzilinden bağımsız, süre boyunca blob'u kovalar.
+        public void Alert(float duration)
+        {
+            _alertUntil = Mathf.Max(_alertUntil, Time.time + duration);
+            _canSeeBlobCached = true;
+            ChangeState(new ChaseState());
+        }
         public float DetectionRange => _detectionRange;
 
         // Elit/boss'ta EnemyData.AttackRange bilinçli bir "menzil/alan saldırısı" değeridir, olduğu gibi
