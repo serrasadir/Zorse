@@ -282,6 +282,7 @@ Fiyatlar ve ödüller bu hedeflere göre ayarlanır; ölçülen değer hedeften 
 
 - 2.5D stilize 3D, low-poly; şehir, insanlar, araçlar, boss'lar ve kalkanlar tek bir palet dokusunu paylaşır.
 - Yumuşak post-processing (tonemapping, hafif kontrast/doygunluk, vinyet, FXAA); bloom/SSAO yok (mobil).
+- **Yürüyüş (polis, elit, çevik kuvvet):** model gövde + bacak + kol parçalarına bölünmüş; bacaklar karşılıklı, kollar karşı bacakla adım ritminde sallanır (gidilen yola bağlı, vururken/nişan alırken düzleşir; `LimbWalk`). Çevik kuvvetin kalkan tutan sol kolu sabit. Kurulum `Tools → Blob.io → Polis Yürüyüş Parçalarını Kur`. Motorlu polis ve robot köpek henüz yürümüyor.
 - Karakterler ara ara göz kırpar (gözler kapalı mesh'i, `BlobTierMeshes`). Animasyon yok; saldırı hissi koddan: polis hamlesi, geri tepme, hasar parlaması, kamera sarsıntısı.
 - Eksik: skill ikonları, kalıcı uygulama ikonu, son form VFX'leri (issue'larda).
 
@@ -297,7 +298,7 @@ Fiyatlar ve ödüller bu hedeflere göre ayarlanır; ölçülen değer hedeften 
 | PC (port) | 60 FPS @ 1080p |
 
 - Her şey havuzdan gelir (düşman, yaya, araba, coin, mermi, consumable); runtime'da Instantiate/Destroy yok.
-- Sürü polisi ve yayalar basit steering kullanır (NavMeshAgent yok); elit ve boss'lar NavMeshAgent.
+- Sürü polisi ve yayalar basit steering kullanır (NavMeshAgent yok); elit ve boss'lar NavMeshAgent. Sürü hareketi kalabalıkta titremesin diye: hız net kuvvetle orantılı (birbirini iten polis yavaşlar, zikzak yapmaz), ivme sınırlı (7 birim/sn²), birbirini itme yumuşak ve sınırlı (yakınlıkla 0→1, toplam en fazla 1, karelere yayılır), gövde hedefe bakar (yana itilme döndürmez), engelden kaçış yönü engel bitene kadar korunur, köşe dibinde düz yol/dolanma arasında hemen gidip gelmez (`EnemyBase.ApplySteeringMovement`, `ComputeAvoidance`).
 - AI sorguları 0.1–0.4 sn aralıkla ve kaydırılarak çalışır.
 - Kodlama kuralları ve teknik ayrıntılar `CLAUDE.md`'de.
 

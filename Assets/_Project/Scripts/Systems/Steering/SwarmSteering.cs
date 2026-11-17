@@ -87,19 +87,22 @@ namespace BlobSurvivor.Systems
                         if (other == self || other == null) continue;
 
                         Vector3 offset = self.transform.position - other.transform.position;
+                        offset.y = 0f;
                         float sqrDist = offset.sqrMagnitude;
                         if (sqrDist > sqrRadius || sqrDist < 0.0001f) continue;
 
-                        result += offset.normalized / Mathf.Sqrt(sqrDist);
+                        // Yumuşak itme: yakınlıkla 0 → 1 artar (1/uzaklık gibi patlamaz; kalabalıkta yana fırlatmaz).
+                        float dist = Mathf.Sqrt(sqrDist);
+                        result += offset / dist * (1f - dist / radius);
 
                         consideredNeighbors++;
                         if (consideredNeighbors >= _maxNeighborsPerQuery)
-                            return result;
+                            return Vector3.ClampMagnitude(result, 1f);
                     }
                 }
             }
 
-            return result;
+            return Vector3.ClampMagnitude(result, 1f); // toplam itme koşma kuvvetinden büyük olmasın
         }
 
         private Vector2Int ToCell(Vector3 position)

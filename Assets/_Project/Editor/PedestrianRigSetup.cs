@@ -18,6 +18,7 @@ namespace BlobSurvivor.EditorTools
         private const string DataFolder = "Assets/_Project/ScriptableObjects/Pedestrians";
 
         private const float CrossX = 0.05f;      // x=0'ı kesen parça (gövde/baş)
+        private const float DepthLimit = 0.22f;  // gövde hizası (ön/arka); öndeki kalkan, sırt çantası değil
         private const float ArmEpsilon = 0.011f;
         private const float ShoulderDrop = 0.04f;
         private const float ArmTopFraction = 0.6f; // kol, kalça → tepe aralığının bu oranının altında biter
@@ -94,9 +95,16 @@ namespace BlobSurvivor.EditorTools
                 foreach (MeshFilter f in model.GetComponentsInChildren<MeshFilter>(true))
                     if (f.sharedMesh == mesh) { filter = f; break; }
             if (filter == null) { log.AppendLine($"{name}: model yok"); return null; }
+            return Split(mesh, filter.transform, RigFolder, name, true, true, log);
+        }
 
+        // Ortak bölme (yaya ve polis, EnemyWalkSetup): source = FBX'teki mesh'in transform'u (dönüş/ölçek).
+        // armL/armR false: o kol gövdede kalır (kalkan tutan kol gibi). Mesh'ler folder'a yazılır.
+        internal static PedestrianRig Split(Mesh mesh, Transform source, string folder, string name, bool armLAllowed,
+            bool armRAllowed, System.Text.StringBuilder log)
+        {
             // Mesh-yerel → dünya (Unity, y yukarı): sınıflandırma dünya birimleriyle yapılır.
-            Matrix4x4 toWorld = Matrix4x4.TRS(Vector3.zero, filter.transform.rotation, filter.transform.lossyScale);
+            Matrix4x4 toWorld = Matrix4x4.TRS(Vector3.zero, source.rotation, source.lossyScale);
             Matrix4x4 toLocal = toWorld.inverse;
             Vector3[] local = mesh.vertices;
             var world = new Vector3[local.Length];
@@ -108,7 +116,7 @@ namespace BlobSurvivor.EditorTools
             for (int t = 0; t < triCount; t++)
             {
                 Bounds b = TriBounds(world, tris, t);
-                if (b.min.x < -CrossX && b.max.x > CrossX) hip = Mathf.Min(hip, b.min.y);
+                if (b.min.x < -CrossX && b.max.x > CrossX && Mathf.Abs(b.center.z) <= DepthLimit) hip = Mathf.Min(hip, b.min.y);
             }
             float half = 0f;
             for (int t = 0; t < triCount; t++)
@@ -127,7 +135,7 @@ namespace BlobSurvivor.EditorTools
             {
                 Bounds b = TriBounds(world, tris, t);
                 bool armBand = b.min.y > hip * 0.5f && b.max.y <= armTop;
-                if (b.max.y <= hip + 0.001f && Mathf.Abs(b.center.x) <= half) parts[t] = b.center.x < 0f ? Part.LegL : Part.LegR;
+                if (b.max.y <= hip + 0.001f && Mathf.Abs(b.center.x) <= half && Mathf.Abs(b.center.z) <= DepthLimit) parts[t] = b.center.x < 0f ? Part.LegL : Part.LegR;
                 else if (armBand && b.min.x >= half - ArmEpsilon) parts[t] = Part.ArmR;
                 else if (armBand && b.max.x <= -half + ArmEpsilon) parts[t] = Part.ArmL;
                 else parts[t] = Part.Body;
@@ -137,9 +145,9 @@ namespace BlobSurvivor.EditorTools
             int armL = 0, armR = 0;
             foreach (Part part in parts) { if (part == Part.ArmL) armL++; else if (part == Part.ArmR) armR++; }
             bool arms = armL >= MinArmTriangles && armR >= MinArmTriangles;
-            if (!arms)
-                for (int t = 0; t < triCount; t++)
-                    if (parts[t] == Part.ArmL || parts[t] == Part.ArmR) parts[t] = Part.Body;
+            bool keepL = arms && armLAllowed, keepR = arms && armRAllowed;
+            for (int t = 0; t < triCount; t++)
+                if ((parts[t] == Part.ArmL && !keepL) || (parts[t] == Part.ArmR && !keepR)) parts[t] = Part.Body;
 
             // Eklemler (dünya): bacak = parçanın ortası, kalça yüksekliğinde; kol = ortası, üst ucun biraz altında.
             Vector3 hipL = Joint(world, tris, parts, Part.LegL, hip, false);
@@ -156,17 +164,17 @@ namespace BlobSurvivor.EditorTools
                 ShoulderR = toLocal.MultiplyPoint3x4(shoulderR),
                 SwingAxis = toLocal.MultiplyVector(Vector3.right).normalized,
             };
-            rig.Body = Extract(mesh, parts, Part.Body, Vector3.zero, $"{name}_Body");
-            rig.LegL = Extract(mesh, parts, Part.LegL, rig.HipL, $"{name}_LegL");
-            rig.LegR = Extract(mesh, parts, Part.LegR, rig.HipR, $"{name}_LegR");
-            rig.ArmL = arms ? Extract(mesh, parts, Part.ArmL, rig.ShoulderL, $"{name}_ArmL") : null;
-            rig.ArmR = arms ? Extract(mesh, parts, Part.ArmR, rig.ShoulderR, $"{name}_ArmR") : null;
+            rig.Body = Extract(mesh, parts, Part.Body, Vector3.zero, folder, $"{name}_Body");
+            rig.LegL = Extract(mesh, parts, Part.LegL, rig.HipL, folder, $"{name}_LegL");
+            rig.LegR = Extract(mesh, parts, Part.LegR, rig.HipR, folder, $"{name}_LegR");
+            rig.ArmL = keepL ? Extract(mesh, parts, Part.ArmL, rig.ShoulderL, folder, $"{name}_ArmL") : null;
+            rig.ArmR = keepR ? Extract(mesh, parts, Part.ArmR, rig.ShoulderR, folder, $"{name}_ArmR") : null;
             if (rig.LegL == null || rig.LegR == null)
             {
                 log.AppendLine($"{name}: bacak ayrılamadı, atlandı");
                 return null;
             }
-            log.AppendLine($"{name}: kalça {hip:0.00}, yarı genişlik {half:0.00}, " + (arms ? "bacak + kol" : "sadece bacak"));
+            log.AppendLine($"{name}: kalça {hip:0.00}, yarı genişlik {half:0.00}, " + (keepL && keepR ? "bacak + kol" : keepL || keepR ? "bacak + tek kol" : "sadece bacak"));
             return rig;
         }
 
@@ -201,7 +209,7 @@ namespace BlobSurvivor.EditorTools
         }
 
         // Parçanın üçgenlerini yeni mesh'e kopyalar; köşeler eklem (mesh-yerel) kadar kaydırılır.
-        private static Mesh Extract(Mesh source, Part[] parts, Part part, Vector3 pivot, string assetName)
+        private static Mesh Extract(Mesh source, Part[] parts, Part part, Vector3 pivot, string folder, string assetName)
         {
             Vector3[] pos = source.vertices;
             Vector3[] nrm = source.normals;
@@ -231,7 +239,7 @@ namespace BlobSurvivor.EditorTools
             }
             if (outTris.Count == 0) return null;
 
-            string path = $"{RigFolder}/{assetName}.asset";
+            string path = $"{folder}/{assetName}.asset";
             var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(path);
             bool created = mesh == null;
             if (created) mesh = new Mesh();

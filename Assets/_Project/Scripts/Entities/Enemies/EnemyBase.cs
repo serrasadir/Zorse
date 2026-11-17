@@ -96,6 +96,19 @@ namespace BlobSurvivor.Entities.Enemies
         private float _blobSolidRadius = 0.5f;
         private Vector3 _steeringVelocity;
         private Vector3 _dashVelocity; // DashMove'un bu karedeki hızı
+        // Kalabalıkta titreme olmasın (VS/Brotato gibi): hız net kuvvetle orantılı ve yumuşak değişir, gövde
+        // hedefe bakar (ayrılma itmesi döndürmez), engelden kaçış yönü engel bitene kadar korunur.
+        private const float SteerAcceleration = 7f;    // birim/sn²
+        private const float SeparationSmoothing = 6f;  // 0,15 sn'lik itme sıçramasını karelere yayar
+        private Vector3 _separationSmoothed;
+        private const float AvoidAmbiguous = 0.25f;    // engele bu kadar karşıdan bakınca yön belirsiz
+        private const float AvoidReleaseTime = 0.4f;   // engel bu kadar görünmezse kaçış yönü unutulur
+        private const int PathReleaseTicks = 2;        // düz yol bu kadar tick açık kalınca yol bırakılır
+        private Vector3 _smoothVelocity;
+        private int _avoidSide;                         // 0 yok, +1 sağ, -1 sol (gidiş yönüne göre)
+        private int _preferredSide;                     // belirsizlikte bu polisin sabit tercihi
+        private float _avoidClearSince;
+        private int _clearPathTicks;
         private EnemyAimLine _aimLine;
         private ObjectPool<EnemyProjectile> _projectilePool;
 
@@ -200,6 +213,11 @@ namespace BlobSurvivor.Entities.Enemies
             _followingPath = false;
             _nextRepathTime = 0f;
             _steeringVelocity = Vector3.zero;
+            _smoothVelocity = Vector3.zero;
+            _separationSmoothed = Vector3.zero;
+            _avoidSide = 0;
+            _preferredSide = Random.value < 0.5f ? -1 : 1;
+            _clearPathTicks = 0;
             NextRangedAttackTime = 0f;
             NextMeleeAttackTime = 0f;
             NextDashTime = Time.time + Random.Range(1f, 3f); // hepsi doğar doğmaz dalmasın
@@ -449,9 +467,12 @@ namespace BlobSurvivor.Entities.Enemies
             float radius = _agent != null ? _agent.radius : 0.5f;
             if (HasClearPath(_steerTarget, radius))
             {
+                // Köşe dibinde açık/kapalı gidip gelmesin: birkaç tick üst üste açıksa yol bırakılır.
+                if (_followingPath && ++_clearPathTicks < PathReleaseTicks) return;
                 _followingPath = false;
                 return;
             }
+            _clearPathTicks = 0;
 
             bool targetShifted = (_steerTarget - _pathTarget).sqrMagnitude > RepathTargetShift * RepathTargetShift;
             if (_followingPath && !targetShifted && Time.time < _nextRepathTime) return;
@@ -512,11 +533,26 @@ namespace BlobSurvivor.Entities.Enemies
             // Gövde kalınlığında süpürme: ince ışın bina köşesini ıskalıyor, gövde çarpıp kilitleniyordu.
             float bodyRadius = _agent != null ? _agent.radius : 0.5f;
             if (!Physics.SphereCast(transform.position, bodyRadius * 0.9f, forward, out RaycastHit hit, _avoidanceLookahead, s_walkMask))
+            {
+                if (_avoidSide != 0 && Time.time - _avoidClearSince > AvoidReleaseTime) _avoidSide = 0;
                 return Vector3.zero;
+            }
+            _avoidClearSince = Time.time;
 
-            // Duvara sıkışmayı önle: engelden uzaklaştıran, hareket yönüne dik bir sapma.
+            // Duvara sıkışmayı önle: engelden uzaklaştıran, hareket yönüne dik bir sapma. Yön (sağ/sol) engel
+            // bitene kadar korunur; engele tam karşıdan bakınca her tick'te yön değiştirip titremesin.
             Vector3 away = Vector3.Cross(Vector3.up, hit.normal);
-            if (Vector3.Dot(away, forward) < 0f) away = -away;
+            Vector3 lateral = Vector3.Cross(Vector3.up, forward); // gidiş yönünün sağı
+            if (_avoidSide == 0)
+            {
+                float along = Vector3.Dot(away, forward);
+                Vector3 natural = along < 0f ? -away : away;
+                float side = Vector3.Dot(natural, lateral);
+                _avoidSide = Mathf.Abs(along) > AvoidAmbiguous && Mathf.Abs(side) > 0.01f ? (side > 0f ? 1 : -1) : _preferredSide;
+            }
+            float d = Vector3.Dot(away, lateral);
+            if (Mathf.Abs(d) > 0.2f) { if (d * _avoidSide < 0f) away = -away; }
+            else if (Vector3.Dot(away, forward) < 0f) away = -away; // duvar gidişe paralel: ileri doğru kay
             return away;
         }
 
@@ -526,20 +562,27 @@ namespace BlobSurvivor.Entities.Enemies
             toTarget.y = 0f;
 
             Vector3 seek = toTarget.sqrMagnitude > 0.01f ? toTarget.normalized : Vector3.zero;
-            Vector3 moveDir = seek + _separationCached * _separationWeight + _avoidanceCached * _avoidanceWeight;
-            if (moveDir.sqrMagnitude < 0.0001f) return;
-            moveDir.Normalize();
+            float dt = Time.deltaTime;
+            _separationSmoothed = Vector3.Lerp(_separationSmoothed, _separationCached, 1f - Mathf.Exp(-SeparationSmoothing * dt));
+            Vector3 moveDir = seek + _separationSmoothed * _separationWeight + _avoidanceCached * _avoidanceWeight;
+            // Kuvvetler birbirini götürünce (kalabalık) yavaşlar: küçük artık tam hıza büyütülmez, sadece 1'e kırpılır.
+            float magnitude = moveDir.magnitude;
+            if (magnitude > 1f) moveDir /= magnitude;
 
             float speed = _data.MoveSpeed * _speedMultiplier * _catchUpMultiplier * _statusSpeed;
-            _steeringVelocity = moveDir * speed;
-            Vector3 step = ClampStepAgainstEnvironment(_steeringVelocity * Time.deltaTime);
+            _smoothVelocity = Vector3.MoveTowards(_smoothVelocity, moveDir * speed, SteerAcceleration * dt);
+            Vector3 step = ClampStepAgainstEnvironment(_smoothVelocity * dt);
             transform.position += step;
             // 2026-11-03: nişan tahmini (WeaponBase.GetPredictedAimPoint) için GERÇEK hız — duvara takılınca
             // istenen hız değil, fiilen gidilen yol.
-            _steeringVelocity = Time.deltaTime > 0f ? step / Time.deltaTime : Vector3.zero;
+            _steeringVelocity = dt > 0f ? step / dt : Vector3.zero;
+            if (dt > 0f && step.sqrMagnitude < (_smoothVelocity * dt).sqrMagnitude * 0.25f)
+                _smoothVelocity = _steeringVelocity; // duvara dayandı: biriken hız yok olsun
 
-            // Ani yön sıçramalarını yumuşat (Slerp) — separation kaynaklı titreşimi görsel olarak azaltır.
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(moveDir), _rotationSpeed * Time.deltaTime);
+            // Gövde gittiği hedefe bakar; yana itilmesi (ayrılma, kaçınma) döndürmez. Hedef yoksa yumuşak hıza.
+            Vector3 face = seek.sqrMagnitude > 0.0001f ? seek : _smoothVelocity;
+            if (face.sqrMagnitude > 0.0001f)
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(face), _rotationSpeed * dt);
         }
 
         // 2026-09-06 (Serra): "yaya ve polisler binaların içinden geçememeli" — ComputeAvoidance() zaten
@@ -669,6 +712,7 @@ namespace BlobSurvivor.Entities.Enemies
             if (UsesSteering)
             {
                 _hasSteerTarget = false;
+                _smoothVelocity = Vector3.zero;
                 return;
             }
 
