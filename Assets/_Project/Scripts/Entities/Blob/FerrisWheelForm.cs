@@ -5,10 +5,13 @@ using BlobSurvivor.Entities.Enemies;
 
 namespace BlobSurvivor.Entities.Blob
 {
-    // Özel dönüşüm: haritadaki tek dönme dolabı yiyince 20 sn dönme dolap çarkı olursun (OYUN.md §4).
-    //  - Dönüşüm (~1,2 sn, oyun donuk, ölçeksiz zaman): blob ile çark gittikçe hızlanarak yer değiştirir (Mario).
-    //  - Çark: gidiş yönünde tekerlek gibi yuvarlanır, ×1,6 hız; üstünden geçtiği polisi/köpeği ezer, boss'a sürekli
-    //    hasar, bir üst tier'a kadar her şeyi yer. Hasar alır. Son 3 sn yanıp söner, sonra kısa ters dönüşüm.
+    // Özel dönüşüm: haritadaki tek dönme dolabı yiyince 20 sn dönme dolabı "giyersin" (OYUN.md §4; Mario Odyssey
+    // yakalaması gibi karakter görünür kalır): blob çarkın göbeğinde dik durur, gözleriyle gidiş yönüne bakar, çark
+    // etrafında yuvarlanır.
+    //  - Dönüşüm (~1 sn, oyun donuk, ölçeksiz zaman): blob zıplayıp göbeğe yerleşir, çark etrafında esneyerek açılır
+    //    ve hızla bir tur döner; parıltı + bant.
+    //  - Çark: ×1,6 hız; üstünden geçtiği polisi/köpeği ezer, boss'a sürekli hasar, bir üst tier'a kadar her şeyi yer.
+    //    Hasar alır. Son 3 sn çark yanıp söner; bitince çark küçülüp kaybolur, blob yere iner.
     // Görsel: Resources/Transformations/FerrisWheelForm (Tools → Blob.io → Dönme Dolap Formunu Kur). Run başında biter.
     public class FerrisWheelForm : MonoBehaviour
     {
@@ -25,22 +28,27 @@ namespace BlobSurvivor.Entities.Blob
         private const float BlinkHz = 8f;
         private const float CameraZoom = 1.25f;
         private const float DustInterval = 0.18f;
-        private const float UnmorphDuration = 0.5f;
-        // Dönüşümde blob ↔ çark geçişleri arası süre (gittikçe hızlanır), ölçeksiz.
-        private static readonly float[] MorphSteps = { 0.2f, 0.17f, 0.14f, 0.12f, 0.1f, 0.08f, 0.07f, 0.06f, 0.06f, 0.05f };
+
+        // Dönüşüm zamanlaması (ölçeksiz sn): blob göbeğe zıplar, çark açılır, kısa bekleme.
+        private const float MorphRiseEnd = 0.3f, MorphWheelStart = 0.22f, MorphWheelEnd = 0.7f, MorphEnd = 1.0f;
+        private const float MorphHop = 0.35f;          // zıplama tepesi (kök-yerel)
+        private const float MorphSpin = 720f;          // açılırken dönüş (derece)
+        private const float UnmorphDuration = 0.45f;
+
         private static readonly Color DustA = new Color(0.72f, 0.75f, 0.78f);
         private static readonly Color DustB = new Color(0.95f, 0.94f, 0.92f);
+        private static readonly Color SparkA = new Color(0.95f, 0.45f, 0.4f);
+        private static readonly Color SparkB = new Color(1f, 0.85f, 0.35f);
 
         private enum Phase { None, Morph, Rolling, Unmorph }
 
         public static bool IsActive { get; private set; }
 
         private Phase _phase;
-        private float _timer, _stepTimer, _crushTimer, _dustTimer;
-        private int _step;
-        private bool _formShown;
+        private float _timer, _crushTimer, _dustTimer;
+        private bool _sparked;
         private float _roll, _yaw;
-        private float _punch;
+        private float _savedLift, _hubLift;
 
         private Transform _form;
         private Renderer[] _formRenderers;
@@ -120,13 +128,27 @@ namespace BlobSurvivor.Entities.Blob
             if (_form == null || _phase != Phase.None) return;
             _phase = Phase.Morph;
             IsActive = true;
-            _step = 0;
-            _stepTimer = MorphSteps[0];
-            _formShown = false;
+            _timer = 0f;
+            _sparked = false;
             _yaw = _visual != null ? Quaternion.LookRotation(_visual.Forward).eulerAngles.y : 0f;
             _roll = 0f;
-            Time.timeScale = 0f; // dönüşüm anı: her şey durur
+            _savedLift = _visual != null ? _visual.Lift : 0f;
+            _hubLift = _savedLift + HubLiftDelta();
+            foreach (Renderer r in _formRenderers) if (r != null) r.enabled = true;
+            _form.gameObject.SetActive(true);
+            PlaceForm(0f, 0f);
+            Time.timeScale = 0f; // yakalama anı: her şey durur
             Haptics.Impact(1);
+        }
+
+        // Blob gövde ortası çark göbeğine gelsin: göbek yerden yarıçap kadar yukarıda. Oran blob boyundan bağımsız.
+        private float HubLiftDelta()
+        {
+            float scale = Mathf.Max(0.01f, transform.localScale.x);
+            float bodyCenter = _visual != null && _visual.ModelRenderer != null
+                ? _visual.ModelRenderer.bounds.center.y
+                : transform.position.y;
+            return (Radius() - bodyCenter) / scale;
         }
 
         private void Update()
@@ -139,28 +161,34 @@ namespace BlobSurvivor.Entities.Blob
             }
         }
 
-        // ---------------------------------------------------------------- dönüşüm
+        // ---------------------------------------------------------------- yakalama anı
 
         private void UpdateMorph()
         {
             if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameState.Playing) return; // duraklatıldı
-            _stepTimer -= Time.unscaledDeltaTime;
-            _punch = Mathf.MoveTowards(_punch, 0f, Time.unscaledDeltaTime * 4f);
-            PlaceForm(0f);
-            if (_stepTimer > 0f) return;
+            _timer += Time.unscaledDeltaTime;
+            float t = _timer;
 
-            SwapVisible(!_formShown);
-            _punch = 0.25f;
-            _step++;
-            if (_step < MorphSteps.Length)
+            // Blob göbeğe zıplar (yay çizerek).
+            float rise = Mathf.Clamp01(t / MorphRiseEnd);
+            float lift = Mathf.Lerp(_savedLift, _hubLift, Smooth(rise)) + Mathf.Sin(rise * Mathf.PI) * MorphHop;
+            _visual?.SetLiftImmediate(lift);
+
+            // Çark etrafında esneyerek açılır ve hızla döner.
+            float open = Mathf.Clamp01((t - MorphWheelStart) / (MorphWheelEnd - MorphWheelStart));
+            float spin = MorphSpin * Smooth(open);
+            PlaceForm(spin, EaseOutBack(open));
+
+            if (!_sparked && t >= MorphWheelStart)
             {
-                _stepTimer = MorphSteps[_step];
-                return;
+                _sparked = true;
+                DeathFx.Play(FormBounds(), SparkA, SparkB, true);
+                Haptics.Impact(1);
             }
+            if (t < MorphEnd) return;
 
-            // Son geçiş: çark kalır.
-            SwapVisible(true);
-            _punch = 0.4f;
+            _roll = spin;
+            _visual?.SetLiftImmediate(_hubLift);
             Time.timeScale = 1f;
             _phase = Phase.Rolling;
             _timer = Duration;
@@ -168,16 +196,9 @@ namespace BlobSurvivor.Entities.Blob
             _dustTimer = 0f;
             if (_controller != null) _controller.FormSpeedFactor = SpeedFactor;
             if (_camera != null) _camera.CinematicZoom = CameraZoom;
-            DeathFx.Play(FormBounds(), new Color(0.95f, 0.45f, 0.4f), new Color(1f, 0.85f, 0.35f), true);
+            DeathFx.Play(FormBounds(), SparkA, SparkB, true);
             GameEvents.RaiseTransformation("DÖNME DOLAP!", "Ez geç! · 20 sn");
             Haptics.Impact(2);
-        }
-
-        private void SwapVisible(bool showForm)
-        {
-            _formShown = showForm;
-            _form.gameObject.SetActive(showForm);
-            _visual?.SetHidden(showForm);
         }
 
         // ---------------------------------------------------------------- çark
@@ -186,7 +207,7 @@ namespace BlobSurvivor.Entities.Blob
         {
             float dt = Time.deltaTime;
             _timer -= dt;
-            _punch = Mathf.MoveTowards(_punch, 0f, dt * 3f);
+            if (_visual != null) _visual.Lift = _hubLift; // kaykay vb. değiştirse de göbekte kalsın
 
             // Gidiş yönüne dönüp yuvarlanır (yol / yarıçap).
             Vector3 velocity = _rigidbody != null ? _rigidbody.linearVelocity : Vector3.zero;
@@ -195,9 +216,9 @@ namespace BlobSurvivor.Entities.Blob
             if (speed > 0.3f) _yaw = Mathf.LerpAngle(_yaw, Mathf.Atan2(velocity.x, velocity.z) * Mathf.Rad2Deg, 1f - Mathf.Exp(-12f * dt));
             float radius = Radius();
             _roll += speed * dt / Mathf.Max(0.1f, radius) * Mathf.Rad2Deg;
-            PlaceForm(_roll);
+            PlaceForm(_roll, 1f);
 
-            // Son saniyeler: yanıp söner.
+            // Son saniyeler: çark yanıp söner (blob görünür kalır).
             bool visible = _timer > WarnTime || Mathf.FloorToInt(_timer * BlinkHz * 2f) % 2 == 0;
             foreach (Renderer r in _formRenderers) if (r != null && r.enabled != visible) r.enabled = visible;
 
@@ -252,26 +273,22 @@ namespace BlobSurvivor.Entities.Blob
         private void BeginUnmorph()
         {
             _phase = Phase.Unmorph;
-            _timer = UnmorphDuration;
-            _stepTimer = 0.1f;
+            _timer = 0f;
             foreach (Renderer r in _formRenderers) if (r != null) r.enabled = true;
             if (_controller != null) _controller.FormSpeedFactor = 1f;
             if (_camera != null) _camera.CinematicZoom = 1f;
         }
 
+        // Çark küçülüp kaybolur, blob yere iner.
         private void UpdateUnmorph()
         {
-            float dt = Time.deltaTime;
-            _timer -= dt;
-            _stepTimer -= dt;
-            PlaceForm(_roll);
-            if (_stepTimer <= 0f)
-            {
-                _stepTimer = 0.08f;
-                SwapVisible(!_formShown);
-            }
-            if (_timer > 0f) return;
-            DeathFx.Play(FormBounds(), DustA, DustB, false);
+            _timer += Time.deltaTime;
+            float k = Mathf.Clamp01(_timer / UnmorphDuration);
+            _roll += 540f * Time.deltaTime;
+            PlaceForm(_roll, 1f - k * k);
+            if (_visual != null) _visual.Lift = Mathf.Lerp(_hubLift, _savedLift, Smooth(k));
+            if (k < 1f) return;
+            DeathFx.Play(new Bounds(transform.position, Vector3.one * Radius()), DustA, DustB, false);
             Haptics.Impact(1);
             Restore();
         }
@@ -285,7 +302,7 @@ namespace BlobSurvivor.Entities.Blob
                 _form.gameObject.SetActive(false);
                 foreach (Renderer r in _formRenderers) if (r != null) r.enabled = true;
             }
-            _visual?.SetHidden(false);
+            if (_visual != null) _visual.Lift = _savedLift;
             if (_controller != null) _controller.FormSpeedFactor = 1f;
             if (_camera != null) _camera.CinematicZoom = 1f;
         }
@@ -294,8 +311,8 @@ namespace BlobSurvivor.Entities.Blob
 
         private float Radius() => transform.localScale.x * DiameterScale * 0.5f;
 
-        // Çark merkezi yerden yarıçap kadar yukarıda; aks yatay, gidiş yönüne dik.
-        private void PlaceForm(float roll)
+        // Çark merkezi yerden yarıçap kadar yukarıda; aks yatay, gidiş yönüne dik. size: açılma oranı (0 = görünmez).
+        private void PlaceForm(float roll, float size)
         {
             if (_form == null) return;
             float radius = Radius();
@@ -303,13 +320,23 @@ namespace BlobSurvivor.Entities.Blob
             position.y = radius;
             _form.position = position;
             _form.rotation = Quaternion.Euler(0f, _yaw, 0f) * Quaternion.Euler(roll, 0f, 0f);
-            _form.localScale = Vector3.one * (radius * 2f / _nativeDiameter * (1f + _punch));
+            _form.localScale = Vector3.one * (radius * 2f / _nativeDiameter * Mathf.Max(0.001f, size));
         }
 
         private Bounds FormBounds()
         {
             float radius = Radius();
             return new Bounds(transform.position + Vector3.up * radius, Vector3.one * radius * 2f);
+        }
+
+        private static float Smooth(float t) => t * t * (3f - 2f * t);
+
+        // Hafif taşıp oturan açılma (0 → ~1,1 → 1).
+        private static float EaseOutBack(float t)
+        {
+            const float c = 1.70158f;
+            float u = t - 1f;
+            return 1f + (c + 1f) * u * u * u + c * u * u;
         }
     }
 }

@@ -126,10 +126,10 @@ Polis = normal ve elit; robot köpek ve boss sayılmaz. **Ödül:** `15 + dakika
 
 ### Özel dönüşüm: Dönme Dolap
 
-Haritadaki tek dönme dolabı (`P_FerrisWheel`, Large) yiyince **20 sn dönme dolap çarkı** olursun (`FerrisWheelForm`):
-- **Dönüşüm anı (~1,2 sn, oyun donar):** blob ile çark gittikçe hızlanarak yer değiştirir (Mario), her geçişte şişme; sonunda parıltı patlaması, titreşim, **DÖNME DOLAP! · Ez geç!** bandı.
-- **Çark:** ayaksız çark (`X_FerrisWheelRoll`), blob çapının 1,7 katı; gidiş yönünde tekerlek gibi yuvarlanır, arkasında toz. Hız ×1,6, kamera biraz uzaklaşır. Üstünden geçtiği polis/köpek/elit anında ezilir (silah ölümü sayılır), yerdeki boss saniyede 200 hasar alır, bir üst tier'a kadar her şeyi yer (binalar dahil). Hasar alır.
-- **Bitiş:** son 3 sn yanıp söner, sonra 0,5 sn ters dönüşüm. Run başında/ölümde hemen biter.
+Haritadaki tek dönme dolabı (`P_FerrisWheel`, Large) yiyince **20 sn dönme dolabı "giyersin"** (`FerrisWheelForm`; Mario Odyssey yakalaması gibi karakter görünür kalır):
+- **Yakalama anı (~1 sn, oyun donar):** blob zıplayıp çarkın göbeğine yerleşir, çark etrafında esneyerek açılır ve hızla bir tur döner; parıltı, titreşim, **DÖNME DOLAP! · Ez geç!** bandı.
+- **Çark:** ayaksız çark (`X_FerrisWheelRoll`), blob çapının 1,7 katı; blob göbekte dik durur, gözleriyle gidiş yönüne bakar, çark etrafında tekerlek gibi yuvarlanır, arkasında toz. Hız ×1,6, kamera biraz uzaklaşır. Üstünden geçtiği polis/köpek/elit anında ezilir (silah ölümü sayılır), yerdeki boss saniyede 200 hasar alır, bir üst tier'a kadar her şeyi yer (binalar dahil). Hasar alır.
+- **Bitiş:** son 3 sn çark yanıp söner; sonra çark dönerek küçülüp kaybolur, blob yere iner. Run başında/ölümde hemen biter.
 - Görsel: `Tools → Blob.io → Dönme Dolap Formunu Kur` → `Resources/Transformations/FerrisWheelForm`. Test: Editor'da **T**.
 
 ## 5. Skill'ler ve Karakterler

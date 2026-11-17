@@ -60,6 +60,13 @@ namespace BlobSurvivor.Entities.Blob
             else if (_defaultRenderer != null) _defaultRenderer.enabled = !hidden;
         }
 
+        // Oyun donukken (dönüşüm anı) yüksekliği hemen uygular; LateUpdate dt=0'da çalışmaz.
+        public void SetLiftImmediate(float lift)
+        {
+            Lift = _lift = lift;
+            if (_visual != null) _visual.localPosition = _recoilOffset + Vector3.up * _lift;
+        }
+
         public void Apply(GameObject prefab)
         {
             if (_flash == null) _flash = GetComponent<DamageFlash>();
