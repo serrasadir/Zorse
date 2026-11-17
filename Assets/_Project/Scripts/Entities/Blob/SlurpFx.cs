@@ -4,7 +4,8 @@ namespace BlobSurvivor.Entities.Blob
 {
     // "Höpleme": yenen objenin görsel kopyası kısa sürede küçülerek blob'un ortasına çekilir (obje kendisi
     // anında havuza döner). Sabit kopya havuzu, ilk yemede bir kez kurulur; mesh/materyal kaynak objeden
-    // paylaşılır (yeni materyal yok). Static batching'deki şehir objeleri atlanır: mesh'leri birleşik.
+    // paylaşılır (yeni materyal yok). Static batching'deki şehir objelerinin mesh'i birleşik: onlarda
+    // CityConsumable.SlurpMesh (editörde yazılan orijinal mesh) kullanılır; büyükler (allowStatic=false) atlanır.
     public class SlurpFx : MonoBehaviour
     {
         private const int Count = 16;
@@ -28,15 +29,26 @@ namespace BlobSurvivor.Entities.Blob
         private int _next;
         private Transform _target;
 
-        public static void Play(GameObject source, Transform blob)
+        public static void Play(GameObject source, Transform blob, bool allowStatic)
         {
             if (source == null || blob == null) return;
             MeshRenderer renderer = LargestRenderer(source);
-            if (renderer == null || renderer.isPartOfStaticBatch) return;
-            MeshFilter filter = renderer.GetComponent<MeshFilter>();
-            if (filter == null || filter.sharedMesh == null) return;
+            if (renderer == null) return;
+            Mesh mesh;
+            if (renderer.isPartOfStaticBatch)
+            {
+                if (!allowStatic) return;
+                CityConsumable city = source.GetComponent<CityConsumable>();
+                mesh = city != null ? city.SlurpMesh : null;
+            }
+            else
+            {
+                MeshFilter filter = renderer.GetComponent<MeshFilter>();
+                mesh = filter != null ? filter.sharedMesh : null;
+            }
+            if (mesh == null) return;
             if (s_instance == null) Create();
-            s_instance.Spawn(renderer, filter, blob);
+            s_instance.Spawn(renderer, mesh, blob);
         }
 
         private static MeshRenderer LargestRenderer(GameObject source)
@@ -75,14 +87,14 @@ namespace BlobSurvivor.Entities.Blob
             }
         }
 
-        private void Spawn(MeshRenderer renderer, MeshFilter filter, Transform blob)
+        private void Spawn(MeshRenderer renderer, Mesh mesh, Transform blob)
         {
             _target = blob;
             ref Item item = ref _items[_next]; // hepsi meşgulse en eskisi yeniden kullanılır
             _next = (_next + 1) % _items.Length;
 
             Transform src = renderer.transform;
-            item.Filter.sharedMesh = filter.sharedMesh;
+            item.Filter.sharedMesh = mesh;
             item.Renderer.sharedMaterials = renderer.sharedMaterials;
             item.From = src.position;
             item.Rotation = src.rotation;

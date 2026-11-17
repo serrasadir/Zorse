@@ -185,7 +185,8 @@ namespace BlobSurvivor.Entities.Blob
             else
                 Haptics.LightTap(); // 2026-11-02: Handheld.Vibrate() bildirim gibi güçlüydü
 
-            SlurpFx.Play(obj, transform); // görsel kopya blob'a çekilir; obje aşağıda hemen havuza döner
+            // Görsel kopya blob'a çekilir (obje aşağıda hemen kaybolur); büyük şehir objelerinde kırıntı yeter.
+            SlurpFx.Play(obj, transform, consumable.RequiredTier < BlobTier.Medium);
             consumable.OnConsumed();
 
             // B14: pool'a gerçek dönüş — önceden sadece SetActive(false) yapılıyordu, pool Queue'su

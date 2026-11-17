@@ -12,6 +12,9 @@ namespace BlobSurvivor.Entities
         // boydaysan değdiğin an yenir. Katı collider yerdeki ayak izi kalır (görünmez duvar olmasın). Editor kurar.
         [SerializeField] private Collider _eatZone;
         public const string EatZoneName = "EatZone";
+        // Höpleme (SlurpFx) için modelin orijinal mesh'i: oyunda static batching mesh'leri birleştirir.
+        [SerializeField] private Mesh _slurpMesh;
+        public Mesh SlurpMesh => _slurpMesh;
 
         private static Collider[] s_blobColliders;
 

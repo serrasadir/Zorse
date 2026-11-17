@@ -73,6 +73,7 @@ MonoBehaviour:
   _data: {fileID: 11400000, guid: 530b69d0a7c0f45da927fad94aa43a2f, type: 2}
   _obstacle: {fileID: 0}
   _eatZone: {fileID: 0}
+  _slurpMesh: {fileID: -2589352573854392420, guid: 83c077843877f4054b2916ec1f55d916, type: 3}
 --- !u!114 &681577361248386198
 MonoBehaviour:
   m_ObjectHideFlags: 0

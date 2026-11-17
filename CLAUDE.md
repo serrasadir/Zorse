@@ -109,6 +109,7 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 | Yerdeki Yiyecekleri Kur | `Art/City/Litter/J_*.fbx` (Blender: `build_litter.py`) → prefab + ConsumableData, ConsumableSpawner havuzunu bunlarla değiştirir. GameScene açıkken; sonra Cmd+S |
 | Mermi Modellerini Uygula | `Art/City/X_Firework.fbx` (Blender: `build_bullets.py`) → Havai Fişek roketi prefab'ı: `Spin/Model` + renkli `TrailRenderer` (`Mat_BulletTrail`). Ucu +Z'ye otomatik çevrilir |
 | Yeme Alanlarını Kur | Ayak izi görünür boyundan çok küçük `P_` prefab'larına (pota, ağaç, lamba, tente) görünür boy kadar tetikleyici `EatZone` child + `CityConsumable._eatZone`. Görsel Düzeltmeler ve şehir kurulumu da yapar |
+| Höpleme Mesh'lerini Kur | Her `Prefabs/City` `CityConsumable`'ına modelin orijinal mesh'i (`_slurpMesh`): static batching mesh'leri birleştirdiği için höpleme (`SlurpFx`) şehir eşyasında bunu kullanır. Şehir kurulumu da yazar |
 | Rüzgar İzini Kur | Topik'in rüzgar izi (`SpeedTrail`) için saydam materyal → `Resources/FX/SpeedTrail` |
 | Vakum Efektini Kur | Vakum kasırgası (iki spiral rüzgar dokusu, açık mavi; Kara Delik için ayrı siyah + lacivert, 1.5 kat çizgi) ve Kara Delik olay ufku (siyah disk, indigo halka, şok dalgası): dokular + saydam materyaller → `Resources/FX/Vacuum` (`VacuumComponent` runtime'da yükler) |
 | Polis Can Barlarını Kur | Polis + elit prefab'ına kafa üstü can barı (`EnemyHealthBar`, iki quad, `Mat_EnemyHealthBar_*`). Vurulunca görünür; `_onlyWhenDamaged` kapatılırsa hep görünür |

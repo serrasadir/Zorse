@@ -1133,6 +1133,8 @@ namespace BlobSurvivor.EditorTools
 
                 SerializedObject so = new SerializedObject(consumable);
                 so.FindProperty("_data").objectReferenceValue = data;
+                MeshFilter slurpFilter = renderer.GetComponent<MeshFilter>();
+                if (slurpFilter != null) so.FindProperty("_slurpMesh").objectReferenceValue = slurpFilter.sharedMesh;
                 if (item.mesh.StartsWith("B_"))
                 {
                     so.FindProperty("_obstacle").objectReferenceValue = AddObstacle(root, colliderBounds);
