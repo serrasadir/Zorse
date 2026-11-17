@@ -97,7 +97,7 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 | Şehir Kur (Level01) / Şehir Kur (Büyük) | Blender kitinden şehri kurar (`CityKitPipeline`, `CityExpansion`) |
 | Şehir Görsel Düzeltmeleri | Model yönü/ölçeği, bina kısaltma, collider ayak izleri, NavMesh engelleri, PropObstacle katmanı, ghost materyaller, **iki NavMesh'i bake eder**. Tekrar çalıştırmak güvenli; sonra Cmd+S |
 | Polis Modellerini Uygula · Miniboss Tank Modelini Uygula · Final Boss Helikopterini Uygula · Coin Modelini Uygula | Prefab modellerini kurar |
-| Yeni Polis Türlerini Kur | `EnemyVariantSetup`: Çevik kuvvet (ön kalkan) ve Motorlu polis (dalış) — polis prefab/verisinden kopya, palet rengi (`<Ad>Palette.png`, `Mat_<Ad>`), çevik kuvvete kalkan levhası; `Wave_Riot` (5. dk) + `Wave_Motor` (7. dk) → WaveController. GameScene açıkken; sahneyi kaydeder |
+| Yeni Polis Türlerini Kur | `EnemyVariantSetup`: Çevik kuvvet (ön kalkan) ve Motorlu polis (dalış) — polis prefab/verisinden kopya, model `Art/City/H_RiotPolice` / `H_MotorPolice` (Blender: `build_police_variants.py`, şimdilik `tools/zorse-blender-pending/`; zorse-blender'a taşınacak), polis ölçeği; `Wave_Riot` (5. dk) + `Wave_Motor` (7. dk) → WaveController. GameScene açıkken; sahneyi kaydeder |
 | Tank NavMesh'ini Kur | "Tank" ajan tipi + ikinci NavMeshSurface |
 | Yaya Varyantlarını Bağla | PedestrianData varyant listeleri + spawner havuzu |
 | Robot Köpek Rengini Uygula | `CityPalette`'in doygun mavilerini açık metalik griye çeviren köpek paleti (`Art/City/RobotDogPalette.png`) + `Mat_RobotDog` → `Enemy_RobotDog.prefab`. Robot Köpeği Kur da bu materyali kullanır |

@@ -1,0 +1,121 @@
+using UnityEngine;
+
+namespace BlobSurvivor.Entities.Blob
+{
+    // "Höpleme": yenen objenin görsel kopyası kısa sürede küçülerek blob'un ortasına çekilir (obje kendisi
+    // anında havuza döner). Sabit kopya havuzu, ilk yemede bir kez kurulur; mesh/materyal kaynak objeden
+    // paylaşılır (yeni materyal yok). Static batching'deki şehir objeleri atlanır: mesh'leri birleşik.
+    public class SlurpFx : MonoBehaviour
+    {
+        private const int Count = 16;
+        private const float Duration = 0.14f;
+        private const float SpinDegrees = 160f;
+
+        private static SlurpFx s_instance;
+
+        private struct Item
+        {
+            public Transform Transform;
+            public MeshFilter Filter;
+            public MeshRenderer Renderer;
+            public Vector3 From;
+            public Vector3 Scale;
+            public Quaternion Rotation;
+            public float Time;
+        }
+
+        private Item[] _items;
+        private int _next;
+        private Transform _target;
+
+        public static void Play(GameObject source, Transform blob)
+        {
+            if (source == null || blob == null) return;
+            MeshRenderer renderer = LargestRenderer(source);
+            if (renderer == null || renderer.isPartOfStaticBatch) return;
+            MeshFilter filter = renderer.GetComponent<MeshFilter>();
+            if (filter == null || filter.sharedMesh == null) return;
+            if (s_instance == null) Create();
+            s_instance.Spawn(renderer, filter, blob);
+        }
+
+        private static MeshRenderer LargestRenderer(GameObject source)
+        {
+            MeshRenderer best = null;
+            float bestSize = 0f;
+            foreach (MeshRenderer r in source.GetComponentsInChildren<MeshRenderer>(false)) // yeme anında, obje başına bir kez
+            {
+                if (!r.enabled) continue;
+                float size = r.bounds.size.sqrMagnitude;
+                if (size > bestSize) { best = r; bestSize = size; }
+            }
+            return best;
+        }
+
+        private static void Create()
+        {
+            var go = new GameObject("SlurpFx");
+            s_instance = go.AddComponent<SlurpFx>(); // tek seferlik kurulum
+            s_instance._items = new Item[Count];
+            for (int i = 0; i < Count; i++)
+            {
+                var child = new GameObject("Slurp");
+                child.transform.SetParent(go.transform, false);
+                var item = new Item
+                {
+                    Transform = child.transform,
+                    Filter = child.AddComponent<MeshFilter>(),
+                    Renderer = child.AddComponent<MeshRenderer>(),
+                    Time = -1f,
+                };
+                item.Renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                item.Renderer.receiveShadows = false;
+                child.SetActive(false);
+                s_instance._items[i] = item;
+            }
+        }
+
+        private void Spawn(MeshRenderer renderer, MeshFilter filter, Transform blob)
+        {
+            _target = blob;
+            ref Item item = ref _items[_next]; // hepsi meşgulse en eskisi yeniden kullanılır
+            _next = (_next + 1) % _items.Length;
+
+            Transform src = renderer.transform;
+            item.Filter.sharedMesh = filter.sharedMesh;
+            item.Renderer.sharedMaterials = renderer.sharedMaterials;
+            item.From = src.position;
+            item.Rotation = src.rotation;
+            item.Scale = src.lossyScale;
+            item.Time = 0f;
+            item.Transform.SetPositionAndRotation(item.From, item.Rotation);
+            item.Transform.localScale = item.Scale;
+            item.Transform.gameObject.SetActive(true);
+        }
+
+        private void Update()
+        {
+            if (_items == null || _target == null) return;
+            // Blob'un ortası (görünür gövde merkezi yerden yarıçap kadar yukarıda).
+            Vector3 center = _target.position + Vector3.up * (_target.localScale.y * 0.5f);
+            float dt = Time.deltaTime;
+            for (int i = 0; i < _items.Length; i++)
+            {
+                ref Item item = ref _items[i];
+                if (item.Time < 0f) continue;
+                item.Time += dt / Duration;
+                if (item.Time >= 1f)
+                {
+                    item.Time = -1f;
+                    item.Transform.gameObject.SetActive(false);
+                    continue;
+                }
+                float t = item.Time;
+                float pull = t * t; // yavaş başlar, içine hızla girer
+                item.Transform.position = Vector3.LerpUnclamped(item.From, center, pull);
+                item.Transform.rotation = Quaternion.AngleAxis(SpinDegrees * t, Vector3.up) * item.Rotation;
+                item.Transform.localScale = item.Scale * Mathf.Lerp(1f, 0.15f, t);
+            }
+        }
+    }
+}

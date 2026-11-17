@@ -42,6 +42,8 @@ MonoBehaviour:
   _crushesObstacles: 0
   _packSize: 1
   _coinOverride: 3
+  _crumbColorA: {r: 0.25, g: 0.31, b: 0.37, a: 1}
+  _crumbColorB: {r: 0.62, g: 0.77, b: 0.85, a: 1}
   _frontShieldHalfAngle: 60
   _frontShieldBlock: 0.85
   _dashRange: 0
@@ -49,5 +51,3 @@ MonoBehaviour:
   _dashWindup: 0.6
   _dashDuration: 0.9
   _dashCooldown: 3
-  _crumbColorA: {r: 0.55, g: 0.6, b: 0.33, a: 1}
-  _crumbColorB: {r: 0.3, g: 0.34, b: 0.18, a: 1}
