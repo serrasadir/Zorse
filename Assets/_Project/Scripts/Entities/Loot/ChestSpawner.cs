@@ -46,9 +46,9 @@ namespace BlobSurvivor.Entities.Loot
             _scoreSystem = FindAnyObjectByType<ScoreSystem>();
         }
 
-        public void SpawnChest(Vector3 position)
+        public ChestPickup SpawnChest(Vector3 position)
         {
-            if (_pool == null) return;
+            if (_pool == null) return null;
 
             Vector3 spawnPos = new Vector3(position.x, _spawnYOffset, position.z);
             ChestPickup chest = _pool.Get(spawnPos, Quaternion.identity);
@@ -56,6 +56,14 @@ namespace BlobSurvivor.Entities.Loot
             chest.OnCollected -= HandleCollected;
             chest.OnCollected += HandleCollected;
             _activeChests.Add(chest);
+            return chest;
+        }
+
+        // Toplanmadan kaldırılan sandık (süresi dolan görev sandığı).
+        public void Remove(ChestPickup chest)
+        {
+            if (chest == null || !_activeChests.Remove(chest)) return;
+            _pool.Return(chest);
         }
 
         private void HandleCollected(ChestPickup chest)

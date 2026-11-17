@@ -14,6 +14,10 @@ namespace BlobSurvivor.Core
         public static event Action<int> OnXPChanged;
         public static event Action<int> OnLevelUp;
         public static event Action<EnemyData> OnEnemyKilled; // polis, elit, boss (silahla ya da yutularak)
+        public static event Action<EnemyData, bool> OnEnemyDefeated; // OnEnemyKilled + yutularak mı
+        public static event Action<BlobTier> OnBlobAte; // blob bir şey yedi (yenenin tier'ı; düşman dahil)
+        public static event Action<string, string> OnMissionStarted; // anlık görev: başlık, alt satır
+        public static event Action<string> OnMissionCompleted;       // ödül metni
         public static event Action OnGameOver;
         public static event Action OnGamePaused;
         public static event Action OnGameResumed;
@@ -47,6 +51,10 @@ namespace BlobSurvivor.Core
         public static void RaiseXPChanged(int xp) => OnXPChanged?.Invoke(xp);
         public static void RaiseLevelUp(int level) => OnLevelUp?.Invoke(level);
         public static void RaiseEnemyKilled(EnemyData data) => OnEnemyKilled?.Invoke(data);
+        public static void RaiseEnemyDefeated(EnemyData data, bool eaten) => OnEnemyDefeated?.Invoke(data, eaten);
+        public static void RaiseBlobAte(BlobTier foodTier) => OnBlobAte?.Invoke(foodTier);
+        public static void RaiseMissionStarted(string title, string sub) => OnMissionStarted?.Invoke(title, sub);
+        public static void RaiseMissionCompleted(string reward) => OnMissionCompleted?.Invoke(reward);
         public static void RaiseGameOver() => OnGameOver?.Invoke();
         public static void RaiseGamePaused() => OnGamePaused?.Invoke();
         public static void RaiseGameResumed() => OnGameResumed?.Invoke();

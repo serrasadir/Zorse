@@ -17,7 +17,8 @@ namespace BlobSurvivor.Systems.Meta
         // Denge ölçümü (OYUN.md Hedefler): coin kaynakları, öldürülenler, seviye zamanları.
         public string character;
         public int coinsBanked;           // kasaya giren (ölümde %50)
-        public int coinsPolice, coinsElite, coinsBoss, coinsChest;
+        public int coinsPolice, coinsElite, coinsBoss, coinsChest, coinsMission;
+        public int missionsOffered, missionsCompleted; // anlık görev
         public int coinsExpired;          // yerde kalıp kaybolan
         public int policeKills, eliteKills, bossKills;
         public int finalLevel;

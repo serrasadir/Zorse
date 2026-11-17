@@ -118,6 +118,7 @@ namespace BlobSurvivor.Entities.Blob
             {
                 _blobGrowth.AddMass(massReward * SkillMass(EatKind.Enemy, foodTier));
                 Skills?.OnAte(EatKind.Enemy, foodTier);
+                Core.GameEvents.RaiseBlobAte(foodTier);
                 _blobGrowth.PunchScale();
                 if (Skills != null && Skills.NoBiteDamage) biteDamage = 0f; // Yara Öfkesi Sv.5
                 if (biteDamage > 0f)
@@ -139,6 +140,7 @@ namespace BlobSurvivor.Entities.Blob
             if (_blobGrowth == null) return;
             _blobGrowth.AddMass(mass * SkillMass(EatKind.Vehicle, tier));
             Skills?.OnAte(EatKind.Vehicle, tier);
+            Core.GameEvents.RaiseBlobAte(tier);
             _blobGrowth.PunchScale(tier);
             _scoreSystem?.AddScore(score);
             _eatEffects.Play(tier, bounds, crumbA, crumbB);
@@ -155,6 +157,7 @@ namespace BlobSurvivor.Entities.Blob
             EatKind kind = Skills != null && obj.GetComponent<Pedestrians.PedestrianController>() != null ? EatKind.Pedestrian : EatKind.Object;
             _blobGrowth.AddMass(consumable.MassValue * SkillMass(kind, consumable.RequiredTier));
             Skills?.OnAte(kind, consumable.RequiredTier);
+            Core.GameEvents.RaiseBlobAte(consumable.RequiredTier);
             _blobGrowth.PunchScale(consumable.RequiredTier);
 
             _scoreSystem?.AddScore(consumable.Data.ScoreValue);

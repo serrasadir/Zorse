@@ -109,6 +109,8 @@ namespace BlobSurvivor.UI
             GameEvents.OnBlobTierChanged += OnTierChanged;
             GameEvents.OnBossSpawned += OnBossSpawned;
             GameEvents.OnEncirclement += OnEncirclement;
+            GameEvents.OnMissionStarted += OnMissionStarted;
+            GameEvents.OnMissionCompleted += OnMissionCompleted;
             GameEvents.OnCharacterSelected += OnRunStarted;
             GameEvents.OnGameOver += Hide;
             GameEvents.OnRunComplete += OnRunComplete;
@@ -119,6 +121,8 @@ namespace BlobSurvivor.UI
             GameEvents.OnBlobTierChanged -= OnTierChanged;
             GameEvents.OnBossSpawned -= OnBossSpawned;
             GameEvents.OnEncirclement -= OnEncirclement;
+            GameEvents.OnMissionStarted -= OnMissionStarted;
+            GameEvents.OnMissionCompleted -= OnMissionCompleted;
             GameEvents.OnCharacterSelected -= OnRunStarted;
             GameEvents.OnGameOver -= Hide;
             GameEvents.OnRunComplete -= OnRunComplete;
@@ -156,6 +160,23 @@ namespace BlobSurvivor.UI
         {
             if (!IsPlaying()) return;
             Show(EncircleTitle, EncircleSub, BossColor, HoldBoss);
+            Haptics.Impact(2);
+        }
+
+        private static readonly Color MissionColor = new Color(0.45f, 0.9f, 1f);
+        private static readonly Color MissionDoneColor = new Color(0.55f, 1f, 0.55f);
+
+        private void OnMissionStarted(string title, string sub)
+        {
+            if (!IsPlaying()) return;
+            Show(title, sub, MissionColor, HoldBoss);
+            Haptics.Impact(1);
+        }
+
+        private void OnMissionCompleted(string reward)
+        {
+            if (!IsPlaying()) return;
+            Show("GÖREV TAMAM!", reward, MissionDoneColor, HoldBoss);
             Haptics.Impact(2);
         }
 

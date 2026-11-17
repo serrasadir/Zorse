@@ -124,7 +124,7 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 
 **Performans göstergesi** (`PerfOverlay`, telefonda da): 3 parmakla dokun (Editor'da F3) → FPS, en kötü kare, +500 kütle ve **DEV** düğmesi. DEV paneli (açıkken oyun durur, uGUI tıklaması kapanır; parmakla kaydırılır): en üstte coin +1.000 / +10.000, karakterleri kilitle (alımlar + run sayısı sıfır), tüm karakterleri aç, kaydı sıfırla; run içinde skill +1 / MAX, kütle, can, sıradaki boss, final boss −%25. Test API'leri (`UpgradeSystem.DebugGrant`, `BossSpawner.DebugSpawnNextStage`, `MetaProgression.Dev*`) build'de de derlenir. **Yayın öncesi `PerfOverlay.Enabled = false`.**
 
-**Editor test tuşları** (`DevCheats`, sadece Editor): **M** +500 kütle (XP'siz) · **B** final boss −%25 can · **H** can doldur · **N** sıradaki boss aşamasını hemen çıkar (aktif boss kalkar) · **L** kuşatma (koşulları atlar) · **V** Vakum skill'i +1 seviye (kart açılmaz) · **K** Kara Delik (Vakum + Sindirim max + evrim, evrim anı oynar) · **Z** Zırh skill'i +1 seviye · **G** Sopa +1 seviye · **J** Hız +1 seviye · **U** Havai Fişek +1 seviye · **C** +500 coin, kasaya (kayda yazılır).
+**Editor test tuşları** (`DevCheats`, sadece Editor): **M** +500 kütle (XP'siz) · **B** final boss −%25 can · **H** can doldur · **N** sıradaki boss aşamasını hemen çıkar (aktif boss kalkar) · **L** kuşatma (koşulları atlar) · **O** yeni anlık görev · **P** görevi tamamla · **V** Vakum skill'i +1 seviye (kart açılmaz) · **K** Kara Delik (Vakum + Sindirim max + evrim, evrim anı oynar) · **Z** Zırh skill'i +1 seviye · **G** Sopa +1 seviye · **J** Hız +1 seviye · **U** Havai Fişek +1 seviye · **C** +500 coin, kasaya (kayda yazılır).
 
 ## iOS / TestFlight
 

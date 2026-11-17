@@ -58,6 +58,7 @@
 |---|---|
 | 0–1 dk | Sadece yenebilir objeler, yayalar, arabalar |
 | 1. dk | Polisler ve robot köpek sürüleri gelmeye başlar |
+| 1,5. dk | İlk anlık görev, sonra her görev bittikten 60 sn sonra yenisi (aşağıda) |
 | Blob **Medium** olunca (en geç 4. dk) | Elit polisler |
 | 2,5. dk (seviye 3+) | İlk kuşatma, sonra ~110 sn'de bir (§6) |
 | 5. dk | Düşman hasarı ×1.2 |
@@ -74,6 +75,22 @@ Boss'lar seviyeye bağlı, en geç süre yedek:
 | **Final boss: polis helikopteri** | **10** (~2100 kütle, Dev) | 21. dk |
 
 Boss'lar sırayla ve tek tek gelir: biri yaşıyorsa sonraki onun ölmesini bekler; final boss beklemez (miniboss sahnedeyse çekilir). Kart ekranı açıkken boss çıkmaz. Seviye birden ikisini aşarsa sadece sonraki çıkar. Değerler `BossData_Miniboss.asset` → `RequiredLevel` / `LatestTime`.
+
+### Anlık görevler
+
+Run içinde kısa hedef; ekranda hep en fazla bir görev (`MissionSystem`, sahne kurulumu yok, kendini kurar). Başlarken olay bandı (**GÖREV!** + görev), sonra slot şeridinin altında satır: `GÖREV · Polis indir 3/7 · 0:32`. Boss sahnedeyken ve kuşatmadan sonraki 20 sn içinde yeni görev gelmez (5 sn sonra tekrar dener). Aynı görev üst üste gelmez. Süre dolarsa ceza yok: satırda kısa "Süre doldu", görev kaybolur.
+
+| Görev | Hedef | Süre | Ne zaman çıkar |
+|---|---|---|---|
+| Polis indir (silahla) | 5 + seviye / 2 | 45 sn | her zaman |
+| Polis yut | 3 | 45 sn | Medium+ |
+| Bir şeyler ye (düşman dahil her şey) | 15 + seviye × 2 | 45 sn | her zaman |
+| Büyük lokma: blob'un bir altı tier'dan ya da daha büyük | 3 | 60 sn | Small+ |
+| Hasar alma (kalkanın yuttuğu sayılmaz) | — | 30 sn | her zaman |
+| Sandığı kap: 22–38 birim öteye sandık düşer, ekranda ok (sandık ekrandaysa üstünde, değilse kenarda). Ödülü sandığın kendisi (35 coin + ekstra kart), görev ayrıca vermez. Süre dolarsa sandık kaybolur | — | 30 sn | her zaman |
+
+Polis = normal ve elit; robot köpek ve boss sayılmaz. **Ödül:** `15 + dakika × 3` coin (`MissionSystem.CoinScale` çarpanıyla; kasaya giden coin gibi Market coin bonusu da işler) + bir bonus: %25 ekstra kart (sandıktaki gibi), yoksa can %90'ın altındaysa yarı yarıya can +%30 ya da kalkan +25, can doluysa kalkan +25. Bant: **GÖREV TAMAM!** + ödül.
+- **Geçici kalkan** (görev ödülü, Geri Dönüşüm'ün can taşması): Zırh'tan bağımsız, yenilenmez, hasarı candan önce yer. HUD'da can barının sağ ucunda can ölçeğinde açık mavi uzantı; azaldıkça kısalır.
 
 ---
 
@@ -175,7 +192,7 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 - **Coin** run içinde toplanır; run sonunda **kasaya** girer (kazanınca %100, ölünce %50). Oyuncu tek para görür: coin (kodda kasa `MetaProgression.Credit`).
 - **Skor** sadece rekor göstergesi, hiçbir şey satın almaz.
 
-- **Coin kaynakları:** polis 2; elit 5–10 + sandık 35 (+ ekstra kart); boss'lar da elit sayılır: 5–10 + sandık 35 + bonus (1. miniboss 15–25, 2. miniboss 25–40, helikopter 60–100). Coin yerde 20 sn kalır. Değerlerin güncel tablosu: `python3 -I .claude/skills/denge/denge_tablosu.py`.
+- **Coin kaynakları:** polis 2; anlık görev `15 + dakika × 3` (§3); elit 5–10 + sandık 35 (+ ekstra kart); boss'lar da elit sayılır: 5–10 + sandık 35 + bonus (1. miniboss 15–25, 2. miniboss 25–40, helikopter 60–100). Coin yerde 20 sn kalır. Değerlerin güncel tablosu: `python3 -I .claude/skills/denge/denge_tablosu.py`.
 
 | Market kalemi | Fiyat | Sınır |
 |---|---|---|
@@ -204,7 +221,7 @@ Fiyatlar ve ödüller bu hedeflere göre ayarlanır; ölçülen değer hedeften 
 | Yerde kaybolan coin | toplananın %15'inden az |
 | Run başına kart (ölüm / kazanma) | ~12 / ~30 |
 
-**Ölçüm:** her run `analytics.json`'a yazılır (son 100): süre, karakter, son seviye, seviye zamanları, toplanan / kasaya giren / kaybolan coin, coin'in kaynağa göre dağılımı (polis, elit, boss, sandık), öldürülen polis/elit/boss, seçilen kartlar. DEV panelinde (COIN / KAYIT) son 10 ölçülen run'ın ortalaması görünür.
+**Ölçüm:** her run `analytics.json`'a yazılır (son 100): süre, karakter, son seviye, seviye zamanları, toplanan / kasaya giren / kaybolan coin, coin'in kaynağa göre dağılımı (polis, elit, boss, sandık, görev), çıkan / tamamlanan görev, öldürülen polis/elit/boss, seçilen kartlar. DEV panelinde (COIN / KAYIT) son 10 ölçülen run'ın ortalaması görünür.
 
 ---
 

@@ -22,6 +22,7 @@ Script değerleri sahneden (`GameScene.unity`, sahne kodun varsayılanını ezer
 | Market sınırı | `MetaProgression.MaxStatLevel` |
 | Polis coin'i, elit coin aralığı | `EnemyBase.PoliceCoin`, `EnemyBase.Die` |
 | Sandık coin'i | `Prefabs/Chest.prefab` `_coinAmount` |
+| Anlık görev coin'i | `MissionSystem.CoinBase`, `CoinPerMinute`, `CoinScale` |
 | Boss bonus coin | `ScriptableObjects/Enemies/BossData_Miniboss.asset` |
 | XP eğrisi | GameScene → `BlobGrowth` (`_baseXPThreshold`, `_xpGrowthPerLevel`, `_xpQuadraticPerLevel`) |
 | Skill ağırlık/max/seviye başı | `Data/Upgrades/Upgrade_*.asset` |

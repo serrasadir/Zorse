@@ -286,18 +286,19 @@ namespace BlobSurvivor.Core
             if (n == 0) { _runSummary1 = "Henüz ölçülen run yok (bir run bitir)."; _runSummary2 = ""; return; }
 
             float time = 0f; int coins = 0, banked = 0, police = 0, elite = 0, level = 0;
-            int cPolice = 0, cElite = 0, cChest = 0, cBoss = 0, expired = 0;
+            int cPolice = 0, cElite = 0, cChest = 0, cBoss = 0, cMission = 0, expired = 0, mOffered = 0, mDone = 0;
             for (int i = runs.Count - n; i < runs.Count; i++)
             {
                 RunRecord r = runs[i];
                 time += r.durationSeconds; coins += r.coinsEarned; banked += r.coinsBanked;
                 police += r.policeKills; elite += r.eliteKills; level += r.finalLevel;
                 cPolice += r.coinsPolice; cElite += r.coinsElite; cChest += r.coinsChest; cBoss += r.coinsBoss; expired += r.coinsExpired;
+                cMission += r.coinsMission; mOffered += r.missionsOffered; mDone += r.missionsCompleted;
             }
             int t = Mathf.RoundToInt(time / n);
             _runSummary1 = $"Son {n} run ort.: {t / 60}:{t % 60:00} · {coins / n} coin (kasaya {banked / n}) · {police / n} polis · {elite / n} elit · Sv.{level / n}";
-            int total = Mathf.Max(1, cPolice + cElite + cChest + cBoss);
-            _runSummary2 = $"Coin payı: polis %{100 * cPolice / total} · elit %{100 * cElite / total} · sandık %{100 * cChest / total} · boss %{100 * cBoss / total} · kaybolan {expired / n}/run";
+            int total = Mathf.Max(1, cPolice + cElite + cChest + cBoss + cMission);
+            _runSummary2 = $"Coin payı: polis %{100 * cPolice / total} · elit %{100 * cElite / total} · sandık %{100 * cChest / total} · boss %{100 * cBoss / total} · görev %{100 * cMission / total} ({mDone}/{mOffered}) · kaybolan {expired / n}/run";
         }
 
         // IMGUI kaydırma alanı dokunmatikte sürüklenmiyor: parmak sürüklemesi elle kaydırır.

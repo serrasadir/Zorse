@@ -71,6 +71,11 @@ def main():
     p("## Coin kaynakları\n")
     p("| Kaynak | Coin |\n|---|---|")
     p(f"| Polis | {police_coin} |")
+    ms = read("Assets/_Project/Scripts/Systems/Mission/MissionSystem.cs")
+    m_base = re.search(r"CoinBase = ([0-9.]+)f", ms)
+    m_min = re.search(r"CoinPerMinute = ([0-9.]+)f", ms)
+    if m_base and m_min:
+        p(f"| Anlık görev | {float(m_base.group(1)):.0f} + dakika × {float(m_min.group(1)):.0f} (× MissionSystem.CoinScale) |")
     p(f"| Elit | {elite_lo}–{elite_hi} + sandık {chest} |")
     for i, (lo, hi) in enumerate(zip(bmin, bmax)):
         p(f"| Boss aşaması {i + 1} | {elite_lo}–{elite_hi} + sandık {chest} + bonus {lo}–{hi} |")
@@ -124,7 +129,7 @@ def main():
     else:
         n = len(runs)
         avg = lambda k: sum(r.get(k, 0) for r in runs) / n
-        coin_total = sum(r.get(k, 0) for r in runs for k in ("coinsPolice", "coinsElite", "coinsBoss", "coinsChest")) or 1
+        coin_total = sum(r.get(k, 0) for r in runs for k in ("coinsPolice", "coinsElite", "coinsBoss", "coinsChest", "coinsMission")) or 1
         elite_share = sum(r.get("coinsElite", 0) + r.get("coinsChest", 0) for r in runs) / coin_total
         expired = sum(r.get("coinsExpired", 0) for r in runs) / max(1, sum(r.get("coinsEarned", 0) for r in runs))
         p(f"{n} run · ort. süre {avg('durationSeconds') / 60:.1f} dk · ort. coin {avg('coinsEarned'):.0f} "
@@ -136,6 +141,10 @@ def main():
         p(f"| Market'in tamamı ~45. run | {total / banked:.0f}. run |")
         p(f"| Elit + sandık payı %40–55 | %{elite_share * 100:.0f} |")
         p(f"| Kaybolan coin < %15 | %{expired * 100:.0f} |")
+        offered = sum(r.get("missionsOffered", 0) for r in runs)
+        mission_share = sum(r.get("coinsMission", 0) for r in runs) / coin_total
+        done = sum(r.get("missionsCompleted", 0) for r in runs)
+        p(f"| Görev coin payı (hedef yok) | %{mission_share * 100:.0f} · tamamlanan {done}/{offered} |")
 
     print("\n".join(out))
 

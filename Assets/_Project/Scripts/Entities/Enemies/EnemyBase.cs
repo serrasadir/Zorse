@@ -831,7 +831,7 @@ namespace BlobSurvivor.Entities.Enemies
             if (blobTier < _data.RequiredConsumeTier) return false;
 
             massReward = _data.MassReward;
-            Die();
+            Die(true);
             return true;
         }
 
@@ -850,7 +850,7 @@ namespace BlobSurvivor.Entities.Enemies
 
         private const int PoliceCoin = 2; // denge: elit sandığı coin'in tamamına yakınını vermesin (OYUN.md Hedefler)
 
-        private void Die()
+        private void Die(bool eaten = false)
         {
             if (_isDead) return;
             _isDead = true;
@@ -861,6 +861,7 @@ namespace BlobSurvivor.Entities.Enemies
             CoinSource source = IsBoss ? CoinSource.Boss : _data.IsElite ? CoinSource.Elite : CoinSource.Police;
             CoinSpawner.Instance?.SpawnCoin(transform.position, coinAmount, source);
             GameEvents.RaiseEnemyKilled(_data);
+            GameEvents.RaiseEnemyDefeated(_data, eaten);
             if (_data.IsElite)
                 ChestSpawner.Instance?.SpawnChest(transform.position);
             if (_data.HeartPrefab != null && Random.value < _data.HeartDropChance)

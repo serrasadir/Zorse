@@ -57,6 +57,7 @@ namespace BlobSurvivor.UI
             LayoutHud();
             LayoutBars();
             CreateShieldBar();
+            CreateBonusShield();
             CreateBossName();
             CreateSlotStrip();
             if (_bossHealthContainer != null)
@@ -134,6 +135,7 @@ namespace BlobSurvivor.UI
         private void Update()
         {
             UpdateHealthWidth();
+            UpdateBonusShield();
             if (_bannerTime < 0f || _banner == null) return;
             _bannerTime += Time.unscaledDeltaTime;
             float t = _bannerTime;
@@ -253,6 +255,43 @@ namespace BlobSurvivor.UI
             }
 
             copy.SetActive(false);
+        }
+
+        // Geçici kalkan (görev ödülü, Geri Dönüşüm): can barının sağ ucunda, can ölçeğinde mavi uzantı.
+        // Olayı yok; değer değişince boyu yeniden hesaplanır (float karşılaştırması, ucuz).
+        private RectTransform _bonusShield;
+        private float _shownBonus = -1f, _shownBonusPx = -1f;
+
+        private void CreateBonusShield()
+        {
+            if (_healthRect == null) return;
+            var go = new GameObject("BonusShield", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            go.layer = gameObject.layer;
+            _bonusShield = (RectTransform)go.transform;
+            _bonusShield.SetParent(_healthRect, false);
+            _bonusShield.anchorMin = new Vector2(1f, 0f);
+            _bonusShield.anchorMax = new Vector2(1f, 1f);
+            _bonusShield.pivot = new Vector2(0f, 0.5f);
+            _bonusShield.anchoredPosition = new Vector2(4f, 0f);
+            _bonusShield.sizeDelta = Vector2.zero;
+            Image image = go.GetComponent<Image>();
+            image.color = ShieldFillColor;
+            image.raycastTarget = false;
+            go.SetActive(false);
+        }
+
+        private void UpdateBonusShield()
+        {
+            if (_bonusShield == null || _blobHealth == null) return;
+            float bonus = _blobHealth.BonusShield;
+            float pxPerHp = _healthRect.sizeDelta.x / Mathf.Max(1f, _blobHealth.MaxHealth);
+            float px = Mathf.Round(bonus * pxPerHp);
+            if (Mathf.Approximately(bonus, _shownBonus) && Mathf.Approximately(px, _shownBonusPx)) return;
+            _shownBonus = bonus;
+            _shownBonusPx = px;
+            bool show = bonus > 0.01f;
+            if (_bonusShield.gameObject.activeSelf != show) _bonusShield.gameObject.SetActive(show);
+            if (show) _bonusShield.sizeDelta = new Vector2(Mathf.Max(6f, px), 0f);
         }
 
         private void OnShieldChanged(float current, float max)

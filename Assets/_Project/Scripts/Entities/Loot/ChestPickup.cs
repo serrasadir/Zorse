@@ -9,6 +9,7 @@ namespace BlobSurvivor.Entities.Loot
     public class ChestPickup : MonoBehaviour
     {
         public event Action<ChestPickup> OnCollected;
+        public static event Action<ChestPickup> AnyCollected; // görev sandığı takibi
 
         [SerializeField] private int _coinAmount = 35;
         [SerializeField] private float _rotationSpeed = 90f;
@@ -46,6 +47,7 @@ namespace BlobSurvivor.Entities.Loot
                 currentLevel = growth.CurrentLevel;
 
             GameEvents.RaiseLevelUp(currentLevel);
+            AnyCollected?.Invoke(this);
             OnCollected?.Invoke(this);
         }
     }

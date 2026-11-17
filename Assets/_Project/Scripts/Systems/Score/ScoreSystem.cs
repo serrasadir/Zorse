@@ -4,7 +4,7 @@ using BlobSurvivor.Core;
 namespace BlobSurvivor.Systems
 {
     // Run verisi (RunAnalytics): coin'in nereden geldiği.
-    public enum CoinSource { Police, Elite, Boss, Chest }
+    public enum CoinSource { Police, Elite, Boss, Chest, Mission }
 
     public class ScoreSystem : MonoBehaviour
     {
@@ -21,7 +21,7 @@ namespace BlobSurvivor.Systems
         // Çarpanın kesiri birikir: 1 coin × 1.05 her seferinde 1'e yuvarlanıp bonus kayboluyordu.
         private float _coinFraction;
 
-        private readonly int[] _coinsBySource = new int[4];
+        private readonly int[] _coinsBySource = new int[5];
         public int CoinsFrom(CoinSource source) => _coinsBySource[(int)source];
         public int ExpiredCoins { get; private set; } // yerde kalıp kaybolan (çarpansız)
 
