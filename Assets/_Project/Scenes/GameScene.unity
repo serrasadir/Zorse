@@ -51277,7 +51277,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Core.CameraController
   _target: {fileID: 276010515}
   _followSmoothing: 5
-  _baseHeight: 20
+  _baseHeight: 18
   _baseTilt: 60
   _fieldOfView: 45
   _zoomExponent: 0.35
