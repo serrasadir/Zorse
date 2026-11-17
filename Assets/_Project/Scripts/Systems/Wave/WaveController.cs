@@ -19,6 +19,7 @@ namespace BlobSurvivor.Systems
         [SerializeField] private float _finalDamageMultiplier = 3f;
 
         public WaveData CurrentWave { get; private set; }
+        public WaveData[] AllWaves => _waves; // test (DevCheats Y)
         public float DamageMultiplier { get; private set; } = 1f;
         public float SpeedMultiplier { get; private set; } = 1f;
         public float SpawnDensityMultiplier { get; private set; } = 1f;

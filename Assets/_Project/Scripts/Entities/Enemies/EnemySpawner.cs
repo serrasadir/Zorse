@@ -279,6 +279,30 @@ namespace BlobSurvivor.Entities.Enemies
             _blobVelocity = Vector3.Lerp(_blobVelocity, v, 1f - Mathf.Exp(-4f * dt));
         }
 
+        // Test (DevCheats Y): dalgalardaki özel türlerden (kalkan, dalış) ikişer tane ekran kenarında, kovalar.
+        public string DebugSpawnSpecialTypes()
+        {
+            if (_waveController == null || _waveController.AllWaves == null || _blobTransform == null || _camera == null) return "Spawner hazır değil";
+            var seen = new HashSet<EnemyData>();
+            int spawned = 0;
+            foreach (WaveData wave in _waveController.AllWaves)
+            {
+                if (wave == null || wave.EnemyTypes == null) continue;
+                foreach (var entry in wave.EnemyTypes)
+                {
+                    EnemyData d = entry.EnemyData;
+                    if (d == null || !seen.Add(d) || (d.DashRange <= 0f && d.FrontShieldHalfAngle <= 0f) || !EnsurePool(d)) continue;
+                    for (int i = 0; i < 2; i++)
+                    {
+                        if (!TryGetEdgeSpawnPosition(false, out Vector3 pos)) continue;
+                        SpawnOne(d, pos).Alert(10f);
+                        spawned++;
+                    }
+                }
+            }
+            return $"Özel tür: {spawned} düşman";
+        }
+
         // Test (DevCheats L): zaman/seviye/boss koşulunu atlayıp hemen kuşatır.
         public string DebugEncircle()
         {

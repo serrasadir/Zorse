@@ -17,6 +17,15 @@ namespace BlobSurvivor.Entities.Enemies
 
             float sqrDist = enemy.FlatSqrDistanceToBlob();
             float attackRange = enemy.EffectiveAttackRange();
+
+            // Motorlu polis: menzildeyse ve görüş açıksa dalışa geçer.
+            float dashRange = enemy.Data.DashRange;
+            if (aiTick && dashRange > 0f && Time.time >= enemy.NextDashTime && !enemy.IsStunned
+                && sqrDist <= dashRange * dashRange && sqrDist > attackRange * attackRange && enemy.HasLineOfSightToBlob())
+            {
+                enemy.ChangeState(new DashState());
+                return;
+            }
             if (sqrDist <= attackRange * attackRange)
             {
                 // Menzilli düşman, arada bina varsa ateş etmek yerine yürümeye devam eder.

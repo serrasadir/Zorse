@@ -92,6 +92,8 @@ namespace BlobSurvivor.EditorTools
             d.FindProperty("_heartDropChance").floatValue = 0.02f;
             d.FindProperty("_packSize").intValue = 3;
             d.FindProperty("_coinOverride").intValue = 1;
+            d.FindProperty("_crumbColorA").colorValue = new Color(0.80f, 0.82f, 0.86f); // ölüm kırıntısı: gümüş
+            d.FindProperty("_crumbColorB").colorValue = new Color(0.58f, 0.60f, 0.64f);
             d.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(data);
 

@@ -30,7 +30,7 @@ namespace BlobSurvivor.Core
         {
             GameObject go = new GameObject("DevCheats (Editor)") { hideFlags = HideFlags.DontSave };
             go.AddComponent<DevCheats>();
-            Debug.Log("[DevCheats] M: +500 kütle · B: final boss −%25 can · H: canı doldur · N: sıradaki boss · L: kuşatma · O: yeni görev · P: görevi bitir · V: Vakum +1 · K: Kara Delik · Z: Zırh +1 · U: Havai Fişek +1 · C: +500 coin (sadece Editor)");
+            Debug.Log("[DevCheats] M: +500 kütle · B: final boss −%25 can · H: canı doldur · N: sıradaki boss · L: kuşatma · Y: çevik kuvvet + motorlu polis · O: yeni görev · P: görevi bitir · V: Vakum +1 · K: Kara Delik · Z: Zırh +1 · U: Havai Fişek +1 · C: +500 coin (sadece Editor)");
         }
 
         private void Update()
@@ -96,6 +96,12 @@ namespace BlobSurvivor.Core
             {
                 EnemySpawner spawner = FindAnyObjectByType<EnemySpawner>();
                 if (spawner != null) Debug.Log("[DevCheats] " + spawner.DebugEncircle());
+            }
+
+            if (keyboard.yKey.wasPressedThisFrame)
+            {
+                EnemySpawner spawner = FindAnyObjectByType<EnemySpawner>();
+                if (spawner != null) Debug.Log("[DevCheats] " + spawner.DebugSpawnSpecialTypes());
             }
 
             if (keyboard.oKey.wasPressedThisFrame && BlobSurvivor.Systems.MissionSystem.Instance != null)

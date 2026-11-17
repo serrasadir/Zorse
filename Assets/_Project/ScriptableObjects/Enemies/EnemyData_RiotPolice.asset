@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 429f33fc55f6f440f894712573415325, type: 3}
+  m_Name: EnemyData_RiotPolice
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
+  _displayName: RiotPolice
+  _hudName: 
+  _prefab: {fileID: 5896680904072327028, guid: 3bdd2df2646420e4292be442ac2f1618, type: 3}
+  _maxHealth: 120
+  _damage: 12
+  _moveSpeed: 1.8
+  _attackRange: 2
+  _attackCooldown: 1
+  _scoreValue: 25
+  _isElite: 0
+  _attackHitCount: 1
+  _attackHitInterval: 0.3
+  _attackType: 0
+  _projectilePrefab: {fileID: 0}
+  _aimLineMaterial: {fileID: 0}
+  _projectileSpeed: 10
+  _projectileMaxDistance: 12
+  _aimDuration: 0.5
+  _aimLockDuration: 0.2
+  _massReward: 6
+  _killXp: 3
+  _preventConsumption: 0
+  _requiredConsumeTier: 5
+  _consumeDamage: 8
+  _heartPrefab: {fileID: 7633646316503275560, guid: 0bd1dfcaa907047789043c4bbd111054, type: 3}
+  _heartDropChance: 0.05
+  _requiresConsumptionToDie: 0
+  _crushesObstacles: 0
+  _packSize: 1
+  _coinOverride: 3
+  _frontShieldHalfAngle: 60
+  _frontShieldBlock: 0.85
+  _dashRange: 0
+  _dashSpeed: 8
+  _dashWindup: 0.6
+  _dashDuration: 0.9
+  _dashCooldown: 3
+  _crumbColorA: {r: 0.55, g: 0.6, b: 0.33, a: 1}
+  _crumbColorB: {r: 0.3, g: 0.34, b: 0.18, a: 1}

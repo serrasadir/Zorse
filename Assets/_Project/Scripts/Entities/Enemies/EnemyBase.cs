@@ -54,6 +54,12 @@ namespace BlobSurvivor.Entities.Enemies
         private Renderer[] _flashRenderers;
         private Color[] _flashBaseColors;
         private float _flashTime = -1f;
+        // Silahla ölüm: kısa beyaz parlama + şişme, sonra kendi renginde kırıntılara dağılır (DeathFx).
+        private const float DyingDuration = 0.09f, DyingSwell = 0.3f, DyingBrightness = 2.6f;
+        private const float DeathHapticInterval = 0.12f;
+        private static float s_lastDeathHaptic = -1f;
+        private float _dyingTime = -1f;
+        private Collider _bodyCollider; // ölüm anında kapanır: mermi yutmasın, nişan almasın
         private const float KnockbackDuration = 0.16f;
         private Vector3 _knockbackVelocity;
         private float _knockbackDecel;
@@ -89,6 +95,7 @@ namespace BlobSurvivor.Entities.Enemies
         private Vector3 _avoidanceCached;
         private float _blobSolidRadius = 0.5f;
         private Vector3 _steeringVelocity;
+        private Vector3 _dashVelocity; // DashMove'un bu karedeki hızı
         private EnemyAimLine _aimLine;
         private ObjectPool<EnemyProjectile> _projectilePool;
 
@@ -100,6 +107,7 @@ namespace BlobSurvivor.Entities.Enemies
         // 2026-11-03 (Serra: "polis değer değmez hasar versin"): yakın dövüş de ilk temasta anında vurur; bekleme
         // süresi burada tutulur ki menzil kenarında girip çıkmak vuruşları hızlandırmasın.
         public float NextMeleeAttackTime { get; set; }
+        public float NextDashTime { get; set; }
 
         // 2026-11-04 (final boss helikopter): gövdenin yerden yüksekliği (0 = yerde). Kök (NavMeshAgent) yerde
         // kalır; collider/model bu kadar yukarıda olur (FinalBossController ayarlar). Silah nişanı ve düşmanın
@@ -150,6 +158,7 @@ namespace BlobSurvivor.Entities.Enemies
             _agent = GetComponent<NavMeshAgent>();
             _healthBar = GetComponentInChildren<EnemyHealthBar>(true);
             CapsuleCollider body = GetComponent<CapsuleCollider>();
+            _bodyCollider = GetComponent<Collider>();
             _bodyRadius = body != null
                 ? body.radius * Mathf.Max(transform.lossyScale.x, transform.lossyScale.z)
                 : (_agent != null ? _agent.radius : 0.5f);
@@ -183,6 +192,8 @@ namespace BlobSurvivor.Entities.Enemies
             _catchUpMultiplier = 1f;
             _slowFactor = 1f; _slowUntil = 0f; _stunUntil = 0f; _statusSpeed = 1f;
             _isDead = false;
+            _dyingTime = -1f;
+            if (_bodyCollider != null) _bodyCollider.enabled = true;
             _consumableOverride = false;
             AirborneHeight = 0f; // FinalBossController her kare yeniden ayarlar
             _hasSteerTarget = false;
@@ -191,6 +202,8 @@ namespace BlobSurvivor.Entities.Enemies
             _steeringVelocity = Vector3.zero;
             NextRangedAttackTime = 0f;
             NextMeleeAttackTime = 0f;
+            NextDashTime = Time.time + Random.Range(1f, 3f); // hepsi doğar doğmaz dalmasın
+            _dashVelocity = Vector3.zero;
 
             if (_projectilePool == null && _data != null && _data.ProjectilePrefab != null && PoolManager.Instance != null)
                 _projectilePool = PoolManager.Instance.CreatePool(_data.ProjectilePrefab, InitialProjectilePoolSize);
@@ -392,6 +405,7 @@ namespace BlobSurvivor.Entities.Enemies
 
         private void Update()
         {
+            if (_dyingTime >= 0f) { UpdateDying(); return; }
             _aiUpdateTimer -= Time.deltaTime;
             bool aiTick = _aiUpdateTimer <= 0f;
             if (aiTick)
@@ -416,7 +430,8 @@ namespace BlobSurvivor.Entities.Enemies
 
             // 2026-11-03 (Serra: "mermiler polislerin içinden geçiyor"): duran polis (AttackState → StopMoving)
             // son koşu hızını raporlamaya devam ediyordu; silah "önden kesme" ile boşluğa nişan alıyordu.
-            _steeringVelocity = Vector3.zero;
+            _steeringVelocity = _dashVelocity;
+            _dashVelocity = Vector3.zero;
             if (UsesSteering && _hasSteerTarget)
                 ApplySteeringMovement();
 
@@ -663,6 +678,78 @@ namespace BlobSurvivor.Entities.Enemies
 
         public bool CanSeeBlob() => _canSeeBlobCached;
 
+        // Çevik kuvvet: oyuncu hasarı blob'dan (ya da blob'dan çıkan mermiden) gelir; blob kalkanın önündeyse kesilir.
+        private float FrontShieldFactor()
+        {
+            if (_data == null || _data.FrontShieldHalfAngle <= 0f || BlobTransform == null) return 1f;
+            Vector3 to = BlobTransform.position - transform.position;
+            to.y = 0f;
+            if (to.sqrMagnitude < 0.0001f) return 1f;
+            return Vector3.Angle(transform.forward, to) <= _data.FrontShieldHalfAngle ? 1f - _data.FrontShieldBlock : 1f;
+        }
+
+        // Dalış: steering yerine sabit yönde hızlı adım (duvar kontrolü aynı). Duvara çarpıp durursa false.
+        public bool DashMove(Vector3 direction, float speed)
+        {
+            float dt = Time.deltaTime;
+            if (dt <= 0f) return true;
+            Vector3 wanted = direction * (speed * _speedMultiplier * _statusSpeed * dt);
+            Vector3 step = ClampStepAgainstEnvironment(wanted);
+            transform.position += step;
+            _dashVelocity = step / dt;
+            if (direction.sqrMagnitude > 0.0001f) transform.rotation = Quaternion.LookRotation(direction);
+            return step.sqrMagnitude >= wanted.sqrMagnitude * 0.25f;
+        }
+
+        // İskeletsiz poz (dalış hazırlığı: geri yaslanma, dalış: öne atılma).
+        public void PlayPose(float distance, float pitch) => PlayLunge(distance, pitch);
+
+        private void BeginDying()
+        {
+            _dyingTime = 0f;
+            if (_bodyCollider != null) _bodyCollider.enabled = false;
+            _knockbackVelocity = Vector3.zero;
+            _steeringVelocity = Vector3.zero;
+            StopMoving();
+            _aimLine?.Hide();
+            _lungeTime = -1f;
+            bool heavy = _data != null && _data.IsElite;
+            if (heavy)
+            {
+                Haptics.Impact(2);
+                HitStop.Play(0.05f);
+            }
+            else if (Time.unscaledTime - s_lastDeathHaptic > DeathHapticInterval)
+            {
+                s_lastDeathHaptic = Time.unscaledTime;
+                Haptics.LightTap(); // sürü ölümünde art arda titremesin
+            }
+        }
+
+        private void UpdateDying()
+        {
+            _dyingTime += Time.deltaTime;
+            float k = Mathf.Clamp01(_dyingTime / DyingDuration);
+            if (_model != null) _model.localScale = _modelRestScale * (1f + DyingSwell * Mathf.Sin(k * Mathf.PI * 0.5f));
+            if (_flashRenderers != null && _flashRenderers.Length > 0)
+            {
+                if (s_flashBlock == null) s_flashBlock = new MaterialPropertyBlock();
+                float bright = Mathf.Lerp(1.4f, DyingBrightness, k);
+                for (int i = 0; i < _flashRenderers.Length; i++)
+                {
+                    s_flashBlock.SetColor(BaseColorId, _flashBaseColors[i] * bright);
+                    _flashRenderers[i].SetPropertyBlock(s_flashBlock);
+                }
+                _flashTime = 0f; // ClearFlash havuza dönüşte blokları temizlesin
+            }
+            if (k < 1f) return;
+
+            _dyingTime = -1f;
+            if (_data != null && _flashRenderers != null && _flashRenderers.Length > 0)
+                DeathFx.Play(_flashRenderers[0].bounds, _data.CrumbColorA, _data.CrumbColorB, _data.IsElite);
+            OnDeath?.Invoke(this);
+        }
+
         // Görüş menzilinden bağımsız, süre boyunca blob'u kovalar.
         public void Alert(float duration)
         {
@@ -780,6 +867,7 @@ namespace BlobSurvivor.Entities.Enemies
         public void TakeDamage(float amount)
         {
             if (_isDead) return;
+            amount *= FrontShieldFactor();
 
             float before = _currentHealth;
             _currentHealth -= amount;
@@ -859,13 +947,25 @@ namespace BlobSurvivor.Entities.Enemies
 
             int coinAmount = _data.CoinOverride > 0 ? _data.CoinOverride : _data.IsElite ? Random.Range(5, 11) : PoliceCoin;
             CoinSource source = IsBoss ? CoinSource.Boss : _data.IsElite ? CoinSource.Elite : CoinSource.Police;
-            CoinSpawner.Instance?.SpawnCoin(transform.position, coinAmount, source);
+            CoinPickup coin = CoinSpawner.Instance != null ? CoinSpawner.Instance.SpawnCoin(transform.position, coinAmount, source) : null;
+            if (coin != null && !eaten)
+            {
+                Vector2 dir = Random.insideUnitCircle.normalized * Random.Range(0.6f, 1.1f);
+                coin.Pop(new Vector3(dir.x, 0f, dir.y));
+            }
             GameEvents.RaiseEnemyKilled(_data);
             GameEvents.RaiseEnemyDefeated(_data, eaten);
             if (_data.IsElite)
                 ChestSpawner.Instance?.SpawnChest(transform.position);
             if (_data.HeartPrefab != null && Random.value < _data.HeartDropChance)
                 HeartPickup.Spawn(_data.HeartPrefab, transform.position);
+
+            // Silahla ölen (boss değil) kısa ölüm anı oynar, havuza dönüş onun sonunda.
+            if (!eaten && !IsBoss)
+            {
+                BeginDying();
+                return;
+            }
 
             // Pool'a dönüş çağıranın (EnemySpawner) sorumluluğunda — CoinSpawner/CoinPickup'taki pattern'in aynısı.
             OnDeath?.Invoke(this);

@@ -10976,6 +10976,21 @@ MonoBehaviour:
   _waveController: {fileID: 511230088}
   _mapHalfExtent: 85
   _spawnRange: 30
+  _minSpawnDistance: 10
+  _maxSpawnDistance: 40
+  _offscreenMargin: 0.06
+  _aheadChance: 0.65
+  _aheadSpread: 70
+  _relocateAfter: 3
+  _relocateAlert: 6
+  _encircleFirstTime: 150
+  _encircleInterval: 110
+  _encircleMinLevel: 3
+  _encircleCountBase: 10
+  _encircleCountPerLevel: 0.6
+  _encircleCountMax: 16
+  _encircleAlert: 12
+  _encircleOvershoot: 8
   _despawnDistance: 50
   _minDistanceFromBlob: 18
   _maxActiveEnemies: 30
@@ -25927,6 +25942,8 @@ MonoBehaviour:
   _waves:
   - {fileID: 11400000, guid: ff117d1589b214a0ca25bda8e1550e77, type: 2}
   - {fileID: 11400000, guid: a00df9df198c4ed19e6a2552f03da7c6, type: 2}
+  - {fileID: 11400000, guid: 1b06f4b7a7a8e464a9bc65916981e40a, type: 2}
+  - {fileID: 11400000, guid: d58370b3118eb9d4abef103eba649105, type: 2}
   _eliteDamageThreshold: 300
   _eliteDamageMultiplier: 1.2
   _densityThreshold: 600

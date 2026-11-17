@@ -68,6 +68,24 @@ namespace BlobSurvivor.Data
         [Tooltip("Ölünce düşen coin. 0 = varsayılan (polis 2, elit 5–10).")]
         [SerializeField] private int _coinOverride;
 
+        [Header("Ölüm efekti")]
+        [Tooltip("Silahla ölünce dağıldığı kırıntıların renkleri (üniforma tonları).")]
+        [SerializeField] private Color _crumbColorA = new Color(0.18f, 0.44f, 0.75f);
+        [SerializeField] private Color _crumbColorB = new Color(0.23f, 0.34f, 0.66f);
+
+        [Header("Ön kalkan (çevik kuvvet)")]
+        [Tooltip("Blob bu açının (yarım açı, derece) içinde öndeyse hasarın _frontShieldBlock kadarı kesilir. 0 = kalkan yok.")]
+        [SerializeField, Range(0f, 180f)] private float _frontShieldHalfAngle;
+        [SerializeField, Range(0f, 1f)] private float _frontShieldBlock = 0.85f;
+
+        [Header("Dalış (motorlu polis)")]
+        [Tooltip("Bu mesafede ve görüş açıkken durur, nişan alır, düz çizgide dalar. 0 = dalmaz.")]
+        [SerializeField] private float _dashRange;
+        [SerializeField] private float _dashSpeed = 8f;
+        [SerializeField] private float _dashWindup = 0.6f;
+        [SerializeField] private float _dashDuration = 0.9f;
+        [SerializeField] private float _dashCooldown = 3f;
+
         public string DisplayName => _displayName;
         public string HudName => string.IsNullOrEmpty(_hudName) ? _displayName : _hudName;
         public GameObject Prefab => _prefab;
@@ -100,5 +118,14 @@ namespace BlobSurvivor.Data
         // Sürüyle gelen (robot köpek) polis tavanına sayılmaz, kendi tavanı var (EnemySpawner).
         public bool IsSwarm => _packSize > 1;
         public int CoinOverride => _coinOverride;
+        public Color CrumbColorA => _crumbColorA;
+        public Color CrumbColorB => _crumbColorB;
+        public float FrontShieldHalfAngle => _frontShieldHalfAngle;
+        public float FrontShieldBlock => _frontShieldBlock;
+        public float DashRange => _dashRange;
+        public float DashSpeed => _dashSpeed;
+        public float DashWindup => _dashWindup;
+        public float DashDuration => _dashDuration;
+        public float DashCooldown => _dashCooldown;
     }
 }

@@ -18,6 +18,9 @@ namespace BlobSurvivor.Entities.Coins
         private const float BlinkInterval = 0.15f;
 
         private int _amount = 1;
+        private const float PopDuration = 0.38f, PopHeight = 1.3f;
+        private Vector3 _popFrom, _popTo;
+        private float _popTime = -1f;
         private ScoreSystem _scoreSystem;
         private Renderer[] _renderers;
         private float _age;
@@ -33,6 +36,7 @@ namespace BlobSurvivor.Entities.Coins
             // ConsumableTier1 layer'ını paylaşır — Blob zaten bu layer'la her zaman çarpışır (Collision Matrix).
             gameObject.layer = TierLayers.For(BlobTier.Tiny);
             _age = 0f;
+            _popTime = -1f;
             _visible = false; // önceki ömrün yanıp sönmesinden kapalı kalmış olabilir — zorla aç
             SetVisible(true);
         }
@@ -40,6 +44,7 @@ namespace BlobSurvivor.Entities.Coins
         private void Update()
         {
             _age += Time.deltaTime;
+            if (_popTime >= 0f) UpdatePop();
             if (_age >= _lifetime)
             {
                 _scoreSystem?.RegisterExpiredCoin(_amount);
@@ -49,6 +54,22 @@ namespace BlobSurvivor.Entities.Coins
 
             if (_age > _lifetime - _blinkDuration)
                 SetVisible(Mathf.FloorToInt(_age / BlinkInterval) % 2 == 0);
+        }
+
+        // Ölen düşmandan fırlama: yatayda kısa bir yay, sonra yerde durur.
+        public void Pop(Vector3 offset)
+        {
+            _popFrom = transform.position;
+            _popTo = _popFrom + new Vector3(offset.x, 0f, offset.z);
+            _popTime = 0f;
+        }
+
+        private void UpdatePop()
+        {
+            _popTime += Time.deltaTime;
+            float t = Mathf.Clamp01(_popTime / PopDuration);
+            transform.position = Vector3.Lerp(_popFrom, _popTo, t) + Vector3.up * (4f * PopHeight * t * (1f - t));
+            if (t >= 1f) _popTime = -1f;
         }
 
         // Sadece değişince renderer'lara dokunur.

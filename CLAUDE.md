@@ -97,6 +97,7 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 | Şehir Kur (Level01) / Şehir Kur (Büyük) | Blender kitinden şehri kurar (`CityKitPipeline`, `CityExpansion`) |
 | Şehir Görsel Düzeltmeleri | Model yönü/ölçeği, bina kısaltma, collider ayak izleri, NavMesh engelleri, PropObstacle katmanı, ghost materyaller, **iki NavMesh'i bake eder**. Tekrar çalıştırmak güvenli; sonra Cmd+S |
 | Polis Modellerini Uygula · Miniboss Tank Modelini Uygula · Final Boss Helikopterini Uygula · Coin Modelini Uygula | Prefab modellerini kurar |
+| Yeni Polis Türlerini Kur | `EnemyVariantSetup`: Çevik kuvvet (ön kalkan) ve Motorlu polis (dalış) — polis prefab/verisinden kopya, palet rengi (`<Ad>Palette.png`, `Mat_<Ad>`), çevik kuvvete kalkan levhası; `Wave_Riot` (5. dk) + `Wave_Motor` (7. dk) → WaveController. GameScene açıkken; sahneyi kaydeder |
 | Tank NavMesh'ini Kur | "Tank" ajan tipi + ikinci NavMeshSurface |
 | Yaya Varyantlarını Bağla | PedestrianData varyant listeleri + spawner havuzu |
 | Robot Köpek Rengini Uygula | `CityPalette`'in doygun mavilerini açık metalik griye çeviren köpek paleti (`Art/City/RobotDogPalette.png`) + `Mat_RobotDog` → `Enemy_RobotDog.prefab`. Robot Köpeği Kur da bu materyali kullanır |
@@ -125,7 +126,7 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 
 **Performans göstergesi** (`PerfOverlay`, telefonda da): 3 parmakla dokun (Editor'da F3) → FPS, en kötü kare, +500 kütle ve **DEV** düğmesi. DEV paneli (açıkken oyun durur, uGUI tıklaması kapanır; parmakla kaydırılır): en üstte coin +1.000 / +10.000, karakterleri kilitle (alımlar + run sayısı sıfır), tüm karakterleri aç, kaydı sıfırla; run içinde skill +1 / MAX, kütle, can, sıradaki boss, final boss −%25. Test API'leri (`UpgradeSystem.DebugGrant`, `BossSpawner.DebugSpawnNextStage`, `MetaProgression.Dev*`) build'de de derlenir. **Yayın öncesi `PerfOverlay.Enabled = false`.**
 
-**Editor test tuşları** (`DevCheats`, sadece Editor): **M** +500 kütle (XP'siz) · **B** final boss −%25 can · **H** can doldur · **N** sıradaki boss aşamasını hemen çıkar (aktif boss kalkar) · **L** kuşatma (koşulları atlar) · **O** yeni anlık görev · **P** görevi tamamla · **V** Vakum skill'i +1 seviye (kart açılmaz) · **K** Kara Delik (Vakum + Sindirim max + evrim, evrim anı oynar) · **Z** Zırh skill'i +1 seviye · **G** Sopa +1 seviye · **J** Hız +1 seviye · **U** Havai Fişek +1 seviye · **C** +500 coin, kasaya (kayda yazılır).
+**Editor test tuşları** (`DevCheats`, sadece Editor): **M** +500 kütle (XP'siz) · **B** final boss −%25 can · **H** can doldur · **N** sıradaki boss aşamasını hemen çıkar (aktif boss kalkar) · **L** kuşatma (koşulları atlar) · **Y** ikişer çevik kuvvet + motorlu polis · **O** yeni anlık görev · **P** görevi tamamla · **V** Vakum skill'i +1 seviye (kart açılmaz) · **K** Kara Delik (Vakum + Sindirim max + evrim, evrim anı oynar) · **Z** Zırh skill'i +1 seviye · **G** Sopa +1 seviye · **J** Hız +1 seviye · **U** Havai Fişek +1 seviye · **C** +500 coin, kasaya (kayda yazılır).
 
 ## iOS / TestFlight
 
