@@ -37,3 +37,95 @@ MonoBehaviour:
   - {fileID: 9217431651196322462, guid: 6928dd9a7ae3643238f2586cf437cf2e, type: 3}
   - {fileID: -7532265596537231542, guid: 2b9cbafeac59c49e1a87ac2dd506dbf7, type: 3}
   - {fileID: 3068314010652888161, guid: fb3c9c7c85c94422eab953b49991a273, type: 3}
+  _rigs:
+  - Source: {fileID: 6848435079114531426, guid: f0dba6ed057e44173996d2e46cbaa079, type: 3}
+    Body: {fileID: 4300000, guid: 78cfd4243903cea4684b7cd04f540b41, type: 2}
+    LegL: {fileID: 4300000, guid: 5a2bcfa485f5f4c40b8f745d2f6003ba, type: 2}
+    LegR: {fileID: 4300000, guid: 65ce8b1d7a4d67644b8f29609402badf, type: 2}
+    ArmL: {fileID: 0}
+    ArmR: {fileID: 0}
+    HipL: {x: 0.07999994, y: 0.2999997, z: 0.019999875}
+    HipR: {x: -0.0799998, y: 0.2999997, z: 0.019999875}
+    ShoulderL: {x: 0, y: 0, z: 0}
+    ShoulderR: {x: 0, y: 0, z: 0}
+    SwingAxis: {x: -1, y: -1.2246469e-16, z: -1.4997598e-32}
+  - Source: {fileID: 5304019258625809153, guid: c495a8d79c1ce47a1badaf0c5d48c177, type: 3}
+    Body: {fileID: 4300000, guid: 9257fbda9f98d8e4a900a83fb2ff1224, type: 2}
+    LegL: {fileID: 4300000, guid: 65a5171fc1a7ed34e9ba4487246b3315, type: 2}
+    LegR: {fileID: 4300000, guid: b495e56598a9ee740bcb81ff9b31b96f, type: 2}
+    ArmL: {fileID: 4300000, guid: 98a8266d07ce09b4bb0348dd5b410569, type: 2}
+    ArmR: {fileID: 4300000, guid: 3fd2cfe44ec23764dbb76ba92cfd1cc9, type: 2}
+    HipL: {x: 0.09, y: 0.43999994, z: 0.014999837}
+    HipR: {x: -0.090000056, y: 0.43999994, z: 0.014999837}
+    ShoulderL: {x: 0.24000008, y: 0.8000004, z: 0.00000025207797}
+    ShoulderR: {x: -0.25249976, y: 0.8000004, z: 0.0000003259629}
+    SwingAxis: {x: -1, y: -1.2246469e-16, z: -1.4997598e-32}
+  - Source: {fileID: -8429027585824440842, guid: a32e1a9f03c0a4670b8efd7c478f30eb, type: 3}
+    Body: {fileID: 4300000, guid: 8b8ad7538d83e5142b43d7b7d546c46d, type: 2}
+    LegL: {fileID: 4300000, guid: 49e007ec0bed666439a57cc7e4b9e4d9, type: 2}
+    LegR: {fileID: 4300000, guid: 317926ecb29de7f43937946dd68146b4, type: 2}
+    ArmL: {fileID: 0}
+    ArmR: {fileID: 0}
+    HipL: {x: 0.09000001, y: 0.30000037, z: 0.02999961}
+    HipR: {x: -0.090000495, y: 0.30000037, z: 0.02999961}
+    ShoulderL: {x: -0, y: 0, z: 0}
+    ShoulderR: {x: -0, y: 0, z: 0}
+    SwingAxis: {x: -1, y: -1.2246469e-16, z: -1.4997598e-32}
+  - Source: {fileID: 8028629528025626548, guid: f2d3b0314cb0841c28e7df33a3dbbf7c, type: 3}
+    Body: {fileID: 4300000, guid: 7b2e07a039968bf49829c2107814304c, type: 2}
+    LegL: {fileID: 4300000, guid: b0678964bbf619248b3b67ac1824afcd, type: 2}
+    LegR: {fileID: 4300000, guid: c325f0d84733d3a4590fc9936a07d396, type: 2}
+    ArmL: {fileID: 0}
+    ArmR: {fileID: 0}
+    HipL: {x: 0.08999979, y: 0.30000073, z: 0.029999716}
+    HipR: {x: -0.09000041, y: 0.30000073, z: 0.029999716}
+    ShoulderL: {x: -0, y: 0, z: 0}
+    ShoulderR: {x: -0, y: 0, z: 0}
+    SwingAxis: {x: -1, y: -1.2246469e-16, z: -1.4997598e-32}
+  - Source: {fileID: 1136431240955295703, guid: 0e408cde582e444eaacf8653739130f3, type: 3}
+    Body: {fileID: 4300000, guid: 97d3c79a7b613df4c8095efe72eddf2b, type: 2}
+    LegL: {fileID: 4300000, guid: ad24cf7868c405a4a8a736f382019ee9, type: 2}
+    LegR: {fileID: 4300000, guid: 8e6eeea15587601478d2850988b363f5, type: 2}
+    ArmL: {fileID: 4300000, guid: 06a1e5c6f54a36942867c175daf21ee2, type: 2}
+    ArmR: {fileID: 4300000, guid: 372e1673ead1d9444bdd4659b13f4529, type: 2}
+    HipL: {x: 0.09000001, y: 0.30000037, z: 0.02999961}
+    HipR: {x: -0.090000495, y: 0.30000037, z: 0.02999961}
+    ShoulderL: {x: 0.24999966, y: 0.7600003, z: 0.00000009251138}
+    ShoulderR: {x: -0.25000033, y: 0.7600003, z: 0.00000009251138}
+    SwingAxis: {x: -1, y: -1.2246469e-16, z: -1.4997598e-32}
+  - Source: {fileID: 9217431651196322462, guid: 6928dd9a7ae3643238f2586cf437cf2e, type: 3}
+    Body: {fileID: 4300000, guid: 158870f27ec95fe40a5ced849ef306b4, type: 2}
+    LegL: {fileID: 4300000, guid: 26ed208b66db6b0408ace4e325cd8f21, type: 2}
+    LegR: {fileID: 4300000, guid: 4ed5641aa9e47744487177b9468be1f8, type: 2}
+    ArmL: {fileID: 4300000, guid: 751d1716bbdeca64f9887e5a0c02eb3c, type: 2}
+    ArmR: {fileID: 4300000, guid: 636b37c4fc0363b4dba97ec13bc78cbf, type: 2}
+    HipL: {x: 0.09000028, y: 0.4400006, z: 0.014999789}
+    HipR: {x: -0.09000051, y: 0.4400006, z: 0.014999789}
+    ShoulderL: {x: 0.2445453, y: 0.79999983, z: 0.000000053847376}
+    ShoulderR: {x: -0.2445451, y: 0.79999983, z: 0.000000053847376}
+    SwingAxis: {x: -1, y: -1.2246469e-16, z: -1.4997598e-32}
+  - Source: {fileID: -7532265596537231542, guid: 2b9cbafeac59c49e1a87ac2dd506dbf7, type: 3}
+    Body: {fileID: 4300000, guid: dbf908022ec01014d83b25dac15a162c, type: 2}
+    LegL: {fileID: 4300000, guid: 57c1cd3d30aca804e9801b2a1afc5197, type: 2}
+    LegR: {fileID: 4300000, guid: ae2c583bb6097424e9658cfc6d9d9534, type: 2}
+    ArmL: {fileID: 4300000, guid: facf65c05d5ea0743beb7501ab55fa74, type: 2}
+    ArmR: {fileID: 4300000, guid: 717273840bbbb1b42a949b29b0d183c4, type: 2}
+    HipL: {x: 0.090000056, y: 0.4400006, z: 0.014999677}
+    HipR: {x: -0.09000019, y: 0.4400006, z: 0.014999677}
+    ShoulderL: {x: 0.24454513, y: 0.80000055, z: 0.000000061072186}
+    ShoulderR: {x: -0.24454582, y: 0.80000055, z: 0.000000061072186}
+    SwingAxis: {x: -1, y: -1.2246469e-16, z: -1.4997598e-32}
+  - Source: {fileID: 3068314010652888161, guid: fb3c9c7c85c94422eab953b49991a273, type: 3}
+    Body: {fileID: 4300000, guid: bc00a03c8cf95db4aba0aa23405175e7, type: 2}
+    LegL: {fileID: 4300000, guid: dae381c7c0ab6e54186edb16773ba5f6, type: 2}
+    LegR: {fileID: 4300000, guid: 881ea667135dd9a4a9150ddd773b7a87, type: 2}
+    ArmL: {fileID: 0}
+    ArmR: {fileID: 0}
+    HipL: {x: 0.08999979, y: 0.30000073, z: 0.029999716}
+    HipR: {x: -0.09000041, y: 0.30000073, z: 0.029999716}
+    ShoulderL: {x: -0, y: 0, z: 0}
+    ShoulderR: {x: -0, y: 0, z: 0}
+    SwingAxis: {x: -1, y: -1.2246469e-16, z: -1.4997598e-32}
+  _stepRate: 5
+  _legSwing: 32
+  _armSwing: 26

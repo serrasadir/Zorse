@@ -51,6 +51,14 @@ namespace BlobSurvivor.Entities.Pedestrians
 
         private MeshFilter _modelFilter;
 
+        // Parçalı görünüm (PedestrianRig): bacak/kollar Model'in child'ı, eklemde sallanır. Havuzdaki her
+        // yaya için bir kez kurulur; rig'siz varyantta kapalı.
+        private Transform _legL, _legR, _armL, _armR;
+        private MeshFilter _legLF, _legRF, _armLF, _armRF;
+        private PedestrianRig _rig;
+        private float _walkPhase, _walkAmount;
+        private Vector3 _lastWalkPos;
+
         // Bizden küçük blob çarpınca tekme: blob'a döner, geriye yaslanıp öne savrulur, kısa durur.
         private const float KickDuration = 0.4f;
         private float _kickTime = -1f;
@@ -75,6 +83,9 @@ namespace BlobSurvivor.Entities.Pedestrians
             _stuckCheckPos = transform.position;
             _retryPickAt = 0f;
             _kickTime = -1f;
+            _walkPhase = Random.Range(0f, Mathf.PI * 2f);
+            _walkAmount = 0f;
+            _lastWalkPos = transform.position;
 
             if (_blobTransform == null)
             {
@@ -112,11 +123,13 @@ namespace BlobSurvivor.Entities.Pedestrians
             if (_kickTime >= 0f)
             {
                 UpdateKick();
+                AnimateLimbs();
                 return;
             }
 
             Move();
             ApplyBob();
+            AnimateLimbs();
             CheckStuck();
         }
 
@@ -155,7 +168,93 @@ namespace BlobSurvivor.Entities.Pedestrians
             if (_modelFilter == null) _modelFilter = GetComponentInChildren<MeshFilter>();
             if (_modelFilter == null) return;
             Mesh mesh = variants[Random.Range(0, variants.Length)];
-            if (mesh != null) _modelFilter.sharedMesh = mesh;
+            if (mesh == null) return;
+
+            _rig = PedData.FindRig(mesh);
+            _modelFilter.sharedMesh = _rig != null ? _rig.Body : mesh;
+            ApplyRig();
+        }
+
+        private void ApplyRig()
+        {
+            if (_rig == null)
+            {
+                if (_legL != null) SetLimbsActive(false);
+                return;
+            }
+            if (_legL == null) BuildLimbs();
+            SetLimb(_legL, _legLF, _rig.LegL, _rig.HipL);
+            SetLimb(_legR, _legRF, _rig.LegR, _rig.HipR);
+            SetLimb(_armL, _armLF, _rig.ArmL, _rig.ShoulderL);
+            SetLimb(_armR, _armRF, _rig.ArmR, _rig.ShoulderR);
+        }
+
+        // Parçası olmayan uzuv (kolu gövdede kalan iri yaya) kapalı kalır.
+        private static void SetLimb(Transform limb, MeshFilter filter, Mesh mesh, Vector3 joint)
+        {
+            limb.gameObject.SetActive(mesh != null);
+            filter.sharedMesh = mesh;
+            limb.localPosition = joint;
+            limb.localRotation = Quaternion.identity;
+        }
+
+        private void SetLimbsActive(bool active)
+        {
+            _legL.gameObject.SetActive(active);
+            _legR.gameObject.SetActive(active);
+            _armL.gameObject.SetActive(active);
+            _armR.gameObject.SetActive(active);
+        }
+
+        // Model'in altına dört parça (aynı materyal ve katman). Havuzdaki yaya başına bir kez.
+        private void BuildLimbs()
+        {
+            Transform model = _modelFilter.transform;
+            MeshRenderer source = _modelFilter.GetComponent<MeshRenderer>();
+            _legL = NewLimb("LegL", model, source, out _legLF);
+            _legR = NewLimb("LegR", model, source, out _legRF);
+            _armL = NewLimb("ArmL", model, source, out _armLF);
+            _armR = NewLimb("ArmR", model, source, out _armRF);
+        }
+
+        private static Transform NewLimb(string name, Transform parent, MeshRenderer source, out MeshFilter filter)
+        {
+            var go = new GameObject(name);
+            go.layer = parent.gameObject.layer;
+            go.transform.SetParent(parent, false);
+            filter = go.AddComponent<MeshFilter>();
+            MeshRenderer renderer = go.AddComponent<MeshRenderer>();
+            if (source != null)
+            {
+                renderer.sharedMaterials = source.sharedMaterials;
+                renderer.shadowCastingMode = source.shadowCastingMode;
+                renderer.receiveShadows = source.receiveShadows;
+            }
+            return go.transform;
+        }
+
+        // Adım: gidilen yola bağlı faz; hız arttıkça açı büyür, dururken eklemler yavaşça düzleşir.
+        // Bacaklar karşılıklı, kollar karşı bacakla birlikte.
+        private void AnimateLimbs()
+        {
+            if (_rig == null || _legL == null) return;
+            float dt = Time.deltaTime;
+            if (dt <= 0f) return;
+            Vector3 delta = transform.position - _lastWalkPos;
+            _lastWalkPos = transform.position;
+            delta.y = 0f;
+            float distance = _kickTime >= 0f ? 0f : delta.magnitude;
+            float speed = distance / dt;
+            _walkPhase += distance * PedData.StepRate;
+            float target = Mathf.Clamp01(speed / Mathf.Max(0.1f, PedData.MoveSpeed));
+            _walkAmount = Mathf.MoveTowards(_walkAmount, target, dt * 6f);
+
+            float s = Mathf.Sin(_walkPhase) * _walkAmount;
+            Vector3 axis = _rig.SwingAxis;
+            _legL.localRotation = Quaternion.AngleAxis(s * PedData.LegSwing, axis);
+            _legR.localRotation = Quaternion.AngleAxis(-s * PedData.LegSwing, axis);
+            _armL.localRotation = Quaternion.AngleAxis(-s * PedData.ArmSwing, axis);
+            _armR.localRotation = Quaternion.AngleAxis(s * PedData.ArmSwing, axis);
         }
 
         private void CheckStuck()

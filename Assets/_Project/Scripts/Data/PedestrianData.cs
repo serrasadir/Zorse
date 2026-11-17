@@ -23,6 +23,12 @@ namespace BlobSurvivor.Data
         // Boş bırakılırsa prefab'daki mesh kalır. Modeller: zorse-blender/build_people.py → Art/City/People
         [Header("Görsel Varyantlar")]
         [SerializeField] private Mesh[] _variantMeshes;
+        // Yürüyen (parçalı) görünümler: varyant mesh'i bunlardan birinin Source'u ise bacak/kol sallanır.
+        [SerializeField] private PedestrianRig[] _rigs;
+        [Header("Yürüyüş (parçalı görünüm)")]
+        [SerializeField] private float _stepRate = 5f;      // birim yol başına adım fazı (radyan)
+        [SerializeField] private float _legSwing = 32f;     // derece
+        [SerializeField] private float _armSwing = 26f;
 
         public float MoveSpeed => _moveSpeed;
         public float FleeSpeed => _fleeSpeed;
@@ -31,5 +37,16 @@ namespace BlobSurvivor.Data
         public float BobHeight => _bobHeight;
         public float BobSpeed => _bobSpeed;
         public Mesh[] VariantMeshes => _variantMeshes;
+        public float StepRate => _stepRate;
+        public float LegSwing => _legSwing;
+        public float ArmSwing => _armSwing;
+
+        public PedestrianRig FindRig(Mesh source)
+        {
+            if (_rigs == null || source == null) return null;
+            foreach (PedestrianRig rig in _rigs)
+                if (rig != null && rig.Source == source && rig.Body != null) return rig;
+            return null;
+        }
     }
 }

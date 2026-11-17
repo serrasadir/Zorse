@@ -181,7 +181,7 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 
 ## 7. Şehrin Canlıları
 
-- **Yayalar** (en fazla 25): Erkek (11 görünüm), Kadın (8), İri (işçi/kurye/taşıyıcı, 3 görünüm — yavaş, 3× kütle). Rastgele dolaşır, yiyebileceğin boydaysan kaçar, eşyalara ve arabalara çarpar. Animasyonsuz (yukarı-aşağı süzülme). Vakumla çekilmez.
+- **Yayalar** (en fazla 25): Erkek (11 görünüm), Kadın (8), İri (işçi/kurye/taşıyıcı, 3 görünüm — yavaş, 3× kütle). Rastgele dolaşır, yiyebileceğin boydaysan kaçar, eşyalara ve arabalara çarpar. Yürüyüş: bütün görünümler parçalı: bacaklar karşılıklı, kollar karşı bacakla adım ritminde sallanır (gidilen yola bağlı, dururken düzleşir; `PedestrianRig`, `PedestrianData._stepRate/_legSwing/_armSwing`); kolu ayrılamayanlar (kutulu kurye, etekli/paltolu kadınlar) sadece bacakla yürür. Üstüne yukarı-aşağı süzülme. Parçalar `Tools → Blob.io → Yaya Yürüyüş Parçalarını Kur`. Vakumla çekilmez.
 - **Arabalar** (en fazla 6): oyuncunun yakınındaki blokların etrafında sağ şeritte döner, uzaklaşınca havuza döner. Önlerinde araba, yaya ya da polis varsa durur. Medium'dan itibaren yenir (otobüs Large); küçükken çarpınca hasar verir. Yanından geçtiği küçük çöpleri iter.
 - **Sokak eşyaları** (ağaç, lamba, bank, hidrant, çöp kutusu, trafik ışığı, seyyar arabalar; parkların ortasında ve lunaparkta park etmiş dondurma kamyoneti) ve **binalar** yenebilir; yenen her şey run sonunda geri gelir.
 - Yenebilir küçük objeler (en fazla 80) oyuncunun çevresinde sürekli yenilenir.

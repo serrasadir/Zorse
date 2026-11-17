@@ -32,3 +32,40 @@ MonoBehaviour:
   - {fileID: -6386053873324898680, guid: 88f87b364fac242918fedbaa26b4d564, type: 3}
   - {fileID: -2092930238453071448, guid: d1c30b754f13840f7889168961314879, type: 3}
   - {fileID: -7126990592303759748, guid: 75269baacadca492cadcca2e8cb32392, type: 3}
+  _rigs:
+  - Source: {fileID: -6386053873324898680, guid: 88f87b364fac242918fedbaa26b4d564, type: 3}
+    Body: {fileID: 4300000, guid: b238c608c20f87b4186ddf37d2269586, type: 2}
+    LegL: {fileID: 4300000, guid: b41881073da6faf42b5c3e5b1deac21e, type: 2}
+    LegR: {fileID: 4300000, guid: 5bc3d3f55ca41184a82f83284f4ea400, type: 2}
+    ArmL: {fileID: 4300000, guid: 0f4e973b78508b74ab5b62aeb9dc91dd, type: 2}
+    ArmR: {fileID: 4300000, guid: 75f929cc4121d5f4380a3e7aa2d1248d, type: 2}
+    HipL: {x: 0.11699985, y: 0.5059992, z: 0.018750207}
+    HipR: {x: -0.11699998, y: 0.5059992, z: 0.018750207}
+    ShoulderL: {x: 0.31909117, y: 0.92600065, z: 0.000000110629834}
+    ShoulderR: {x: -0.3190911, y: 0.92600065, z: 0.000000111081384}
+    SwingAxis: {x: -1, y: -1.2246469e-16, z: -1.4997598e-32}
+  - Source: {fileID: -2092930238453071448, guid: d1c30b754f13840f7889168961314879, type: 3}
+    Body: {fileID: 4300000, guid: 03595762c0fa8da4c9f9ef065cd060bc, type: 2}
+    LegL: {fileID: 4300000, guid: 13d9be2d15b56364caac2fd629fdccb2, type: 2}
+    LegR: {fileID: 4300000, guid: 2dfad428df64c25439a6e06b9c63ea6b, type: 2}
+    ArmL: {fileID: 0}
+    ArmR: {fileID: 0}
+    HipL: {x: 0.11700011, y: 0.5060003, z: 0.018749572}
+    HipR: {x: -0.116999574, y: 0.5060003, z: 0.018749572}
+    ShoulderL: {x: -0, y: 0, z: 0}
+    ShoulderR: {x: -0, y: 0, z: 0}
+    SwingAxis: {x: -1, y: -1.2246469e-16, z: -1.4997598e-32}
+  - Source: {fileID: -7126990592303759748, guid: 75269baacadca492cadcca2e8cb32392, type: 3}
+    Body: {fileID: 4300000, guid: 09605137d7a86994094fe06f1b1514dc, type: 2}
+    LegL: {fileID: 4300000, guid: 487c84fd0df48194e88035a84d91e525, type: 2}
+    LegR: {fileID: 4300000, guid: 6fc6adefdd9227d4dbd05270d8c75145, type: 2}
+    ArmL: {fileID: 4300000, guid: 89799309988560b488842fb4ffef9b31, type: 2}
+    ArmR: {fileID: 4300000, guid: aeabd14300359b148925f0935a81360c, type: 2}
+    HipL: {x: 0.11700035, y: 0.5059998, z: 0.018749924}
+    HipR: {x: -0.11700029, y: 0.5059998, z: 0.018749924}
+    ShoulderL: {x: 0.36400008, y: 0.90299976, z: 0.24531247}
+    ShoulderR: {x: -0.36400047, y: 0.90299976, z: 0.2453125}
+    SwingAxis: {x: -1, y: -1.2246469e-16, z: -1.4997598e-32}
+  _stepRate: 5
+  _legSwing: 32
+  _armSwing: 26
