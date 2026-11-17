@@ -208,6 +208,27 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 | +%5 kütle kazancı (XP'yi de artırır) | 300, her alımda +200 | Sv.5 (+%25) |
 | +%5 coin kazancı | 300, her alımda +200 | Sv.5 (+%25) |
 | XP çarpanı +%25 | 1000 | tek sefer |
+| Zırh: gelen her hasar −1 (hasarın en az %30'u geçer) | 400, her alımda +300 | Sv.3 |
+| Rejenerasyon: saniyede +0,2 can | 300, +250 | Sv.3 |
+| Kalın Deri: polis yutarken ısırık −%20 | 300, +300 | Sv.2 |
+| Geniş Ağız: yeme tetikleyicisi +%5 | 250, +200 | Sv.3 |
+| Sindirim Direnci: büyüyünce yavaşlama −%10 (Hızlı Metabolizma ile toplanır, en fazla %90) | 300, +250 | Sv.3 |
+| Mıknatıs: coin ve kalp gövdenin 1 birim yakınından kendine kayar | 200, +150 | Sv.3 |
+
+Market üç sekme: **KARAKTERLER**, **GÜÇLER** (kategorili, kaydırmalı: Savunma · Büyüme ve Yeme · Ekonomi) ve **KİLİTLER** (oynayarak açılan skiller: koşul + ilerleme çubuğu; altında başlangıç skilleri).
+
+**Skill kilitleri (VS gibi, coin'le değil oynayarak):** başlangıçta 8 skill açık (Sopa, Havai Fişek, Vakum, Zırh, Sindirim, Hız, Can Artışı, Rejenerasyon); diğerleri koşul gerçekleşince kart havuzuna girer, o an **YENİ SKİLL! · <ad> açıldı** bandı çıkar. Karakterin başlangıç ve favori skill'i o karakterle kilitli olsa da çıkar. İlerleme kayıtta (`unlockStats`), sayan `UnlockTracker`; koşullar `SkillUnlocks` (`Systems/Meta/PowerUps.cs`).
+
+| Skill | Açılma koşulu |
+|---|---|
+| Geri Dönüşüm | Bir run'da 10 (hareketli) araba ye |
+| Hızlı Metabolizma | Dev boyuna ulaş |
+| Kaygan Zemin | Bir run'da 10 dakika hayatta kal |
+| Tetikçi | Toplam 300 polis indir (silahla; köpek sayılmaz) |
+| Yara Öfkesi | Canın %20'nin altındayken bir boss yen |
+| Yer Sarsıntısı | Bir tank yen |
+| Sindirim Gazı | Bir run'da 30 polis yut |
+| Bölünme | Helikopteri yut | Güçlendiriciler `Systems/Meta/PowerUps.cs` kataloğunda (id, fiyat, etki), kayıtta id ile tutulur; run başında `GameManager.ApplyMetaProgression` uygular. Saldırı (Güç, Alan, Bekleme, Süre, Ek atış) ve kart güçlendiricileri (Şans, Kart yenile/atla/yasakla, Diriliş, Lanet) sonraki paketlerde.
 
 Sınıra gelen satırda fiyat yerine MAX yazar. Hepsinin toplamı 16.000 coin (karakterler 3.000). Coin kazancı kesirli birikir (1 coin × 1.05 kaybolmaz). Kayıt yerel JSON'da (`meta_progression.json`).
 

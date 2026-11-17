@@ -30,6 +30,23 @@ namespace BlobSurvivor.Systems.Meta
         public int coinGainLevel;
         public bool xpMultiplierPurchased;
         public int completedRuns; // ölümle ya da kazanarak biten run sayısı (Dalcık kilidi)
+        public List<PowerUpLevel> powerUps = new List<PowerUpLevel>(); // PowerUps kataloğu (id → seviye)
+        public List<string> unlockedSkills = new List<string>();       // oynayarak açılan skiller (UpgradeData.Id)
+        public List<UnlockStatValue> unlockStats = new List<UnlockStatValue>(); // açılma koşullarının ilerlemesi
+    }
+
+    [Serializable]
+    public class UnlockStatValue
+    {
+        public string stat; // UnlockStat adı
+        public int value;
+    }
+
+    [Serializable]
+    public class PowerUpLevel
+    {
+        public string id;
+        public int level;
     }
 
     // M20 (GDD_v2.md §8, Karar 7): run içi coin'in kalıcı Market kredisine dönüşmesi + satın alınan
@@ -176,6 +193,94 @@ namespace BlobSurvivor.Systems.Meta
             return true;
         }
 
+        // ---------------------------------------------------------------- güçlendiriciler (PowerUps)
+
+        public int GetLevel(PowerUpDef def)
+        {
+            if (def == null || _data.powerUps == null) return 0;
+            foreach (PowerUpLevel p in _data.powerUps)
+                if (p.id == def.Id) return Mathf.Min(p.level, def.MaxLevel);
+            return 0;
+        }
+
+        // Toplam etki (seviye × kademe başı): run başında uygulanır.
+        public float GetValue(PowerUpDef def) => GetLevel(def) * def.PerLevel;
+
+        public int GetCost(PowerUpDef def) => def.CostAt(GetLevel(def));
+
+        public bool IsMaxed(PowerUpDef def) => GetLevel(def) >= def.MaxLevel;
+
+        public bool TryPurchase(PowerUpDef def)
+        {
+            if (def == null || IsMaxed(def)) return false;
+            int cost = GetCost(def);
+            if (_data.credit < cost) return false;
+            _data.credit -= cost;
+            _data.powerUps ??= new List<PowerUpLevel>();
+            PowerUpLevel entry = _data.powerUps.Find(p => p.id == def.Id);
+            if (entry == null) _data.powerUps.Add(new PowerUpLevel { id = def.Id, level = 1 });
+            else entry.level++;
+            Save();
+            return true;
+        }
+
+        // ---------------------------------------------------------------- skill kilitleri
+
+        public bool IsSkillUnlocked(string id)
+        {
+            if (string.IsNullOrEmpty(id) || !SkillUnlocks.IsLocked(id)) return true;
+            return _data.devAllCharacters || (_data.unlockedSkills != null && _data.unlockedSkills.Contains(id));
+        }
+
+        // Koşul gerçekleşip skill açıldığında (id). UnlockTracker bandı gösterir.
+        public event Action<string> SkillUnlocked;
+
+        public int GetStat(UnlockStat stat)
+        {
+            if (_data.unlockStats == null) return 0;
+            string key = stat.ToString();
+            foreach (UnlockStatValue s in _data.unlockStats)
+                if (s.stat == key) return s.value;
+            return 0;
+        }
+
+        // Run içi en iyi değer: büyükse yazılır. Diske her seferinde yazılmaz (run sonu ya da açılışta kaydedilir).
+        public void ReportStat(UnlockStat stat, int value)
+        {
+            if (value <= GetStat(stat)) return;
+            SetStat(stat, value);
+            CheckUnlocks();
+        }
+
+        // Tüm run'lar toplamı.
+        public void AddStat(UnlockStat stat, int delta)
+        {
+            if (delta <= 0) return;
+            SetStat(stat, GetStat(stat) + delta);
+            CheckUnlocks();
+        }
+
+        private void SetStat(UnlockStat stat, int value)
+        {
+            _data.unlockStats ??= new List<UnlockStatValue>();
+            string key = stat.ToString();
+            UnlockStatValue entry = _data.unlockStats.Find(s => s.stat == key);
+            if (entry == null) _data.unlockStats.Add(new UnlockStatValue { stat = key, value = value });
+            else entry.value = value;
+        }
+
+        private void CheckUnlocks()
+        {
+            foreach (SkillUnlocks.Entry e in SkillUnlocks.Locked)
+            {
+                if (IsSkillUnlocked(e.Id) || GetStat(e.Stat) < e.Target) continue;
+                _data.unlockedSkills ??= new List<string>();
+                _data.unlockedSkills.Add(e.Id);
+                Save();
+                SkillUnlocked?.Invoke(e.Id);
+            }
+        }
+
         // ---------------------------------------------------------------- karakter kilitleri
 
         // Market fiyatı (MarketPrice > 0) satın alınınca, run koşulu (RequiredCompletedRuns) o kadar run bitince açılır.
@@ -221,6 +326,8 @@ namespace BlobSurvivor.Systems.Meta
         {
             _data.devAllCharacters = false;
             _data.unlockedCharacters.Clear();
+            _data.unlockedSkills?.Clear();
+            _data.unlockStats?.Clear();
             _data.completedRuns = 0;
             Save();
         }

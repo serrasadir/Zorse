@@ -35,6 +35,13 @@ namespace BlobSurvivor.Entities.Blob
         // Geri Dönüşüm Sv.5: can doluyken fazla iyileşme geçici kalkana döner (Zırh'tan önce yer, yenilenmez).
         public float BonusShield { get; private set; }
 
+        // Market güçlendiricileri (GameManager run başında yazar): her hasardan sabit düşüş, saniyelik can.
+        public float MetaArmor { get; set; }
+        public float MetaRegenPerSecond { get; set; }
+        private const float MetaArmorMinFraction = 0.3f; // zırh hasarı en fazla %70 keser
+        private const float MetaRegenTick = 0.5f;
+        private float _metaRegenTimer;
+
         // Kısa dokunulmazlık (Zırh kırılınca, Bölünme).
         private float _invulnerableUntil;
         public bool TemporarilyInvulnerable => Time.time < _invulnerableUntil;
@@ -86,6 +93,17 @@ namespace BlobSurvivor.Entities.Blob
         {
             if (!IsAlive) return;
             UpdateShieldRecharge();
+            UpdateMetaRegen();
+        }
+
+        // Seyrek iyileştirme: her kare can olayı (HUD) üretmesin.
+        private void UpdateMetaRegen()
+        {
+            if (MetaRegenPerSecond <= 0f || CurrentHealth >= _maxHealth) { _metaRegenTimer = 0f; return; }
+            _metaRegenTimer += Time.deltaTime;
+            if (_metaRegenTimer < MetaRegenTick) return;
+            Heal(MetaRegenPerSecond * _metaRegenTimer);
+            _metaRegenTimer = 0f;
         }
 
         private void UpdateShieldRecharge()
@@ -125,6 +143,7 @@ namespace BlobSurvivor.Entities.Blob
             if (!IsAlive || amount <= 0f || Invulnerable || TemporarilyInvulnerable) return;
 
             _lastHitTime = Time.time; // her hasar (kalkana ya da cana) yenilenmeyi erteler
+            if (MetaArmor > 0f) amount = Mathf.Max(amount * MetaArmorMinFraction, amount - MetaArmor);
             float remainingDamage = amount;
 
             if (BonusShield > 0f)

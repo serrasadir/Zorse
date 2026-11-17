@@ -232,6 +232,17 @@ namespace BlobSurvivor.Systems
             return $"'{id}' skill'i bulunamadı.";
         }
 
+        // Market kilidi; karakterin başlangıç ve favori skill'i o karakterle hep açık.
+        private bool IsUnlocked(UpgradeData u)
+        {
+            var meta = Meta.MetaProgression.Instance;
+            if (meta == null || meta.IsSkillUnlocked(u.Id)) return true;
+            return _character != null && (u == _character.StartingUpgrade || u == _character.FavoredUpgrade);
+        }
+
+        // Market'in skill sekmesi (kart havuzundaki skiller, sahnedeki sırayla).
+        public UpgradeData[] AllUpgrades => _allUpgrades;
+
         private float WeightOf(UpgradeData u) =>
             _character != null && u == _character.FavoredUpgrade ? u.Weight * _character.FavoredWeightMultiplier : u.Weight;
 
@@ -254,6 +265,7 @@ namespace BlobSurvivor.Systems
             if (u == null) return false;
             int level = GetLevel(u);
             if (level >= u.MaxLevel) return false;
+            if (level == 0 && !IsUnlocked(u)) return false;
             return level > 0 || !u.UsesSlot || !SlotFull(u.Kind);
         }
 

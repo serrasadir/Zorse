@@ -61,6 +61,7 @@ namespace BlobSurvivor.Entities.Loot
                 return;
             }
 
+            PickupMagnet.Pull(ref _basePosition);
             transform.position = _basePosition + Vector3.up * (Mathf.Sin(_age * _bobSpeed) * _bobHeight);
             transform.Rotate(0f, _spinSpeed * Time.deltaTime, 0f, Space.World);
 

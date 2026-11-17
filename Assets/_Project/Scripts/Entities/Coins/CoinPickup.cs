@@ -45,6 +45,11 @@ namespace BlobSurvivor.Entities.Coins
         {
             _age += Time.deltaTime;
             if (_popTime >= 0f) UpdatePop();
+            else
+            {
+                Vector3 p = transform.position;
+                if (PickupMagnet.Pull(ref p)) transform.position = p;
+            }
             if (_age >= _lifetime)
             {
                 _scoreSystem?.RegisterExpiredCoin(_amount);

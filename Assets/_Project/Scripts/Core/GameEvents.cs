@@ -18,6 +18,8 @@ namespace BlobSurvivor.Core
         public static event Action<BlobTier> OnBlobAte; // blob bir şey yedi (yenenin tier'ı; düşman dahil)
         public static event Action<string, string> OnMissionStarted; // anlık görev: başlık, alt satır
         public static event Action<string> OnMissionCompleted;       // ödül metni
+        public static event Action OnVehicleEaten;                   // hareketli araba yutuldu
+        public static event Action<string> OnSkillUnlocked;          // oynayarak açılan skill (görünen ad)
         public static event Action OnGameOver;
         public static event Action OnGamePaused;
         public static event Action OnGameResumed;
@@ -55,6 +57,8 @@ namespace BlobSurvivor.Core
         public static void RaiseBlobAte(BlobTier foodTier) => OnBlobAte?.Invoke(foodTier);
         public static void RaiseMissionStarted(string title, string sub) => OnMissionStarted?.Invoke(title, sub);
         public static void RaiseMissionCompleted(string reward) => OnMissionCompleted?.Invoke(reward);
+        public static void RaiseVehicleEaten() => OnVehicleEaten?.Invoke();
+        public static void RaiseSkillUnlocked(string name) => OnSkillUnlocked?.Invoke(name);
         public static void RaiseGameOver() => OnGameOver?.Invoke();
         public static void RaiseGamePaused() => OnGamePaused?.Invoke();
         public static void RaiseGameResumed() => OnGameResumed?.Invoke();

@@ -235,6 +235,24 @@ namespace BlobSurvivor.Core
             blob.GetComponent<BlobGrowth>()?.ApplyMetaBonuses(massGainBonus, xpBonus);
 
             FindAnyObjectByType<Systems.ScoreSystem>()?.SetCoinGainMultiplier(1f + coinGainBonus);
+
+            // Güçlendiriciler (PowerUps): her run başında baştan yazılır.
+            BlobHealth health = blob.GetComponent<BlobHealth>();
+            if (health != null)
+            {
+                health.MetaArmor = meta != null ? meta.GetValue(PowerUps.Armor) : 0f;
+                health.MetaRegenPerSecond = meta != null ? meta.GetValue(PowerUps.Regen) : 0f;
+            }
+            BlobConsumption consumption = blob.GetComponent<BlobConsumption>();
+            if (consumption != null)
+            {
+                consumption.BiteResist = meta != null ? meta.GetValue(PowerUps.ThickSkin) : 0f;
+                consumption.SetMouthScale(1f + (meta != null ? meta.GetValue(PowerUps.WideMouth) : 0f));
+            }
+            BlobController controller = blob.GetComponent<BlobController>();
+            if (controller != null) controller.MetaSlowdownReduction = meta != null ? meta.GetValue(PowerUps.DigestResist) : 0f;
+            PickupMagnet.Blob = blob.transform;
+            PickupMagnet.Radius = meta != null ? meta.GetValue(PowerUps.Magnet) : 0f;
         }
 
         public void PauseGame()

@@ -23,6 +23,19 @@ namespace BlobSurvivor.Entities.Blob
             _scoreSystem = FindAnyObjectByType<ScoreSystem>();
             _eatEffects = GetComponent<EatEffects>();
             if (_eatEffects == null) _eatEffects = gameObject.AddComponent<EatEffects>();
+            foreach (SphereCollider c in GetComponents<SphereCollider>())
+                if (c.isTrigger) { _mouth = c; _mouthBaseRadius = c.radius; break; }
+        }
+
+        // Market güçlendiricileri (GameManager run başında yazar).
+        public float BiteResist { get; set; } // Kalın Deri: polis ısırığı bu oranda azalır
+        private SphereCollider _mouth;        // yeme tetikleyicisi
+        private float _mouthBaseRadius;
+
+        // Geniş Ağız: yeme tetikleyicisinin yarıçapı (gövde ölçeğiyle birlikte büyür).
+        public void SetMouthScale(float scale)
+        {
+            if (_mouth != null) _mouth.radius = _mouthBaseRadius * Mathf.Max(1f, scale);
         }
 
         // Önle yeme: blob'un arkasındaki RearAngle'lık dilim (popo) yemez; arkadan değen obje içinden geçer,
@@ -121,6 +134,7 @@ namespace BlobSurvivor.Entities.Blob
                 Core.GameEvents.RaiseBlobAte(foodTier);
                 _blobGrowth.PunchScale();
                 if (Skills != null && Skills.NoBiteDamage) biteDamage = 0f; // Yara Öfkesi Sv.5
+                biteDamage *= 1f - Mathf.Clamp01(BiteResist);
                 if (biteDamage > 0f)
                 {
                     // Isırık: hasar (kırmızı parlama + kamera sarsıntısı OnDamaged'dan) + belirgin titreşim.
@@ -141,6 +155,7 @@ namespace BlobSurvivor.Entities.Blob
             _blobGrowth.AddMass(mass * SkillMass(EatKind.Vehicle, tier));
             Skills?.OnAte(EatKind.Vehicle, tier);
             Core.GameEvents.RaiseBlobAte(tier);
+            Core.GameEvents.RaiseVehicleEaten();
             _blobGrowth.PunchScale(tier);
             _scoreSystem?.AddScore(score);
             _eatEffects.Play(tier, bounds, crumbA, crumbB);

@@ -111,6 +111,7 @@ namespace BlobSurvivor.UI
             GameEvents.OnEncirclement += OnEncirclement;
             GameEvents.OnMissionStarted += OnMissionStarted;
             GameEvents.OnMissionCompleted += OnMissionCompleted;
+            GameEvents.OnSkillUnlocked += OnSkillUnlocked;
             GameEvents.OnCharacterSelected += OnRunStarted;
             GameEvents.OnGameOver += Hide;
             GameEvents.OnRunComplete += OnRunComplete;
@@ -123,6 +124,7 @@ namespace BlobSurvivor.UI
             GameEvents.OnEncirclement -= OnEncirclement;
             GameEvents.OnMissionStarted -= OnMissionStarted;
             GameEvents.OnMissionCompleted -= OnMissionCompleted;
+            GameEvents.OnSkillUnlocked -= OnSkillUnlocked;
             GameEvents.OnCharacterSelected -= OnRunStarted;
             GameEvents.OnGameOver -= Hide;
             GameEvents.OnRunComplete -= OnRunComplete;
@@ -171,6 +173,15 @@ namespace BlobSurvivor.UI
             if (!IsPlaying()) return;
             Show(title, sub, MissionColor, HoldBoss);
             Haptics.Impact(1);
+        }
+
+        private static readonly Color UnlockColor = new Color(0.78f, 0.52f, 1f);
+
+        private void OnSkillUnlocked(string name)
+        {
+            if (!IsPlaying()) return;
+            Show("YENİ SKİLL!", $"{name} açıldı · artık kartlarda", UnlockColor, HoldFinal);
+            Haptics.Impact(2);
         }
 
         private void OnMissionCompleted(string reward)
