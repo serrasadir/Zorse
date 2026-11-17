@@ -1,5 +1,6 @@
 using BlobSurvivor.Data;
 using BlobSurvivor.Entities.Enemies;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
@@ -39,7 +40,7 @@ namespace BlobSurvivor.EditorTools
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(DogPrefab);
 
             // Model: polisle aynı yükseklik (kök yol + 0.6).
-            if (!CityKitPipeline.ApplyEnemyModel(DogPrefab, "H_RobotDog", -CityKitPipeline.PoliceRootY, CityKitPipeline.GetPaletteMaterial()))
+            if (!CityKitPipeline.ApplyEnemyModel(DogPrefab, "H_RobotDog", -CityKitPipeline.PoliceRootY, GetDogMaterial()))
             {
                 Debug.LogError("[RobotDogSetup] H_RobotDog modeli takılamadı (Art/City/H_RobotDog.fbx var mı?).");
                 return;
@@ -100,6 +101,87 @@ namespace BlobSurvivor.EditorTools
 
             AssetDatabase.SaveAssets();
             Debug.Log("[RobotDogSetup] Robot köpek kuruldu: prefab, EnemyData, dalgalar.");
+        }
+
+        // Köpek polis paletini kullanıyordu: polisle aynı mavi. Paletin köpeğe özel kopyasında maviler açık
+        // metalik griye döner (koyu asfalttan da ayrılır); diğer renkler (ışıklar vb.) aynı kalır.
+        private const string PalettePath = "Assets/_Project/Art/City/CityPalette.png";
+        private const string DogPalettePath = "Assets/_Project/Art/City/RobotDogPalette.png";
+        private const string DogMaterialPath = "Assets/_Project/Art/City/Mat_RobotDog.mat";
+
+        [MenuItem("Tools/Blob.io/Robot Köpek Rengini Uygula")]
+        private static void ApplyColor()
+        {
+            Material material = GetDogMaterial(true);
+            if (material == null) return;
+            GameObject contents = PrefabUtility.LoadPrefabContents(DogPrefab);
+            int count = 0;
+            foreach (Renderer r in contents.GetComponentsInChildren<Renderer>(true))
+            {
+                Material[] mats = r.sharedMaterials;
+                bool changed = false;
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    if (mats[i] == null || mats[i].mainTexture == null || !mats[i].mainTexture.name.StartsWith("CityPalette")) continue;
+                    mats[i] = material;
+                    changed = true;
+                }
+                if (changed) { r.sharedMaterials = mats; count++; }
+            }
+            PrefabUtility.SaveAsPrefabAsset(contents, DogPrefab);
+            PrefabUtility.UnloadPrefabContents(contents);
+            Debug.Log($"[RobotDogSetup] Köpek rengi uygulandı ({count} renderer).");
+        }
+
+        private static Material GetDogMaterial() => GetDogMaterial(false);
+
+        private static Material GetDogMaterial(bool rebuildTexture)
+        {
+            if (rebuildTexture || !File.Exists(DogPalettePath)) BuildDogPalette();
+            Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(DogPalettePath);
+            Material palette = CityKitPipeline.GetPaletteMaterial();
+            if (texture == null || palette == null)
+            {
+                Debug.LogError("[RobotDogSetup] Köpek paleti ya da şehir palet materyali yok.");
+                return null;
+            }
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(DogMaterialPath);
+            if (material == null)
+            {
+                material = new Material(palette);
+                AssetDatabase.CreateAsset(material, DogMaterialPath);
+            }
+            material.CopyPropertiesFromMaterial(palette);
+            material.SetTexture("_BaseMap", texture);
+            if (material.HasProperty("_MainTex")) material.SetTexture("_MainTex", texture);
+            EditorUtility.SetDirty(material);
+            AssetDatabase.SaveAssets();
+            return material;
+        }
+
+        private static void BuildDogPalette()
+        {
+            var source = new Texture2D(2, 2);
+            if (!source.LoadImage(File.ReadAllBytes(PalettePath)))
+            {
+                Debug.LogError("[RobotDogSetup] CityPalette.png okunamadı.");
+                return;
+            }
+            Color[] pixels = source.GetPixels();
+            for (int i = 0; i < pixels.Length; i++)
+            {
+                Color c = pixels[i];
+                Color.RGBToHSV(c, out float h, out float sat, out float v);
+                float hue = h * 360f;
+                if (hue < 190f || hue > 235f || sat < 0.45f) continue; // sadece doygun maviler
+                // Parlaklık sırası korunur: açık mavi -> açık gümüş, koyu mavi -> orta gri. Hafif soğuk ton.
+                float grey = Mathf.Lerp(0.5f, 0.86f, Mathf.InverseLerp(0.5f, 0.85f, v));
+                pixels[i] = new Color(grey * 0.97f, grey * 0.99f, grey * 1.03f, c.a);
+            }
+            source.SetPixels(pixels);
+            File.WriteAllBytes(DogPalettePath, source.EncodeToPNG());
+            Object.DestroyImmediate(source);
+            AssetDatabase.ImportAsset(DogPalettePath); // Art/City ön işlemcisi: Point, Clamp, mipmap yok
         }
 
         private static void AddToWave(string path, EnemyData data, float weight)

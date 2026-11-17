@@ -99,6 +99,7 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 | Polis Modellerini Uygula · Miniboss Tank Modelini Uygula · Final Boss Helikopterini Uygula · Coin Modelini Uygula | Prefab modellerini kurar |
 | Tank NavMesh'ini Kur | "Tank" ajan tipi + ikinci NavMeshSurface |
 | Yaya Varyantlarını Bağla | PedestrianData varyant listeleri + spawner havuzu |
+| Robot Köpek Rengini Uygula | `CityPalette`'in doygun mavilerini açık metalik griye çeviren köpek paleti (`Art/City/RobotDogPalette.png`) + `Mat_RobotDog` → `Enemy_RobotDog.prefab`. Robot Köpeği Kur da bu materyali kullanır |
 | Sandık Modelini Uygula | `Art/City/C_Chest.fbx` (Blender: `build_chest.py`) → Chest.prefab modeli |
 | **Şehir Kur (v2)** | Yeni şehir (yol genişliği `CityExpansion.BlockPitch`/`RoadHalf` ↔ Blender `build_city2.py` PITCH; arabalar ve yiyecek sınırı kurulumda bağlanır; sonra Şehir Kıyısını Kur): `Art/City/Kit2/city_v2.json` (Blender: `build_kit2.py --export` binalar, `build_props2.py --export` eşya + blok zeminleri, `build_city2.py --export` mahalle yerleşimi). Yollar/kaldırım/yaya/araba/NavMesh büyük şehirle aynı. Sonra Şehir Görsel Düzeltmeleri + Cmd+S |
 | Şehir Kur (Kit2 Deneme) | Büyük şehir + bina noktalarına şehir kiti v2 binaları (`Art/City/Kit2`, Blender: `build_kit2.py --export`). Performans denemesi; eski şehre dönmek için Şehir Kur (Büyük). Sonra Şehir Görsel Düzeltmeleri |
