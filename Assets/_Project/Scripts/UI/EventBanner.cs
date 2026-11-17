@@ -112,6 +112,7 @@ namespace BlobSurvivor.UI
             GameEvents.OnMissionStarted += OnMissionStarted;
             GameEvents.OnMissionCompleted += OnMissionCompleted;
             GameEvents.OnSkillUnlocked += OnSkillUnlocked;
+            GameEvents.OnTransformation += OnTransformation;
             GameEvents.OnCharacterSelected += OnRunStarted;
             GameEvents.OnGameOver += Hide;
             GameEvents.OnRunComplete += OnRunComplete;
@@ -125,6 +126,7 @@ namespace BlobSurvivor.UI
             GameEvents.OnMissionStarted -= OnMissionStarted;
             GameEvents.OnMissionCompleted -= OnMissionCompleted;
             GameEvents.OnSkillUnlocked -= OnSkillUnlocked;
+            GameEvents.OnTransformation -= OnTransformation;
             GameEvents.OnCharacterSelected -= OnRunStarted;
             GameEvents.OnGameOver -= Hide;
             GameEvents.OnRunComplete -= OnRunComplete;
@@ -176,6 +178,12 @@ namespace BlobSurvivor.UI
         }
 
         private static readonly Color UnlockColor = new Color(0.78f, 0.52f, 1f);
+
+        private void OnTransformation(string title, string sub)
+        {
+            if (!IsPlaying()) return;
+            Show(title, sub, FinalColor, HoldFinal);
+        }
 
         private void OnSkillUnlocked(string name)
         {

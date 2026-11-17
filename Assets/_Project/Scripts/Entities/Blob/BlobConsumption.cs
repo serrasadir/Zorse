@@ -188,6 +188,7 @@ namespace BlobSurvivor.Entities.Blob
             // Görsel kopya blob'a çekilir (obje aşağıda hemen kaybolur); büyük şehir objelerinde kırıntı yeter.
             SlurpFx.Play(obj, transform, consumable.RequiredTier < BlobTier.Medium);
             consumable.OnConsumed();
+            if (obj.name.StartsWith(FerrisWheelForm.SourceName)) FerrisWheelForm.Begin(gameObject); // özel dönüşüm
 
             // B14: pool'a gerçek dönüş — önceden sadece SetActive(false) yapılıyordu, pool Queue'su
             // hiç dolmuyordu.

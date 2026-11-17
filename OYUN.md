@@ -124,6 +124,14 @@ Polis = normal ve elit; robot köpek ve boss sayılmaz. **Ödül:** `15 + dakika
 
 ---
 
+### Özel dönüşüm: Dönme Dolap
+
+Haritadaki tek dönme dolabı (`P_FerrisWheel`, Large) yiyince **20 sn dönme dolap çarkı** olursun (`FerrisWheelForm`):
+- **Dönüşüm anı (~1,2 sn, oyun donar):** blob ile çark gittikçe hızlanarak yer değiştirir (Mario), her geçişte şişme; sonunda parıltı patlaması, titreşim, **DÖNME DOLAP! · Ez geç!** bandı.
+- **Çark:** ayaksız çark (`X_FerrisWheelRoll`), blob çapının 1,7 katı; gidiş yönünde tekerlek gibi yuvarlanır, arkasında toz. Hız ×1,6, kamera biraz uzaklaşır. Üstünden geçtiği polis/köpek/elit anında ezilir (silah ölümü sayılır), yerdeki boss saniyede 200 hasar alır, bir üst tier'a kadar her şeyi yer (binalar dahil). Hasar alır.
+- **Bitiş:** son 3 sn yanıp söner, sonra 0,5 sn ters dönüşüm. Run başında/ölümde hemen biter.
+- Görsel: `Tools → Blob.io → Dönme Dolap Formunu Kur` → `Resources/Transformations/FerrisWheelForm`. Test: Editor'da **T**.
+
 ## 5. Skill'ler ve Karakterler
 
 Ayrıntı ve tüm sayılar **`SKILLS.md`**'de. Özet:

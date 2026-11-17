@@ -57,7 +57,7 @@ namespace BlobSurvivor.Entities.Blob
             if (InputManager.Instance == null) return;
 
             Vector2 dir = InputManager.Instance.MoveDirection;
-            float speed = _baseMoveSpeed * _speedMultiplier * SpeedScaleModifier();
+            float speed = _baseMoveSpeed * _speedMultiplier * FormSpeedFactor * SpeedScaleModifier();
 
             Vector3 targetVel = dir.sqrMagnitude > 0.01f
                 ? new Vector3(dir.x, 0f, dir.y) * speed
@@ -135,6 +135,7 @@ namespace BlobSurvivor.Entities.Blob
 
         // Skill'lerden gelen anlık hız çarpanı (Yara Öfkesi, Hızlı Metabolizma, Hız Sv.5); BlobSkills yazar.
         public float SkillSpeedFactor { get; set; } = 1f;
+        public float FormSpeedFactor { get; set; } = 1f; // dönüşüm (dönme dolap) hızı
         // Hızlı Metabolizma: büyüme yavaşlamasını oranla azaltır (0..1, 1 = yok). İlke 3: tamamen kaldırılmaz.
         public float SlowdownReduction { get; set; }
         public float MetaSlowdownReduction { get; set; } // Market: Sindirim Direnci (skill'le toplanır)

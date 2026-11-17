@@ -53,6 +53,13 @@ namespace BlobSurvivor.Entities.Blob
             _lastPosition = transform.position;
         }
 
+        // Dönüşüm (FerrisWheelForm) blob görünümünü geçici olarak gizler.
+        public void SetHidden(bool hidden)
+        {
+            if (_visual != null) _visual.gameObject.SetActive(!hidden);
+            else if (_defaultRenderer != null) _defaultRenderer.enabled = !hidden;
+        }
+
         public void Apply(GameObject prefab)
         {
             if (_flash == null) _flash = GetComponent<DamageFlash>();
