@@ -21,7 +21,7 @@ namespace BlobSurvivor.UI
         private static readonly Color Backdrop = new Color(0.05f, 0.05f, 0.17f, 0.72f);
         // Kompakt düzen (ref px, panel merkezine göre): karartma ekranın üstünden HudClearance aşağıda başlar.
         private const float HudClearance = 470f;
-        private const float CardTopY = 150f, CardHeight = 270f, CardGap = 16f;
+        private const float CardTopY = 150f, CardHeight = 290f, CardGap = 16f;
         // İçeriğin üst/alt sınırı (başlık üstü, son kart altı) ve HUD/ekran kenarına bırakılan pay.
         private const float ContentTop = 480f, ContentBottom = CardTopY - 2f * (CardHeight + CardGap) - CardHeight * 0.5f - 20f;
         private const float FitMargin = 20f;
@@ -387,19 +387,19 @@ namespace BlobSurvivor.UI
 
                 if (i < _upgradeNameTexts.Length && _upgradeNameTexts[i] != null)
                 {
-                    StyleText(_upgradeNameTexts[i], rect, new Vector2(-140f, 82f), new Vector2(620f, 70f), 52f, TextAlignmentOptions.Left, Color.white, true);
+                    StyleText(_upgradeNameTexts[i], rect, new Vector2(-140f, 92f), new Vector2(620f, 70f), 52f, TextAlignmentOptions.Left, Color.white, true);
                     AutoSize(_upgradeNameTexts[i], 40f, 52f);
                 }
                 if (i < _upgradeDescTexts.Length && _upgradeDescTexts[i] != null)
                 {
                     // Kutu en fazla 3 satır alır (32 px'te 4. satır sığmaz); sığmayan son "…" ile kesilir.
-                    StyleText(_upgradeDescTexts[i], rect, new Vector2(0f, -30f), new Vector2(840f, 120f), 36f, TextAlignmentOptions.TopLeft, Subtle, false);
+                    StyleText(_upgradeDescTexts[i], rect, new Vector2(0f, -42f), new Vector2(840f, 120f), 36f, TextAlignmentOptions.TopLeft, Subtle, false);
                     _upgradeDescTexts[i].textWrappingMode = TextWrappingModes.Normal;
                     _upgradeDescTexts[i].overflowMode = TextOverflowModes.Ellipsis;
                     AutoSize(_upgradeDescTexts[i], 32f, 36f);
                 }
 
-                RectTransform badge = NewRect("Badge", rect, new Vector2(330f, 84f), new Vector2(220f, 60f));
+                RectTransform badge = NewRect("Badge", rect, new Vector2(330f, 94f), new Vector2(220f, 60f));
                 _badges[i] = badge.gameObject.AddComponent<Image>();
                 _badges[i].raycastTarget = false;
                 if (rounded != null) { _badges[i].sprite = rounded; _badges[i].type = Image.Type.Sliced; }
@@ -408,12 +408,12 @@ namespace BlobSurvivor.UI
                 AutoSize(_badgeTexts[i], 28f, 34f);
 
                 // Tür etiketi: 32x32 şekil + 8 boşluk + metin (rozet altı, kutu 220x40).
-                RectTransform shape = NewRect("KindShape", rect, new Vector2(236f, 30f), new Vector2(32f, 32f));
+                RectTransform shape = NewRect("KindShape", rect, new Vector2(236f, 42f), new Vector2(32f, 32f));
                 _kindShapes[i] = shape.gameObject.AddComponent<Image>();
                 _kindShapes[i].raycastTarget = false;
-                _kindTexts[i] = Label("Kind", rect, new Vector2(350f, 30f), new Vector2(180f, 40f), 32f, TextAlignmentOptions.Left, Color.white);
+                _kindTexts[i] = Label("Kind", rect, new Vector2(350f, 42f), new Vector2(180f, 40f), 32f, TextAlignmentOptions.Left, Color.white);
 
-                _noteTexts[i] = Label("SlotNote", rect, new Vector2(0f, -112f), new Vector2(840f, 40f), 32f, TextAlignmentOptions.Left, Subtle);
+                _noteTexts[i] = Label("SlotNote", rect, new Vector2(0f, -122f), new Vector2(840f, 40f), 32f, TextAlignmentOptions.Left, Subtle);
                 if (glyphs != null) _noteTexts[i].spriteAsset = glyphs;
                 _noteTexts[i].gameObject.SetActive(false);
             }
