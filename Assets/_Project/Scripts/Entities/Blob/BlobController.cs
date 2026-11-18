@@ -57,7 +57,7 @@ namespace BlobSurvivor.Entities.Blob
             if (InputManager.Instance == null) return;
 
             Vector2 dir = InputManager.Instance.MoveDirection;
-            float speed = _baseMoveSpeed * _speedMultiplier * FormSpeedFactor * SpeedScaleModifier();
+            float speed = _baseMoveSpeed * _speedMultiplier * FormSpeedFactor * SpeedScaleModifier() * CrowdFactor();
 
             Vector3 targetVel = dir.sqrMagnitude > 0.01f
                 ? new Vector3(dir.x, 0f, dir.y) * speed
@@ -141,6 +141,16 @@ namespace BlobSurvivor.Entities.Blob
         public float MetaSlowdownReduction { get; set; } // Market: Sindirim Direnci (skill'le toplanır)
 
         public bool IsMoving => InputManager.Instance != null && InputManager.Instance.MoveDirection.sqrMagnitude > 0.01f;
+
+        // Polis kalabalığının içinden geçerken yavaşlar (itilen polis başına), en fazla %40.
+        private const float CrowdSlowPerEnemy = 0.15f;
+        private const float CrowdMinFactor = 0.6f;
+        private float CrowdFactor()
+        {
+            if (FormSpeedFactor > 1f) return 1f; // dönüşümde (çark) ezip geçer
+            int n = Enemies.EnemyBase.BlobCrowd;
+            return n <= 0 ? 1f : Mathf.Max(CrowdMinFactor, 1f / (1f + CrowdSlowPerEnemy * n));
+        }
 
         private float SpeedScaleModifier()
         {

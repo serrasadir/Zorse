@@ -94,6 +94,12 @@ namespace BlobSurvivor.Entities.Enemies
         private Vector3 _separationCached;
         private Vector3 _avoidanceCached;
         private float _blobSolidRadius = 0.5f;
+        // Kalabalık kafes olmasın: blob polisle katı çarpışmaz (boss hariç); içine giren polisi yana iter,
+        // kalabalıkta yavaşlar (BlobCrowd). Tehlike hasardan gelir, duvardan değil.
+        private Collider _blobSolidCollider;
+        private Rigidbody _blobBody;
+        private const float BlobPushSpeed = 9f;
+        private static int s_contactFrame = -1, s_contactCount, s_contactPrev;
         private Vector3 _steeringVelocity;
         private Vector3 _dashVelocity; // DashMove'un bu karedeki hızı
         // Kalabalıkta titreme olmasın (VS/Brotato gibi): hız net kuvvetle orantılı ve yumuşak değişir, gövde
@@ -233,6 +239,7 @@ namespace BlobSurvivor.Entities.Enemies
                 BlobTransform = blob.transform;
                 _blobHealth = blob.GetComponent<BlobHealth>();
                 _blobGrowth = blob.GetComponent<BlobGrowth>();
+                _blobBody = blob.GetComponent<Rigidbody>();
 
                 // Blob'da iki SphereCollider var (trigger=yeme algılama, solid=fiziksel/dokunma) —
                 // temas mesafesi için solid olanın yarıçapı gerekli (M25 notuna bkz., CLAUDE.md).
@@ -242,6 +249,7 @@ namespace BlobSurvivor.Entities.Enemies
                     if (!c.isTrigger)
                     {
                         _blobSolidRadius = c.radius;
+                        _blobSolidCollider = c;
                         break;
                     }
                 }
@@ -258,7 +266,65 @@ namespace BlobSurvivor.Entities.Enemies
                 if (_agent != null && _data != null) _agent.speed = _data.MoveSpeed;
             }
 
+            UpdateBlobCollision();
             ChangeState(new PatrolState());
+        }
+
+        private void UpdateBlobCollision()
+        {
+            if (_bodyCollider != null && _blobSolidCollider != null)
+                Physics.IgnoreCollision(_bodyCollider, _blobSolidCollider, !IsBoss);
+        }
+
+        /// <summary>Son karede blob'un içine girmiş (ittiği) düşman sayısı. BlobController yavaşlar.</summary>
+        public static int BlobCrowd
+        {
+            get
+            {
+                int f = Time.frameCount;
+                if (f == s_contactFrame) return Mathf.Max(s_contactPrev, s_contactCount);
+                return f == s_contactFrame + 1 ? s_contactCount : 0;
+            }
+        }
+
+        private static void RegisterBlobContact()
+        {
+            int f = Time.frameCount;
+            if (f != s_contactFrame)
+            {
+                s_contactPrev = f == s_contactFrame + 1 ? s_contactCount : 0;
+                s_contactFrame = f;
+                s_contactCount = 0;
+            }
+            s_contactCount++;
+        }
+
+        // Blob'un içine giren düşman yana itilir (gidiş yönüne dik, blob içinden geçebilsin).
+        private void PushFromBlob()
+        {
+            if (BlobTransform == null || _blobSolidCollider == null || IsBoss) return;
+            Vector3 away = transform.position - BlobTransform.position;
+            away.y = 0f;
+            float minDist = BlobTransform.localScale.x * _blobSolidRadius + _bodyRadius;
+            float sqr = away.sqrMagnitude;
+            if (sqr >= minDist * minDist) return;
+            RegisterBlobContact();
+            float dist = Mathf.Sqrt(sqr);
+            away = dist > 0.001f ? away / dist : -transform.forward;
+
+            Vector3 dir = away;
+            Vector3 v = _blobBody != null ? _blobBody.linearVelocity : Vector3.zero;
+            v.y = 0f;
+            if (v.sqrMagnitude > 0.25f)
+            {
+                Vector3 forward = v.normalized;
+                Vector3 side = away - Vector3.Dot(away, forward) * forward;
+                if (side.sqrMagnitude < 0.01f) side = Vector3.Cross(Vector3.up, forward) * _preferredSide;
+                dir = (side.normalized + away * 0.3f).normalized;
+            }
+            Vector3 step = dir * Mathf.Min(minDist - dist + 0.05f, BlobPushSpeed * Time.deltaTime);
+            if (UsesSteering) transform.position += ClampStepAgainstEnvironment(step);
+            else if (_agent != null && _agent.enabled && _agent.isOnNavMesh) _agent.Move(step);
         }
 
         private void OnDisable()
@@ -454,6 +520,7 @@ namespace BlobSurvivor.Entities.Enemies
                 ApplySteeringMovement();
 
             UpdateStatus();
+            PushFromBlob();
             UpdateKnockback();
             if (UsesSteering)
                 transform.position = MapBounds.Clamp(transform.position, _agent != null ? _agent.radius : 0.5f);
@@ -654,6 +721,7 @@ namespace BlobSurvivor.Entities.Enemies
             _damageMultiplier = Mathf.Max(0f, damageMultiplier);
             _speedMultiplier = Mathf.Max(0.01f, speedMultiplier);
             ApplyAgentSpeed();
+            UpdateBlobCollision();
         }
 
         public void SetCatchUpMultiplier(float multiplier)

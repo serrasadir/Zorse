@@ -44,6 +44,14 @@ namespace BlobSurvivor.Entities.Blob
 
         // Kısa dokunulmazlık (Zırh kırılınca, Bölünme).
         private float _invulnerableUntil;
+        // Hasar sonrası nefes payı: kısa dokunulmazlık + yakındaki düşmanlar geri sekilir. Kuşatmada bir darbe
+        // arka arkaya beş darbeye dönmesin, kaçacak an kalsın.
+        private const float HitInvulnerability = 0.35f;
+        private const float HitPushReach = 1.2f;     // blob yüzeyinden
+        private const float HitPushDistance = 1.1f;
+        private const int EnemyLayerMask = 1 << 14;
+        private static readonly Collider[] s_pushHits = new Collider[24];
+        private float _solidRadius = -1f;
         public bool TemporarilyInvulnerable => Time.time < _invulnerableUntil;
         public float TimeSinceHit => Time.time - _lastHitTime;
 
@@ -170,12 +178,35 @@ namespace BlobSurvivor.Entities.Blob
                 CurrentHealth = Mathf.Max(0f, CurrentHealth - remainingDamage);
                 GameEvents.RaiseHealthChanged(CurrentHealth, _maxHealth);
                 OnDamaged?.Invoke(remainingDamage);
+                if (CurrentHealth > 0f)
+                {
+                    GrantInvulnerability(HitInvulnerability);
+                    PushEnemiesBack();
+                }
             }
 
             if (CurrentHealth <= 0f)
             {
                 if (SaveFromDeath != null && SaveFromDeath()) return;
                 Die();
+            }
+        }
+
+        private void PushEnemiesBack()
+        {
+            if (_solidRadius < 0f)
+            {
+                _solidRadius = 0.5f;
+                foreach (SphereCollider c in GetComponents<SphereCollider>())
+                    if (!c.isTrigger) { _solidRadius = c.radius; break; }
+            }
+            Vector3 center = transform.position;
+            float radius = _solidRadius * transform.localScale.x + HitPushReach;
+            int count = Physics.OverlapSphereNonAlloc(center, radius, s_pushHits, EnemyLayerMask, QueryTriggerInteraction.Collide);
+            for (int i = 0; i < count; i++)
+            {
+                if (!s_pushHits[i].TryGetComponent(out Enemies.EnemyBase enemy)) continue;
+                enemy.Knockback(enemy.transform.position - center, HitPushDistance);
             }
         }
 
