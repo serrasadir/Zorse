@@ -74,9 +74,9 @@ Boss'lar seviyeye bağlı ama süre penceresi içinde: seviyeye erken ulaşılsa
 
 | Boss | Seviye | En erken | En geç |
 |---|---|---|---|
-| 1. Miniboss (polis tankı) | **5** (~310 kütle, Medium) | 7. dk | 9. dk |
-| 2. Miniboss (güçlü tank) | **8** (~1030 kütle, Large) | 13. dk | 15. dk |
-| **Final boss: polis helikopteri** | **10** (~2100 kütle, Dev) | 20. dk | 21. dk |
+| 1. Miniboss (polis tankı) | **5** (~310 kütle, Medium) | 6. dk | 9. dk |
+| 2. Miniboss (güçlü tank) | **8** (~1030 kütle, Large) | 11. dk | 15. dk |
+| **Final boss: polis helikopteri** | **10** (~2100 kütle, Dev) | 17. dk | 21. dk |
 
 **Boss canı oyuncu seviyesiyle (VS gibi):** boss geldiğinde blob gerekli seviyenin üstündeyse her fazla seviye için +%15 can (1. tank seviye 7'de gelirse ×1,3); Lanet de çarpar (`BossSpawner.BossHealthPerExtraLevel`). Güçlü gelen oyuncuya boss erimesin.
 
