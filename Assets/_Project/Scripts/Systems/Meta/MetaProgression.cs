@@ -224,6 +224,47 @@ namespace BlobSurvivor.Systems.Meta
             return true;
         }
 
+        // ---------------------------------------------------------------- sıfırlama (VS "Refund")
+
+        private static int Spent(int level, int baseCost, int step)
+        {
+            int total = 0;
+            for (int i = 0; i < level; i++) total += baseCost + i * step;
+            return total;
+        }
+
+        /// <summary>Güçlendiricilere (GÜÇLER sekmesi) harcanan toplam coin. Karakterler hariç.</summary>
+        public int PowerUpSpent()
+        {
+            int total = Spent(SpeedLevel, _speedBaseCost, _speedCostPerLevel)
+                + Spent(MaxHealthLevel, _maxHealthBaseCost, _maxHealthCostPerLevel)
+                + Spent(MassGainLevel, _massGainBaseCost, _massGainCostPerLevel)
+                + Spent(CoinGainLevel, _coinGainBaseCost, _coinGainCostPerLevel)
+                + (XpMultiplierPurchased ? _xpMultiplierCost : 0);
+            foreach (PowerUpDef def in PowerUps.All)
+            {
+                int level = GetLevel(def);
+                for (int i = 0; i < level; i++) total += def.CostAt(i);
+            }
+            return total;
+        }
+
+        /// <summary>Bütün güçlendiricileri sıfırlar, harcanan coin'in tamamı geri gelir. İade edilen miktarı döner.</summary>
+        public int RefundPowerUps()
+        {
+            int refund = PowerUpSpent();
+            if (refund <= 0) return 0;
+            _data.credit += refund;
+            _data.speedLevel = 0;
+            _data.maxHealthLevel = 0;
+            _data.massGainLevel = 0;
+            _data.coinGainLevel = 0;
+            _data.xpMultiplierPurchased = false;
+            _data.powerUps?.Clear();
+            Save();
+            return refund;
+        }
+
         // ---------------------------------------------------------------- skill kilitleri
 
         public bool IsSkillUnlocked(string id)

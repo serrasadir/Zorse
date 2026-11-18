@@ -114,7 +114,7 @@ namespace BlobSurvivor.Entities.Enemies
         private void HandleLevelUp(int level) => _blobLevel = level;
 
         private bool IsDue(BossStage stage, float survivalTime) =>
-            (stage.RequiredLevel > 0 && _blobLevel >= stage.RequiredLevel) ||
+            (stage.RequiredLevel > 0 && _blobLevel >= stage.RequiredLevel && survivalTime >= stage.EarliestTime) ||
             (stage.LatestTime > 0f && survivalTime >= stage.LatestTime);
 
         // Aktif boss'u ödülsüz havuza döndürür (restart, final boss gelişi, DevCheats).
@@ -164,6 +164,8 @@ namespace BlobSurvivor.Entities.Enemies
             return $"Aşama {_nextStageIndex}/{_bossData.Stages.Length}: {stage.EnemyData?.DisplayName}";
         }
 
+        private const float BossHealthPerExtraLevel = 0.15f;
+
         private void SpawnStage(BossStage stage, bool isFinal)
         {
             EnemyData data = stage.EnemyData;
@@ -178,7 +180,10 @@ namespace BlobSurvivor.Entities.Enemies
             Vector3 spawnPos = GetSpawnPosition();
             EnemyBase boss = _pools[data].Get(spawnPos, Quaternion.identity);
             boss.WarpTo(spawnPos);
-            boss.SetData(data);
+            // VS gibi: güçlü gelen oyuncuya boss erimesin. Gerekli seviyenin üstündeki her seviye +%15 can; Lanet de çarpar.
+            int extraLevels = Mathf.Max(0, _blobLevel - stage.RequiredLevel);
+            float health = (1f + BossHealthPerExtraLevel * extraLevels) * (1f + WaveController.Curse);
+            boss.SetData(data, 1f, 1f, health);
 
             boss.OnDeath -= HandleBossDeath;
             boss.OnDeath += HandleBossDeath;

@@ -10,7 +10,7 @@ namespace BlobSurvivor.Entities.Blob
     // etrafında yuvarlanır.
     //  - Dönüşüm (~1 sn, oyun donuk, ölçeksiz zaman): blob zıplayıp göbeğe yerleşir, çark etrafında esneyerek açılır
     //    ve hızla bir tur döner; parıltı + bant.
-    //  - Çark: ×1,6 hız; üstünden geçtiği polisi/köpeği ezer, boss'a sürekli hasar, bir üst tier'a kadar her şeyi yer.
+    //  - Çark: ×1,6 hız; üstünden geçtiği polisi/köpeği ezip yutar (bir üst tier'a kadar; kütle verir), boss'a sürekli hasar, bir üst tier'a kadar her şeyi yer.
     //    Hasar alır. Son 3 sn çark yanıp söner; bitince çark küçülüp kaybolur, blob yere iner.
     // Görsel: Resources/Transformations/FerrisWheelForm (Tools → Blob.io → Dönme Dolap Formunu Kur). Run başında biter.
     public class FerrisWheelForm : MonoBehaviour
@@ -260,7 +260,8 @@ namespace BlobSurvivor.Entities.Blob
                     {
                         if (enemy.AirborneHeight <= 0f) enemy.TakeDamage(BossDamagePerTick);
                     }
-                    else enemy.TakeDamage(CrushDamage);
+                    // Ezilen yutulmuş sayılır (kütle + yeme görevi); tier'ı yetmeyen yine ölür.
+                    else if (_consumption == null || !_consumption.ConsumeEnemyDirect(enemy, reach)) enemy.TakeDamage(CrushDamage);
                     continue;
                 }
 

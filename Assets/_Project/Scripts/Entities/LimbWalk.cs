@@ -16,6 +16,13 @@ namespace BlobSurvivor.Entities
 
         private Vector3 _lastPosition;
         private float _phase, _amount;
+        private Renderer _body; // Model: ekran dışındayken eklemler dönmez
+
+        private void Awake()
+        {
+            Transform model = transform.Find("Model");
+            if (model != null) _body = model.GetComponent<Renderer>();
+        }
 
         private void OnEnable()
         {
@@ -37,6 +44,7 @@ namespace BlobSurvivor.Entities
             _phase += distance * _stepRate;
             float target = Mathf.Clamp01(distance / dt / Mathf.Max(0.1f, _fullSpeed));
             _amount = Mathf.MoveTowards(_amount, target, dt * 6f);
+            if (_body != null && !_body.isVisible) return;
             Pose(Mathf.Sin(_phase) * _amount);
         }
 

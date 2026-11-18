@@ -46,8 +46,15 @@ namespace BlobSurvivor.Systems
             _registered.Remove(enemy);
         }
 
+        private readonly Stack<List<EnemyBase>> _freeLists = new Stack<List<EnemyBase>>();
+
         private void RebuildGrid()
         {
+            foreach (List<EnemyBase> old in _grid.Values)
+            {
+                old.Clear();
+                _freeLists.Push(old);
+            }
             _grid.Clear();
 
             for (int i = 0; i < _registered.Count; i++)
@@ -58,7 +65,7 @@ namespace BlobSurvivor.Systems
                 Vector2Int cell = ToCell(enemy.transform.position);
                 if (!_grid.TryGetValue(cell, out List<EnemyBase> list))
                 {
-                    list = new List<EnemyBase>();
+                    list = _freeLists.Count > 0 ? _freeLists.Pop() : new List<EnemyBase>();
                     _grid[cell] = list;
                 }
                 list.Add(enemy);

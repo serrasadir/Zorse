@@ -14,20 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
   _id: damage_reduction
   _displayName: "Z\u0131rh"
-  _description: "Hasar\u0131 \xF6nce emen kalkan: 20."
+  _description: "Her darbeden 1 hasar d\xFC\u015Fer."
   _icon: {fileID: 0}
-  _kind: 0
+  _kind: 1
   _weight: 10
   _effect: {fileID: 11400000, guid: 667ab0fb0eab54ea080ad181997e94cb, type: 2}
   _maxLevel: 5
   _perLevelValue: 0
   _levelDescriptions:
-  - "Hasar\u0131 \xF6nce emen kalkan: 20."
-  - "Kalkan 35, daha \xE7abuk yenilenir."
-  - "Kalkan 50. K\u0131r\u0131l\u0131nca 1 sn dokunulmazl\u0131k."
-  - Kalkan 65, 1 sn'de dolar.
-  - "Kalkan 80. \u0130K\u0130NC\u0130 KATMAN: k\u0131r\u0131l\u0131nca bir kez an\u0131nda
-    dolar (30 sn'de bir)."
+  - "Her darbeden 1 hasar d\xFC\u015Fer."
+  - "Her darbeden 2 hasar d\xFC\u015Fer."
+  - "Her darbeden 3 d\xFC\u015Fer. Darbe sonras\u0131 dokunulmazl\u0131k uzar."
+  - "Her darbeden 4 hasar d\xFC\u015Fer."
+  - "Her darbeden 5 d\xFC\u015Fer. Darbe al\u0131nca etraftakiler 2 kat uza\u011Fa
+    savrulur."
   _isEvolution: 0
   _abbr: ZR
   _isBaseWeapon: 0

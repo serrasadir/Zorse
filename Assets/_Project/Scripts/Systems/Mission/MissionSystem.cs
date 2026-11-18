@@ -9,7 +9,7 @@ using BlobSurvivor.UI;
 
 namespace BlobSurvivor.Systems
 {
-    public enum MissionType { KillPolice, EatPolice, EatAny, BigBites, NoDamage, GrabChest }
+    public enum MissionType { KillPolice, EatAny, BigBites, NoDamage, GrabChest }
     public enum MissionResult { None, Completed, Failed }
 
     // Anlık görevler (OYUN.md §5): run içinde kısa süreli hedef. Başarınca coin + run içi bonus
@@ -173,7 +173,6 @@ namespace BlobSurvivor.Systems
             _candidates.Add(MissionType.EatAny);
             _candidates.Add(MissionType.NoDamage);
             if (ChestSpawner.Instance != null) _candidates.Add(MissionType.GrabChest);
-            if (tier >= BlobTier.Medium) _candidates.Add(MissionType.EatPolice); // normal polis Medium'da yenir
             if (tier >= BlobTier.Small) _candidates.Add(MissionType.BigBites);
             if (_hasLast && _candidates.Count > 1) _candidates.Remove(_last);
 
@@ -186,8 +185,13 @@ namespace BlobSurvivor.Systems
             _nextTime = _survivalTime + RetryDelay;
         }
 
+        // Sahadaki sıradan düşmanların çoğu hâlâ bekçiyse görev "bekçi" der (EnemySpawner.PoliceShare).
+        private static bool GuardEra => Entities.Enemies.EnemySpawner.PoliceShare < 0.5f;
+
         private bool Begin(MissionType type, BlobTier tier)
         {
+            string foe = GuardEra ? "bekçi" : "polis";
+            string Foe = GuardEra ? "Bekçi" : "Polis";
             int level = _growth != null ? _growth.CurrentLevel : 0;
             string title = "GÖREV!";
             string sub;
@@ -200,14 +204,8 @@ namespace BlobSurvivor.Systems
                 case MissionType.KillPolice:
                     Target = 5 + level / 2;
                     duration = 45f;
-                    Label = "Polis indir";
-                    sub = $"{duration:0} sn'de {Target} polis indir";
-                    break;
-                case MissionType.EatPolice:
-                    Target = 3;
-                    duration = 45f;
-                    Label = "Polis yut";
-                    sub = $"{duration:0} sn'de {Target} polis yut";
+                    Label = Foe + " indir";
+                    sub = $"{duration:0} sn'de {Target} {foe} indir";
                     break;
                 case MissionType.EatAny:
                     Target = 15 + level * 2;
@@ -272,7 +270,7 @@ namespace BlobSurvivor.Systems
         private void OnEnemyDefeated(EnemyData data, bool eaten)
         {
             if (!Active || data == null || data.PreventConsumption || data.IsSwarm) return; // boss ve robot köpek sayılmaz
-            if ((Type == MissionType.KillPolice && !eaten) || (Type == MissionType.EatPolice && eaten))
+            if (Type == MissionType.KillPolice && !eaten)
                 Advance();
         }
 

@@ -45,7 +45,7 @@
 1. **Giriş ekranı:** arkada canlı şehir, kamera Topik'e yakın; Topik göz kırpar, sağa sola bakınır. Logo + OYNA. Duraklatma ve oyun sonundaki "Ana Menü" de buraya döner (run sıfırlanır).
 2. **Lobi:** OYNA'dan sonra karakter seç (Topik, Mıknato, Fişek, Dalcık, Cano; 4'ten fazla karakterde kartlar alçalır), Market'e gir. HUD diliyle: başlık, coin, her karakter için kart (portre `Art/UI/Characters/Icon_*.png` ← `build_blobs.py`, ad, pasif açıklaması; kilitliyse soluk + koşul rozeti), altın MARKET tuşu ve geri (giriş ekranına) tuşu. Karta dokunmak oyunu başlatır.
 3. Şehirde başlarsın; yerdeki çöpleri, sokak eşyalarını, yayaları yiyerek büyürsün. Senden büyük şeyler seni durdurur (katı), hazard'lar hasar verir.
-4. Kütle = XP; yenen her şeyin kütlesi genel büyüme hızıyla (×0.35, `BlobGrowth._globalGainScale`) çarpılır. Silahla öldürülen düşman sadece XP verir, kütle vermez (büyüme yemeğe bağlı): polis 1, elit 7, 1. tank 80, 2. tank 130 (`EnemyData._killXp`). Level atlayınca oyun durur, **3 karttan 1** seçilir. Aynı skill tekrar seçilirse seviye atlar (en fazla 5).
+4. Kütle = XP; yenen her şeyin kütlesi genel büyüme hızıyla (×0.35, `BlobGrowth._globalGainScale`) çarpılır. Silahla öldürülen düşman sadece XP verir, kütle vermez (büyüme yemeğe bağlı): robot köpek 0,5, bekçi 0,5, polis 2, motorlu 2, çevik kuvvet 3, elit 7, 1. tank 80, 2. tank 130 (`EnemyData._killXp`). Level atlayınca oyun durur, **3 karttan 1** seçilir. Aynı skill tekrar seçilirse seviye atlar (en fazla 5).
 5. Polisler gelir, zamanla ve büyüdükçe baskı artar; boss'lar belirli **seviyelerde** gelir (takılan oyuncuya en geç belirli bir dakikada).
 6. Run iki şekilde biter:
    - **Ölüm** → "Game Over!" ekranı, coin'in %50'si kasaya.
@@ -56,26 +56,35 @@
 
 | Zaman | Olay |
 |---|---|
-| 0–1 dk | Sadece yenebilir objeler, yayalar, arabalar |
-| 1. dk | Polisler ve robot köpek sürüleri gelmeye başlar |
+| 0–20 sn | Sadece yenebilir objeler, yayalar, arabalar |
+| 20. sn | **Bekçiler** gelmeye başlar (zayıf, copsuz; Little'da yenir). Bant: **BEKÇİLER GELDİ!** |
+| 1. dk | Robot köpek sürüleri |
+| 2. dk → 10. dk | Bekçinin yerini giderek polis alır: 2. dk'da hep bekçi, 3. dk'da ~%12 polis, 6. dk'da yarı yarıya, 10. dk'dan sonra hep polis (`EnemyData_Guard._replacedBy` + `_replaceStart/End`). Toplam düşman tavanı seviyeyle artmaya devam eder |
 | 1,5. dk | İlk anlık görev, sonra her görev bittikten 60 sn sonra yenisi (aşağıda) |
 | Blob **Medium** olunca (en geç 4. dk) | Elit polisler |
 | 2,5. dk (seviye 3+) | İlk kuşatma, sonra ~110 sn'de bir (§6) |
+| 5. dk'dan sonra her dakika | Sürü düşmanlarının canı +%8 (10. dk'da ×1,4, 20. dk'da ×2,2; boss'lar hariç; `WaveController._healthPerMinute`, `_healthStartMinute`) |
 | 5. dk | Düşman hasarı ×1.2 · **Çevik kuvvet** gelmeye başlar (`Wave_Riot`) |
 | 7. dk | **Motorlu polis** gelmeye başlar (`Wave_Motor`) |
 | 10. dk | Düşman spawn'ı ×2 hızlı (tavan aynı) |
 | 15. dk | Düşman hızı ×1.15 |
 | 20. dk | Düşman hasarı ×3 |
 
-Boss'lar seviyeye bağlı, en geç süre yedek:
+Boss'lar seviyeye bağlı ama süre penceresi içinde: seviyeye erken ulaşılsa da en erken süreden önce gelmez, ulaşılamasa da en geç sürede gelir (`BossStage.EarliestTime` / `LatestTime`):
 
-| Boss | Seviye | En geç |
-|---|---|---|
-| 1. Miniboss (polis tankı) | **5** (~310 kütle, Medium) | 9. dk |
-| 2. Miniboss (güçlü tank) | **8** (~1030 kütle, Large) | 15. dk |
-| **Final boss: polis helikopteri** | **10** (~2100 kütle, Dev) | 21. dk |
+| Boss | Seviye | En erken | En geç |
+|---|---|---|---|
+| 1. Miniboss (polis tankı) | **5** (~310 kütle, Medium) | 7. dk | 9. dk |
+| 2. Miniboss (güçlü tank) | **8** (~1030 kütle, Large) | 13. dk | 15. dk |
+| **Final boss: polis helikopteri** | **10** (~2100 kütle, Dev) | 20. dk | 21. dk |
+
+**Boss canı oyuncu seviyesiyle (VS gibi):** boss geldiğinde blob gerekli seviyenin üstündeyse her fazla seviye için +%15 can (1. tank seviye 7'de gelirse ×1,3); Lanet de çarpar (`BossSpawner.BossHealthPerExtraLevel`). Güçlü gelen oyuncuya boss erimesin.
 
 Boss'lar sırayla ve tek tek gelir: biri yaşıyorsa sonraki onun ölmesini bekler; final boss beklemez (miniboss sahnedeyse çekilir). Kart ekranı açıkken boss çıkmaz. Seviye birden ikisini aşarsa sadece sonraki çıkar. Değerler `BossData_Miniboss.asset` → `RequiredLevel` / `LatestTime`.
+
+### Kombo yazısı
+
+0,75 sn içinde art arda gelen öldürmeler (silahla ya da yutarak, boss dahil) zincir sayılır (`UI/ComboPopup`). 3'ten itibaren blob'un üstünde eğik, zıplayan yazı: **ÜÇLÜ / DÖRTLÜ / … / DOKUZLU KOMBO!**, 10'dan sonra **x12 KOMBO!**. Renk sayıyla ısınır: sarı (3–4) → turuncu (5–9) → kırmızı + "MUHTEŞEM!" (10–24) → mor + "DURDURULAMAZ!" (25+), 50+ "EFSANE!". Tek savuruşta 2+ öldürme daha sert zıplar. Titreşim sadece 3, 5 ve 10 eşiklerinde. Zincir bitince 0,55 sn durur, söner. Ödül yok, sadece his.
 
 ### Anlık görevler
 
@@ -83,15 +92,14 @@ Run içinde kısa hedef; ekranda hep en fazla bir görev (`MissionSystem`, sahne
 
 | Görev | Hedef | Süre | Ne zaman çıkar |
 |---|---|---|---|
-| Polis indir (silahla) | 5 + seviye / 2 | 45 sn | her zaman |
-| Polis yut | 3 | 45 sn | Medium+ |
+| Bekçi / Polis indir (silahla) | 5 + seviye / 2 | 45 sn | her zaman |
 | Bir şeyler ye (düşman dahil her şey) | 15 + seviye × 2 | 45 sn | her zaman |
 | Büyük lokma: blob'un bir altı tier'dan ya da daha büyük | 3 | 60 sn | Small+ |
 | Hasar alma (kalkanın yuttuğu sayılmaz) | — | 30 sn | her zaman |
 | Sandığı kap: 22–38 birim öteye sandık düşer, ekranda ok (sandık ekrandaysa üstünde, değilse kenarda). Ödülü sandığın kendisi (35 coin + ekstra kart), görev ayrıca vermez. Süre dolarsa sandık kaybolur | — | 30 sn | her zaman |
 
-Polis = normal ve elit; robot köpek ve boss sayılmaz. **Ödül:** `15 + dakika × 3` coin (`MissionSystem.CoinScale` çarpanıyla; kasaya giden coin gibi Market coin bonusu da işler) + bir bonus: %25 ekstra kart (sandıktaki gibi), yoksa can %90'ın altındaysa yarı yarıya can +%30 ya da kalkan +25, can doluysa kalkan +25. Bant: **GÖREV TAMAM!** + ödül.
-- **Geçici kalkan** (görev ödülü, Geri Dönüşüm'ün can taşması): Zırh'tan bağımsız, yenilenmez, hasarı candan önce yer. HUD'da can barının sağ ucunda can ölçeğinde açık mavi uzantı; azaldıkça kısalır.
+Bekçi, polis ve elit sayılır; robot köpek ve boss sayılmaz. Görev metni o anki çoğunluğa göre "bekçi" ya da "polis" der. Düşman yutma görevi yok (silahla öldürme görevine karıştığı için) (sıradan düşmanların yarıdan azı polisken bekçi, ~6. dk'ya kadar; `EnemySpawner.PoliceShare`). **Ödül:** `15 + dakika × 3` coin (`MissionSystem.CoinScale` çarpanıyla; kasaya giden coin gibi Market coin bonusu da işler) + bir bonus: %25 ekstra kart (sandıktaki gibi), yoksa can %90'ın altındaysa yarı yarıya can +%30 ya da kalkan +25, can doluysa kalkan +25. Bant: **GÖREV TAMAM!** + ödül.
+- **Geçici kalkan** (görev ödülü, Geri Dönüşüm'ün can taşması): yenilenmez, hasarı candan önce yer. HUD'da can barının sağ ucunda can ölçeğinde açık mavi uzantı; azaldıkça kısalır.
 
 ---
 
@@ -128,7 +136,7 @@ Polis = normal ve elit; robot köpek ve boss sayılmaz. **Ödül:** `15 + dakika
 
 Haritadaki tek dönme dolabı (`P_FerrisWheel`, Large) yiyince **20 sn dönme dolabı "giyersin"** (`FerrisWheelForm`; Mario Odyssey yakalaması gibi karakter görünür kalır):
 - **Yakalama anı (~1 sn, oyun donar):** blob zıplayıp çarkın göbeğine yerleşir, çark etrafında esneyerek açılır ve hızla bir tur döner; parıltı, titreşim, **DÖNME DOLAP! · Ez geç!** bandı.
-- **Çark:** ayaksız çark (`X_FerrisWheelRoll`), blob çapının 1,7 katı; blob göbekte dik durur, gözleriyle gidiş yönüne bakar, çark etrafında tekerlek gibi yuvarlanır, arkasında toz. Hız ×1,6, kamera biraz uzaklaşır. Üstünden geçtiği polis/köpek/elit anında ezilir (silah ölümü sayılır), yerdeki boss saniyede 200 hasar alır, bir üst tier'a kadar her şeyi yer (binalar dahil). Hasar alır.
+- **Çark:** ayaksız çark (`X_FerrisWheelRoll`), blob çapının 1,7 katı; blob göbekte dik durur, gözleriyle gidiş yönüne bakar, çark etrafında tekerlek gibi yuvarlanır, arkasında toz. Hız ×1,6, kamera biraz uzaklaşır. Üstünden geçtiği polis/köpek/elit anında ezilip yutulur (kütle verir, yeme görevine sayılır, ısırık hasarı yok; tier'ı bir üstü aşan düşman yine ölür ama yutulmaz), yerdeki boss saniyede 200 hasar alır, bir üst tier'a kadar her şeyi yer (binalar dahil). Hasar alır.
 - **Bitiş:** son 3 sn çark yanıp söner; sonra çark dönerek küçülüp kaybolur, blob yere iner. Run başında/ölümde hemen biter.
 - Görsel: `Tools → Blob.io → Dönme Dolap Formunu Kur` → `Resources/Transformations/FerrisWheelForm`. Test: Editor'da **T**.
 
@@ -160,22 +168,23 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 
 | Düşman | Nasıl davranır | Nasıl ölür |
 |---|---|---|
-| **Robot köpek** (sürü, erken) | 3'lü sürüyle gelir (1. dk'dan), hızlı (3.4; blob'dan yavaş), az canlı (10: ilk sopa vuruşunda ölür), temasta 4 hasar. Açık metalik gri dört bacaklı devriye robotu: polisin mavisinden ve koyu asfalttan ayrılsın diye paletin köpeğe özel kopyası (`RobotDogPalette`, maviler griye; `Tools → Blob.io → Robot Köpek Rengini Uygula`). Model `H_RobotDog` ← `build_robodog.py`; kurulum `Tools → Blob.io → Robot Köpeği Kur`. Görme mesafesi 40: doğduğu andan sana koşar (polis 15). Polis tavanına sayılmaz, kendi tavanı var | Silah ya da **Little**'dan itibaren yutma. 1 coin |
-| **Polis** (sürü) | Koşar, temasta coplar. Binaların, eşyaların, arabaların etrafından dolanır; yiyebileceğin boyda olsan da kaçmaz | Silah ya da Medium'dan itibaren yutma |
+| **Robot köpek** (sürü, erken) | 3'lü sürüyle gelir (1. dk'dan), hızlı (3.4; blob'dan yavaş), az canlı (10: ilk sopa vuruşunda ölür), temasta 4 hasar. Açık metalik gri dört bacaklı devriye robotu: polisin mavisinden ve koyu asfalttan ayrılsın diye paletin köpeğe özel kopyası (`RobotDogPalette`, maviler griye; `Tools → Blob.io → Robot Köpek Rengini Uygula`). Model `H_RobotDog` ← `build_robodog.py`; kurulum `Tools → Blob.io → Robot Köpeği Kur`. Görme mesafesi 40: doğduğu andan sana koşar (polis 15). Polis tavanına sayılmaz, kendi tavanı var | Silah ya da **Little**'dan itibaren yutma. %25 olasılıkla 4 coin |
+| **Bekçi** (20. sn'den, ilk dakikaların düşmanı) | Copsuz güvenlik görevlisi, yumrukla durdurmaya çalışır. Yavaş (2.0), az canlı (10: temel sopayla tek vuruş), temasta 3 hasar, yutulurken 1 ısırır. Oyuncu ilk dakikada "polisi alt etme"yi tatsın diye. Model `H_Guard` (Blender `build_guard.py`, şimdilik `tools/zorse-blender-pending/`): bej gömlek, sarı reflektörlü yelek, kahve kasket ve pantolon. Polis tavanına ve görevlerde "polis"e sayılır. Blob'u ilk görünce başının üstünde zıplayarak kırmızı **"!"** belirir (~1 sn; `AlertMark`, polislerde de) | Silah ya da **Little**'dan itibaren yutma. %25 olasılıkla 4 coin |
+| **Polis** (sürü) | Koşar, temasta coplar (can 30: temel sopayla 3 vuruş; hasar 10). Binaların, eşyaların, arabaların etrafından dolanır; yiyebileceğin boyda olsan da kaçmaz | Silah ya da Medium'dan itibaren yutma |
 | **Elit polis** | Durur, nişan lazeriyle takip eder, kilitleyip 3'lü mermi atar. Arada bina varsa ateş etmez | Silah ya da Giant'ta yutma. Sandık düşürür |
 | **Çevik kuvvet** (5. dk'dan) | Yavaş (1.8), kalın (can 120, hasar 12). Önünde kalkan: blob önündeki 120°'lik yaydayken (`_frontShieldHalfAngle` 60) gelen hasarın %85'i kesilir; yandan/arkadan tam hasar. Model `H_RiotPolice`: antrasit zırh, beyaz kask + vizör, gövde boyunda açık mavi kalkan | Silah ya da **Large**'dan itibaren yutma. 3 coin |
 | **Motorlu polis** (7. dk'dan) | Hızlı (2.6, can 70, hasar 14). 9 birim menzilde ve görüş açıkken durur, 0,6 sn blob'a döner (geri yaslanır), sonra kilitli yönde 8,5 hızla 0,9 sn düz dalar (`DashState`); dalışta bir kez temas hasarı, duvara çarpınca durur; 3 sn bekleme. Model `H_MotorPolice`: beyaz motosiklet (mavi şerit, kırmızı-mavi tepe lambası), mavi üniformalı, beyaz kasklı sürücü | Silah ya da **Large**'dan itibaren yutma. 3 coin |
 | **Miniboss: Polis Tankı** (5. ve 8. seviye) | 2.5 kat büyük; nişan lazeri + kilit + tank topu. Üstünden geçtiği arabaları ve sokak eşyalarını ezer (eşya kendi renklerinde kırıntı + tozla dağılır, `CrushFx`), binaların etrafından dolanır. Uzaktaysa yetişmek için hızlanır | Sadece silahla, yutulamaz. Ölünce ~1.3 sn: beyaz parlama, titreme, patlama kırıntıları, yana yatıp yere gömülür |
 | **Final Boss: Polis Helikopteri** (10. seviye) | Havada uçar, yukarıdan mini roket serisi atar (alevli, değince patlar: alan hasarı). Vurdukça kademe kademe alçalır (irtifa 8 → 7 → 6 → 5), yerde koyulaşan gölgesi ve dönen pervane gölgesi var. Gelince kamera uzaklaşıp ilk 3 sn ikinizi kadraja alır; sonra uzaklık kalır, kamera blob'u ortalar (boss ölünce normale döner; `CameraController._bossIntroDuration`) | **Silahla ölmez.** Blob'un tepesi helikoptere değdiği an yutulur, hangi irtifada olursa olsun (irtifa 5 ≈ 1340 kütle). **Yutulma sahnesi** (~4 sn, blob hasar almaz): yavaş çekimde helikopter dönerek küçülüp kıvılcım iziyle blob'a emilir, kamera yaklaşır, kocaman yutkunma + patlama + güçlü titreşim; zaman normale döner, ~1.3 sn sonra geğirme (şişme + ağızdan kırıntı bulutu), kısa bekleme; sonra KAZANDIN |
 
-- **Dalgalar** (`WaveController._waves`, sırayla açılır): Police (1. dk: polis 1, köpek 0.35) → PoliceElite (Medium ya da 4. dk: + elit) → Riot (5. dk: polis 0.7, elit 0.15, köpek 0.15, çevik kuvvet 0.5) → Motor (7. dk: polis 0.55, elit 0.15, köpek 0.1, çevik kuvvet 0.4, motorlu 0.4). Yeni türler `Tools → Blob.io → Yeni Polis Türlerini Kur` ile kurulur.
+- **Dalgalar** (`WaveController._waves`, sırayla açılır): Guard (20. sn: bekçi 1) → Police (1. dk: bekçi 1, köpek 0.35) → PoliceElite (Medium ya da 4. dk: bekçi 0.85, elit 0.15, köpek 0.25) → Riot (5. dk: bekçi 0.7, elit 0.15, köpek 0.15, çevik kuvvet 0.5) → Motor (7. dk: bekçi 0.55, elit 0.15, köpek 0.1, çevik kuvvet 0.4, motorlu 0.4). Tablodaki "bekçi" spawn anında süreye göre polise döner (yukarıda, 3. → 12. dk). Yeni türler ve dalga tablosu `Tools → Blob.io → Yeni Polis Türlerini Kur` ile kurulur.
 - **Eşzamanlı (seviyeye göre):** toplam düşman tavanı `8 + seviye × 2.2`, elit tavanı `2 + (seviye − 5) × 1.5` (en az 1). **Mutlak üst sınır: toplam 30, elit 8** — hiçbir çarpan aşamaz. Robot köpekler bu sayıya dahil değil: ayrı tavan `8 + seviye × 1` (en fazla 18; `EnemySpawner._swarmCap*`). Spawn aralığı seviye başı %10 kısalır (seviye 10'da 2 kat sık). `EnemySpawner._policeCap*`, `_eliteCap*`, `_spawnSpeedupPerLevel`. 25 yaya.
 - **Doğuş yeri — kaçış kapanır:** düşmanlar ekranın hemen dışında doğar (blob'dan en az 10 birim), blob hareket ediyorsa %65'i gidiş yönünün ±70°'lik konisinde (`EnemySpawner._aheadChance`, `_aheadSpread`). Kamerasız yedek: blob çevresinde rastgele.
 - **Arkada kalan öne taşınır:** gidiş yönünün arkasında ve ekran dışında 3 sn kalan düşman (polis, elit, robot köpek) önündeki ekran kenarına ışınlanır ve 6 sn görüş menzilinden bağımsız kovalar (`_relocateAfter`, `_relocateAlert`). Tavan arkadan gelen kuyrukla dolup önü boş bırakmaz. 50 birimden uzaktaki yine havuza döner.
 - **Kuşatma:** 2,5. dk'dan sonra (en az seviye 3, boss yokken) ~110 sn'de bir sıradan polislerden ekran kenarında tam halka: `10 + seviye × 0.6` (en fazla 16). Hepsi 12 sn kovalar; ekranda **KUŞATILDIN! · Yararak çık!** bandı. Polis tavanını en fazla 8 aşabilir (`_encircle*`).
 - **Kalabalık kafes olmaz:** düşmanlar (boss hariç) blob'la katı çarpışmaz. Blob içlerine girince yana itilirler, blob itilen düşman başına yavaşlar (`1/(1+0.15×n)`, en az %60 hız; dönme dolap formunda yavaşlamaz). Cana hasar alınca 0,35 sn dokunulmazlık ve blob yüzeyine 1,2 birim yakın düşmanlar 1,1 birim geri sekilir (`BlobHealth.PushEnemiesBack`). Tehlike hasardan gelir, sıkışmaktan değil.
 - **Can barı:** polis ve elit vurulunca kafasının üstünde kırmızı can barı belirir (kameraya döner; hiç vurulmamış polisde görünmez). Boss'ların barı HUD'da.
-- **Ödüller:** silahla öldürmek XP verir (yukarıda, §3); her düşman coin düşürür; elit ve boss'lar sandık (ekstra kart + coin); boss'lar bonus coin. Kalp: polis %5, elit %100 (+20 can, max canı aşmaz). Can dolu olsa da değince alınır (boşa gider).
+- **Ödüller:** silahla öldürmek XP verir (yukarıda, §3); coin VS gibi her düşmandan değil: bekçi ve robot köpek %25 olasılıkla 4 coin, polis %40 olasılıkla 5 coin (ortalama eskisi gibi 1 / 1 / 2; `EnemyData._coinDropChance` + `_coinOverride`), çevik kuvvet / motorlu / elit / boss her zaman; elit ve boss'lar sandık (ekstra kart + coin); boss'lar bonus coin. Kalp: polis %5, elit %100 (+20 can, max canı aşmaz). Can dolu olsa da değince alınır (boşa gider).
 - Coin 20 sn sonra kaybolur (son 3 sn yanıp söner).
 
 ---
@@ -205,7 +214,7 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 - **Coin** run içinde toplanır; run sonunda **kasaya** girer (kazanınca %100, ölünce %50). Oyuncu tek para görür: coin (kodda kasa `MetaProgression.Credit`).
 - **Skor** sadece rekor göstergesi, hiçbir şey satın almaz.
 
-- **Coin kaynakları:** polis 2; anlık görev `15 + dakika × 3` (§3); elit 5–10 + sandık 35 (+ ekstra kart); boss'lar da elit sayılır: 5–10 + sandık 35 + bonus (1. miniboss 15–25, 2. miniboss 25–40, helikopter 60–100). Coin yerde 20 sn kalır. Değerlerin güncel tablosu: `python3 -I .claude/skills/denge/denge_tablosu.py`.
+- **Coin kaynakları:** bekçi ve robot köpek ort. 1 (%25 × 4), polis ort. 2 (%40 × 5); anlık görev `15 + dakika × 3` (§3); elit 5–10 + sandık 35 (+ ekstra kart); boss'lar da elit sayılır: 5–10 + sandık 35 + bonus (1. miniboss 15–25, 2. miniboss 25–40, helikopter 60–100). Coin yerde 20 sn kalır. Değerlerin güncel tablosu: `python3 -I .claude/skills/denge/denge_tablosu.py`.
 
 | Market kalemi | Fiyat | Sınır |
 |---|---|---|
@@ -223,8 +232,11 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 | Geniş Ağız: yeme tetikleyicisi +%5 | 250, +200 | Sv.3 |
 | Sindirim Direnci: büyüyünce yavaşlama −%10 (Hızlı Metabolizma ile toplanır, en fazla %90) | 300, +250 | Sv.3 |
 | Mıknatıs: coin ve kalp gövdenin 1 birim yakınından kendine kayar | 200, +150 | Sv.3 |
+| **Lanet** (zorluk, VS "Curse"): düşman sayısı (tavan), spawn sıklığı, canı ve hızı +%10, boss canı +%10, karşılığında coin +%10 (Coin Kazancı'yla toplanır). Mutlak düşman tavanı seviye başı sadece +%5 (30 → en fazla 37; mobil). `WaveController.Curse` | 100, +100 | Sv.5 |
 
-Market üç sekme: **KARAKTERLER**, **GÜÇLER** (kategorili, kaydırmalı: Savunma · Büyüme ve Yeme · Ekonomi) ve **KİLİTLER** (oynayarak açılan skiller: koşul + ilerleme çubuğu; altında başlangıç skilleri).
+**Sıfırla** (GÜÇLER'in en altında, VS "Refund"): bütün güçlendiriciler (eski statlar dahil, karakterler hariç) sıfırlanır, harcanan coin'in tamamı geri gelir. Yanlışlıkla basılmasın diye iki dokunuş: ilki "EMİN MİSİN?" der, 3 sn içinde ikincisi sıfırlar (`MetaProgression.RefundPowerUps`).
+
+Market üç sekme: **KARAKTERLER**, **GÜÇLER** (kategorili, kaydırmalı: Savunma · Büyüme ve Yeme · Ekonomi · Zorluk, en altta Sıfırla) ve **KİLİTLER** (oynayarak açılan skiller: koşul + ilerleme çubuğu; altında başlangıç skilleri).
 
 **Skill kilitleri (VS gibi, coin'le değil oynayarak):** başlangıçta 8 skill açık (Sopa, Havai Fişek, Vakum, Zırh, Sindirim, Hız, Can Artışı, Rejenerasyon); diğerleri koşul gerçekleşince kart havuzuna girer, o an **YENİ SKİLL! · <ad> açıldı** bandı çıkar. Karakterin başlangıç ve favori skill'i o karakterle kilitli olsa da çıkar. İlerleme kayıtta (`unlockStats`), sayan `UnlockTracker`; koşullar `SkillUnlocks` (`Systems/Meta/PowerUps.cs`).
 
@@ -237,7 +249,7 @@ Market üç sekme: **KARAKTERLER**, **GÜÇLER** (kategorili, kaydırmalı: Savu
 | Yara Öfkesi | Canın %20'nin altındayken bir boss yen |
 | Yer Sarsıntısı | Bir tank yen |
 | Sindirim Gazı | Bir run'da 30 polis yut |
-| Bölünme | Helikopteri yut | Güçlendiriciler `Systems/Meta/PowerUps.cs` kataloğunda (id, fiyat, etki), kayıtta id ile tutulur; run başında `GameManager.ApplyMetaProgression` uygular. Saldırı (Güç, Alan, Bekleme, Süre, Ek atış) ve kart güçlendiricileri (Şans, Kart yenile/atla/yasakla, Diriliş, Lanet) sonraki paketlerde.
+| Bölünme | Helikopteri yut | Güçlendiriciler `Systems/Meta/PowerUps.cs` kataloğunda (id, fiyat, etki), kayıtta id ile tutulur; run başında `GameManager.ApplyMetaProgression` uygular. Saldırı (Güç, Alan, Bekleme, Süre, Ek atış) ve kart güçlendiricileri (Şans, Kart yenile/atla/yasakla, Diriliş) sonraki paketlerde.
 
 Sınıra gelen satırda fiyat yerine MAX yazar. Hepsinin toplamı 16.000 coin (karakterler 3.000). Coin kazancı kesirli birikir (1 coin × 1.05 kaybolmaz). Kayıt yerel JSON'da (`meta_progression.json`).
 
@@ -247,6 +259,8 @@ Fiyatlar ve ödüller bu hedeflere göre ayarlanır; ölçülen değer hedeften 
 
 | Hedef | Değer |
 |---|---|
+| Run süresi: yeni oyuncu (Market boş) | ilk run'larda 10–15. dk'da ölür |
+| Run süresi: güçlendiriciler açıldıkça | 25–30 dk (final boss / run sonu) |
 | Mıknato açılışı | 2.–3. run |
 | Fişek / Dalcık / Cano açılışı | ~5. / 5. (run sayısı) / ~7. run |
 | Market'in yarısı (~8.000 coin) | ~17. run |
@@ -264,7 +278,7 @@ Fiyatlar ve ödüller bu hedeflere göre ayarlanır; ölçülen değer hedeften 
 - **Dokunmatik:** görünmez sürükleme — parmağın bastığı yerden sürüklediğin yön ve mesafe hareket olur (80 px = tam hız). UI butonuna basınca hareket başlamaz. **Klavye:** WASD / ok tuşları.
 - **Kamera:** üstten 60° eğik, dar açılı (FOV 45: perspektif bozulması az, minyatür şehir görünümü), başlangıçta 18 yukarıda (`CameraController._baseHeight` / `_baseTilt` / `_fieldOfView`); gölge mesafesi ve boss kadrajı FOV'a göre ayarlanır; blob büyüdükçe uzaklaşır: yükseklik × (ölçek / başlangıç ölçeği)^0.35 (`CameraController._zoomExponent`; Medium ~×1.6, Dev ~×2.2, en fazla ×4). Blob ekranda yine büyür (Dev'de başlangıçtakinin ~4.5 katı); hasar alınca kısa sarsıntı; final boss gelince ikisini birden kadraja alır.
 - **Geri bildirim:** yemede hafif titreşim (iOS haptic), hasarda kırmızı parlama, kalkan vuruşunda kalkan parlar. **Ateş:** her atışta blob ateş yönünün tersine kısa geri teper; mermi namludan iri çıkıp normale iner. **Vuruş:** düşman kısa süre kızarır (boss'lar dahil), boss olmayan geri seker (sopa ve Yer Sarsıntısı). **Ölüm (silahla, boss hariç):** 0,09 sn beyaza parlayıp şişer, sonra kendi renklerinde kırıntılara dağılır (`EnemyData._crumbColorA/B`; köpek gümüş, polis mavi, çevik kuvvet antrasit + kalkan mavisi, motorlu beyaz + mavi) ve ayağından toz kalkar (`DeathFx`, yemedeki kırıntı parçacığı). Coin cesetten yay çizerek fırlar. Hafif titreşim (sürüde en fazla 0,12 sn'de bir); elitte güçlü titreşim + 0,05 sn vuruş durması (`HitStop`, sadece oyun normal hızdayken). **Höpleme:** Medium altındaki lokmanın (yerdeki yiyecek, yaya, bank, çalı, hidrant…) görsel kopyası 0,14 sn'de dönüp küçülerek blob'un ortasına çekilir (`SlurpFx`; şehir eşyasında `CityConsumable._slurpMesh`, `Tools → Blob.io → Höpleme Mesh'lerini Kur`). **Medium ve üstü lokmada** obje kaybolduğu an onun renklerinde kırıntı küpleri fışkırıp blob'a çekilir (boyla ölçekli), görünüm bir an "yutkunur"; Large/Giant'ta orta, Dev'de güçlü titreşim ve hafif kamera sarsıntısı. Kırıntı renkleri modelin palet renklerinden (`Yeme Efektini Kur`).
-- **HUD:** barlar (can + altında kalkan barı (Zırh varsa), XP, boss can barı); can barı max canla uzar (100 can = normal boy, sol kenarı sabit, sağa doğru yumuşakça uzar; en fazla ~230 can boyu, Can Artışı/Market); sol üstte süre, sağ üstte skor + coin (en sağda duraklatma tuşu), XP barının solunda seviye, sağında tier. XP barı sabit boyda (yan ekranda uzamaz). Skill rozeti / karakter ikonu yok.
+- **HUD:** barlar (can, XP, boss can barı); can barı max canla uzar (100 can = normal boy, sol kenarı sabit, sağa doğru yumuşakça uzar; en fazla ~230 can boyu, Can Artışı/Market); sol üstte süre, sağ üstte skor + coin (en sağda duraklatma tuşu), XP barının solunda seviye, sağında tier. XP barı sabit boyda (yan ekranda uzamaz). Skill rozeti / karakter ikonu yok.
 - **Ekran yönü:** dik ve yan ekran. UI dik ekrana göre çizili (1080 genişlik); yan ekranda yükseklikten ölçeklenir (canvas 1500 birim yüksek, UI dik ekranın ~%72'si boyunda; `AdaptiveCanvasScaler`, her 1080×1920 CanvasScaler'a run başında kendiliğinden eklenir). Kart ekranı HUD'un altına sığmazsa o alana ortalanıp küçülür.
 - **Lobi üst sıra:** solda geri; ortada profil çipi (Game Center fotoğrafı + adı; dokununca profil paneli); sağda sıralama (podyum), rozetler (kupa), ayarlar (dişli). Sıralama ve rozetler Game Center ekranını açar (§10.1).
 - **Profil paneli** (`ProfilePanel`): fotoğraf (gelene kadar Topik portresi), Game Center adı ve oyuncu kimliği, ROZET x/27 · REKOR · EN HIZLI (kazanma süresi); PROFİLİ DÜZENLE (ad + fotoğraf Game Center profilinde değişir; giriş yoksa GAME CENTER'A GİR), ARKADAŞ EKLE (Game Center arkadaşlık isteği), ROZETLERİM, SIRALAMA, KAPAT. Oyunun kendi hesap sistemi yok; kimlik, ad, fotoğraf ve arkadaşlar platformun.

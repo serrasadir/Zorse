@@ -37,6 +37,11 @@ namespace BlobSurvivor.Entities.Blob
 
         // Market güçlendiricileri (GameManager run başında yazar): her hasardan sabit düşüş, saniyelik can.
         public float MetaArmor { get; set; }
+        // Zırh skill'i (ArmorEffect): her darbeden düşülen hasar (Market Zırh'ıyla toplanır), darbe sonrası
+        // dokunulmazlık eki ve geri sekme çarpanı. Run başında ResetHealth sıfırlar.
+        public float SkillArmor { get; set; }
+        public float HitInvulnerabilityBonus { get; set; }
+        public float HitPushMultiplier { get; set; } = 1f;
         public float MetaRegenPerSecond { get; set; }
         private const float MetaArmorMinFraction = 0.3f; // zırh hasarı en fazla %70 keser
         private const float MetaRegenTick = 0.5f;
@@ -92,6 +97,9 @@ namespace BlobSurvivor.Entities.Blob
             _breakInvulnerability = 0f;
             _secondLayerCooldown = 0f;
             _secondLayerReadyAt = 0f;
+            SkillArmor = 0f;
+            HitInvulnerabilityBonus = 0f;
+            HitPushMultiplier = 1f;
             SaveFromDeath = null;
             OnShieldChanged?.Invoke(0f, 0f);
             GameEvents.RaiseHealthChanged(CurrentHealth, _maxHealth);
@@ -151,7 +159,14 @@ namespace BlobSurvivor.Entities.Blob
             if (!IsAlive || amount <= 0f || Invulnerable || TemporarilyInvulnerable) return;
 
             _lastHitTime = Time.time; // her hasar (kalkana ya da cana) yenilenmeyi erteler
-            if (MetaArmor > 0f) amount = Mathf.Max(amount * MetaArmorMinFraction, amount - MetaArmor);
+            float armor = MetaArmor + SkillArmor;
+            if (armor > 0f)
+            {
+                float reduced = Mathf.Max(amount * MetaArmorMinFraction, amount - armor);
+                // Zırh skill'i varsa düşülen kısım kalkan vuruşu sayılır: kalkan parlar, kenar maviye döner.
+                if (SkillArmor > 0f && reduced < amount) OnShieldHit?.Invoke(amount - reduced);
+                amount = reduced;
+            }
             float remainingDamage = amount;
 
             if (BonusShield > 0f)
@@ -180,7 +195,7 @@ namespace BlobSurvivor.Entities.Blob
                 OnDamaged?.Invoke(remainingDamage);
                 if (CurrentHealth > 0f)
                 {
-                    GrantInvulnerability(HitInvulnerability);
+                    GrantInvulnerability(HitInvulnerability + HitInvulnerabilityBonus);
                     PushEnemiesBack();
                 }
             }
@@ -206,7 +221,7 @@ namespace BlobSurvivor.Entities.Blob
             for (int i = 0; i < count; i++)
             {
                 if (!s_pushHits[i].TryGetComponent(out Enemies.EnemyBase enemy)) continue;
-                enemy.Knockback(enemy.transform.position - center, HitPushDistance);
+                enemy.Knockback(enemy.transform.position - center, HitPushDistance * HitPushMultiplier);
             }
         }
 

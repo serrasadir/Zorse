@@ -40,7 +40,7 @@
 
 ## 2. Skiller (16 adet)
 
-**Havuz:** 7 aktif (Vakum, Kaygan Zemin, Sopa, Havai Fişek, Yer Sarsıntısı, Sindirim Gazı, Zırh) · 8 pasif (Sindirim, Geri Dönüşüm, Hızlı Metabolizma, Hız, Tetikçi, Can Artışı, Rejenerasyon, Yara Öfkesi) · 1 nadir (Bölünme). Kategoriler: Sindirim ve Büyüme · Hareket · Saldırı · Savunma · Nadir.
+**Havuz:** 6 aktif (Vakum, Kaygan Zemin, Sopa, Havai Fişek, Yer Sarsıntısı, Sindirim Gazı) · 9 pasif (Zırh, Sindirim, Geri Dönüşüm, Hızlı Metabolizma, Hız, Tetikçi, Can Artışı, Rejenerasyon, Yara Öfkesi) · 1 nadir (Bölünme). Kategoriler: Sindirim ve Büyüme · Hareket · Saldırı · Savunma · Nadir.
 
 Tablolarda her satır Sv.1 → Sv.5; ⭐ yeni yetenek açan seviye.
 
@@ -153,16 +153,15 @@ Tablolarda her satır Sv.1 → Sv.5; ⭐ yeni yetenek açan seviye.
 
 ### Savunma
 
-#### 🛡️ Zırh (aktif)
-- **Ne yapar:** Hasarı önce emen, yenilenen kalkan. Gelen her hasarı (polis, mermi, araba, hazard, ısırık) önce kalkan yer. **Hasar vermez** (diken yok). Kalkanın yuttuğu hasarda kırmızı parlama olmaz, kalkan parlar.
-- **Yenilenme:** son hasardan bir süre sonra kalkan dolar; seviye atlayınca hemen dolar.
-- **Kod:** `ArmorEffect` (asset `FX_DamageReduction`) → `BlobHealth.SetShield`, görsel `ArmorShield`.
-- **HUD:** can barının altında ince mavi kalkan barı.
+#### 🛡️ Zırh (pasif)
+- **Ne yapar:** VS "Armor" gibi: gelen her darbeden sabit hasar düşer (polis, mermi, araba, hazard, ısırık). Darbenin en az %30'u yine geçer; Market Zırh'ıyla toplanır. Yenilenen kalkan yok. Düşülen hasarda kırmızı yerine kalkan parlar, ekran kenarı maviye döner.
+- **Neden böyle:** eski hali (kendini dolduran kalkan havuzu) kuşatmada fazla güçlüydü. Sabit düşüş küçük darbeleri (bekçi 3, köpek 4) neredeyse sıfırlar, geç oyunun ağır darbelerinde (polis ×3 hasar) etkisi azalır.
+- **Kod:** `ArmorEffect` (asset `FX_DamageReduction`) → `BlobHealth.SkillArmor`, `HitInvulnerabilityBonus`, `HitPushMultiplier`; görsel `ArmorShield`.
 - **Görsel:** blob'un sağ yanında süzülen sokak eşyası kalkan; form **Sv.1-2** çöp kutusu kapağı → **Sv.3** tabela → **Sv.4** menhol kapağı → **Sv.5** altın menhol kapağı (`build_armor_shields.py`, `Resources/FX/Shield`).
 
 | Sv.1 | Sv.2 | Sv.3 | Sv.4 | Sv.5 |
 |---|---|---|---|---|
-| Kalkan 20, 4 sn sonra 2 sn'de dolar | 35, 3 sn sonra | 50, ⭐ kırılınca 1 sn dokunulmazlık | 65, 1 sn'de dolar | 80, ⭐ **İkinci katman:** kırılınca bir kez anında dolar (30 sn'de bir) |
+| Darbe −1 | −2 | −3, ⭐ darbe sonrası dokunulmazlık 0,35 → 0,6 sn | −4 | −5, ⭐ darbe alınca etraftaki düşmanlar 2 kat uzağa savrulur |
 
 #### ❤️ Can Artışı (pasif)
 - **Ne yapar:** Max canı artırır, eklenen miktar kadar da iyileştirir. ⭐ seviyeleri kalplerden gelen canı artırır (`BlobSkills.HeartMultiplier`).

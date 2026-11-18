@@ -42,6 +42,9 @@ MonoBehaviour:
   _crushesObstacles: 0
   _packSize: 1
   _coinOverride: 3
+  _replacedBy: {fileID: 0}
+  _replaceStart: 0
+  _replaceEnd: 0
   _crumbColorA: {r: 0.25, g: 0.31, b: 0.37, a: 1}
   _crumbColorB: {r: 0.62, g: 0.77, b: 0.85, a: 1}
   _frontShieldHalfAngle: 60

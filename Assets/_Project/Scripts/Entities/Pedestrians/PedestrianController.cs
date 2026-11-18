@@ -50,6 +50,7 @@ namespace BlobSurvivor.Entities.Pedestrians
         private float _retryPickAt;
 
         private MeshFilter _modelFilter;
+        private Renderer _modelRenderer; // ekran dışındayken kol-bacak sallanmaz
 
         // Parçalı görünüm (PedestrianRig): bacak/kollar Model'in child'ı, eklemde sallanır. Havuzdaki her
         // yaya için bir kez kurulur; rig'siz varyantta kapalı.
@@ -167,6 +168,7 @@ namespace BlobSurvivor.Entities.Pedestrians
             if (variants == null || variants.Length == 0) return;
             if (_modelFilter == null) _modelFilter = GetComponentInChildren<MeshFilter>();
             if (_modelFilter == null) return;
+            if (_modelRenderer == null) _modelRenderer = _modelFilter.GetComponent<Renderer>();
             Mesh mesh = variants[Random.Range(0, variants.Length)];
             if (mesh == null) return;
 
@@ -227,7 +229,7 @@ namespace BlobSurvivor.Entities.Pedestrians
             if (source != null)
             {
                 renderer.sharedMaterials = source.sharedMaterials;
-                renderer.shadowCastingMode = source.shadowCastingMode;
+                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; // gövdenin gölgesi yeter
                 renderer.receiveShadows = source.receiveShadows;
             }
             return go.transform;
@@ -248,6 +250,7 @@ namespace BlobSurvivor.Entities.Pedestrians
             _walkPhase += distance * PedData.StepRate;
             float target = Mathf.Clamp01(speed / Mathf.Max(0.1f, PedData.MoveSpeed));
             _walkAmount = Mathf.MoveTowards(_walkAmount, target, dt * 6f);
+            if (_modelRenderer != null && !_modelRenderer.isVisible) return; // ekran dışı: faz ilerler, poz yazılmaz
 
             float s = Mathf.Sin(_walkPhase) * _walkAmount;
             Vector3 axis = _rig.SwingAxis;

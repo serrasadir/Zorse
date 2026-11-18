@@ -50,7 +50,12 @@ namespace BlobSurvivor.Systems.Meta
         public static readonly PowerUpDef Magnet = new PowerUpDef("magnet", "Mıknatıs", 3, 200, 150, 1f,
             "Coin ve kalbi 1 birimden çeker", v => $"{v:0} birim");
 
-        public static readonly PowerUpDef[] All = { Armor, Regen, ThickSkin, WideMouth, DigestResist, Magnet };
+        // Zorluk (VS "Curse"): oyuncunun kendi seçtiği meydan okuma. Düşman sayısı, sıklığı, canı ve hızı +%10,
+        // karşılığında coin +%10 (seviye başı). Sıfırla ile geri alınır.
+        public static readonly PowerUpDef Curse = new PowerUpDef("curse", "Lanet", 5, 100, 100, 0.1f,
+            "Düşman +%10 sayı, can, hız · coin +%10", v => $"düşman +%{v * 100f:0} · coin +%{v * 100f:0}");
+
+        public static readonly PowerUpDef[] All = { Armor, Regen, ThickSkin, WideMouth, DigestResist, Magnet, Curse };
     }
 
     // Oynayarak açılan skiller (VS gibi): koşul gerçekleşince kart havuzuna girer. Listede olmayan skill baştan açık.

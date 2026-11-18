@@ -234,7 +234,9 @@ namespace BlobSurvivor.Core
 
             blob.GetComponent<BlobGrowth>()?.ApplyMetaBonuses(massGainBonus, xpBonus);
 
-            FindAnyObjectByType<Systems.ScoreSystem>()?.SetCoinGainMultiplier(1f + coinGainBonus);
+            float curse = meta != null ? meta.GetValue(PowerUps.Curse) : 0f;
+            Systems.WaveController.Curse = curse;
+            FindAnyObjectByType<Systems.ScoreSystem>()?.SetCoinGainMultiplier(1f + coinGainBonus + curse);
 
             // Güçlendiriciler (PowerUps): her run başında baştan yazılır.
             BlobHealth health = blob.GetComponent<BlobHealth>();

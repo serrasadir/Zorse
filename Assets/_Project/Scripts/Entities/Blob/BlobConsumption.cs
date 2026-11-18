@@ -148,6 +148,19 @@ namespace BlobSurvivor.Entities.Blob
         // normal temas akışıyla (Consume) aynı sonucu üretir, tek fark tetikleyicinin OverlapSphere olması.
         public void ConsumeDirect(IConsumable consumable, GameObject obj) => Consume(consumable, obj);
 
+        // Dönme dolap gibi temassız yutma: düşman yutulmuş sayılır (kütle, skill kancası, yeme görevi), ısırık yok.
+        public bool ConsumeEnemyDirect(EnemyBase enemy, BlobTier tier)
+        {
+            if (_blobGrowth == null || enemy == null) return false;
+            BlobTier foodTier = enemy.Data != null ? enemy.Data.RequiredConsumeTier : tier;
+            if (!enemy.TryConsumeByBlob(tier, out float massReward)) return false;
+            _blobGrowth.AddMass(massReward * SkillMass(EatKind.Enemy, foodTier));
+            Skills?.OnAte(EatKind.Enemy, foodTier);
+            Core.GameEvents.RaiseBlobAte(foodTier);
+            _blobGrowth.PunchScale();
+            return true;
+        }
+
         // Hareketli araba (CarController kendi havuzuna döner).
         public void ConsumeVehicle(float mass, int score, BlobTier tier, Bounds bounds, Color crumbA, Color crumbB)
         {

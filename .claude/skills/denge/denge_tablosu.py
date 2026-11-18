@@ -70,7 +70,11 @@ def main():
     p = out.append
     p("## Coin kaynakları\n")
     p("| Kaynak | Coin |\n|---|---|")
-    p(f"| Polis | {police_coin} |")
+    for name, f in (("Bekçi", "Guard"), ("Robot köpek", "RobotDog"), ("Polis", "Police")):
+        d = read(f"Assets/_Project/ScriptableObjects/Enemies/EnemyData_{f}.asset")
+        amount = yaml_num(d, "_coinOverride", 0) or police_coin
+        chance = yaml_num(d, "_coinDropChance", 1)
+        p(f"| {name} | %{chance * 100:.0f} × {amount:g} = ort. {chance * amount:.2f} |")
     ms = read("Assets/_Project/Scripts/Systems/Mission/MissionSystem.cs")
     m_base = re.search(r"CoinBase = ([0-9.]+)f", ms)
     m_min = re.search(r"CoinPerMinute = ([0-9.]+)f", ms)
@@ -136,7 +140,7 @@ def main():
           f"(kasaya {avg('coinsBanked'):.0f}) · polis {avg('policeKills'):.0f} · elit {avg('eliteKills'):.1f} · son seviye {avg('finalLevel'):.1f}\n")
         banked = avg("coinsBanked") or 1
         p("| Hedef (OYUN.md) | Ölçülen |\n|---|---|")
-        for name, price, runs in sorted(chars, key=lambda c: c[1]):
+        for name, price, _ in sorted(chars, key=lambda c: c[1]):
             if price > 0: p(f"| {name} açılışı | {price / banked:.1f}. run |")
         p(f"| Market'in tamamı ~45. run | {total / banked:.0f}. run |")
         p(f"| Elit + sandık payı %40–55 | %{elite_share * 100:.0f} |")

@@ -45,6 +45,7 @@ namespace BlobSurvivor.Core
         // A17 run-sonu yapısı bunu dinleyip run'ı "tamamlandı/zafer" olarak kapatacak.
         public static event Action OnFinalBossConsumed;
         public static event Action OnEncirclement; // polis halkası etrafta doğdu
+        public static event Action<string> OnWaveStarted; // WaveData.WaveName
         // A17: run GameOver'dan (ölüm) ayrı olarak "başarıyla" kapanınca ateşlenir (final boss yutuldu / run-timeout).
         public static event Action<RunEndReason> OnRunComplete;
 
@@ -81,6 +82,7 @@ namespace BlobSurvivor.Core
         public static void RaiseBossSpawned(string hudName, bool isFinal) => OnBossSpawned?.Invoke(hudName, isFinal);
         public static void RaiseFinalBossConsumed() => OnFinalBossConsumed?.Invoke();
         public static void RaiseEncirclement() => OnEncirclement?.Invoke();
+        public static void RaiseWaveStarted(string waveName) => OnWaveStarted?.Invoke(waveName);
         public static void RaiseRunComplete(RunEndReason reason) => OnRunComplete?.Invoke(reason);
     }
 

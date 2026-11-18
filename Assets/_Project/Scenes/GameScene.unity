@@ -25940,6 +25940,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Systems.WaveController
   _waves:
+  - {fileID: 11400000, guid: 478408ddf15e0be4d8064232110c0929, type: 2}
   - {fileID: 11400000, guid: ff117d1589b214a0ca25bda8e1550e77, type: 2}
   - {fileID: 11400000, guid: a00df9df198c4ed19e6a2552f03da7c6, type: 2}
   - {fileID: 11400000, guid: 1b06f4b7a7a8e464a9bc65916981e40a, type: 2}
@@ -25952,6 +25953,8 @@ MonoBehaviour:
   _speedBonusMultiplier: 1.15
   _finalDamageThreshold: 1200
   _finalDamageMultiplier: 3
+  _healthPerMinute: 0.08
+  _healthStartMinute: 5
 --- !u!4 &511230089
 Transform:
   m_ObjectHideFlags: 0
