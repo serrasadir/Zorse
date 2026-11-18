@@ -90,7 +90,7 @@ Tablolarda her satır Sv.1 → Sv.5; ⭐ yeni yetenek açan seviye.
 
 | Sv.1 | Sv.2 | Sv.3 | Sv.4 | Sv.5 |
 |---|---|---|---|---|
-| Hız +%15, kaykay | +%30 | ⭐ Alevli kaykay, +%38 | +%45 | ⭐ **Roket:** 2 sn durmadan gidince +%20 |
+| Hız +%20, kaykay | +%30 | ⭐ Alevli kaykay, +%38 | +%45 | ⭐ **Roket:** 2 sn durmadan gidince +%20 |
 
 #### 🧼 Kaygan Zemin (aktif)
 - **Ne yapar:** Arkanda turkuaz sabunlu su izi bırakırsın; izdeki düşmanlar yavaşlar.

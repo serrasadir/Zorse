@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
   _id: speed_boost
   _displayName: "H\u0131z"
-  _description: "Hareket h\u0131z\u0131 +%15. Kaykay!"
+  _description: "Hareket h\u0131z\u0131 +%20. Kaykay!"
   _icon: {fileID: 0}
   _kind: 1
   _weight: 10
@@ -22,7 +22,7 @@ MonoBehaviour:
   _maxLevel: 5
   _perLevelValue: 0
   _levelDescriptions:
-  - "Hareket h\u0131z\u0131 +%15. Kaykay!"
+  - "Hareket h\u0131z\u0131 +%20. Kaykay!"
   - "H\u0131z +%30."
   - "ALEVL\u0130 KAYKAY: h\u0131z +%38."
   - "H\u0131z +%45."

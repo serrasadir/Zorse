@@ -47,7 +47,7 @@ namespace BlobSurvivor.EditorTools
                 "Yavaşlama −%45.", "Yavaşlama −%60, büyük lokmadan sonra 1 sn hız." }),
             // 2. Hareket
             S("Upgrade_SpeedBoost", "FX_SpeedBoost", typeof(SpeedBoostEffect), "speed_boost", "Hız", SkillKind.Passive, new[] {
-                "Hareket hızı +%15. Kaykay!", "Hız +%30.", "ALEVLİ KAYKAY: hız +%38.",
+                "Hareket hızı +%20. Kaykay!", "Hız +%30.", "ALEVLİ KAYKAY: hız +%38.",
                 "Hız +%45.", "ROKET: 2 sn durmadan gidince +%20 hız." }),
             S("Upgrade_KayganZemin", "FX_KayganZemin", typeof(SlipTrailEffect), "kaygan_zemin", "Kaygan Zemin", SkillKind.Active, new[] {
                 "Arkanda kaygan iz: içindeki düşmanlar %30 yavaşlar.", "İz daha uzun kalır (3 sn).", "Robot köpekler izde kayar.",
