@@ -70,8 +70,11 @@ namespace BlobSurvivor.EditorTools
                 d.FindProperty("_consumeDamage").floatValue = 8f;
                 d.FindProperty("_coinOverride").intValue = 3;
                 d.FindProperty("_frontShieldHalfAngle").floatValue = 60f;
-                d.FindProperty("_frontShieldBlock").floatValue = 0.85f;
+                d.FindProperty("_frontShieldBlock").floatValue = 0.6f; // önden etkin can 120 / 0.4 = 300
                 d.FindProperty("_maxAlive").intValue = 5; // tank tipi: az ve seyrek
+                d.FindProperty("_maxAliveStart").intValue = 1; // 1'den başlar, dakikada +1
+                d.FindProperty("_maxAliveRampSeconds").floatValue = 60f;
+                d.FindProperty("_maxTurnSpeed").floatValue = 70f; // blob etrafında dönerse arkası açılır
                 d.FindProperty("_introTitle").stringValue = "KALKANLI POLİS!";
                 d.FindProperty("_introSub").stringValue = "Önden vurma · arkasına geç!";
                 d.FindProperty("_crumbColorA").colorValue = new Color(0.25f, 0.31f, 0.37f); // antrasit zırh

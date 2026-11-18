@@ -656,7 +656,7 @@ namespace BlobSurvivor.Entities.Enemies
             // Gövde gittiği hedefe bakar; yana itilmesi (ayrılma, kaçınma) döndürmez. Hedef yoksa yumuşak hıza.
             Vector3 face = seek.sqrMagnitude > 0.0001f ? seek : _smoothVelocity;
             if (face.sqrMagnitude > 0.0001f)
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(face), _rotationSpeed * dt);
+                TurnTowards(face, dt);
         }
 
         // 2026-09-06 (Serra): "yaya ve polisler binaların içinden geçememeli" — ComputeAvoidance() zaten
@@ -798,10 +798,13 @@ namespace BlobSurvivor.Entities.Enemies
 
         public bool CanSeeBlob() => _canSeeBlobCached;
 
+        private const float ShieldRecoverTime = 0.4f;
+
         // Çevik kuvvet: oyuncu hasarı blob'dan (ya da blob'dan çıkan mermiden) gelir; blob kalkanın önündeyse kesilir.
         private float FrontShieldFactor()
         {
             if (_data == null || _data.FrontShieldHalfAngle <= 0f || BlobTransform == null) return 1f;
+            if (Time.time < _stunUntil + ShieldRecoverTime) return 1f; // sersemken kalkan iner, toparlanması biraz sürer
             Vector3 to = BlobTransform.position - transform.position;
             to.y = 0f;
             if (to.sqrMagnitude < 0.0001f) return 1f;
@@ -919,9 +922,16 @@ namespace BlobSurvivor.Entities.Enemies
             return direction.sqrMagnitude > 0.0001f ? direction.normalized : transform.forward;
         }
 
-        public void FaceTowards(Vector3 direction)
+        public void FaceTowards(Vector3 direction) => TurnTowards(direction, Time.deltaTime);
+
+        // Yumuşak dönüş; veride dönüş tavanı varsa (kalkanlı) saniyede en fazla o kadar derece.
+        private void TurnTowards(Vector3 direction, float dt)
         {
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), _rotationSpeed * Time.deltaTime);
+            Quaternion target = Quaternion.LookRotation(direction);
+            Quaternion next = Quaternion.Slerp(transform.rotation, target, _rotationSpeed * dt);
+            float maxTurn = _data != null ? _data.MaxTurnSpeed : 0f;
+            if (maxTurn > 0f) next = Quaternion.RotateTowards(transform.rotation, next, maxTurn * dt);
+            transform.rotation = next;
         }
 
         public bool HasLineOfSightToBlob()

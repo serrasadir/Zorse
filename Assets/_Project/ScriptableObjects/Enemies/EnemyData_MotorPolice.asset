@@ -50,8 +50,11 @@ MonoBehaviour:
   _introTitle: "MOTORLU POL\u0130S!"
   _introSub: "Geri yaslan\u0131nca yana ka\u00e7!"
   _maxAlive: 0
+  _maxAliveStart: 1
+  _maxAliveRampSeconds: 60
   _frontShieldHalfAngle: 0
   _frontShieldBlock: 0.85
+  _maxTurnSpeed: 0
   _dashRange: 9
   _dashSpeed: 8.5
   _dashWindup: 0.6

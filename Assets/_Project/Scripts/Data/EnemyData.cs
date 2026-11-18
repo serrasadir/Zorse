@@ -88,11 +88,16 @@ namespace BlobSurvivor.Data
         [Header("Tavan")]
         [Tooltip("Aynı anda en fazla kaç tane (0 = sınırsız). Tank tipler az olsun; dolunca dalganın diğer türleri doğar. Lanet artırmaz.")]
         [SerializeField] private int _maxAlive;
+        [Tooltip("Tür ilk doğduğunda tavan buradan başlar, her _maxAliveRampSeconds'ta +1 artarak _maxAlive'a çıkar.")]
+        [SerializeField] private int _maxAliveStart = 1;
+        [SerializeField] private float _maxAliveRampSeconds = 60f;
 
         [Header("Ön kalkan (çevik kuvvet)")]
         [Tooltip("Blob bu açının (yarım açı, derece) içinde öndeyse hasarın _frontShieldBlock kadarı kesilir. 0 = kalkan yok.")]
         [SerializeField, Range(0f, 180f)] private float _frontShieldHalfAngle;
         [SerializeField, Range(0f, 1f)] private float _frontShieldBlock = 0.85f;
+        [Tooltip("Dönüş hızı tavanı (derece/sn). 0 = varsayılan hızlı dönüş. Kalkanlı yavaş dönsün ki etrafından dolaşılıp arkadan vurulsun.")]
+        [SerializeField] private float _maxTurnSpeed;
 
         [Header("Dalış (motorlu polis)")]
         [Tooltip("Bu mesafede ve görüş açıkken durur, nişan alır, düz çizgide dalar. 0 = dalmaz.")]
@@ -113,6 +118,9 @@ namespace BlobSurvivor.Data
         public int ScoreValue => _scoreValue;
         public bool IsElite => _isElite;
         public int MaxAlive => _maxAlive;
+        public int MaxAliveStart => Mathf.Clamp(_maxAliveStart, 1, Mathf.Max(1, _maxAlive));
+        public float MaxAliveRampSeconds => _maxAliveRampSeconds;
+        public float MaxTurnSpeed => _maxTurnSpeed;
         public string IntroTitle => _introTitle;
         public string IntroSub => _introSub;
         public int AttackHitCount => Mathf.Max(1, _attackHitCount);

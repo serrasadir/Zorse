@@ -69,6 +69,7 @@ namespace BlobSurvivor.Entities.Enemies
         private int _activeEliteCount;
         private readonly HashSet<EnemyData> _introduced = new HashSet<EnemyData>(); // ilk görünüş bandı run'da bir kez
         private readonly Dictionary<EnemyData, int> _aliveByType = new Dictionary<EnemyData, int>(); // sadece MaxAlive > 0 türler
+        private readonly Dictionary<EnemyData, float> _firstSpawnTime = new Dictionary<EnemyData, float>(); // tavan rampası
         private readonly List<GameObject> _activeEnemies = new List<GameObject>(); // polis + elit
         private readonly List<GameObject> _activeSwarm = new List<GameObject>();   // robot köpek
         private readonly Dictionary<EnemyData, ObjectPool<EnemyBase>> _pools = new Dictionary<EnemyData, ObjectPool<EnemyBase>>();
@@ -112,6 +113,7 @@ namespace BlobSurvivor.Entities.Enemies
             ReturnAll(_activeSwarm);
             _activeEliteCount = 0;
             _aliveByType.Clear();
+            _firstSpawnTime.Clear();
             _introduced.Clear();
             _spawnTimer = 0f;
             _behindTime.Clear();
@@ -223,7 +225,12 @@ namespace BlobSurvivor.Entities.Enemies
 
             (data.IsSwarm ? _activeSwarm : _activeEnemies).Add(enemy.gameObject);
             if (data.IsElite) _activeEliteCount++;
-            if (data.MaxAlive > 0) { _aliveByType.TryGetValue(data, out int n); _aliveByType[data] = n + 1; }
+            if (data.MaxAlive > 0)
+            {
+                _aliveByType.TryGetValue(data, out int n);
+                _aliveByType[data] = n + 1;
+                if (!_firstSpawnTime.ContainsKey(data)) _firstSpawnTime[data] = _survivalTime;
+            }
             if (!string.IsNullOrEmpty(data.IntroTitle) && _introduced.Add(data))
                 GameEvents.RaiseEnemyIntro(data.IntroTitle, data.IntroSub);
             return enemy;
@@ -423,10 +430,18 @@ namespace BlobSurvivor.Entities.Enemies
             return last;
         }
 
+        // Tür tavanı ilk doğuştan itibaren kademeli: başta MaxAliveStart, her rampa süresinde +1, en fazla MaxAlive.
+        private int TypeCap(EnemyData data)
+        {
+            if (!_firstSpawnTime.TryGetValue(data, out float first) || data.MaxAliveRampSeconds <= 0f) return data.MaxAliveStart;
+            int steps = Mathf.FloorToInt((_survivalTime - first) / data.MaxAliveRampSeconds);
+            return Mathf.Min(data.MaxAlive, data.MaxAliveStart + steps);
+        }
+
         private bool AtTypeCap(EnemyData data)
         {
             if (data == null || data.MaxAlive <= 0) return false;
-            return _aliveByType.TryGetValue(data, out int n) && n >= data.MaxAlive;
+            return _aliveByType.TryGetValue(data, out int n) && n >= TypeCap(data);
         }
 
         private const float EnemySpawnY = 0.65f;

@@ -50,8 +50,11 @@ MonoBehaviour:
   _introTitle: "KALKANLI POL\u0130S!"
   _introSub: "\u00d6nden vurma \u00b7 arkas\u0131na ge\u00e7!"
   _maxAlive: 5
+  _maxAliveStart: 1
+  _maxAliveRampSeconds: 60
   _frontShieldHalfAngle: 60
-  _frontShieldBlock: 0.85
+  _frontShieldBlock: 0.6
+  _maxTurnSpeed: 70
   _dashRange: 0
   _dashSpeed: 8
   _dashWindup: 0.6
