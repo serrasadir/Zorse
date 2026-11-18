@@ -1,4 +1,7 @@
-"""Çevik kuvvet (H_RiotPolice) ve Motorlu polis (H_MotorPolice) modelleri.
+"""Çevik kuvvet (H_RiotPolice + H_RiotShield) ve Motorlu polis (H_MotorPolice) modelleri.
+
+H_RiotShield: kalkan + onu tutan sol kol ayrı parça, pivot sol omuzda (obje konumu). Unity'de
+EnemyWalkSetup bunu gövdeye omuzdan bağlar; sersemleyince kalkan iner (ShieldLower).
 
 zorse-blender deposuna taşınacak (bu makinede depo yok). H_Police ile aynı stil ve palet: CityPalette.png
 (8 sütun x 5 satır). Her parça düz renk: tüm UV'ler palet hücresinin ortasında. Yüz +Y, pivot taban ortası z=0.
@@ -133,10 +136,19 @@ def riot_police():
     m.box(0.22, -0.12, 0.80, 0.33, 0.12, 0.95, armor)
     m.box(0.23, -0.07, 0.52, 0.32, 0.07, 0.80, under)
     m.box(0.23, -0.06, 0.46, 0.32, 0.06, 0.53, "black")  # eldiven
-    m.box(-0.32, -0.04, 0.62, -0.23, 0.22, 0.80, under)   # kalkan kolu öne
     # cop (sağ elde, aşağı)
     m.box(0.25, -0.03, 0.18, 0.30, 0.02, 0.48, "black")
     head(m, 0.0, 0.0, 0.92, helmet="white", visor=True)
+    return m.build("H_RiotPolice")
+
+
+SHIELD_PIVOT = (-0.275, 0.0, 0.78)  # sol omuz: kalkan kolu buradan döner
+
+
+def riot_shield():
+    """Kalkan + kalkan kolu. Mesh pivot'a göre, obje konumu pivot (gövdeyle aynı uzayda durur)."""
+    m = M()
+    m.box(-0.32, -0.04, 0.62, -0.23, 0.22, 0.80, "nearblack")   # kalkan kolu öne
     # kalkan: gövde boyunda, hafif kavisli (3 dikey parça), önde
     sy, t = 0.30, 0.04
     m.box(-0.20, sy, 0.10, 0.20, sy + t, 0.98, "lightblue")
@@ -146,7 +158,12 @@ def riot_police():
     m.box(-0.20, sy + t, 0.93, 0.20, sy + t + 0.015, 0.98, "lightgrey")
     m.box(-0.20, sy + t, 0.10, 0.20, sy + t + 0.015, 0.15, "lightgrey")
     m.box(-0.14, sy + t, 0.70, 0.14, sy + t + 0.015, 0.80, "white")
-    return m.build("H_RiotPolice")
+    obj = m.build("H_RiotShield")
+    px, py, pz = SHIELD_PIVOT
+    for v in obj.data.vertices:
+        v.co.x -= px; v.co.y -= py; v.co.z -= pz
+    obj.location = SHIELD_PIVOT
+    return obj
 
 
 def motor_police():
@@ -197,19 +214,21 @@ def export(obj):
 
 
 def main(do_export):
-    for name in ("H_RiotPolice", "H_MotorPolice"):
+    for name in ("H_RiotPolice", "H_RiotShield", "H_MotorPolice"):
         old = bpy.data.objects.get(name)
         if old is not None:
             bpy.data.objects.remove(old, do_unlink=True)
     riot = riot_police()
+    shield = riot_shield()
     motor = motor_police()
     motor.location.x = 1.2
-    for o in (riot, motor):
+    for o in (riot, shield, motor):
         tris = sum(len(p.vertices) - 2 for p in o.data.polygons)
         print(o.name, "üçgen", tris, "boyut", tuple(round(d, 2) for d in o.dimensions))
     if do_export:
         motor.location.x = 0.0
         export(riot)
+        export(shield)
         export(motor)
 
 

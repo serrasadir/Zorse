@@ -1,5 +1,6 @@
 using BlobSurvivor.Data;
 using BlobSurvivor.Entities;
+using BlobSurvivor.Entities.Enemies;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,19 +14,24 @@ namespace BlobSurvivor.EditorTools
     {
         private const string EnemyFolder = "Assets/_Project/Prefabs/Enemies";
         private const string RigFolder = "Assets/_Project/Art/City/EnemyRigs";
-        private static readonly string[] LimbNames = { "LegL", "LegR", "ArmL", "ArmR" };
+        private static readonly string[] LimbNames = { "LegL", "LegR", "ArmL", "ArmR", ShieldName };
+        private const string ShieldName = "Shield";
+        private const float ShieldYaw = 70f;  // indirilince kalkan omuzdan dışa açılır (yukarıdan net görünsün)
+        private const float ShieldDroop = 25f; // ve dışa doğru sarkar
 
         private struct Entry
         {
             public string Prefab, Mesh;
             public bool ArmL, ArmR;
+            public string Shield; // ayrı kalkan parçası (pivot omuzda), sersemleyince iner
         }
 
         private static readonly Entry[] Entries =
         {
             new Entry { Prefab = "Enemy_Police", Mesh = "H_Police", ArmL = true, ArmR = true },
             new Entry { Prefab = "Enemy_ElitePolice", Mesh = "H_Elite", ArmL = true, ArmR = true },
-            new Entry { Prefab = "Enemy_RiotPolice", Mesh = "H_RiotPolice", ArmL = false, ArmR = true }, // sol kol kalkanı tutar
+            // FBX'te x aynalı: Blender'daki sol (kalkan) kolu Unity'de ArmR tarafı; o kol kalkanla ayrı parça, coplu kol sallanır
+            new Entry { Prefab = "Enemy_RiotPolice", Mesh = "H_RiotPolice", ArmL = true, ArmR = false, Shield = "H_RiotShield" },
             new Entry { Prefab = "Enemy_Guard", Mesh = "H_Guard", ArmL = true, ArmR = true },
         };
 
@@ -77,13 +83,76 @@ namespace BlobSurvivor.EditorTools
                 so.FindProperty("_axis").vector3Value = rig.SwingAxis;
                 so.ApplyModifiedPropertiesWithoutUndo();
 
+                string shieldResult = string.IsNullOrEmpty(e.Shield) ? "" : AddShield(e, contents, model, renderer, source);
                 PrefabUtility.SaveAsPrefabAsset(contents, path);
-                return $"OK {e.Prefab}";
+                return $"OK {e.Prefab}{shieldResult}";
             }
             finally
             {
                 PrefabUtility.UnloadPrefabContents(contents);
             }
+        }
+
+        // Kalkan FBX'i gövdeyle aynı uzayda (Blender'da obje konumu = omuz). Mesh omuza göre Model-yerel uzaya
+        // çevrilir, Model'in child'ı olarak omuza konur; indirilmiş poz geometriden: dışa açılış + sarkma.
+        private static string AddShield(Entry e, GameObject contents, Transform model, MeshRenderer bodyRenderer, MeshFilter body)
+        {
+            MeshFilter src = CityKitPipeline.LoadSourceMesh(e.Shield);
+            if (src == null) return $", kalkan ATLANDI: {e.Shield}.fbx yok";
+
+            Matrix4x4 toModel = body.transform.worldToLocalMatrix * src.transform.localToWorldMatrix;
+            Vector3 pivot = toModel.MultiplyPoint3x4(Vector3.zero);
+            Mesh srcMesh = src.sharedMesh;
+            Vector3[] pos = srcMesh.vertices;
+            Vector3[] nrm = srcMesh.normals;
+            Vector3 centroid = Vector3.zero;
+            for (int i = 0; i < pos.Length; i++)
+            {
+                pos[i] = toModel.MultiplyPoint3x4(pos[i]) - pivot;
+                centroid += pos[i];
+                if (i < nrm.Length) nrm[i] = toModel.MultiplyVector(nrm[i]).normalized;
+            }
+            centroid /= Mathf.Max(1, pos.Length);
+
+            string assetPath = $"{RigFolder}/{e.Shield}_Part.asset";
+            var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(assetPath);
+            bool created = mesh == null;
+            if (created) mesh = new Mesh();
+            mesh.Clear();
+            mesh.name = e.Shield + "_Part";
+            mesh.vertices = pos;
+            if (nrm.Length == pos.Length) mesh.normals = nrm; else mesh.RecalculateNormals();
+            mesh.uv = srcMesh.uv;
+            mesh.triangles = srcMesh.triangles;
+            mesh.RecalculateBounds();
+            if (created) AssetDatabase.CreateAsset(mesh, assetPath); else EditorUtility.SetDirty(mesh);
+
+            var go = new GameObject(ShieldName) { layer = model.gameObject.layer };
+            go.transform.SetParent(model, false);
+            go.transform.localPosition = pivot;
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            MeshRenderer r = go.AddComponent<MeshRenderer>();
+            r.sharedMaterials = bodyRenderer.sharedMaterials;
+            r.shadowCastingMode = bodyRenderer.shadowCastingMode; // büyük parça: gölgesi görünsün
+            r.receiveShadows = bodyRenderer.receiveShadows;
+
+            // Model-yerel yönler: yukarı, ileri (kalkan omzun önünde), dış yan (omuz gövdenin hangi yanında).
+            Vector3 up = body.transform.InverseTransformDirection(Vector3.up).normalized;
+            Vector3 forward = Vector3.ProjectOnPlane(centroid, up).normalized;
+            Vector3 side = Vector3.ProjectOnPlane(pivot, up).normalized;
+            Quaternion yaw = Quaternion.AngleAxis(ShieldYaw, up);
+            if (Vector3.Dot(yaw * forward, side) < 0f) yaw = Quaternion.AngleAxis(-ShieldYaw, up);
+            Vector3 opened = yaw * forward;
+            Quaternion droop = Quaternion.AngleAxis(ShieldDroop, opened);
+            if (Vector3.Dot(droop * up, side) < 0f) droop = Quaternion.AngleAxis(-ShieldDroop, opened);
+
+            ShieldLower lower = contents.GetComponent<ShieldLower>();
+            if (lower == null) lower = contents.AddComponent<ShieldLower>();
+            var so = new SerializedObject(lower);
+            so.FindProperty("_shield").objectReferenceValue = go.transform;
+            so.FindProperty("_lowered").quaternionValue = droop * yaw;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return ", kalkan omuzda";
         }
 
         private static Transform AddLimb(Transform model, MeshRenderer source, string name, Mesh mesh, Vector3 joint)

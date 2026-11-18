@@ -144,7 +144,9 @@ namespace BlobSurvivor.EditorTools
             // Kol ayrılamadıysa (az üçgen ya da tek taraf) kollar gövdede kalır: sadece bacak yürür.
             int armL = 0, armR = 0;
             foreach (Part part in parts) { if (part == Part.ArmL) armL++; else if (part == Part.ArmR) armR++; }
-            bool arms = armL >= MinArmTriangles && armR >= MinArmTriangles;
+            // Sadece izin verilen kollar aranır (kalkanlı: sol kol kalkanla ayrı parça, gövdede yok).
+            bool arms = (!armLAllowed || armL >= MinArmTriangles) && (!armRAllowed || armR >= MinArmTriangles)
+                && (armLAllowed || armRAllowed);
             bool keepL = arms && armLAllowed, keepR = arms && armRAllowed;
             for (int t = 0; t < triCount; t++)
                 if ((parts[t] == Part.ArmL && !keepL) || (parts[t] == Part.ArmR && !keepR)) parts[t] = Part.Body;

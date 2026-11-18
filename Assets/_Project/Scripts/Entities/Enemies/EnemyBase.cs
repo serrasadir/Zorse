@@ -800,11 +800,14 @@ namespace BlobSurvivor.Entities.Enemies
 
         private const float ShieldRecoverTime = 0.4f;
 
+        // Sersemken kalkan iner, toparlanması biraz sürer (ShieldLower görseli de buna bakar).
+        public bool IsShieldDown => _data != null && _data.FrontShieldHalfAngle > 0f && Time.time < _stunUntil + ShieldRecoverTime;
+
         // Çevik kuvvet: oyuncu hasarı blob'dan (ya da blob'dan çıkan mermiden) gelir; blob kalkanın önündeyse kesilir.
         private float FrontShieldFactor()
         {
             if (_data == null || _data.FrontShieldHalfAngle <= 0f || BlobTransform == null) return 1f;
-            if (Time.time < _stunUntil + ShieldRecoverTime) return 1f; // sersemken kalkan iner, toparlanması biraz sürer
+            if (IsShieldDown) return 1f;
             Vector3 to = BlobTransform.position - transform.position;
             to.y = 0f;
             if (to.sqrMagnitude < 0.0001f) return 1f;

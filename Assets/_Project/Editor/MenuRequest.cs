@@ -6,7 +6,8 @@ using UnityEngine;
 namespace BlobSurvivor.EditorTools
 {
     // Claude, Temp/menu.request'e (satır başına bir menü yolu) yazarak Tools menülerini sırayla çalıştırır.
-    // Sonuç Temp/menu.done'a yazılır. Play Mode'da beklenir. "save" satırı açık sahneleri kaydeder (Cmd+S).
+    // Sonuç Temp/menu.done'a yazılır. Play Mode'da beklenir. "save" satırı açık sahneleri kaydeder (Cmd+S),
+    // "refresh" Unity arka plandayken değişen dosyaları içe aktarıp derler, "prefabshot" prefab'ı çeker (PrefabShot).
     [InitializeOnLoad]
     internal static class MenuRequest
     {
@@ -89,6 +90,10 @@ namespace BlobSurvivor.EditorTools
                 if (menu.Length == 0) continue;
                 if (menu.StartsWith("set ")) { log.AppendLine(SetField(menu.Substring(4).Trim())); continue; }
                 if (menu.StartsWith("prune ")) { log.AppendLine(PruneNulls(menu.Substring(6).Trim())); continue; }
+                if (menu.StartsWith("prefabshot ")) { log.AppendLine(PrefabShot.Run(menu.Substring(11).Trim())); continue; }
+                // "refresh": dosya değişikliklerini içe aktarır, kod değiştiyse derler (Unity arka plandayken).
+                // Derleme sonrası istek yeniden okunmaz: refresh tek başına gönderilir, sonraki iş ayrı istekle.
+                if (menu == "refresh") { AssetDatabase.Refresh(); log.AppendLine("OK\trefresh"); continue; }
                 if (menu == "save")
                 {
                     bool saved = UnityEditor.SceneManagement.EditorSceneManager.SaveOpenScenes();
