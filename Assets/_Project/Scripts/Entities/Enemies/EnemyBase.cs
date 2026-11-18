@@ -415,11 +415,12 @@ namespace BlobSurvivor.Entities.Enemies
 
         // Kaygan Zemin Sv.3: izde kayma. Bekleme dolmadan tekrar sersemlemez (izde kalan hep donmasın).
         private float _nextSlipAt;
-        public void Slip(float duration, float cooldown)
+        public bool Slip(float duration, float cooldown)
         {
-            if (Time.time < _nextSlipAt) return;
+            if (_isDead || Time.time < _nextSlipAt) return false;
             _nextSlipAt = Time.time + duration + cooldown;
             Stun(duration);
+            return true;
         }
 
         private void UpdateStatus()

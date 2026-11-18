@@ -89,6 +89,7 @@ namespace BlobSurvivor.Entities.Blob
                 if (enemy == null || enemy.IsDead) continue;
                 if (Slow > 0f) enemy.ApplySlow(1f - Slow, TickInterval + 0.15f);
                 enemy.TakeDamage(damage);
+                if (enemy.IsDead) GameEvents.RaiseGasKill();
                 if (FeedFraction > 0f && enemy.IsDead && enemy.Data != null && _growth != null)
                     _growth.AddMass(enemy.Data.MassReward * FeedFraction);
             }

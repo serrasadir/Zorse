@@ -103,5 +103,20 @@ namespace BlobSurvivor.EditorTools
             plist.root.SetString("CFBundleDisplayName", "No Crumbs");
             plist.WriteToFile(plistPath);
         }
+
+        // Game Center yetkisi (sıralama + rozetler, AchievementTracker). App ID'de Game Center açık olmalı;
+        // otomatik imzalama bunu kendisi ekler. GameKit framework'ü ve entitlements dosyası buradan gelir.
+        [PostProcessBuild(1)]
+        private static void AddGameCenter(BuildTarget target, string path)
+        {
+            if (target != BuildTarget.iOS) return;
+
+            string projectPath = PBXProject.GetPBXProjectPath(path);
+            var project = new PBXProject();
+            project.ReadFromFile(projectPath);
+            var capabilities = new ProjectCapabilityManager(projectPath, "Unity-iPhone/LeftNoCrumbs.entitlements", null, project.GetUnityMainTargetGuid());
+            capabilities.AddGameCenter();
+            capabilities.WriteToFile();
+        }
     }
 }

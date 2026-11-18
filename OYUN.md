@@ -266,6 +266,8 @@ Fiyatlar ve ödüller bu hedeflere göre ayarlanır; ölçülen değer hedeften 
 - **Geri bildirim:** yemede hafif titreşim (iOS haptic), hasarda kırmızı parlama, kalkan vuruşunda kalkan parlar. **Ateş:** her atışta blob ateş yönünün tersine kısa geri teper; mermi namludan iri çıkıp normale iner. **Vuruş:** düşman kısa süre kızarır (boss'lar dahil), boss olmayan geri seker (sopa ve Yer Sarsıntısı). **Ölüm (silahla, boss hariç):** 0,09 sn beyaza parlayıp şişer, sonra kendi renklerinde kırıntılara dağılır (`EnemyData._crumbColorA/B`; köpek gümüş, polis mavi, çevik kuvvet antrasit + kalkan mavisi, motorlu beyaz + mavi) ve ayağından toz kalkar (`DeathFx`, yemedeki kırıntı parçacığı). Coin cesetten yay çizerek fırlar. Hafif titreşim (sürüde en fazla 0,12 sn'de bir); elitte güçlü titreşim + 0,05 sn vuruş durması (`HitStop`, sadece oyun normal hızdayken). **Höpleme:** Medium altındaki lokmanın (yerdeki yiyecek, yaya, bank, çalı, hidrant…) görsel kopyası 0,14 sn'de dönüp küçülerek blob'un ortasına çekilir (`SlurpFx`; şehir eşyasında `CityConsumable._slurpMesh`, `Tools → Blob.io → Höpleme Mesh'lerini Kur`). **Medium ve üstü lokmada** obje kaybolduğu an onun renklerinde kırıntı küpleri fışkırıp blob'a çekilir (boyla ölçekli), görünüm bir an "yutkunur"; Large/Giant'ta orta, Dev'de güçlü titreşim ve hafif kamera sarsıntısı. Kırıntı renkleri modelin palet renklerinden (`Yeme Efektini Kur`).
 - **HUD:** barlar (can + altında kalkan barı (Zırh varsa), XP, boss can barı); can barı max canla uzar (100 can = normal boy, sol kenarı sabit, sağa doğru yumuşakça uzar; en fazla ~230 can boyu, Can Artışı/Market); sol üstte süre, sağ üstte skor + coin (en sağda duraklatma tuşu), XP barının solunda seviye, sağında tier. XP barı sabit boyda (yan ekranda uzamaz). Skill rozeti / karakter ikonu yok.
 - **Ekran yönü:** dik ve yan ekran. UI dik ekrana göre çizili (1080 genişlik); yan ekranda yükseklikten ölçeklenir (canvas 1500 birim yüksek, UI dik ekranın ~%72'si boyunda; `AdaptiveCanvasScaler`, her 1080×1920 CanvasScaler'a run başında kendiliğinden eklenir). Kart ekranı HUD'un altına sığmazsa o alana ortalanıp küçülür.
+- **Lobi üst sıra:** solda geri; ortada profil çipi (Game Center fotoğrafı + adı; dokununca profil paneli); sağda sıralama (podyum), rozetler (kupa), ayarlar (dişli). Sıralama ve rozetler Game Center ekranını açar (§10.1).
+- **Profil paneli** (`ProfilePanel`): fotoğraf (gelene kadar Topik portresi), Game Center adı ve oyuncu kimliği, ROZET x/27 · REKOR · EN HIZLI (kazanma süresi); PROFİLİ DÜZENLE (ad + fotoğraf Game Center profilinde değişir; giriş yoksa GAME CENTER'A GİR), ARKADAŞ EKLE (Game Center arkadaşlık isteği), ROZETLERİM, SIRALAMA, KAPAT. Oyunun kendi hesap sistemi yok; kimlik, ad, fotoğraf ve arkadaşlar platformun.
 - **Ayarlar** (lobide sağ üstte dişli, duraklatma menüsünde Ayarlar): Müzik ve Efekt sesi sürgüsü, Titreşim aç/kapa. Cihazda saklanır (`GameSettings`, PlayerPrefs). Titreşim kapalıyken `Haptics` hiç çalmaz.
 - **Ses:** arka planda döngülü yağmur (`Resources/Audio/Ambience/RainLoop`, 60 sn; Müzik sürgüsüne bağlı, müzik gelince aynı kanal). Açılış videosu bitince yavaşça açılır. `AudioManager` kendiliğinden kurulur; efekt sesleri için 8 kaynaklı havuz (`PlaySfx`) hazır, henüz efekt sesi yok. Import kuralı `AudioImportRules`: `Resources/Audio/Ambience|Music` Vorbis + streaming, diğerleri Vorbis + açılışta çöz.
 - **Duraklatma:** tuşu sağ üst köşede, skor/coin kutusunun sağında. Panel tüm ekranı kaplar (çentik ve alt şerit dahil): Devam / Yeniden Başla / Ana Menü / Ayarlar. Ana Menü run'ı terk eder (coin kasaya girmez, run sayılmaz).
@@ -276,6 +278,44 @@ Fiyatlar ve ödüller bu hedeflere göre ayarlanır; ölçülen değer hedeften 
 - **Seviye atlama ekranı:** HUD diliyle, tüm ekran. Gölgeli altın "SEVİYE ATLADIN!" + "Bir güç seç"; 3 koyu kart: ad, sağ üstte rozet (YENİ yeşil / mavi Sv. x/5 şu anki seviye / EVRİM altın), altında tür (AKTİF / PASİF / NADİR), seviyeye özel açıklama; evrim kartı altın tonlu. Kartlar sırayla belirir; yanlışlıkla seçilmesin diye ilk 0.4 sn dokunulmaz.
 - **Oyun sonu ekranı:** HUD diliyle (yarı saydam gece mavisi panel, kalın beyaz yazı, coin altın), tüm ekran. Başlık GAME OVER (kırmızımsı) ya da KAZANDIN! (altın) + alt satır, rekor kırıldıysa YENİ REKOR! rozeti, kart: Süre / Skor / Rekor / Toplanan coin / Kazanılan coin (+kasaya giren; ölümde toplananın %50'si, kazanınca %100). Kart yumuşakça açılır, skor ve coin'ler sayarak yükselir. Butonlar: Tekrar Oyna, Ana Menü (lobiye döner, coin zaten kasaya girmiştir).
 - Ses yok (henüz).
+
+### 10.1 Rozetler ve sıralama (Game Center)
+
+Açılışta Game Center'a giriş istenir; reddeden oyuncuya lobideki düğmeye basınca tekrar sorulur. Rozetler ve toplam sayaçlar cihazda da tutulur (`achievements.json`), girişte hepsi Game Center'a tekrar gönderilir. Kod: `Systems/Social` (`AchievementTracker`, id'ler `Achievements.cs`; platform `ISocialService`, iOS'ta Unity Social API + profil/arkadaş ekranları için `Plugins/iOS/GameCenterBridge.mm`). App Store Connect'e rozet + metin + görsel yükleme: `tools/asc_achievements.py` (API anahtarı ortam değişkeninden, repoya girmez). Android (Google Play Games) ve Steam aynı arayüze eklenecek. Gizli rozetler açılana kadar "???" görünür.
+
+**Sıralamalar:** `lnc_high_score` en yüksek skor (her run sonu gönderilir, Game Center en iyisini tutar) · `lnc_fastest_win` en kısa kazanma süresi (salise, küçük olan iyi). İkisinde de dünya ve arkadaş sekmesi Game Center'ın kendisinde.
+
+| Rozet | EN | Koşul | Puan | Id |
+|---|---|---|---|---|
+| Afiyet Olsun | Bon Appétit | İlk run'ı bitir | 10 | `lnc_first_run` |
+| Aperatif (gizli) | Appetizer | İlk dakikada öl | 10 | `lnc_quick_death` |
+| Şehir Bana Dar | Too Big to Fail | Dev boyuna ulaş | 30 | `lnc_reach_dev` |
+| Kırıntı Bırakmadın | Left No Crumbs | Oyunu kazan (helikopteri yut) | 50 | `lnc_first_win` |
+| Kılı Bile Kıpırdamadı | Not a Scratch | 10 dakika boyunca hiç hasar alma | 60 | `lnc_no_damage` |
+| Tank Tatlısı | Tank You Very Much | Polis Tankı'nı alt et | 30 | `lnc_tank` |
+| Pervaneli Dürüm | Rotor Rolls | Polis Helikopteri'ni yut | 50 | `lnc_helicopter` |
+| Karakol Kahvaltısı | Breakfast at the Precinct | Bir run'da 100 polis yut | 50 | `lnc_police_feast` |
+| Kalkan mı? Çatal Bıçak! | Shield Snack | Çevik kuvvet polisini yut | 20 | `lnc_riot_police` |
+| Kask Zorunluymuş | Helmet Optional | Motorlu polisi yut | 20 | `lnc_motor_police` |
+| Mama Saati | Good Boy, Good Bite | Robot köpek yut | 10 | `lnc_robot_dog` |
+| Midede Olay Ufku | Event Horizon Buffet | Kara Delik evrimini aç | 50 | `lnc_black_hole` |
+| Kimse Görmedi (gizli) | Silent but Deadly | Sindirim Gazı'yla toplam 50 düşman devir | 30 | `lnc_gas_kills` |
+| Dikkat Islak Zemin | Caution: Wet Floor | Kaygan Zemin'de toplam 20 robot köpek kaydır | 30 | `lnc_slip_dogs` |
+| Ben, Ben ve Yine Ben | Me, Myself & Me | Bölünme kartını al | 20 | `lnc_split` |
+| Full Paket | Fully Loaded | 3 aktif + 3 pasif slotun hepsi max | 50 | `lnc_fully_loaded` |
+| Çark-ı Felek (gizli) | Spin Cycle | Dönme dolaba dönüş | 20 | `lnc_ferris_wheel` |
+| Rüzgar Gibi Geçti | Gone with the Wind | Topik ile kazan | 40 | `lnc_win_topik` |
+| Çekim Merkezi | Personal Magnetism | Mıknato ile kazan | 40 | `lnc_win_miknato` |
+| Kutlamaya Değer | Something to Celebrate | Fişek ile kazan | 40 | `lnc_win_fisek` |
+| Dayak Cennetten Çıkma | Stick to the Plan | Dalcık ile kazan | 40 | `lnc_win_dalcik` |
+| Sıfır Atık | Zero Waste | Cano ile kazan | 40 | `lnc_win_cano` |
+| Aile Sofrası | Family Dinner | Tüm karakterleri aç | 50 | `lnc_all_characters` |
+| Beşi Bir Yerde | Full Course Menu | Beş karakterle de kazan | 80 | `lnc_win_all` |
+| Nüfus Sayımı Bozuldu | Census Problem | Toplam 1.000 yaya yut | 40 | `lnc_pedestrians` |
+| Trafik Rahatladı | Traffic Cleared | Toplam 500 araba yut | 40 | `lnc_cars` |
+| Kumbara Patladı | Piggy Bank Burst | Run'larda toplam 100.000 coin topla | 50 | `lnc_coins` |
+
+Toplam 1.000 puan (Game Center sınırı). Toplam sayaçlı rozetler Game Center'da ilerleme çubuğu gösterir. Rozet görselleri oyunun modellerinden render edilir (kategori renginde zemin; mavi ilerleme, kırmızı boss/polis, mor skill, turkuaz karakter, turuncu toplam, altın kazanma): `zorse-blender/build_badges.py` → `badges/<id>.png` (1024×1024).
 
 ---
 

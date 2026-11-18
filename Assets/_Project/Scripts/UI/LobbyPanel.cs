@@ -37,7 +37,9 @@ namespace BlobSurvivor.UI
         }
 
         private Card[] _cards;
-        private TMP_Text _credit;
+        private TMP_Text _credit, _profileName;
+        private Sprite _rounded;
+        private AvatarView _profileAvatar;
         private bool _built;
         private float _cardHeight;
 
@@ -57,6 +59,11 @@ namespace BlobSurvivor.UI
             if (_marketButton != null)
                 _marketButton.onClick.AddListener(OpenMarket);
             if (MetaProgression.Instance != null) MetaProgression.Instance.Changed += RefreshCharacterButtons;
+            if (Systems.Social.AchievementTracker.Instance != null)
+            {
+                Systems.Social.AchievementTracker.Instance.SignInChanged += RefreshProfile;
+                Systems.Social.AchievementTracker.Instance.Unavailable += OpenProfile;
+            }
 
             RefreshCharacterButtons();
         }
@@ -64,7 +71,26 @@ namespace BlobSurvivor.UI
         private void OnDestroy()
         {
             if (MetaProgression.Instance != null) MetaProgression.Instance.Changed -= RefreshCharacterButtons;
+            if (Systems.Social.AchievementTracker.Instance != null)
+            {
+                Systems.Social.AchievementTracker.Instance.SignInChanged -= RefreshProfile;
+                Systems.Social.AchievementTracker.Instance.Unavailable -= OpenProfile;
+            }
         }
+
+        private void OpenProfile() => ProfilePanel.Open(this, _rounded, DefaultPortrait);
+
+        // Profil çipi: Game Center adı + fotoğrafı (giriş yoksa "Profil").
+        private void RefreshProfile()
+        {
+            if (_profileName == null) return;
+            var tracker = Systems.Social.AchievementTracker.Instance;
+            string name = tracker != null && tracker.IsSignedIn ? tracker.PlayerName : null;
+            _profileName.text = string.IsNullOrEmpty(name) ? "Profil" : name;
+            _profileAvatar.Refresh();
+        }
+
+        private Sprite DefaultPortrait => _characters.Length > 0 && _characters[0] != null ? _characters[0].Icon : null;
 
         public RectTransform PanelRect => _panel != null ? (RectTransform)_panel.transform : null;
 
@@ -77,6 +103,7 @@ namespace BlobSurvivor.UI
         {
             if (_panel != null) _panel.SetActive(true);
             RefreshCharacterButtons();
+            RefreshProfile();
         }
 
         // Giriş ekranı açıkken lobi ve HUD gizli.
@@ -140,6 +167,7 @@ namespace BlobSurvivor.UI
 
             Image backdrop = _panel.GetComponent<Image>();
             Sprite rounded = _marketButton != null && _marketButton.targetGraphic is Image mi ? mi.sprite : null;
+            _rounded = rounded;
             if (backdrop != null) { backdrop.sprite = null; backdrop.color = Color.clear; }
             panel.anchorMin = Vector2.zero; panel.anchorMax = Vector2.one;
             panel.anchoredPosition = Vector2.zero; panel.sizeDelta = Vector2.zero;
@@ -185,19 +213,26 @@ namespace BlobSurvivor.UI
             backButton.onClick.AddListener(() => TitleScreen.ShowTitle());
             Text("Label", back, Vector2.zero, back.sizeDelta, 56f, TextAlignmentOptions.Center, Color.white).text = "<";
 
-            // Ayarlar (dişli): sağ üstte, geri tuşunun karşısında.
-            RectTransform gear = Box("SettingsButton", panel, new Vector2(420f, 885f), new Vector2(120f, 100f), rounded, CardColor);
-            var gearImage = gear.GetComponent<Image>();
-            gearImage.raycastTarget = true;
-            var gearButton = gear.gameObject.AddComponent<Button>();
-            gearButton.targetGraphic = gearImage;
-            gearButton.onClick.AddListener(() => SettingsPanel.Open(this, rounded));
-            Image gearIcon = NewRect("Icon", gear, Vector2.zero, new Vector2(64f, 64f)).gameObject.AddComponent<Image>();
-            gearIcon.sprite = Resources.Load<Sprite>("UI/Shapes/UI_Gear");
-            gearIcon.preserveAspect = true;
-            gearIcon.raycastTarget = false;
+            // Üst orta: profil çipi (fotoğraf + ad) → profil paneli.
+            RectTransform profile = Box("ProfileChip", panel, new Vector2(-130f, 885f), new Vector2(400f, 100f), rounded, CardColor);
+            var profileImage = profile.GetComponent<Image>();
+            profileImage.raycastTarget = true;
+            var profileButton = profile.gameObject.AddComponent<Button>();
+            profileButton.targetGraphic = profileImage;
+            profileButton.onClick.AddListener(OpenProfile);
+            _profileAvatar = AvatarView.Create(profile, new Vector2(-148f, 0f), 76f, DefaultPortrait);
+            _profileName = Text("Name", profile, new Vector2(46f, 0f), new Vector2(270f, 60f), 36f, TextAlignmentOptions.Left, Color.white);
+            _profileName.overflowMode = TextOverflowModes.Ellipsis;
+            RefreshProfile();
 
-            PinToEdge(panel, 1f, "Title", "TitleShadow", "CreditChip", "BackButton", "SettingsButton");
+            // Sağ üst: Game Center sıralaması ve rozetler, en sağda ayarlar (dişli).
+            IconButton("LeaderboardButton", panel, new Vector2(160f, 885f), "UI_Podium", rounded,
+                () => Systems.Social.AchievementTracker.Instance?.ShowLeaderboards());
+            IconButton("AchievementsButton", panel, new Vector2(290f, 885f), "UI_Trophy", rounded,
+                () => Systems.Social.AchievementTracker.Instance?.ShowAchievements());
+            IconButton("SettingsButton", panel, new Vector2(420f, 885f), "UI_Gear", rounded, () => SettingsPanel.Open(this, rounded));
+
+            PinToEdge(panel, 1f, "Title", "TitleShadow", "CreditChip", "BackButton", "ProfileChip", "LeaderboardButton", "AchievementsButton", "SettingsButton");
             if (_marketButton != null) PinToEdge((RectTransform)_marketButton.transform, 0f);
             LayoutCards();
         }
@@ -303,6 +338,21 @@ namespace BlobSurvivor.UI
             card.Lock = Text("Text", card.LockBadge, Vector2.zero, card.LockBadge.sizeDelta, 30f * Mathf.Sqrt(k), TextAlignmentOptions.Center,
                 new Color(0.12f, 0.08f, 0.02f, 1f));
             return card;
+        }
+
+        // Kart renginde kare düğme, ortasında Resources/UI/Shapes ikonu (Tools → Blob.io → UI Glif ve Şekillerini Kur).
+        private static void IconButton(string name, RectTransform panel, Vector2 pos, string icon, Sprite rounded, UnityEngine.Events.UnityAction onClick)
+        {
+            RectTransform rect = Box(name, panel, pos, new Vector2(120f, 100f), rounded, CardColor);
+            var image = rect.GetComponent<Image>();
+            image.raycastTarget = true;
+            var button = rect.gameObject.AddComponent<Button>();
+            button.targetGraphic = image;
+            button.onClick.AddListener(onClick);
+            Image iconImage = NewRect("Icon", rect, Vector2.zero, new Vector2(64f, 64f)).gameObject.AddComponent<Image>();
+            iconImage.sprite = Resources.Load<Sprite>("UI/Shapes/" + icon);
+            iconImage.preserveAspect = true;
+            iconImage.raycastTarget = false;
         }
 
         private static void Place(RectTransform rect, RectTransform parent, Vector2 pos, Vector2 size)

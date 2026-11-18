@@ -19,6 +19,9 @@ namespace BlobSurvivor.Core
         public static event Action<string, string> OnMissionStarted; // anlık görev: başlık, alt satır
         public static event Action<string> OnMissionCompleted;       // ödül metni
         public static event Action OnVehicleEaten;                   // hareketli araba yutuldu
+        public static event Action OnPedestrianEaten;                // yaya yutuldu
+        public static event Action OnGasKill;                        // Sindirim Gazı bir düşmanı öldürdü
+        public static event Action OnEnemySlipped;                   // Kaygan Zemin bir düşmanı kaydırdı
         public static event Action<string> OnSkillUnlocked;          // oynayarak açılan skill (görünen ad)
         public static event Action<string, string> OnTransformation; // özel dönüşüm başladı: başlık, alt satır
         public static event Action OnGameOver;
@@ -59,6 +62,9 @@ namespace BlobSurvivor.Core
         public static void RaiseMissionStarted(string title, string sub) => OnMissionStarted?.Invoke(title, sub);
         public static void RaiseMissionCompleted(string reward) => OnMissionCompleted?.Invoke(reward);
         public static void RaiseVehicleEaten() => OnVehicleEaten?.Invoke();
+        public static void RaisePedestrianEaten() => OnPedestrianEaten?.Invoke();
+        public static void RaiseGasKill() => OnGasKill?.Invoke();
+        public static void RaiseEnemySlipped() => OnEnemySlipped?.Invoke();
         public static void RaiseSkillUnlocked(string name) => OnSkillUnlocked?.Invoke(name);
         public static void RaiseTransformation(string title, string sub) => OnTransformation?.Invoke(title, sub);
         public static void RaiseGameOver() => OnGameOver?.Invoke();

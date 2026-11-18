@@ -16,6 +16,7 @@ namespace BlobSurvivor.Entities.Blob
     public class FerrisWheelForm : MonoBehaviour
     {
         public const string SourceName = "P_FerrisWheel";
+        public const string BannerTitle = "DÖNME DOLAP!"; // rozet takibi bununla tanır
         private const string FormResource = "Transformations/FerrisWheelForm";
 
         private const float Duration = 20f;
@@ -197,7 +198,7 @@ namespace BlobSurvivor.Entities.Blob
             if (_controller != null) _controller.FormSpeedFactor = SpeedFactor;
             if (_camera != null) _camera.CinematicZoom = CameraZoom;
             DeathFx.Play(FormBounds(), SparkA, SparkB, true);
-            GameEvents.RaiseTransformation("DÖNME DOLAP!", "Ez geç! · 20 sn");
+            GameEvents.RaiseTransformation(BannerTitle, "Ez geç! · 20 sn");
             Haptics.Impact(2);
         }
 

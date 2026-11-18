@@ -169,10 +169,12 @@ namespace BlobSurvivor.Entities.Blob
         private void Consume(IConsumable consumable, GameObject obj)
         {
             if (_blobGrowth == null) return;
-            EatKind kind = Skills != null && obj.GetComponent<Pedestrians.PedestrianController>() != null ? EatKind.Pedestrian : EatKind.Object;
+            bool pedestrian = consumable is Pedestrians.PedestrianController;
+            EatKind kind = pedestrian ? EatKind.Pedestrian : EatKind.Object;
             _blobGrowth.AddMass(consumable.MassValue * SkillMass(kind, consumable.RequiredTier));
             Skills?.OnAte(kind, consumable.RequiredTier);
             Core.GameEvents.RaiseBlobAte(consumable.RequiredTier);
+            if (pedestrian) Core.GameEvents.RaisePedestrianEaten();
             _blobGrowth.PunchScale(consumable.RequiredTier);
 
             _scoreSystem?.AddScore(consumable.Data.ScoreValue);

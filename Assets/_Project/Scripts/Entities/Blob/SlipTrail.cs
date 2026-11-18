@@ -179,7 +179,8 @@ namespace BlobSurvivor.Entities.Blob
                 EnemyBase enemy = _hits[h].GetComponent<EnemyBase>();
                 if (enemy == null || enemy.IsDead) continue;
                 enemy.ApplySlow(1f - Slow, TickInterval + 0.15f);
-                if (SwarmSlip > 0f && enemy.Data != null && enemy.Data.IsSwarm) enemy.Slip(SwarmSlip, SlipCooldown);
+                if (SwarmSlip > 0f && enemy.Data != null && enemy.Data.IsSwarm && enemy.Slip(SwarmSlip, SlipCooldown))
+                    Core.GameEvents.RaiseEnemySlipped();
                 if (AcidDps > 0f && !enemy.CanBeConsumedBy(tier)) enemy.TakeDamage(AcidDps * TickInterval);
             }
         }

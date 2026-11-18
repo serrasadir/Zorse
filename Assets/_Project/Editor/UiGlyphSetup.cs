@@ -8,7 +8,7 @@ using UnityEngine.TextCore;
 namespace BlobSurvivor.EditorTools
 {
     // Tools → Blob.io → UI Glif ve Şekillerini Kur: UI_Glyphs TMP Sprite Asset'i (ok, yukari, asagi, uyari; beyaz,
-    // tint ile renk alır) ve slot şekil sprite'ları (daire, elmas, ayarlar dişlisi; Resources/UI/Shapes). Hepsi koddan çizilir.
+    // tint ile renk alır) ve şekil sprite'ları (daire, elmas, ayarlar dişlisi, kupa, podyum; Resources/UI/Shapes). Hepsi koddan çizilir.
     // TMP Settings'e dokunmaz: varsayılan sprite asset EmojiOne kalır, UI_Glyphs metinlere ayrıca bağlanır.
     // Tekrar çalıştırmak güvenli.
     public static class UiGlyphSetup
@@ -32,6 +32,8 @@ namespace BlobSurvivor.EditorTools
             WriteShape("UI_Circle", Circle);
             WriteShape("UI_Diamond", Diamond);
             WriteShape("UI_Gear", Gear);
+            WriteShape("UI_Trophy", Trophy);
+            WriteShape("UI_Podium", Podium);
 
             Texture2D sheet = WriteGlyphSheet();
             TMP_SpriteAsset asset = BuildSpriteAsset(sheet);
@@ -52,6 +54,26 @@ namespace BlobSurvivor.EditorTools
             float tooth = Mathf.Clamp01((Mathf.Cos(8f * Mathf.Atan2(v, u)) + 0.3f) * 4f);
             float body = r - (0.72f + 0.24f * tooth);
             return Mathf.Max(body, -(r - 0.3f));
+        }
+
+        // Kupa (rozetler): kâse + iki kulp + sap + taban.
+        private static float Trophy(float u, float v)
+        {
+            float bowl = Mathf.Max(Mathf.Sqrt(u * u + (v - 0.38f) * (v - 0.38f)) - 0.56f, v - 0.78f);
+            float handle = Mathf.Abs(Mathf.Sqrt((Mathf.Abs(u) - 0.56f) * (Mathf.Abs(u) - 0.56f) + (v - 0.42f) * (v - 0.42f)) - 0.22f) - 0.07f;
+            handle = Mathf.Max(handle, 0.42f - Mathf.Abs(u)); // kulpun içe kalan yarısı kâsede
+            float stem = Box(u, v + 0.38f, 0.1f, 0.22f);
+            float foot = Box(u, v + 0.74f, 0.42f, 0.12f);
+            return Mathf.Min(Mathf.Min(bowl, handle), Mathf.Min(stem, foot));
+        }
+
+        // Podyum (sıralama): ortası yüksek üç basamak.
+        private static float Podium(float u, float v)
+        {
+            float mid = Box(u, v + 0.1f, 0.28f, 0.8f);
+            float left = Box(u + 0.62f, v + 0.35f, 0.3f, 0.55f);
+            float right = Box(u - 0.62f, v + 0.5f, 0.3f, 0.4f);
+            return Mathf.Min(mid, Mathf.Min(left, right)); // basamaklar arasında ince boşluk kalır
         }
 
         private static float Arrow(float u, float v)
