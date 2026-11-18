@@ -33,6 +33,7 @@ namespace BlobSurvivor.UI
             public Image Portrait;
             public TMP_Text Name, Description, Lock;
             public RectTransform LockBadge;
+            public GameObject LockIcon; // kit: portre köşesinde kilit rozeti
             public CanvasGroup Group;
         }
 
@@ -40,6 +41,9 @@ namespace BlobSurvivor.UI
         private TMP_Text _credit;
         private bool _built;
         private float _cardHeight;
+        // Arayüz kiti (UiKit): krem kartlar, kırmızı başlık plakası, altın coin hapı. Kurulu değilse eski gece mavisi düzen.
+        private bool _k;
+        private static readonly Color DescInk = new Color32(58, 40, 30, 255);
 
         private void Start()
         {
@@ -92,7 +96,8 @@ namespace BlobSurvivor.UI
         {
             Build();
             MetaProgression meta = MetaProgression.Instance;
-            if (_credit != null) _credit.text = $"{(meta != null ? meta.Credit : 0):N0} coin";
+            int credit = meta != null ? meta.Credit : 0;
+            if (_credit != null) _credit.text = _k ? $"{credit:N0}" : $"{credit:N0} coin";
 
             for (int i = 0; i < _buttons.Length; i++)
             {
@@ -112,6 +117,7 @@ namespace BlobSurvivor.UI
                 card.Name.text = data.DisplayName;
                 card.Description.text = data.Description;
                 card.LockBadge.gameObject.SetActive(locked);
+                if (card.LockIcon != null) card.LockIcon.SetActive(locked);
                 card.Lock.text = $"KİLİTLİ · {lockReason}";
                 card.Group.alpha = locked ? 0.55f : 1f;
             }
@@ -136,6 +142,7 @@ namespace BlobSurvivor.UI
         {
             if (_built || _panel == null) return;
             _built = true;
+            _k = UiKit.Ready;
             var panel = (RectTransform)_panel.transform;
 
             Image backdrop = _panel.GetComponent<Image>();
@@ -145,10 +152,17 @@ namespace BlobSurvivor.UI
             panel.anchoredPosition = Vector2.zero; panel.sizeDelta = Vector2.zero;
             ScreenBackdrop(panel, Backdrop);
 
-            Shadowed("Title", panel, new Vector2(0f, 760f), new Vector2(1000f, 120f), "KARAKTERİNİ SEÇ", 92f, Color.white);
-
-            RectTransform chip = Box("CreditChip", panel, new Vector2(0f, 650f), new Vector2(360f, 72f), rounded, CardColor);
-            _credit = Text("Credit", chip, Vector2.zero, chip.sizeDelta, 38f, TextAlignmentOptions.Center, Gold);
+            if (_k)
+            {
+                KitTitle(panel, new Vector2(0f, 760f), "KARAKTERİNİ SEÇ");
+                _credit = KitCoinChip(panel, new Vector2(0f, 650f), new Vector2(360f, 72f), out _);
+            }
+            else
+            {
+                Shadowed("Title", panel, new Vector2(0f, 760f), new Vector2(1000f, 120f), "KARAKTERİNİ SEÇ", 92f, Color.white);
+                RectTransform chip = Box("CreditChip", panel, new Vector2(0f, 650f), new Vector2(360f, 72f), rounded, CardColor);
+                _credit = Text("Credit", chip, Vector2.zero, chip.sizeDelta, 38f, TextAlignmentOptions.Center, Gold);
+            }
 
             // Sahnede 3 buton var; fazla karakter için ilki bir kez kopyalanır (listener'lar Start'ta bağlanır).
             if (_buttons.Length > 0 && _buttons[0] != null && _characters.Length > _buttons.Length)
@@ -172,34 +186,77 @@ namespace BlobSurvivor.UI
                 StyleImage(_marketButton.targetGraphic as Image, Gold, rounded);
                 foreach (Transform c in _marketButton.transform) c.gameObject.SetActive(false);
                 _marketButton.interactable = true;
-                Text("Label", (RectTransform)_marketButton.transform, Vector2.zero, new Vector2(640f, 70f), 50f,
-                    TextAlignmentOptions.Center, new Color(0.12f, 0.08f, 0.02f, 1f)).text = "MARKET";
+                TMP_Text marketLabel = Text("Label", (RectTransform)_marketButton.transform, Vector2.zero, new Vector2(640f, 70f), 50f,
+                    TextAlignmentOptions.Center, new Color(0.12f, 0.08f, 0.02f, 1f));
+                marketLabel.text = "MARKET";
+                if (_k)
+                {
+                    UiKit.StyleButton(_marketButton, "gold");
+                    if (_marketButton.targetGraphic is Image marketImage) marketImage.pixelsPerUnitMultiplier = 1.15f; // 120 boy: alt/üst kenar sığsın
+                    marketLabel.rectTransform.anchoredPosition = new Vector2(0f, 5f);
+                    UiKit.Outlined(marketLabel, Color.white, true);
+                    marketLabel.fontSize = 56f;
+                }
             }
 
             // Geri: giriş ekranına (run zaten sıfır, sadece ekran değişir).
-            RectTransform back = Box("BackButton", panel, new Vector2(-420f, 885f), new Vector2(120f, 100f), rounded, CardColor);
+            Vector2 iconSize = _k ? new Vector2(112f, 112f) : new Vector2(120f, 100f);
+            RectTransform back = Box("BackButton", panel, new Vector2(-420f, 885f), iconSize, rounded, CardColor);
             var backImage = back.GetComponent<Image>();
             backImage.raycastTarget = true;
             var backButton = back.gameObject.AddComponent<Button>();
             backButton.targetGraphic = backImage;
             backButton.onClick.AddListener(() => TitleScreen.ShowTitle());
-            Text("Label", back, Vector2.zero, back.sizeDelta, 56f, TextAlignmentOptions.Center, Color.white).text = "<";
+            if (_k) UiKit.StyleIconButton(backButton, "back");
+            else Text("Label", back, Vector2.zero, back.sizeDelta, 56f, TextAlignmentOptions.Center, Color.white).text = "<";
 
             // Ayarlar (dişli): sağ üstte, geri tuşunun karşısında.
-            RectTransform gear = Box("SettingsButton", panel, new Vector2(420f, 885f), new Vector2(120f, 100f), rounded, CardColor);
+            RectTransform gear = Box("SettingsButton", panel, new Vector2(420f, 885f), iconSize, rounded, CardColor);
             var gearImage = gear.GetComponent<Image>();
             gearImage.raycastTarget = true;
             var gearButton = gear.gameObject.AddComponent<Button>();
             gearButton.targetGraphic = gearImage;
             gearButton.onClick.AddListener(() => SettingsPanel.Open(this, rounded));
-            Image gearIcon = NewRect("Icon", gear, Vector2.zero, new Vector2(64f, 64f)).gameObject.AddComponent<Image>();
-            gearIcon.sprite = Resources.Load<Sprite>("UI/Shapes/UI_Gear");
-            gearIcon.preserveAspect = true;
-            gearIcon.raycastTarget = false;
+            if (_k) UiKit.StyleIconButton(gearButton, "settings");
+            else
+            {
+                Image gearIcon = NewRect("Icon", gear, Vector2.zero, new Vector2(64f, 64f)).gameObject.AddComponent<Image>();
+                gearIcon.sprite = Resources.Load<Sprite>("UI/Shapes/UI_Gear");
+                gearIcon.preserveAspect = true;
+                gearIcon.raycastTarget = false;
+            }
 
             PinToEdge(panel, 1f, "Title", "TitleShadow", "CreditChip", "BackButton", "SettingsButton");
             if (_marketButton != null) PinToEdge((RectTransform)_marketButton.transform, 0f);
             LayoutCards();
+        }
+
+        // ---------------------------------------------------------------- kit parçaları (Market de kullanır)
+
+        // Başlık: kırmızı plaka + beyaz konturlu yazı. Obje adı "Title" (PinToEdge bulur).
+        internal static void KitTitle(RectTransform panel, Vector2 pos, string text, float width = 780f)
+        {
+            Image plate = UiKit.NewImage("Title", panel, pos, new Vector2(width, 146f), "Banners/plate_red");
+            UiKit.FitBorder(plate);
+            TMP_Text t = Text("Label", plate.rectTransform, new Vector2(0f, 4f), new Vector2(width - 140f, 108f), 68f, TextAlignmentOptions.Center, Color.white);
+            UiKit.Outlined(t, Color.white, true);
+            t.enableAutoSizing = true;
+            t.fontSizeMin = 44f;
+            t.fontSizeMax = 68f;
+            t.text = text;
+        }
+
+        // Coin hapı: altın hap, solda coin ikonu, yanında sayı (beyaz, konturlu). Obje adı "CreditChip".
+        internal static TMP_Text KitCoinChip(RectTransform panel, Vector2 pos, Vector2 size, out RectTransform chip)
+        {
+            Image pill = UiKit.NewImage("CreditChip", panel, pos, size, "Pills/pill_gold");
+            UiKit.FitBorder(pill);
+            chip = pill.rectTransform;
+            float icon = size.y * 0.9f;
+            UiKit.NewImage("Coin", chip, new Vector2(-size.x * 0.5f + icon * 0.5f + 12f, 0f), new Vector2(icon, icon), "Icons/coin");
+            TMP_Text t = Text("Credit", chip, new Vector2(icon * 0.5f, 3f), new Vector2(size.x - icon - 40f, size.y), 40f, TextAlignmentOptions.Center, Color.white);
+            UiKit.Outlined(t, Color.white);
+            return t;
         }
 
         // Ekran dönünce (panel boyu değişince) kartlar yeniden dizilir.
@@ -277,7 +334,8 @@ namespace BlobSurvivor.UI
             var rect = (RectTransform)button.transform;
             Place(rect, panel, pos, new Vector2(900f, height));
             float k = height / 340f;
-            StyleImage(button.targetGraphic as Image, CardColor, rounded);
+            if (_k && button.targetGraphic is Image cardImage) { UiKit.Paint(cardImage, "Panels/card_cream"); cardImage.raycastTarget = true; }
+            else StyleImage(button.targetGraphic as Image, CardColor, rounded);
             foreach (Transform c in rect) c.gameObject.SetActive(false); // eski "Button" yazısı
             ColorBlock colors = button.colors;
             colors.disabledColor = Color.white; // soluklaştırmayı CanvasGroup yapar
@@ -288,8 +346,11 @@ namespace BlobSurvivor.UI
             if (group == null) group = button.gameObject.AddComponent<CanvasGroup>();
             var card = new Card { Group = group };
 
-            RectTransform frame = Box("PortraitFrame", rect, new Vector2(-300f - (1f - k) * 50f, 0f), new Vector2(270f, 270f) * k, rounded, new Color(1f, 1f, 1f, 0.06f));
-            var portraitRect = NewRect("Portrait", frame, new Vector2(0f, 6f * k), new Vector2(250f, 250f) * k);
+            Vector2 framePos = new Vector2(-300f - (1f - k) * 50f, 0f);
+            RectTransform frame = _k
+                ? UiKit.NewImage("PortraitFrame", rect, framePos, new Vector2(270f, 270f) * k, "Slots/slot_passive").rectTransform
+                : Box("PortraitFrame", rect, framePos, new Vector2(270f, 270f) * k, rounded, new Color(1f, 1f, 1f, 0.06f));
+            var portraitRect = NewRect("Portrait", frame, new Vector2(0f, 6f * k), (_k ? new Vector2(220f, 220f) : new Vector2(250f, 250f)) * k);
             card.Portrait = portraitRect.gameObject.AddComponent<Image>();
             card.Portrait.preserveAspect = true;
             card.Portrait.raycastTarget = false;
@@ -298,6 +359,24 @@ namespace BlobSurvivor.UI
             card.Description = Text("Description", rect, new Vector2(140f, -34f * k), new Vector2(560f, 150f * k), 34f * Mathf.Sqrt(k), TextAlignmentOptions.TopLeft, Subtle);
             card.Description.fontStyle = FontStyles.Normal;
             card.Description.textWrappingMode = TextWrappingModes.Normal;
+
+            if (_k)
+            {
+                // Krem kartta koyu mürekkep; kilit: gri hap + portre köşesinde kilit rozeti.
+                UiKit.Text(card.Name, true, UiKit.Ink);
+                UiKit.Text(card.Description, false, DescInk);
+                var badgeSize = new Vector2(560f, 64f * Mathf.Sqrt(k));
+                Image pill = UiKit.NewImage("LockBadge", rect, new Vector2(140f, -128f * k), badgeSize, "Pills/pill_gray");
+                UiKit.FitBorder(pill);
+                card.LockBadge = pill.rectTransform;
+                card.Lock = Text("Text", card.LockBadge, new Vector2(0f, 3f), new Vector2(520f, badgeSize.y), 30f * Mathf.Sqrt(k),
+                    TextAlignmentOptions.Center, Color.white);
+                UiKit.Outlined(card.Lock, Color.white, false, false);
+                float lockSize = 110f * k;
+                card.LockIcon = UiKit.NewImage("LockIcon", frame, new Vector2(95f * k, -95f * k), new Vector2(lockSize, lockSize * 171f / 219f),
+                    "Badges/badge_lock").gameObject;
+                return card;
+            }
 
             card.LockBadge = Box("LockBadge", rect, new Vector2(140f, -128f * k), new Vector2(560f, 58f * Mathf.Sqrt(k)), rounded, new Color(1f, 0.82f, 0.25f, 0.95f));
             card.Lock = Text("Text", card.LockBadge, Vector2.zero, card.LockBadge.sizeDelta, 30f * Mathf.Sqrt(k), TextAlignmentOptions.Center,

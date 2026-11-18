@@ -71,7 +71,7 @@ namespace BlobSurvivor.UI
             public UpgradeData Skill;       // skill kilidi
             public RectTransform Rect;
             public TMP_Text Name, Detail, Level, Price;
-            public Image Pill;
+            public Image Pill, Coin;
             public RectTransform Progress, ProgressFill; // run'la açılan karakter, skill kilidi
         }
 
@@ -86,6 +86,15 @@ namespace BlobSurvivor.UI
         private TMP_Text _credit;
         private bool _built;
 
+        // Arayüz kiti (UiKit): krem satırlar, renkli haplar, altın/gri sekmeler. Kurulu değilse eski gece mavisi düzen.
+        private bool _k;
+        private Button[] _tabButtons;
+        private Button _resetButton;
+        private Color _creditColor = Gold;
+        private static readonly Color DescInk = new Color32(58, 40, 30, 255);
+        private static readonly Color LevelInk = new Color32(214, 110, 0, 255);
+        private string OkTag => _k ? "#2E9E3E" : "#59D173";   // açıklamada yeşil (krem zeminde koyu)
+        private string GoalTag => _k ? "#C25E00" : "#FFD140"; // açılma koşulu
         private void Start()
         {
             if (MetaProgression.Instance != null) MetaProgression.Instance.Changed += Refresh;
@@ -166,7 +175,7 @@ namespace BlobSurvivor.UI
             if (!_built || meta == null) return;
             RefreshResetRow(meta);
 
-            _credit.text = $"{meta.Credit:N0} coin";
+            _credit.text = _k ? $"{meta.Credit:N0}" : $"{meta.Credit:N0} coin";
             foreach (Row row in _characterRows) RefreshCharacterRow(row, meta);
             foreach (Row row in _rows)
             {
@@ -185,8 +194,8 @@ namespace BlobSurvivor.UI
 
             if (unlocked)
             {
-                SetPill(row, Owned, GoldInk, "AÇIK");
-                row.Detail.text = $"{c.Description}\n<color=#59D173>Lobide seçebilirsin.</color>";
+                SetPill(row, "Pills/pill_green", Owned, GoldInk, "AÇIK");
+                row.Detail.text = $"{c.Description}\n<color={OkTag}>Lobide seçebilirsin.</color>";
             }
             else if (c.MarketPrice > 0 && !meta.IsCharacterPurchased(c))
             {
@@ -196,8 +205,8 @@ namespace BlobSurvivor.UI
             else
             {
                 int done = c.RequiredCompletedRuns - runsLeft;
-                SetPill(row, PillLocked, Color.white, $"{done}/{c.RequiredCompletedRuns} run");
-                row.Detail.text = $"{c.Description}\n<color=#FFD140>{c.RequiredCompletedRuns} run oyna, açılsın.</color>\nÖlüm de sayılır.";
+                SetPill(row, "Pills/pill_gray", PillLocked, Color.white, $"{done}/{c.RequiredCompletedRuns} run");
+                row.Detail.text = $"{c.Description}\n<color={GoalTag}>{c.RequiredCompletedRuns} run oyna, açılsın.</color>\nÖlüm de sayılır.";
                 row.ProgressFill.anchorMax = new Vector2(Mathf.Clamp01((float)done / c.RequiredCompletedRuns), 1f);
             }
         }
@@ -205,7 +214,10 @@ namespace BlobSurvivor.UI
         private void RefreshStatRow(Row row, MetaProgression meta)
         {
             if (meta.IsPurchased(row.Type))
-                SetPill(row, Owned, GoldInk, row.Type == MetaStatType.XpMultiplier ? "ALINDI" : "MAX");
+            {
+                bool once = row.Type == MetaStatType.XpMultiplier;
+                SetPill(row, once ? "Pills/pill_green" : "Pills/pill_purple", Owned, GoldInk, once ? "ALINDI" : "MAX");
+            }
             else
                 SetPrice(row, meta.GetCost(row.Type), meta.Credit);
 
@@ -218,7 +230,7 @@ namespace BlobSurvivor.UI
         {
             PowerUpDef def = row.PowerUp;
             int level = meta.GetLevel(def);
-            if (meta.IsMaxed(def)) SetPill(row, Owned, GoldInk, "MAX");
+            if (meta.IsMaxed(def)) SetPill(row, "Pills/pill_purple", Owned, GoldInk, "MAX");
             else SetPrice(row, meta.GetCost(def), meta.Credit);
             row.Level.text = level > 0 ? $"Sv. {level}/{def.MaxLevel}" : "";
             row.Detail.text = level > 0 ? $"{def.PerLevelText} · şu an {def.TotalText(meta.GetValue(def))}" : def.PerLevelText;
@@ -230,38 +242,53 @@ namespace BlobSurvivor.UI
             bool unlocked = meta.IsSkillUnlocked(row.Skill.Id);
             if (!locked)
             {
-                SetPill(row, Owned, GoldInk, "AÇIK");
+                SetPill(row, "Pills/pill_green", Owned, GoldInk, "AÇIK");
                 row.Progress.gameObject.SetActive(false);
                 return;
             }
             int value = meta.GetStat(entry.Stat);
             if (unlocked)
             {
-                SetPill(row, Owned, GoldInk, "AÇILDI");
-                row.Detail.text = $"<color=#59D173>{entry.Text}</color>";
+                SetPill(row, "Pills/pill_green", Owned, GoldInk, "AÇILDI");
+                row.Detail.text = $"<color={OkTag}>{entry.Text}</color>";
                 row.Progress.gameObject.SetActive(false);
             }
             else
             {
                 string progress = SkillUnlocks.ProgressText(entry, value);
-                SetPill(row, PillLocked, Color.white, string.IsNullOrEmpty(progress) ? "KİLİTLİ" : progress);
-                row.Detail.text = $"<color=#FFD140>{entry.Text}</color>";
+                SetPill(row, "Pills/pill_gray", PillLocked, Color.white, string.IsNullOrEmpty(progress) ? "KİLİTLİ" : progress);
+                row.Detail.text = $"<color={GoalTag}>{entry.Text}</color>";
                 row.Progress.gameObject.SetActive(entry.Target > 1);
                 row.ProgressFill.anchorMax = new Vector2(Mathf.Clamp01((float)value / entry.Target), 1f);
             }
         }
 
-        private static void SetPill(Row row, Color pill, Color ink, string text)
+        // kitKey: kit kuruluyken hap sprite'ı (yazı beyaz konturlu); değilse pill/ink renkleri. coin: fiyat hapında coin ikonu.
+        private void SetPill(Row row, string kitKey, Color pill, Color ink, string text, bool coin = false)
         {
-            row.Pill.color = pill;
-            row.Price.color = ink;
+            if (_k)
+            {
+                UiKit.Paint(row.Pill, kitKey);
+                UiKit.FitBorder(row.Pill);
+                row.Price.color = Color.white;
+                if (row.Coin != null) row.Coin.gameObject.SetActive(coin);
+                RectTransform r = row.Price.rectTransform;
+                r.anchoredPosition = coin ? new Vector2(26f, 3f) : new Vector2(0f, 3f);
+                r.sizeDelta = coin ? new Vector2(124f, 70f) : new Vector2(180f, 70f);
+            }
+            else
+            {
+                row.Pill.color = pill;
+                row.Price.color = ink;
+            }
             row.Price.text = text;
         }
 
-        private static void SetPrice(Row row, int cost, int credit)
+        private void SetPrice(Row row, int cost, int credit)
         {
             bool affordable = credit >= cost;
-            SetPill(row, affordable ? Gold : PillLocked, affordable ? GoldInk : Faint, $"{cost:N0}");
+            SetPill(row, affordable ? "Pills/pill_gold" : "Pills/pill_gray", affordable ? Gold : PillLocked, affordable ? GoldInk : Faint, $"{cost:N0}", true);
+            if (_k && row.Coin != null) row.Coin.color = affordable ? Color.white : new Color(1f, 1f, 1f, 0.6f);
         }
 
         private void ShowTab(int tab)
@@ -271,6 +298,11 @@ namespace BlobSurvivor.UI
             {
                 bool on = i == tab;
                 _pages[i].gameObject.SetActive(on);
+                if (_k)
+                {
+                    UiKit.StyleButton(_tabButtons[i], on ? "gold" : "gray");
+                    continue; // yazı hep beyaz konturlu
+                }
                 _tabs[i].color = on ? Gold : CardColor;
                 _tabTexts[i].color = on ? GoldInk : Color.white;
             }
@@ -329,6 +361,7 @@ namespace BlobSurvivor.UI
         {
             if (_built || _panel == null) return;
             _built = true;
+            _k = UiKit.Ready;
             var panel = (RectTransform)_panel.transform;
 
             Sprite rounded = null;
@@ -349,20 +382,31 @@ namespace BlobSurvivor.UI
             if (backdrop != null) { backdrop.color = Color.clear; backdrop.sprite = null; backdrop.raycastTarget = true; }
             LobbyPanel.ScreenBackdrop(panel, Backdrop);
 
-            Shadowed("Title", panel, new Vector2(0f, 760f), new Vector2(1000f, 120f), "MARKET", 92f, Gold);
+            if (_k)
+            {
+                // Başlık plakası geri tuşuna değmesin diye dar (geri tuşu başlıkla aynı hizada).
+                LobbyPanel.KitTitle(panel, new Vector2(0f, 760f), "MARKET", 600f);
+                _credit = LobbyPanel.KitCoinChip(panel, new Vector2(0f, 650f), new Vector2(360f, 72f), out _creditChip);
+                _creditColor = Color.white;
+            }
+            else
+            {
+                Shadowed("Title", panel, new Vector2(0f, 760f), new Vector2(1000f, 120f), "MARKET", 92f, Gold);
+                _creditChip = Box("CreditChip", panel, new Vector2(0f, 650f), new Vector2(360f, 72f), rounded, CardColor);
+                _credit = Text("Credit", _creditChip, Vector2.zero, _creditChip.sizeDelta, 38f, TextAlignmentOptions.Center, Gold);
+            }
 
-            _creditChip = Box("CreditChip", panel, new Vector2(0f, 650f), new Vector2(360f, 72f), rounded, CardColor);
-            _credit = Text("Credit", _creditChip, Vector2.zero, _creditChip.sizeDelta, 38f, TextAlignmentOptions.Center, Gold);
-
-            RectTransform back = Box("BackButton", panel, new Vector2(-420f, 760f), new Vector2(120f, 100f), rounded, CardColor);
+            RectTransform back = Box("BackButton", panel, new Vector2(-420f, 760f), _k ? new Vector2(112f, 112f) : new Vector2(120f, 100f), rounded, CardColor);
             MakeButton(back, Back);
-            Text("Label", back, Vector2.zero, back.sizeDelta, 56f, TextAlignmentOptions.Center, Color.white).text = "<";
+            if (_k) UiKit.StyleIconButton(back.GetComponent<Button>(), "back");
+            else Text("Label", back, Vector2.zero, back.sizeDelta, 56f, TextAlignmentOptions.Center, Color.white).text = "<";
 
             // Sekmeler: başlık bloğuyla birlikte üste yapışır.
             string[] tabNames = { "KARAKTERLER", "GÜÇLER", "KİLİTLER" };
             RectTransform tabs = NewRect("Tabs", panel, new Vector2(0f, 540f), new Vector2(900f, 96f));
             _tabs = new Image[tabNames.Length];
             _tabTexts = new TMP_Text[tabNames.Length];
+            _tabButtons = new Button[tabNames.Length];
             const float tabWidth = 292f;
             for (int i = 0; i < tabNames.Length; i++)
             {
@@ -370,8 +414,20 @@ namespace BlobSurvivor.UI
                 RectTransform tab = Box("Tab_" + i, tabs, new Vector2((i - 1) * (tabWidth + 12f), 0f), new Vector2(tabWidth, 96f), rounded, CardColor);
                 MakeButton(tab, () => ShowTab(index));
                 _tabs[i] = tab.GetComponent<Image>();
+                _tabButtons[i] = tab.GetComponent<Button>();
                 _tabTexts[i] = Text("Label", tab, Vector2.zero, tab.sizeDelta, 36f, TextAlignmentOptions.Center, Color.white);
                 _tabTexts[i].text = tabNames[i];
+                if (_k)
+                {
+                    UiKit.StyleButton(_tabButtons[i], "gray");
+                    _tabs[i].pixelsPerUnitMultiplier = 1.45f; // 96 boy: butonun alt/üst kenarı sığsın
+                    _tabTexts[i].rectTransform.sizeDelta = new Vector2(tabWidth - 36f, 70f);
+                    _tabTexts[i].rectTransform.anchoredPosition = new Vector2(0f, 4f);
+                    UiKit.Outlined(_tabTexts[i], Color.white);
+                    _tabTexts[i].enableAutoSizing = true;
+                    _tabTexts[i].fontSizeMin = 22f;
+                    _tabTexts[i].fontSizeMax = 36f;
+                }
             }
 
             RectTransform charactersPage = NewRect("CharactersPage", panel, Vector2.zero, new Vector2(1080f, 1920f));
@@ -388,8 +444,7 @@ namespace BlobSurvivor.UI
             {
                 if (item.Header != null) powerLayout.Add(SectionLabel(powerContent, item.Header), HeaderHeight);
                 else if (item.PowerUp != null) powerLayout.Add(BuildPowerUpRow(item.PowerUp, powerContent, rounded).Rect, RowHeight);
-                else powerLayout.Add(BuildStatRow(item.Stat.Value, powerContent, rounded).Rect, RowHeight);
-            }
+                else powerLayout.Add(BuildStatRow(item.Stat.Value, powerContent, rounded).Rect, RowHeight);            }
             powerLayout.Add(BuildResetRow(powerContent, rounded), RowHeight);
             powerLayout.Finish();
 
@@ -481,11 +536,103 @@ namespace BlobSurvivor.UI
             public void Finish() => _content.sizeDelta = new Vector2(_content.sizeDelta.x, _y + RowGap);
         }
 
-        private static RectTransform SectionLabel(RectTransform parent, string text)
+        private RectTransform SectionLabel(RectTransform parent, string text)
         {
             TMP_Text label = Text("Section", parent, Vector2.zero, new Vector2(RowWidth, HeaderHeight), 34f, TextAlignmentOptions.BottomLeft, Faint);
+            if (_k) UiKit.Outlined(label, Color.white);
             label.text = text;
             return label.rectTransform;
+        }
+
+        // ---------------------------------------------------------------- kit parçaları
+
+        // Satır zemini: kit kuruluysa krem satır/kart, değilse gece mavisi.
+        private void PaintRow(RectTransform rect, string kitKey)
+        {
+            if (!_k) return;
+            Image img = rect.GetComponent<Image>();
+            UiKit.Paint(img, kitKey);
+            img.raycastTarget = true;
+        }
+
+        // Fiyat hapı (sağda). Kitte coin ikonu + beyaz konturlu yazı, uzun yazı (ilerleme) küçülür.
+        private void BuildPill(Row row, Vector2 pos, float fontSize, Sprite rounded)
+        {
+            row.Pill = Box("Price", row.Rect, pos, new Vector2(200f, 84f), rounded, Gold).GetComponent<Image>();
+            row.Price = Text("Text", (RectTransform)row.Pill.transform, Vector2.zero, new Vector2(200f, 84f), fontSize, TextAlignmentOptions.Center, GoldInk);
+            if (!_k) return;
+            UiKit.Paint(row.Pill, "Pills/pill_gold");
+            UiKit.FitBorder(row.Pill);
+            row.Coin = UiKit.NewImage("Coin", row.Pill.rectTransform, new Vector2(-62f, 0f), new Vector2(60f, 60f), "Icons/coin");
+            UiKit.Outlined(row.Price, Color.white);
+            row.Price.enableAutoSizing = true;
+            row.Price.fontSizeMin = 20f;
+            row.Price.fontSizeMax = fontSize;
+        }
+
+        // İlerleme çubuğu. Kitte lacivert ray + sarı dolgu (dolgu ray içindeki iç alana göre uzar).
+        private void BuildProgress(Row row, Vector2 pos, Vector2 size, Sprite rounded)
+        {
+            RectTransform area;
+            if (_k)
+            {
+                Image track = UiKit.NewImage("Progress", row.Rect, pos, size, "Bars/bar_track");
+                UiKit.FitBorder(track);
+                row.Progress = track.rectTransform;
+                float inset = size.y * 0.2f;
+                area = NewRect("Inner", row.Progress, Vector2.zero, Vector2.zero);
+                area.anchorMin = Vector2.zero;
+                area.anchorMax = Vector2.one;
+                area.offsetMin = new Vector2(inset * 1.5f, inset);
+                area.offsetMax = new Vector2(-inset * 1.5f, -inset);
+                row.ProgressFill = UiKit.NewImage("Fill", area, Vector2.zero, Vector2.zero, "Bars/bar_fill_yellow").rectTransform;
+            }
+            else
+            {
+                row.Progress = Box("Progress", row.Rect, pos, size, rounded, new Color(1f, 1f, 1f, 0.12f));
+                row.ProgressFill = Box("Fill", row.Progress, Vector2.zero, Vector2.zero, rounded, Gold);
+            }
+            row.ProgressFill.anchorMin = Vector2.zero;
+            row.ProgressFill.anchorMax = new Vector2(0f, 1f);
+            row.ProgressFill.pivot = new Vector2(0f, 0.5f);
+            row.ProgressFill.offsetMin = row.ProgressFill.offsetMax = Vector2.zero;
+            if (_k)
+            {
+                Image fill = row.ProgressFill.GetComponent<Image>();
+                float h = size.y * 0.6f; // iç alan boyu
+                if (fill.sprite != null) fill.pixelsPerUnitMultiplier = fill.sprite.rect.height / h;
+            }
+        }
+
+        // Sol slot + ikon (skill / güç); ikon null ise slot boş kalır.
+        private Image BuildIconSlot(RectTransform parent, Vector2 pos, float size, string slotKey, Sprite icon)
+        {
+            Image slot = UiKit.NewImage("Slot", parent, pos, new Vector2(size, size), slotKey);
+            Image img = UiKit.NewImage("Icon", slot.rectTransform, Vector2.zero, new Vector2(size, size) * 0.78f, null);
+            img.sprite = icon;
+            img.preserveAspect = true;
+            img.enabled = icon != null;
+            return slot;
+        }
+
+        // Güç satırı ikonu: eşleşen kit ikonu varsa (yoksa null, ikonsuz satır).
+        private static string PowerIconKey(MetaStatType? stat, PowerUpDef def)
+        {
+            if (def != null)
+            {
+                if (def == PowerUps.Armor) return "Skills/armor";
+                if (def == PowerUps.Regen) return "Skills/regen";
+                if (def == PowerUps.Curse) return "Icons/warning";
+                return null;
+            }
+            switch (stat)
+            {
+                case MetaStatType.MaxHealth: return "Skills/max_health";
+                case MetaStatType.Speed: return "Skills/speed";
+                case MetaStatType.CoinGain: return "Icons/coin";
+                case MetaStatType.XpMultiplier: return "Icons/star";
+                default: return null;
+            }
         }
 
         private Row BuildCharacterCard(CharacterData character, RectTransform parent, Vector2 pos, Sprite rounded)
@@ -493,9 +640,12 @@ namespace BlobSurvivor.UI
             var row = new Row { Character = character };
             row.Rect = Box("Character_" + character.SaveId, parent, pos, new Vector2(900f, 260f), rounded, CardColor);
             MakeButton(row.Rect, () => Purchase(row));
+            PaintRow(row.Rect, "Panels/card_cream");
 
-            RectTransform frame = Box("PortraitFrame", row.Rect, new Vector2(-325f, 0f), new Vector2(210f, 210f), rounded, new Color(1f, 1f, 1f, 0.06f));
-            var portrait = NewRect("Portrait", frame, new Vector2(0f, 5f), new Vector2(195f, 195f)).gameObject.AddComponent<Image>();
+            RectTransform frame = _k
+                ? UiKit.NewImage("PortraitFrame", row.Rect, new Vector2(-325f, 0f), new Vector2(210f, 210f), "Slots/slot_passive").rectTransform
+                : Box("PortraitFrame", row.Rect, new Vector2(-325f, 0f), new Vector2(210f, 210f), rounded, new Color(1f, 1f, 1f, 0.06f));
+            var portrait = NewRect("Portrait", frame, new Vector2(0f, 5f), _k ? new Vector2(172f, 172f) : new Vector2(195f, 195f)).gameObject.AddComponent<Image>();
             portrait.preserveAspect = true;
             portrait.raycastTarget = false;
             portrait.sprite = character.Icon;
@@ -506,16 +656,14 @@ namespace BlobSurvivor.UI
             row.Detail = Text("Description", row.Rect, new Vector2(45f, -25f), new Vector2(350f, 110f), 26f, TextAlignmentOptions.TopLeft, Subtle);
             row.Detail.fontStyle = FontStyles.Normal;
             row.Detail.textWrappingMode = TextWrappingModes.Normal;
+            if (_k)
+            {
+                UiKit.Text(row.Name, true, UiKit.Ink);
+                UiKit.Text(row.Detail, false, DescInk);
+            }
 
-            row.Progress = Box("Progress", row.Rect, new Vector2(45f, -100f), new Vector2(350f, 18f), rounded, new Color(1f, 1f, 1f, 0.12f));
-            row.ProgressFill = Box("Fill", row.Progress, Vector2.zero, Vector2.zero, rounded, Gold);
-            row.ProgressFill.anchorMin = Vector2.zero;
-            row.ProgressFill.anchorMax = new Vector2(0f, 1f);
-            row.ProgressFill.pivot = new Vector2(0f, 0.5f);
-            row.ProgressFill.offsetMin = row.ProgressFill.offsetMax = Vector2.zero;
-
-            row.Pill = Box("Price", row.Rect, new Vector2(330f, 0f), new Vector2(200f, 84f), rounded, Gold).GetComponent<Image>();
-            row.Price = Text("Text", (RectTransform)row.Pill.transform, Vector2.zero, new Vector2(200f, 84f), 38f, TextAlignmentOptions.Center, GoldInk);
+            BuildProgress(row, new Vector2(45f, -100f), _k ? new Vector2(350f, 30f) : new Vector2(350f, 18f), rounded);
+            BuildPill(row, new Vector2(330f, 0f), 38f, rounded);
             return row;
         }
 
@@ -530,6 +678,14 @@ namespace BlobSurvivor.UI
             _resetRow = Box("Reset", parent, Vector2.zero, new Vector2(RowWidth, RowHeight), rounded, new Color(0.35f, 0.08f, 0.1f, 0.85f));
             MakeButton(_resetRow, ResetPowerUps);
             _resetText = Text("Label", _resetRow, Vector2.zero, _resetRow.sizeDelta, 38f, TextAlignmentOptions.Center, Color.white);
+            if (_k)
+            {
+                _resetButton = _resetRow.GetComponent<Button>();
+                UiKit.StyleButton(_resetButton, "red");
+                _resetText.rectTransform.anchoredPosition = new Vector2(0f, 6f);
+                _resetText.rectTransform.sizeDelta = new Vector2(RowWidth - 80f, 90f);
+                UiKit.Outlined(_resetText, Color.white);
+            }
             return _resetRow;
         }
 
@@ -541,7 +697,13 @@ namespace BlobSurvivor.UI
             _resetText.text = spent <= 0 ? "SIFIRLA · alınmış güç yok"
                 : armed ? $"EMİN MİSİN? Dokun: +{spent:N0} coin geri"
                 : $"GÜÇLERİ SIFIRLA · +{spent:N0} coin geri";
-            _resetText.color = spent <= 0 ? Faint : armed ? Gold : Color.white;
+            if (_k)
+            {
+                // Alınmış güç yoksa gri buton; onay beklerken yazı altın.
+                UiKit.StyleButton(_resetButton, spent <= 0 ? "gray" : "red");
+                _resetText.color = armed ? UiKit.Gold : Color.white;
+            }
+            else _resetText.color = spent <= 0 ? Faint : armed ? Gold : Color.white;
         }
 
         private void ResetPowerUps()
@@ -570,23 +732,24 @@ namespace BlobSurvivor.UI
 
         private Row BuildStatRow(MetaStatType type, RectTransform parent, Sprite rounded)
         {
-            Row row = BuildPowerRowShell("Stat_" + type, StatNameOf(type), parent, rounded);
+            Row row = BuildPowerRowShell("Stat_" + type, StatNameOf(type), PowerIconKey(type, null), parent, rounded);
             row.Type = type;
             return row;
         }
 
         private Row BuildPowerUpRow(PowerUpDef def, RectTransform parent, Sprite rounded)
         {
-            Row row = BuildPowerRowShell("PowerUp_" + def.Id, def.Name, parent, rounded);
+            Row row = BuildPowerRowShell("PowerUp_" + def.Id, def.Name, PowerIconKey(null, def), parent, rounded);
             row.PowerUp = def;
             return row;
         }
 
-        private Row BuildPowerRowShell(string id, string name, RectTransform parent, Sprite rounded)
+        private Row BuildPowerRowShell(string id, string name, string iconKey, RectTransform parent, Sprite rounded)
         {
             var row = new Row();
             row.Rect = Box(id, parent, Vector2.zero, new Vector2(RowWidth, RowHeight), rounded, CardColor);
             MakeButton(row.Rect, () => Purchase(row));
+            PaintRow(row.Rect, "Panels/row_cream");
 
             row.Name = Text("Name", row.Rect, new Vector2(-150f, 26f), new Vector2(520f, 60f), 46f, TextAlignmentOptions.Left, Color.white);
             row.Name.text = name;
@@ -594,8 +757,23 @@ namespace BlobSurvivor.UI
             row.Detail = Text("Detail", row.Rect, new Vector2(-110f, -34f), new Vector2(600f, 50f), 30f, TextAlignmentOptions.Left, Subtle);
             row.Detail.fontStyle = FontStyles.Normal;
 
-            row.Pill = Box("Price", row.Rect, new Vector2(320f, 0f), new Vector2(200f, 84f), rounded, Gold).GetComponent<Image>();
-            row.Price = Text("Text", (RectTransform)row.Pill.transform, Vector2.zero, new Vector2(200f, 84f), 40f, TextAlignmentOptions.Center, GoldInk);
+            if (_k)
+            {
+                UiKit.Text(row.Name, true, UiKit.Ink);
+                UiKit.Text(row.Level, true, LevelInk);
+                UiKit.Text(row.Detail, false, DescInk);
+                Sprite icon = UiKit.Get(iconKey);
+                if (icon != null)
+                {
+                    // Solda ikon slotu; yazılar sağa kayar (sağ kenarları aynı).
+                    BuildIconSlot(row.Rect, new Vector2(-372f, 0f), 112f, "Slots/slot_passive", icon);
+                    Place(row.Name.rectTransform, row.Rect, new Vector2(-95f, 26f), new Vector2(410f, 60f));
+                    Place(row.Detail.rectTransform, row.Rect, new Vector2(-55f, -34f), new Vector2(490f, 50f));
+                }
+                row.Detail.overflowMode = TextOverflowModes.Ellipsis;
+            }
+
+            BuildPill(row, new Vector2(320f, 0f), 40f, rounded);
             _rows.Add(row);
             return row;
         }
@@ -605,6 +783,7 @@ namespace BlobSurvivor.UI
             var row = new Row { Skill = skill };
             row.Rect = Box("Skill_" + skill.Id, parent, Vector2.zero, new Vector2(RowWidth, SkillRowHeight), rounded, CardColor);
             MakeButton(row.Rect, () => Purchase(row));
+            PaintRow(row.Rect, "Panels/row_cream");
 
             row.Name = Text("Name", row.Rect, new Vector2(-150f, 42f), new Vector2(520f, 56f), 44f, TextAlignmentOptions.Left, Color.white);
             row.Name.text = skill.DisplayName;
@@ -620,15 +799,46 @@ namespace BlobSurvivor.UI
             row.Detail.overflowMode = TextOverflowModes.Ellipsis;
             row.Detail.text = skill.Description;
 
-            row.Progress = Box("Progress", row.Rect, new Vector2(-110f, -58f), new Vector2(600f, 16f), rounded, new Color(1f, 1f, 1f, 0.12f));
-            row.ProgressFill = Box("Fill", row.Progress, Vector2.zero, Vector2.zero, rounded, Gold);
-            row.ProgressFill.anchorMin = Vector2.zero;
-            row.ProgressFill.anchorMax = new Vector2(0f, 1f);
-            row.ProgressFill.pivot = new Vector2(0f, 0.5f);
-            row.ProgressFill.offsetMin = row.ProgressFill.offsetMax = Vector2.zero;
+            if (!_k)
+            {
+                BuildProgress(row, new Vector2(-110f, -58f), new Vector2(600f, 16f), rounded);
+                BuildPill(row, new Vector2(320f, 0f), 32f, rounded);
+                _rows.Add(row);
+                return row;
+            }
 
-            row.Pill = Box("Price", row.Rect, new Vector2(320f, 0f), new Vector2(200f, 84f), rounded, Gold).GetComponent<Image>();
-            row.Price = Text("Text", (RectTransform)row.Pill.transform, Vector2.zero, new Vector2(200f, 84f), 32f, TextAlignmentOptions.Center, GoldInk);
+            // Kit: solda skill slotu + ikon (aktif/nadir yuvarlak, pasif kare; ikon yoksa baş harf), tür hapı adın sağında.
+            bool round = skill.Kind != SkillKind.Passive;
+            Sprite icon = UiKit.SkillIcon(skill);
+            Image slot = BuildIconSlot(row.Rect, new Vector2(-370f, 0f), 128f, round ? "Slots/slot_active" : "Slots/slot_passive", icon);
+            if (icon == null && !string.IsNullOrEmpty(skill.DisplayName))
+            {
+                TMP_Text letter = Text("Letter", slot.rectTransform, Vector2.zero, new Vector2(100f, 100f), 60f, TextAlignmentOptions.Center, UiKit.Ink);
+                UiKit.Text(letter, true, UiKit.Ink);
+                letter.text = skill.DisplayName.Substring(0, 1);
+            }
+
+            const float left = -290f, right = 205f;
+            Place(row.Name.rectTransform, row.Rect, new Vector2(left + 165f, 42f), new Vector2(330f, 56f));
+            UiKit.Text(row.Name, true, UiKit.Ink);
+            row.Name.enableAutoSizing = true;
+            row.Name.fontSizeMin = 30f;
+            row.Name.fontSizeMax = 44f;
+
+            Image kindPill = UiKit.NewImage("KindPill", row.Rect, new Vector2(right - 75f, 42f), new Vector2(150f, 52f),
+                skill.Kind == SkillKind.Active ? "Pills/pill_orange" : skill.Kind == SkillKind.Rare ? "Pills/pill_purple" : "Pills/pill_blue");
+            UiKit.FitBorder(kindPill);
+            Place(row.Level.rectTransform, kindPill.rectTransform, new Vector2(0f, 3f), new Vector2(136f, 44f));
+            row.Level.alignment = TextAlignmentOptions.Center;
+            UiKit.Outlined(row.Level, Color.white);
+            row.Level.fontSize = 26f;
+
+            float width = right - left, cx = (left + right) * 0.5f;
+            Place(row.Detail.rectTransform, row.Rect, new Vector2(cx, -14f), new Vector2(width, 40f));
+            UiKit.Text(row.Detail, false, DescInk);
+
+            BuildProgress(row, new Vector2(cx, -56f), new Vector2(width, 26f), rounded);
+            BuildPill(row, new Vector2(320f, 0f), 32f, rounded);
             _rows.Add(row);
             return row;
         }
@@ -651,7 +861,7 @@ namespace BlobSurvivor.UI
         {
             const float duration = 0.35f;
             Vector2 home = rect.anchoredPosition;
-            _credit.color = Warn;
+            _credit.color = _k ? UiKit.Red : Warn;
             for (float t = 0f; t < duration; t += Time.unscaledDeltaTime)
             {
                 float fade = 1f - t / duration;
@@ -659,7 +869,7 @@ namespace BlobSurvivor.UI
                 yield return null;
             }
             rect.anchoredPosition = home;
-            _credit.color = Gold;
+            _credit.color = _creditColor;
         }
 
         // ---------------------------------------------------------------- yardımcılar (LobbyPanel ile aynı)

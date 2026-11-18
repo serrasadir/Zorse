@@ -1,0 +1,209 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10a1aa39f9ba49b40806ec5dc97f8bf0, type: 3}
+  m_Name: UiKit
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.UI.UiKit
+  Enabled: 1
+  Sprites:
+  - Key: Badges/badge_gold
+    Sprite: {fileID: 21300000, guid: cc48345fe86793d4385015f28ee8532b, type: 3}
+  - Key: Badges/badge_green
+    Sprite: {fileID: 21300000, guid: 24fb583e921b2964aae9cb22b56efc4a, type: 3}
+  - Key: Badges/badge_lock
+    Sprite: {fileID: 21300000, guid: 5cd68cd2ac54dea469da86cae22ea45f, type: 3}
+  - Key: Badges/badge_purple
+    Sprite: {fileID: 21300000, guid: 2d120e049944b7a4ba3d284832c0d556, type: 3}
+  - Key: Badges/badge_red
+    Sprite: {fileID: 21300000, guid: 4b344cf29db57be458489a523e3bd9a3, type: 3}
+  - Key: Banners/plate_red
+    Sprite: {fileID: 21300000, guid: ba9f7061dace40041b8429c8354f14bd, type: 3}
+  - Key: Banners/ribbon_curved_gold
+    Sprite: {fileID: 21300000, guid: 681fa902036dc304fac72354c8a65e5e, type: 3}
+  - Key: Banners/ribbon_gold
+    Sprite: {fileID: 21300000, guid: 0e0a2ec6602aaba44a45163c47769a6a, type: 3}
+  - Key: Banners/ribbon_red
+    Sprite: {fileID: 21300000, guid: e16ea372d99d8764fa1e0ce27cece890, type: 3}
+  - Key: Bars/bar_fill_blue
+    Sprite: {fileID: 21300000, guid: 87a4823ffa8ca5c42a802f1acf896503, type: 3}
+  - Key: Bars/bar_fill_green
+    Sprite: {fileID: 21300000, guid: ad27edbd5d4ce284b93c905b304de25f, type: 3}
+  - Key: Bars/bar_fill_red
+    Sprite: {fileID: 21300000, guid: 272c3164b472dbb44b33aae37b44cef8, type: 3}
+  - Key: Bars/bar_fill_yellow
+    Sprite: {fileID: 21300000, guid: 7e227dee2b80eac47b77538cfd462fe0, type: 3}
+  - Key: Bars/bar_track
+    Sprite: {fileID: 21300000, guid: 1d7bc84e7cf9c3c4ab5522975718769a, type: 3}
+  - Key: Buttons/btn_blue
+    Sprite: {fileID: 21300000, guid: 22e0a6f12ca451b40967f6f8fe19b7e7, type: 3}
+  - Key: Buttons/btn_blue_pressed
+    Sprite: {fileID: 21300000, guid: b48a0c44ff4c4204ca483a7f2111d616, type: 3}
+  - Key: Buttons/btn_gold
+    Sprite: {fileID: 21300000, guid: 5b846cfa8c8cfe34aae04c660fb2e997, type: 3}
+  - Key: Buttons/btn_gold_pressed
+    Sprite: {fileID: 21300000, guid: dbbf232527af33c45a945405d5963736, type: 3}
+  - Key: Buttons/btn_gray
+    Sprite: {fileID: 21300000, guid: 734384d70e36a2f4eb47143e97ed9fc3, type: 3}
+  - Key: Buttons/btn_gray_pressed
+    Sprite: {fileID: 21300000, guid: b899d99afc8315540b10a0217596b351, type: 3}
+  - Key: Buttons/btn_green
+    Sprite: {fileID: 21300000, guid: 62ab599aa25799e4da897beba95456f1, type: 3}
+  - Key: Buttons/btn_green_pressed
+    Sprite: {fileID: 21300000, guid: 6e1ccd6d145704343b1462a03d5bc33d, type: 3}
+  - Key: Buttons/btn_red
+    Sprite: {fileID: 21300000, guid: 45ccfde9f32e5924eaf86fd282ecd84e, type: 3}
+  - Key: Buttons/btn_red_pressed
+    Sprite: {fileID: 21300000, guid: adab90cfc8c579740b557af58b0ed18f, type: 3}
+  - Key: Buttons/round_gold
+    Sprite: {fileID: 21300000, guid: 261b021c51ba31848b5b3fce8a88f3b2, type: 3}
+  - Key: Buttons/round_navy
+    Sprite: {fileID: 21300000, guid: a2852289d296fd043a973892f4724f65, type: 3}
+  - Key: Glyphs/back
+    Sprite: {fileID: 21300000, guid: 80e56c2eab89d7d489a9b4bb86a0b338, type: 3}
+  - Key: Glyphs/check
+    Sprite: {fileID: 21300000, guid: 0c7dbc60aa31b1e47855ad7db2b6bd24, type: 3}
+  - Key: Glyphs/clock
+    Sprite: {fileID: 21300000, guid: 6a77effaf40f9df44b7a0331cd44a6f5, type: 3}
+  - Key: Glyphs/close
+    Sprite: {fileID: 21300000, guid: 6f8774f8496182341863436b288405c1, type: 3}
+  - Key: Glyphs/down
+    Sprite: {fileID: 21300000, guid: 27c62bca9f135054ebb5ab47854d7444, type: 3}
+  - Key: Glyphs/heart
+    Sprite: {fileID: 21300000, guid: b8974d2392e4812499139843129762d9, type: 3}
+  - Key: Glyphs/home
+    Sprite: {fileID: 21300000, guid: d796e13defe3bd14fb38f217eb278cf6, type: 3}
+  - Key: Glyphs/lock
+    Sprite: {fileID: 21300000, guid: b1ac017b5c741c94a84c58e24e60faaa, type: 3}
+  - Key: Glyphs/music
+    Sprite: {fileID: 21300000, guid: c39b422a492b1ed4d859d96d23d485a8, type: 3}
+  - Key: Glyphs/pause
+    Sprite: {fileID: 21300000, guid: 0ad59249368837946aaa7564957a6108, type: 3}
+  - Key: Glyphs/play
+    Sprite: {fileID: 21300000, guid: 3e4b4624c17dcaa418e14da7946ff97f, type: 3}
+  - Key: Glyphs/restart
+    Sprite: {fileID: 21300000, guid: aaffdb5489d87d4449c190213c711266, type: 3}
+  - Key: Glyphs/settings
+    Sprite: {fileID: 21300000, guid: 43541f1f59f96644693258dce636e373, type: 3}
+  - Key: Glyphs/sound
+    Sprite: {fileID: 21300000, guid: ecb6daf3749a1974bb03f856662e7162, type: 3}
+  - Key: Glyphs/up
+    Sprite: {fileID: 21300000, guid: 92f548b30b981ac48a61c41552eb3221, type: 3}
+  - Key: Glyphs/vibration
+    Sprite: {fileID: 21300000, guid: 6961b5f4410f58c44ac01775c65904eb, type: 3}
+  - Key: IconButtons/back
+    Sprite: {fileID: 21300000, guid: 5a35c30d335eefa4f9a75e2beeaff3d1, type: 3}
+  - Key: IconButtons/check
+    Sprite: {fileID: 21300000, guid: 9d6f3a1d5a508d34dad5c482a5bdb3e0, type: 3}
+  - Key: IconButtons/clock
+    Sprite: {fileID: 21300000, guid: deaf337734ed1844a96bd11c2db29f8f, type: 3}
+  - Key: IconButtons/close
+    Sprite: {fileID: 21300000, guid: ac871538f1d0f294a967a6b84cf5b4d4, type: 3}
+  - Key: IconButtons/down
+    Sprite: {fileID: 21300000, guid: 3dea83e9794f0674ab94f1930b4f009d, type: 3}
+  - Key: IconButtons/heart
+    Sprite: {fileID: 21300000, guid: e912c44086471864fa20e3580f29c0e8, type: 3}
+  - Key: IconButtons/home
+    Sprite: {fileID: 21300000, guid: 0559397f9698dee44b07754b4d5e9464, type: 3}
+  - Key: IconButtons/lock
+    Sprite: {fileID: 21300000, guid: df19b39787efcb14e87e2a55fe61514d, type: 3}
+  - Key: IconButtons/music
+    Sprite: {fileID: 21300000, guid: b7ecdd928c2f6724c8a702c8e7514edb, type: 3}
+  - Key: IconButtons/pause
+    Sprite: {fileID: 21300000, guid: 89b8e168b80e100448ff7700883904ba, type: 3}
+  - Key: IconButtons/play
+    Sprite: {fileID: 21300000, guid: 38be43fdba54d1c429b97e9580232ef2, type: 3}
+  - Key: IconButtons/restart
+    Sprite: {fileID: 21300000, guid: d092a7df399c5aa4880bafdaf9df7be3, type: 3}
+  - Key: IconButtons/settings
+    Sprite: {fileID: 21300000, guid: 0f3da7d1a47fedf4ba63058d37fd97d6, type: 3}
+  - Key: IconButtons/skull
+    Sprite: {fileID: 21300000, guid: d643a3a7f4af7374b9d858343e6365f9, type: 3}
+  - Key: IconButtons/sound
+    Sprite: {fileID: 21300000, guid: 7fefa31fa8cfb8e49b051a3a838d0d35, type: 3}
+  - Key: IconButtons/up
+    Sprite: {fileID: 21300000, guid: 905b2e323405bed488a1979d32ed9fce, type: 3}
+  - Key: IconButtons/vibration
+    Sprite: {fileID: 21300000, guid: 0eb0e8a34ca502040a243b5660f180f4, type: 3}
+  - Key: Icons/coin
+    Sprite: {fileID: 21300000, guid: ea8fa3935b075774caac36da4441204b, type: 3}
+  - Key: Icons/coin_stack
+    Sprite: {fileID: 21300000, guid: d668e08071b6fbf4e8dc4c22d5fc4c93, type: 3}
+  - Key: Icons/star
+    Sprite: {fileID: 21300000, guid: c2ee78712f294964d9ff032a38fb7e91, type: 3}
+  - Key: Icons/warning
+    Sprite: {fileID: 21300000, guid: bfcc4c643f67bcd4ca0d7b3d1833d44c, type: 3}
+  - Key: Panels/card_cream
+    Sprite: {fileID: 21300000, guid: 8483af082a58ef04682d90098050c1a4, type: 3}
+  - Key: Panels/card_gold
+    Sprite: {fileID: 21300000, guid: 186a86eafdad4cd419f1fa511de3930b, type: 3}
+  - Key: Panels/hud_navy
+    Sprite: {fileID: 21300000, guid: ec2aff2200381af4aabc4c34b208fd09, type: 3}
+  - Key: Panels/modal_purple
+    Sprite: {fileID: 21300000, guid: 6fde2a28687c4b747a48d27c7a19e345, type: 3}
+  - Key: Panels/row_cream
+    Sprite: {fileID: 21300000, guid: 01928425f0b69194a833715e351d49b9, type: 3}
+  - Key: Pills/pill_blue
+    Sprite: {fileID: 21300000, guid: 925dbfa3b8bf105439a1314bd718f66b, type: 3}
+  - Key: Pills/pill_gold
+    Sprite: {fileID: 21300000, guid: fa280d03a069bc4429566ea4f4258f41, type: 3}
+  - Key: Pills/pill_gray
+    Sprite: {fileID: 21300000, guid: e2fef30b49ee58047a0380da6164903e, type: 3}
+  - Key: Pills/pill_green
+    Sprite: {fileID: 21300000, guid: 977ccc3ff4a8c2f4f8edd2b086d27aad, type: 3}
+  - Key: Pills/pill_orange
+    Sprite: {fileID: 21300000, guid: 56b1f8f8337ba724faa550db5484ff18, type: 3}
+  - Key: Pills/pill_purple
+    Sprite: {fileID: 21300000, guid: e8116de95edb8f543bf415387b938878, type: 3}
+  - Key: Skills/armor
+    Sprite: {fileID: 21300000, guid: 137a9cd1fcceac14c9a873ef6cd4fad7, type: 3}
+  - Key: Skills/black_hole
+    Sprite: {fileID: 21300000, guid: 64ce1f0c3c80e4245bcf31fac091137b, type: 3}
+  - Key: Skills/digestion
+    Sprite: {fileID: 21300000, guid: 699aa541de86e4a4594d3ff3272d4218, type: 3}
+  - Key: Skills/firework
+    Sprite: {fileID: 21300000, guid: 84003b4caae4fc646b8d0c31dbedf0ce, type: 3}
+  - Key: Skills/gas
+    Sprite: {fileID: 21300000, guid: 8dc2ffa0c5b089e43b0df7e25bea4432, type: 3}
+  - Key: Skills/max_health
+    Sprite: {fileID: 21300000, guid: e537278da2aa49c4d8bcbcf50ae8711e, type: 3}
+  - Key: Skills/metabolism
+    Sprite: {fileID: 21300000, guid: 523fe8c57018772468b861448b5fa3ac, type: 3}
+  - Key: Skills/quake
+    Sprite: {fileID: 21300000, guid: 869ffcd24784a1141a3f90bca0d9b565, type: 3}
+  - Key: Skills/recycling
+    Sprite: {fileID: 21300000, guid: 1e9a1316175745c44871d72b5d35473a, type: 3}
+  - Key: Skills/regen
+    Sprite: {fileID: 21300000, guid: b423fc7d0bf4676428b5b0f420fd558d, type: 3}
+  - Key: Skills/slippery
+    Sprite: {fileID: 21300000, guid: 6e866f37de4cd4348ace7037732c7f19, type: 3}
+  - Key: Skills/speed
+    Sprite: {fileID: 21300000, guid: c6677e8777919cc44af6a5c5c74289cc, type: 3}
+  - Key: Skills/split
+    Sprite: {fileID: 21300000, guid: cd1544bef8f596b43b2e94d27e6f138e, type: 3}
+  - Key: Skills/stick
+    Sprite: {fileID: 21300000, guid: 885b7435f6b36914f93387da5ef746a3, type: 3}
+  - Key: Skills/trigger
+    Sprite: {fileID: 21300000, guid: 46902f2dd159ff84c9fdcae110679faf, type: 3}
+  - Key: Skills/vacuum
+    Sprite: {fileID: 21300000, guid: 7c1ac6bacc640d449a1c033e652fe56b, type: 3}
+  - Key: Skills/wound_rage
+    Sprite: {fileID: 21300000, guid: fbca1b414b31f7f4591a2e80ee247e04, type: 3}
+  - Key: Slots/slot_active
+    Sprite: {fileID: 21300000, guid: d3242b9a8cf404f409c7298f3c9869cc, type: 3}
+  - Key: Slots/slot_empty
+    Sprite: {fileID: 21300000, guid: d97460b751c6e0240b8eda7ed035c73f, type: 3}
+  - Key: Slots/slot_passive
+    Sprite: {fileID: 21300000, guid: a08fc6e990c199a45a4545b25ac02135, type: 3}
+  Bold: {fileID: 11400000, guid: a7b3c5d235c0e0544b3810cff40cbe96, type: 2}
+  Semi: {fileID: 11400000, guid: 9cdba982c33a8c6498ad9ba6a5ce6e06, type: 2}
+  BoldOutline: {fileID: 2100000, guid: 2e44d8ca77805d543a645d6113a028de, type: 2}
+  BoldOutlineThick: {fileID: 2100000, guid: c1017274f12ef38479f4e8a2e180f189, type: 2}
+  SemiOutline: {fileID: 2100000, guid: 299298137b649ad4a92d9b5ea64011ea, type: 2}

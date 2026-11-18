@@ -13,7 +13,9 @@ namespace BlobSurvivor.EditorTools
             importer.spriteImportMode = SpriteImportMode.Single;
             importer.alphaIsTransparency = true;
             importer.mipmapEnabled = false;
-            importer.maxTextureSize = assetPath.Contains("/Resources/UI/") ? 1024 : 512; // logo büyük
+            // Kit (ChatGPT sheet'lerinden kesilen parçalar) asıl boyunda kalmalı: küçülürse bulanıklaşır.
+            importer.maxTextureSize = assetPath.StartsWith("Assets/_Project/Art/UI/Kit/") ? 2048
+                : assetPath.Contains("/Resources/UI/") ? 1024 : 512; // logo büyük
         }
     }
 }

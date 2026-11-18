@@ -31,6 +31,7 @@ namespace BlobSurvivor.UI
         private MissionType _shownType;
         private MissionResult _shownResult;
         private bool _shownActive;
+        private bool _k; // arayüz kiti: konturlu yazı, ayrı gölge yok
 
         internal void Init(GameObject hud, RectTransform layer)
         {
@@ -47,6 +48,12 @@ namespace BlobSurvivor.UI
 
             _lineShadow = MakeLine("MissionLineShadow", safe, new Vector2(0f, -LineTop - 4f), ShadowColor);
             _line = MakeLine("MissionLine", safe, new Vector2(0f, -LineTop), LineColor);
+            _k = UiKit.Ready;
+            if (_k)
+            {
+                UiKit.Outlined(_line, LineColor);
+                _lineShadow.gameObject.SetActive(false);
+            }
 
             TMP_SpriteAsset glyphs = Resources.Load<TMP_SpriteAsset>("Sprite Assets/UI_Glyphs");
             var arrowGo = new GameObject("MissionArrow", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
@@ -95,7 +102,7 @@ namespace BlobSurvivor.UI
             if (_line.gameObject.activeSelf != line)
             {
                 _line.gameObject.SetActive(line);
-                _lineShadow.gameObject.SetActive(line);
+                _lineShadow.gameObject.SetActive(line && !_k);
             }
             if (_arrow.gameObject.activeSelf != arrow) _arrow.gameObject.SetActive(arrow);
         }

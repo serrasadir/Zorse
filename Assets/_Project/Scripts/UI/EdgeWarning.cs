@@ -317,6 +317,14 @@ namespace BlobSurvivor.UI
             text.overflowMode = TextOverflowModes.Overflow;
             text.raycastTarget = false;
 
+            // Kit: kırmızı daire + "!" yerine sarı uyarı üçgeni.
+            if (UiKit.Ready && UiKit.Get("Icons/warning") != null)
+            {
+                UiKit.Paint(image, "Icons/warning");
+                rect.sizeDelta = new Vector2(52f, 52f);
+                textGo.SetActive(false);
+            }
+
             go.SetActive(false);
             _lowBadge = go;
         }

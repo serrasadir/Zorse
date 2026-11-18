@@ -1,0 +1,754 @@
+{
+"Badges/badge_gold": [
+61,
+0,
+61,
+0,
+230,
+137
+],
+"Badges/badge_green": [
+61,
+0,
+61,
+0,
+228,
+137
+],
+"Badges/badge_lock": [
+0,
+0,
+0,
+0,
+219,
+171
+],
+"Badges/badge_purple": [
+61,
+0,
+61,
+0,
+229,
+137
+],
+"Badges/badge_red": [
+61,
+0,
+61,
+0,
+231,
+137
+],
+"Banners/plate_red": [
+117,
+0,
+117,
+0,
+706,
+156
+],
+"Banners/ribbon_curved_gold": [
+0,
+0,
+0,
+0,
+415,
+159
+],
+"Banners/ribbon_gold": [
+184,
+0,
+184,
+0,
+1706,
+225
+],
+"Banners/ribbon_red": [
+184,
+0,
+184,
+0,
+1706,
+225
+],
+"Bars/bar_fill_blue": [
+24,
+0,
+24,
+0,
+452,
+48
+],
+"Bars/bar_fill_green": [
+24,
+0,
+24,
+0,
+452,
+48
+],
+"Bars/bar_fill_red": [
+24,
+0,
+24,
+0,
+452,
+48
+],
+"Bars/bar_fill_yellow": [
+23,
+0,
+23,
+0,
+452,
+47
+],
+"Bars/bar_track": [
+70,
+0,
+70,
+0,
+2026,
+140
+],
+"Buttons/btn_blue": [
+64,
+73,
+64,
+61,
+328,
+154
+],
+"Buttons/btn_blue_pressed": [
+63,
+72,
+63,
+60,
+329,
+150
+],
+"Buttons/btn_gold": [
+64,
+73,
+64,
+61,
+331,
+154
+],
+"Buttons/btn_gold_pressed": [
+62,
+71,
+62,
+59,
+330,
+149
+],
+"Buttons/btn_gray": [
+64,
+73,
+64,
+61,
+330,
+154
+],
+"Buttons/btn_gray_pressed": [
+63,
+72,
+63,
+60,
+330,
+150
+],
+"Buttons/btn_green": [
+64,
+73,
+64,
+61,
+330,
+154
+],
+"Buttons/btn_green_pressed": [
+62,
+71,
+62,
+59,
+329,
+149
+],
+"Buttons/btn_red": [
+64,
+73,
+64,
+61,
+328,
+153
+],
+"Buttons/btn_red_pressed": [
+63,
+72,
+63,
+60,
+329,
+150
+],
+"Buttons/round_gold": [
+0,
+0,
+0,
+0,
+176,
+177
+],
+"Buttons/round_navy": [
+0,
+0,
+0,
+0,
+177,
+174
+],
+"Glyphs/back": [
+0,
+0,
+0,
+0,
+199,
+181
+],
+"Glyphs/check": [
+0,
+0,
+0,
+0,
+181,
+143
+],
+"Glyphs/clock": [
+0,
+0,
+0,
+0,
+172,
+171
+],
+"Glyphs/close": [
+0,
+0,
+0,
+0,
+155,
+154
+],
+"Glyphs/down": [
+0,
+0,
+0,
+0,
+168,
+176
+],
+"Glyphs/heart": [
+0,
+0,
+0,
+0,
+176,
+153
+],
+"Glyphs/home": [
+0,
+0,
+0,
+0,
+202,
+192
+],
+"Glyphs/lock": [
+0,
+0,
+0,
+0,
+164,
+185
+],
+"Glyphs/music": [
+0,
+0,
+0,
+0,
+185,
+191
+],
+"Glyphs/pause": [
+0,
+0,
+0,
+0,
+164,
+181
+],
+"Glyphs/play": [
+0,
+0,
+0,
+0,
+159,
+178
+],
+"Glyphs/restart": [
+0,
+0,
+0,
+0,
+198,
+201
+],
+"Glyphs/settings": [
+0,
+0,
+0,
+0,
+199,
+202
+],
+"Glyphs/sound": [
+0,
+0,
+0,
+0,
+193,
+161
+],
+"Glyphs/up": [
+0,
+0,
+0,
+0,
+166,
+181
+],
+"Glyphs/vibration": [
+0,
+0,
+0,
+0,
+204,
+165
+],
+"IconButtons/back": [
+0,
+0,
+0,
+0,
+248,
+257
+],
+"IconButtons/check": [
+0,
+0,
+0,
+0,
+242,
+253
+],
+"IconButtons/clock": [
+0,
+0,
+0,
+0,
+249,
+257
+],
+"IconButtons/close": [
+0,
+0,
+0,
+0,
+248,
+254
+],
+"IconButtons/down": [
+0,
+0,
+0,
+0,
+246,
+255
+],
+"IconButtons/heart": [
+0,
+0,
+0,
+0,
+246,
+254
+],
+"IconButtons/home": [
+0,
+0,
+0,
+0,
+246,
+257
+],
+"IconButtons/lock": [
+0,
+0,
+0,
+0,
+242,
+254
+],
+"IconButtons/music": [
+0,
+0,
+0,
+0,
+249,
+258
+],
+"IconButtons/pause": [
+0,
+0,
+0,
+0,
+249,
+258
+],
+"IconButtons/play": [
+0,
+0,
+0,
+0,
+248,
+257
+],
+"IconButtons/restart": [
+0,
+0,
+0,
+0,
+248,
+257
+],
+"IconButtons/settings": [
+0,
+0,
+0,
+0,
+246,
+257
+],
+"IconButtons/skull": [
+0,
+0,
+0,
+0,
+246,
+256
+],
+"IconButtons/sound": [
+0,
+0,
+0,
+0,
+249,
+254
+],
+"IconButtons/up": [
+0,
+0,
+0,
+0,
+241,
+254
+],
+"IconButtons/vibration": [
+0,
+0,
+0,
+0,
+250,
+253
+],
+"Icons/coin": [
+0,
+0,
+0,
+0,
+231,
+238
+],
+"Icons/coin_stack": [
+0,
+0,
+0,
+0,
+232,
+209
+],
+"Icons/star": [
+0,
+0,
+0,
+0,
+228,
+222
+],
+"Icons/warning": [
+0,
+0,
+0,
+0,
+242,
+220
+],
+"Panels/card_cream": [
+70,
+70,
+70,
+70,
+703,
+216
+],
+"Panels/card_gold": [
+70,
+70,
+70,
+70,
+722,
+241
+],
+"Panels/hud_navy": [
+68,
+70,
+68,
+68,
+341,
+163
+],
+"Panels/modal_purple": [
+70,
+70,
+70,
+90,
+397,
+413
+],
+"Panels/row_cream": [
+55,
+59,
+55,
+55,
+713,
+132
+],
+"Pills/pill_blue": [
+60,
+0,
+60,
+0,
+220,
+120
+],
+"Pills/pill_gold": [
+59,
+0,
+59,
+0,
+221,
+119
+],
+"Pills/pill_gray": [
+59,
+0,
+59,
+0,
+222,
+118
+],
+"Pills/pill_green": [
+59,
+0,
+59,
+0,
+217,
+119
+],
+"Pills/pill_orange": [
+59,
+0,
+59,
+0,
+218,
+118
+],
+"Pills/pill_purple": [
+59,
+0,
+59,
+0,
+222,
+118
+],
+"Skills/armor": [
+0,
+0,
+0,
+0,
+399,
+399
+],
+"Skills/black_hole": [
+0,
+0,
+0,
+0,
+382,
+358
+],
+"Skills/digestion": [
+0,
+0,
+0,
+0,
+453,
+368
+],
+"Skills/firework": [
+0,
+0,
+0,
+0,
+384,
+388
+],
+"Skills/gas": [
+0,
+0,
+0,
+0,
+420,
+407
+],
+"Skills/max_health": [
+0,
+0,
+0,
+0,
+435,
+290
+],
+"Skills/metabolism": [
+0,
+0,
+0,
+0,
+389,
+315
+],
+"Skills/quake": [
+0,
+0,
+0,
+0,
+418,
+392
+],
+"Skills/recycling": [
+0,
+0,
+0,
+0,
+431,
+318
+],
+"Skills/regen": [
+0,
+0,
+0,
+0,
+397,
+291
+],
+"Skills/slippery": [
+0,
+0,
+0,
+0,
+424,
+363
+],
+"Skills/speed": [
+0,
+0,
+0,
+0,
+450,
+282
+],
+"Skills/split": [
+0,
+0,
+0,
+0,
+438,
+339
+],
+"Skills/stick": [
+0,
+0,
+0,
+0,
+397,
+391
+],
+"Skills/trigger": [
+0,
+0,
+0,
+0,
+369,
+331
+],
+"Skills/vacuum": [
+0,
+0,
+0,
+0,
+420,
+403
+],
+"Skills/wound_rage": [
+0,
+0,
+0,
+0,
+426,
+322
+],
+"Slots/slot_active": [
+0,
+0,
+0,
+0,
+196,
+200
+],
+"Slots/slot_empty": [
+0,
+0,
+0,
+0,
+176,
+175
+],
+"Slots/slot_passive": [
+0,
+0,
+0,
+0,
+184,
+175
+]
+}

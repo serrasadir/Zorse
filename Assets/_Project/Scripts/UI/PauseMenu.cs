@@ -24,6 +24,7 @@ namespace BlobSurvivor.UI
             CoverFullScreen();
             PlacePauseButton();
             AddPanelButtons();
+            if (UiKit.Ready) ApplyKit();
         }
 
         // Tuş sağ üst köşede, skor kutusuyla dikeyde ortalı (HUDController.LayoutHud ile aynı stil; kutu PauseReserve kadar solda).
@@ -109,13 +110,15 @@ namespace BlobSurvivor.UI
         // Devam'ın altına Yeniden Başla + Ana Menü + Ayarlar (Devam butonunun kopyası; bir kerelik UI kurulumu).
         private void AddPanelButtons()
         {
-            CreatePanelButton("RestartButton", "Yeniden Başla", -200f, () => GameManager.Instance?.StartGame());
-            CreatePanelButton("MenuButton", "Ana Menü", -340f, ReturnToMenu);
+            _restartButton = CreatePanelButton("RestartButton", "Yeniden Başla", -200f, () => GameManager.Instance?.StartGame());
+            _menuButton = CreatePanelButton("MenuButton", "Ana Menü", -340f, ReturnToMenu);
             Sprite rounded = _resumeButton.targetGraphic is Image ri ? ri.sprite : null;
-            CreatePanelButton("SettingsButton", "Ayarlar", -480f, () => SettingsPanel.Open(this, rounded));
+            _settingsButton = CreatePanelButton("SettingsButton", "Ayarlar", -480f, () => SettingsPanel.Open(this, rounded));
         }
 
-        private void CreatePanelButton(string name, string text, float y, UnityEngine.Events.UnityAction action)
+        private Button _restartButton, _menuButton, _settingsButton;
+
+        private Button CreatePanelButton(string name, string text, float y, UnityEngine.Events.UnityAction action)
         {
             GameObject copy = Instantiate(_resumeButton.gameObject, _resumeButton.transform.parent);
             copy.name = name;
@@ -128,6 +131,77 @@ namespace BlobSurvivor.UI
             if (button.targetGraphic != null) button.targetGraphic.color = SecondaryColor;
             TMP_Text label = copy.GetComponentInChildren<TMP_Text>(true);
             if (label != null) { label.text = text; label.fontSize = 46f; }
+            return button;
+        }
+
+        // ---------------------------------------------------------------- arayüz kiti (UiKit.Ready)
+
+        // Mor başlıklı krem pencere (Panels/modal_purple) butonların arkasında; başlık mor şeritte.
+        // Butonlar: Devam yeşil, Yeniden Başla mavi, Ana Menü gri, Ayarlar sarı; solda beyaz glif. Bir kez, Awake'te.
+        private const float ModalHeaderScale = 0.65f; // 9-slice kenar çarpanı: mor şerit ~140 birim
+
+        private void ApplyKit()
+        {
+            RectTransform panel = (RectTransform)_panel.transform;
+            Image dim = _panel.GetComponent<Image>();
+            if (dim != null) dim.color = new Color(0.02f, 0.02f, 0.08f, 0.7f);
+
+            float x = ((RectTransform)_resumeButton.transform).anchoredPosition.x;
+            Image modal = UiKit.NewImage("Modal", panel, new Vector2(x, -190f), new Vector2(620f, 840f), "Panels/modal_purple");
+            modal.pixelsPerUnitMultiplier = ModalHeaderScale;
+            modal.transform.SetSiblingIndex(0);
+
+            Transform titleT = panel.Find("Title");
+            TMP_Text title = titleT != null ? titleT.GetComponent<TMP_Text>() : null;
+            if (title != null)
+            {
+                RectTransform tr = title.rectTransform;
+                tr.anchorMin = tr.anchorMax = tr.pivot = new Vector2(0.5f, 0.5f);
+                tr.anchoredPosition = new Vector2(x, 151f); // modal üstü 230, şerit ortası ~80 aşağıda
+                tr.sizeDelta = new Vector2(540f, 110f);
+                UiKit.Outlined(title, Color.white, true);
+                title.enableAutoSizing = true;
+                title.fontSizeMin = 40f;
+                title.fontSizeMax = 62f;
+                title.alignment = TextAlignmentOptions.Center;
+                title.text = "DURAKLATILDI";
+            }
+
+            KitButton(_resumeButton, "green", "Glyphs/play");
+            KitButton(_restartButton, "blue", "Glyphs/restart");
+            KitButton(_menuButton, "gray", "Glyphs/home");
+            KitButton(_settingsButton, "gold", "Glyphs/settings");
+
+            // Sağ üst duraklatma tuşu: kutulu ikon (görsel 88x88, dokunma alanı aynı).
+            if (_pauseButton.targetGraphic is Image visual && UiKit.Get("IconButtons/pause") != null)
+            {
+                UiKit.Paint(visual, "IconButtons/pause");
+                visual.raycastTarget = false;
+                TMP_Text pauseLabel = _pauseButton.GetComponentInChildren<TMP_Text>(true);
+                if (pauseLabel != null) pauseLabel.gameObject.SetActive(false); // "II" yazısı ikonda var
+            }
+        }
+
+        private static void KitButton(Button button, string color, string glyph)
+        {
+            if (button == null) return;
+            UiKit.StyleButton(button, color);
+            RectTransform rect = (RectTransform)button.transform;
+            if (button.targetGraphic is Image img && img.sprite != null && rect.sizeDelta.y > 1f)
+                img.pixelsPerUnitMultiplier = img.sprite.rect.height / rect.sizeDelta.y; // kenarlar boya orantılı
+
+            float glyphSize = rect.sizeDelta.y * 0.5f;
+            float glyphX = -rect.sizeDelta.x * 0.5f + 34f + glyphSize * 0.5f;
+            UiKit.NewImage("Glyph", rect, new Vector2(glyphX, 3f), new Vector2(glyphSize, glyphSize), glyph);
+
+            TMP_Text label = button.GetComponentInChildren<TMP_Text>(true);
+            if (label == null) return;
+            RectTransform lr = label.rectTransform;
+            lr.anchorMin = Vector2.zero; lr.anchorMax = Vector2.one;
+            lr.offsetMin = new Vector2(glyphSize + 30f, 6f); // glifin sağı; kit butonunun alt gölgesi için hafif yukarı
+            lr.offsetMax = Vector2.zero;
+            UiKit.Outlined(label, Color.white);
+            label.alignment = TextAlignmentOptions.Center;
         }
 
         // Ana Menü = giriş ekranı (TitleScreen); oradan OYNA ile lobiye geçilir. Run sıfırlanır.

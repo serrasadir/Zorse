@@ -50,6 +50,14 @@ namespace BlobSurvivor.UI
             _shadow = MakeText("Shadow", ShadowOffset, BaseSize, FontStyles.Bold | FontStyles.Italic, ShadowColor);
             _title = MakeText("Title", Vector2.zero, BaseSize, FontStyles.Bold | FontStyles.Italic, Color.white);
             _sub = MakeText("Sub", new Vector2(0f, -52f), SubSize, FontStyles.Bold, Color.white);
+            if (UiKit.Ready)
+            {
+                // Kit: kalın konturlu Baloo; renkler ShowCount'ta yazılır. Ayrı gölge yazısı gerekmez.
+                UiKit.Outlined(_title, Color.white, true);
+                _title.fontStyle = FontStyles.Italic;
+                UiKit.Outlined(_sub, Color.white);
+                _shadow.gameObject.SetActive(false);
+            }
             go.SetActive(false);
         }
 

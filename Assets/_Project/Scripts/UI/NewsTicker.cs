@@ -44,7 +44,34 @@ namespace BlobSurvivor.UI
         private readonly ShuffleBag _worldBag = new ShuffleBag();
         private readonly ShuffleBag _blobBag = new ShuffleBag();
 
-        private void Awake() => SetBarAlpha(0f);
+        private void Awake()
+        {
+            SetBarAlpha(0f);
+            if (UiKit.Ready) ApplyKit();
+        }
+
+        // Arayüz kiti: koyu lacivert kapsül zemin, solda kırmızı "HABER" rozeti, Baloo 2 beyaz konturlu başlık.
+        // Bant sahnede (NewsTickerBuilder) kurulu; çocuklar ada göre bir kez bulunur.
+        private void ApplyKit()
+        {
+            Transform bg = transform.Find("Background"), tag = transform.Find("Tag");
+            if (bg != null && bg.TryGetComponent(out UnityEngine.UI.Image bgImage))
+            {
+                UiKit.Paint(bgImage, "Bars/bar_track");
+                UiKit.FitBorder(bgImage);
+            }
+            if (tag != null && tag.TryGetComponent(out UnityEngine.UI.Image tagImage))
+            {
+                UiKit.Paint(tagImage, "Badges/badge_red");
+                UiKit.FitBorder(tagImage);
+                var tr = (RectTransform)tag;
+                tr.offsetMin = new Vector2(-6f, -6f); // rozet bandın üstüne hafif taşsın
+                tr.offsetMax = new Vector2(tr.offsetMax.x + 10f, 6f);
+                TMP_Text label = tag.GetComponentInChildren<TMP_Text>(true);
+                if (label != null) { UiKit.Outlined(label, Color.white); label.characterSpacing = 4f; }
+            }
+            if (_text != null) UiKit.Outlined(_text, Color.white, false, false);
+        }
 
         private void OnEnable()
         {

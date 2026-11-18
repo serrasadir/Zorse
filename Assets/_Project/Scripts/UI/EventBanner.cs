@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using BlobSurvivor.Core;
 using BlobSurvivor.Data;
 
@@ -39,6 +40,14 @@ namespace BlobSurvivor.UI
             "Bütün şehir menüde",
         };
 
+        // Arayüz kiti: başlığın arkasında düz kurdele/hap (başlık boyuna göre, yalnız Show'da ölçülür), konturlu beyaz yazı.
+        private const string RibbonGold = "Banners/ribbon_gold", RibbonRed = "Banners/ribbon_red";
+        private const string PillMission = "Pills/pill_blue", PillDone = "Pills/pill_green";
+        private const float RibbonHeight = 150f, RibbonMin = 480f, RibbonMax = 1060f, RibbonPad = 40f;
+        private const float KitSubOffset = 104f;
+        private bool _k;
+        private Image _ribbon;
+
         private GameObject _hud;
         private RectTransform _band;
         private TMP_Text _title, _titleShadow, _sub;
@@ -77,6 +86,17 @@ namespace BlobSurvivor.UI
             _sub = MakeText("Subtitle", new Vector2(0f, -SubOffset), 56f, SubSize, SubMin, FontStyles.Normal, Color.white);
             _titleShadow.spriteAsset = glyphs;
             _title.spriteAsset = glyphs;
+
+            _k = UiKit.Ready;
+            if (_k)
+            {
+                _ribbon = UiKit.NewImage("Ribbon", _band, Vector2.zero, new Vector2(RibbonMin, RibbonHeight), RibbonGold);
+                _ribbon.rectTransform.SetAsFirstSibling();
+                _titleShadow.gameObject.SetActive(false);
+                UiKit.Outlined(_title, Color.white, true);
+                UiKit.Outlined(_sub, Color.white, false, false);
+                _sub.rectTransform.anchoredPosition = new Vector2(0f, -KitSubOffset);
+            }
 
             bandGo.SetActive(false);
         }
@@ -157,7 +177,7 @@ namespace BlobSurvivor.UI
         private void OnBossSpawned(string hudName, bool isFinal)
         {
             if (isFinal) Show(FinalTitle, FinalSub, FinalColor, HoldFinal);
-            else if (!string.IsNullOrEmpty(hudName)) Show(hudName + " GELDİ!", BossSub, BossColor, HoldBoss);
+            else if (!string.IsNullOrEmpty(hudName)) Show(hudName + " GELDİ!", BossSub, BossColor, HoldBoss, RibbonRed);
             else return;
             Haptics.Impact(2);
         }
@@ -166,13 +186,13 @@ namespace BlobSurvivor.UI
         private void OnWaveStarted(string waveName)
         {
             if (!IsPlaying() || waveName != "Guard") return;
-            Show("BEKÇİLER GELDİ!", "Seni durdurmak istiyorlar · yakala, yut!", BossColor, HoldBoss);
+            Show("BEKÇİLER GELDİ!", "Seni durdurmak istiyorlar · yakala, yut!", BossColor, HoldBoss, RibbonRed);
         }
 
         private void OnEncirclement()
         {
             if (!IsPlaying()) return;
-            Show(EncircleTitle, EncircleSub, BossColor, HoldBoss);
+            Show(EncircleTitle, EncircleSub, BossColor, HoldBoss, RibbonRed);
             Haptics.Impact(2);
         }
 
@@ -182,7 +202,7 @@ namespace BlobSurvivor.UI
         private void OnMissionStarted(string title, string sub)
         {
             if (!IsPlaying()) return;
-            Show(title, sub, MissionColor, HoldBoss);
+            Show(title, sub, MissionColor, HoldBoss, PillMission);
             Haptics.Impact(1);
         }
 
@@ -204,16 +224,17 @@ namespace BlobSurvivor.UI
         private void OnMissionCompleted(string reward)
         {
             if (!IsPlaying()) return;
-            Show("GÖREV TAMAM!", reward, MissionDoneColor, HoldBoss);
+            Show("GÖREV TAMAM!", reward, MissionDoneColor, HoldBoss, PillDone);
             Haptics.Impact(2);
         }
 
-        private void Show(string title, string sub, Color color, float hold)
+        private void Show(string title, string sub, Color color, float hold, string ribbon = RibbonGold)
         {
             if (_band == null) return;
             _title.text = title;
             _titleShadow.text = title;
-            _title.color = color;
+            _title.color = _k ? Color.white : color;
+            if (_k) FitRibbon(title, ribbon);
             bool hasSub = !string.IsNullOrEmpty(sub);
             _sub.gameObject.SetActive(hasSub);
             if (hasSub) _sub.text = sub;
@@ -221,6 +242,24 @@ namespace BlobSurvivor.UI
             _time = 0f;
             _hold = hold;
             Apply();
+        }
+
+        // Kurdele başlığın tercih edilen genişliğine göre; başlık kurdelenin yüzüne sığacak kadar daralır (otomatik boy).
+        private void FitRibbon(string title, string key)
+        {
+            if (_ribbon == null) return;
+            UiKit.Paint(_ribbon, key);
+            Sprite s = _ribbon.sprite;
+            float ends = s != null ? s.border.x * RibbonHeight / s.rect.height : 0f;
+            _title.fontSize = TitleSize;
+            float pref = _title.GetPreferredValues(title, 2000f, 120f).x;
+            float width = Mathf.Clamp(pref + ends * 1.6f + RibbonPad, RibbonMin, RibbonMax);
+            bool isRibbon = key.StartsWith("Banners/", System.StringComparison.Ordinal);
+            RectTransform r = _ribbon.rectTransform;
+            r.sizeDelta = new Vector2(width, RibbonHeight);
+            r.anchoredPosition = new Vector2(0f, isRibbon ? -RibbonHeight * 0.075f : 0f); // kurdelenin yüzü merkezden biraz yukarıda
+            if (s != null) _ribbon.pixelsPerUnitMultiplier = s.rect.height / RibbonHeight;
+            _title.rectTransform.sizeDelta = new Vector2(Mathf.Min(1000f, width - ends * 1.4f), 120f);
         }
 
         private void Hide()
@@ -236,6 +275,9 @@ namespace BlobSurvivor.UI
             if (_time < 0f) return;
             GameManager gm = GameManager.Instance;
             if ((_hud != null && !_hud.activeInHierarchy) || (gm != null && gm.CurrentState == GameState.Menu)) { Hide(); return; }
+            // Kart ekranında bant gizlenir (kurdelesi kart başlığıyla üst üste binmesin), seçimden sonra kaldığı yerden sürer.
+            bool levelUp = gm != null && gm.CurrentState == GameState.LevelUp;
+            if (_band.gameObject.activeSelf == levelUp) _band.gameObject.SetActive(!levelUp);
             if (gm != null && gm.CurrentState != GameState.Playing) return; // kart ekranı/duraklatmada donar
             _time += Time.unscaledDeltaTime;
             if (_time >= Pop + _hold + FadeTime) { Hide(); return; }
@@ -250,6 +292,7 @@ namespace BlobSurvivor.UI
             _band.localScale = new Vector3(scale, scale, 1f);
             _title.alpha = alpha;
             _titleShadow.alpha = alpha * ShadowColor.a;
+            if (_ribbon != null) _ribbon.color = new Color(1f, 1f, 1f, alpha);
             _sub.alpha = alpha * SubAlpha;
         }
     }

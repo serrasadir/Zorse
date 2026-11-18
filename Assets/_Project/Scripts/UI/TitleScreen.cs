@@ -125,12 +125,23 @@ namespace BlobSurvivor.UI
             safe.anchorMin = min;
             safe.anchorMax = max;
 
-            ShadowedLabel("LogoTop", safe, new Vector2(0.5f, 1f), new Vector2(0f, -250f), "LEFT NO", 120f, Color.white);
-            ShadowedLabel("LogoBottom", safe, new Vector2(0.5f, 1f), new Vector2(0f, -410f), "CRUMBS", 200f, Gold);
-            ShadowedLabel("Tagline", safe, new Vector2(0.5f, 1f), new Vector2(0f, -545f), "Ye, büyü... polisi bile ye!", 46f,
-                new Color(1f, 1f, 1f, 0.92f));
+            // Kit kuruluysa Baloo 2 + kontur (malzemenin kendi gölgesi var, kopya yazı gerekmez); yoksa eski gölgeli yazı.
+            bool k = UiKit.Ready;
+            if (k)
+            {
+                KitLabel("LogoTop", safe, new Vector2(0f, -250f), "LEFT NO", 120f, Color.white, true, true);
+                KitLabel("LogoBottom", safe, new Vector2(0f, -410f), "CRUMBS", 200f, UiKit.Gold, true, true);
+                KitLabel("Tagline", safe, new Vector2(0f, -545f), "Ye, büyü... polisi bile ye!", 46f, Color.white, false, false);
+            }
+            else
+            {
+                ShadowedLabel("LogoTop", safe, new Vector2(0.5f, 1f), new Vector2(0f, -250f), "LEFT NO", 120f, Color.white);
+                ShadowedLabel("LogoBottom", safe, new Vector2(0.5f, 1f), new Vector2(0f, -410f), "CRUMBS", 200f, Gold);
+                ShadowedLabel("Tagline", safe, new Vector2(0.5f, 1f), new Vector2(0f, -545f), "Ye, büyü... polisi bile ye!", 46f,
+                    new Color(1f, 1f, 1f, 0.92f));
+            }
 
-            Sprite rounded = FindRoundedSprite();
+            Sprite rounded = k ? null : FindRoundedSprite();
             _playButton = NewRect("PlayButton", safe, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, Vector2.zero);
             _playButton.pivot = new Vector2(0.5f, 0.5f);
             _playButton.anchoredPosition = new Vector2(0f, 300f);
@@ -143,6 +154,12 @@ namespace BlobSurvivor.UI
             button.onClick.AddListener(OnPlay);
             TMP_Text label = Label("Label", _playButton, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(640f, 180f), "OYNA", 96f, Color.white);
             label.raycastTarget = false;
+            if (k)
+            {
+                UiKit.StyleButton(button, "green");
+                label.rectTransform.anchoredPosition = new Vector2(0f, 6f); // butonun alt kalınlığı: yazı yüzün ortasında
+                UiKit.Outlined(label, Color.white, true);
+            }
 
             _root.gameObject.SetActive(false);
         }
@@ -185,6 +202,12 @@ namespace BlobSurvivor.UI
             t.overflowMode = TextOverflowModes.Overflow;
             t.raycastTarget = false;
             return t;
+        }
+
+        private static void KitLabel(string name, RectTransform parent, Vector2 pos, string text, float size, Color color, bool thick, bool bold)
+        {
+            TMP_Text t = Label(name, parent, new Vector2(0.5f, 1f), pos, new Vector2(1000f, size * 1.3f), text, size, color);
+            UiKit.Outlined(t, color, thick, bold);
         }
 
         // Şehir üstünde okunsun diye koyu gölge kopyası (malzeme kopyası/outline yok, sıfır maliyet).

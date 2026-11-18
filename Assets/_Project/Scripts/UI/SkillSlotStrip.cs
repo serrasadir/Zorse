@@ -28,7 +28,7 @@ namespace BlobSurvivor.UI
         private class Slot
         {
             public RectTransform Root, Content;
-            public Image Frame, Fill, Pill;
+            public Image Frame, Fill, Pill, Icon;
             public TMP_Text Abbr, Level;
             public CanvasGroup Group;
             public bool IsActive;
@@ -40,6 +40,8 @@ namespace BlobSurvivor.UI
 
         private readonly Slot[] _slots = new Slot[GroupSize * 2];
         private bool _built, _dirty, _animating;
+        // Arayüz kiti: slot sprite'ları (aktif turuncu daire, pasif mavi kare, boş gri), skill ikonu, seviye hapı.
+        private bool _k;
 
         public float Width { get; private set; }
 
@@ -56,6 +58,7 @@ namespace BlobSurvivor.UI
 
         private void Build(float size, Sprite rounded)
         {
+            _k = UiKit.Ready;
             Sprite circle = Resources.Load<Sprite>("UI/Shapes/UI_Circle");
             var rect = (RectTransform)transform;
             Width = GroupSize * 2 * size + (GroupSize - 1) * 2 * Gap + GroupGap;
@@ -68,6 +71,7 @@ namespace BlobSurvivor.UI
                 int k = active ? i : i - GroupSize;
                 float x = (active ? 0f : passiveStart) + k * (size + Gap);
                 _slots[i] = CreateSlot(rect, x, size, active ? (circle != null ? circle : rounded) : rounded, active);
+                if (_k) KitSlot(_slots[i], size);
             }
             _built = true;
             Refresh(null);
@@ -111,6 +115,33 @@ namespace BlobSurvivor.UI
             return s;
         }
 
+        // Kit görünümü: çerçeve slot sprite'ı (iç zemin sprite'ta), ortada ikon, sağ altta yatay hap.
+        private static void KitSlot(Slot s, float size)
+        {
+            UiKit.Paint(s.Frame, s.IsActive ? "Slots/slot_active" : "Slots/slot_passive");
+            s.Fill.enabled = false;
+            s.Icon = UiKit.NewImage("Icon", s.Content, Vector2.zero, new Vector2(size * 0.66f, size * 0.66f), null);
+            s.Icon.preserveAspect = true;
+            s.Icon.enabled = false; // sprite'sız beyaz kare görünmesin
+            s.Icon.rectTransform.SetSiblingIndex(0);
+            UiKit.Text(s.Abbr, true, UiKit.Ink);
+
+            float h = size * 0.42f;
+            RectTransform pill = s.Pill.rectTransform;
+            pill.sizeDelta = new Vector2(h * 1.45f, h);
+            pill.anchoredPosition = new Vector2(h * 0.3f, -h * 0.2f);
+            UiKit.Paint(s.Pill, "Pills/pill_gray");
+            PillBorder(s.Pill, h);
+            UiKit.Outlined(s.Level, Color.white);
+            s.Level.fontSize = size >= 90f ? 30f : 24f;
+        }
+
+        // Hap yalnız yatay 9-slice: kenar payı yükseklikle orantılı.
+        private static void PillBorder(Image img, float h)
+        {
+            if (img.sprite != null && h > 1f) img.pixelsPerUnitMultiplier = img.sprite.rect.height / h;
+        }
+
         private void OnEnable()
         {
             GameEvents.OnUpgradeApplied += OnUpgradeApplied;
@@ -140,7 +171,7 @@ namespace BlobSurvivor.UI
         // Listeden yeniden kurar; changed verilirse o slot animasyonlu (yeni: fade, seviye: punch).
         public void Refresh(UpgradeData changed)
         {
-            if (!_built) return;
+            if (!_built || _slots[0] == null) return; // Play'de kod yeniden yüklenince slotlar düşer
             UpgradeSystem sys = UpgradeSystem.Instance;
             FillGroup(sys, sys != null ? sys.OwnedActives : null, 0, changed);
             FillGroup(sys, sys != null ? sys.OwnedPassives : null, GroupSize, changed);
@@ -166,8 +197,12 @@ namespace BlobSurvivor.UI
 
             if (data == null)
             {
-                s.Frame.color = WithAlpha(kind, EmptyAlpha);
-                s.Fill.color = WithAlpha(Ground, Ground.a * 0.5f);
+                if (_k) UiKit.Paint(s.Frame, "Slots/slot_empty", WithAlpha(Color.white, FrameAlpha));
+                else
+                {
+                    s.Frame.color = WithAlpha(kind, EmptyAlpha);
+                    s.Fill.color = WithAlpha(Ground, Ground.a * 0.5f);
+                }
                 s.Content.gameObject.SetActive(false);
                 s.AnimStart = -1f;
                 s.Root.localScale = Vector3.one;
@@ -181,13 +216,27 @@ namespace BlobSurvivor.UI
             s.Level.SetText("{0}", level);
             s.Pill.color = max ? Gold : PillColor;
             s.Level.color = max ? Ink : Color.white;
-            s.Frame.color = WithAlpha(max ? Gold : kind, FrameAlpha);
+            if (_k) KitApply(s, data, max);
+            else s.Frame.color = WithAlpha(max ? Gold : kind, FrameAlpha);
             s.Group.alpha = 1f;
             if (!animate) return;
             s.AnimIsFade = wasEmpty;
             s.AnimStart = Time.unscaledTime;
             if (wasEmpty) s.Group.alpha = 0f;
             _animating = true;
+        }
+
+        // Yalnız slot değişince (her kare değil).
+        private static void KitApply(Slot s, UpgradeData data, bool max)
+        {
+            UiKit.Paint(s.Frame, s.IsActive ? "Slots/slot_active" : "Slots/slot_passive");
+            Sprite icon = UiKit.SkillIcon(data);
+            s.Icon.sprite = icon;
+            s.Icon.enabled = icon != null;
+            s.Abbr.gameObject.SetActive(icon == null); // ikon yoksa kısaltma
+            UiKit.Paint(s.Pill, max ? "Pills/pill_gold" : "Pills/pill_gray");
+            PillBorder(s.Pill, s.Pill.rectTransform.sizeDelta.y);
+            s.Level.color = Color.white;
         }
 
         private void Update()

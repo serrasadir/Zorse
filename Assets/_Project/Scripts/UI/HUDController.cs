@@ -54,8 +54,13 @@ namespace BlobSurvivor.UI
         private const float RowTextTop = 286f, RowTextHeight = 40f, LevelTextWidth = 140f, TierTextWidth = 200f;
         private const float StripTop = 338f, StripSlot = 72f;
 
+        // Arayüz kiti: lacivert HUD kutuları, kapsül barlar, konturlu yazı. Kurulu değilse eski düz görünüm.
+        private bool _k;
+        private Sprite _roundedSprite; // kitten önceki can barı zemini (slot şeridi yedeği)
+
         private void Awake()
         {
+            _k = UiKit.Ready;
             LayoutHud();
             LayoutBars();
             CreateShieldBar();
@@ -131,6 +136,11 @@ namespace BlobSurvivor.UI
             _bannerText = CreateText("Text", _banner, "");
             PlaceText(_bannerShadow, _banner, Vector2.zero, Vector2.one, new Vector2(0f, -6f), new Vector2(0f, -6f), 92f, TextAlignmentOptions.Center, EvolutionShadow);
             PlaceText(_bannerText, _banner, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 92f, TextAlignmentOptions.Center, EvolutionGold);
+            if (_k)
+            {
+                UiKit.Outlined(_bannerText, EvolutionGold, true);
+                _bannerShadow.gameObject.SetActive(false);
+            }
             go.SetActive(false);
         }
 
@@ -162,6 +172,9 @@ namespace BlobSurvivor.UI
 
             if (_healthBar != null)
             {
+                Transform hb = _healthBar.transform.Find("Background");
+                Image hbImage = hb != null ? hb.GetComponent<Image>() : null;
+                if (hbImage != null) _roundedSprite = hbImage.sprite;
                 _healthRect = (RectTransform)_healthBar.transform;
                 _healthRect.SetParent(layout, false);
                 _healthRect.anchorMin = _healthRect.anchorMax = _healthRect.pivot = new Vector2(0f, 1f); // sol kenar sabit, sağa uzar
@@ -170,6 +183,7 @@ namespace BlobSurvivor.UI
                 _healthRect.localScale = Vector3.one;
                 _healthWidthTarget = HealthBaseWidth;
                 NormalizeSlider(_healthBar);
+                if (_k) KitBar(_healthBar, "Bars/bar_fill_green", HealthHeight);
             }
 
             if (_xpBar != null)
@@ -181,6 +195,7 @@ namespace BlobSurvivor.UI
                 xp.sizeDelta = new Vector2(XpWidth, XpHeight);
                 xp.localScale = Vector3.one;
                 NormalizeSlider(_xpBar);
+                if (_k) KitBar(_xpBar, "Bars/bar_fill_yellow", XpHeight);
             }
 
             RectTransform boss = _bossHealthContainer != null ? _bossHealthContainer.transform as RectTransform
@@ -195,7 +210,40 @@ namespace BlobSurvivor.UI
                 boss.offsetMax = new Vector2(-Edge, -BossBarTop);
                 boss.localScale = Vector3.one;
             }
-            if (_bossHealthBar != null) NormalizeSlider(_bossHealthBar);
+            if (_bossHealthBar != null)
+            {
+                NormalizeSlider(_bossHealthBar);
+                if (_k) KitBar(_bossHealthBar, "Bars/bar_fill_red", BossBarHeight);
+            }
+        }
+
+        // Kit barı: lacivert kapsül zemin + renkli dolgu; dolgu alanı zeminin iç payı kadar içeride. Kurulumda bir kez.
+        private static void KitBar(Slider slider, string fillKey, float height)
+        {
+            if (slider == null) return;
+            Transform background = slider.transform.Find("Background");
+            Image bg = background != null ? background.GetComponent<Image>() : null;
+            if (bg != null) { UiKit.Paint(bg, "Bars/bar_track"); FitHeight(bg, height); }
+            RectTransform fill = slider.fillRect;
+            if (fill == null) return;
+            float padY = Mathf.Max(2f, Mathf.Round(height * 0.16f));
+            float padX = Mathf.Max(3f, Mathf.Round(height * 0.22f));
+            if (fill.parent != slider.transform)
+            {
+                var area = (RectTransform)fill.parent;
+                area.offsetMin = new Vector2(padX, padY);
+                area.offsetMax = new Vector2(-padX, -padY);
+            }
+            Image fillImage = fill.GetComponent<Image>();
+            if (fillImage != null) { UiKit.Paint(fillImage, fillKey); FitHeight(fillImage, height - padY * 2f); }
+        }
+
+        // 9-slice kenar payı yüksekliğe orantılı (sprite yüksekliği = h).
+        private static void FitHeight(Image img, float h)
+        {
+            if (img == null || img.sprite == null || h <= 1f) return;
+            img.pixelsPerUnitMultiplier = img.sprite.rect.height / h;
+            UiKit.FitBorder(img); // yatay 9-slice'ta gerçek boya göre (çapalı barlar)
         }
 
         // Varsayılan Slider'da zemin/dolgu barın orta yarısını kaplıyor, dolgu tutamak payı bırakıyor: bar tam boyu kullansın.
@@ -248,10 +296,14 @@ namespace BlobSurvivor.UI
             rect.sizeDelta = new Vector2(0f, Mathf.Max(12f, HealthHeight * 0.45f));
             rect.localScale = Vector3.one;
 
-            foreach (Image image in copy.GetComponentsInChildren<Image>(true))
+            if (_k) KitBar(_shieldBar, "Bars/bar_fill_blue", rect.sizeDelta.y);
+            else
             {
-                bool isFill = _shieldBar.fillRect != null && image.transform == _shieldBar.fillRect;
-                image.color = isFill ? ShieldFillColor : ShieldBackgroundColor;
+                foreach (Image image in copy.GetComponentsInChildren<Image>(true))
+                {
+                    bool isFill = _shieldBar.fillRect != null && image.transform == _shieldBar.fillRect;
+                    image.color = isFill ? ShieldFillColor : ShieldBackgroundColor;
+                }
             }
 
             copy.SetActive(false);
@@ -277,6 +329,7 @@ namespace BlobSurvivor.UI
             Image image = go.GetComponent<Image>();
             image.color = ShieldFillColor;
             image.raycastTarget = false;
+            if (_k) { UiKit.Paint(image, "Bars/bar_fill_blue"); FitHeight(image, HealthHeight); }
             go.SetActive(false);
         }
 
@@ -315,6 +368,7 @@ namespace BlobSurvivor.UI
             _bossName = CreateText("BossName", layout, "");
             PlaceText(_bossName, layout, new Vector2(0f, 1f), Vector2.one, new Vector2(Edge, -BossNameHeight), new Vector2(-Edge, 0f), 34f,
                 TextAlignmentOptions.Center, Color.white);
+            if (_k) UiKit.Outlined(_bossName, Color.white);
             _bossName.gameObject.SetActive(false);
             // NewsTicker kendi CanvasGroup'unu kullanıyor: ona dokunmadan ölçekle gizlenir (geçici; asıl yeri NewsTicker).
             NewsTicker ticker = FindAnyObjectByType<NewsTicker>(FindObjectsInactive.Include);
@@ -383,7 +437,7 @@ namespace BlobSurvivor.UI
         private void OnCoinsChanged(int coins)
         {
             if (_coinText == null) return;
-            _coinText.text = $"{coins:N0} coin";
+            _coinText.text = _coinIcon != null ? coins.ToString("N0") : $"{coins:N0} coin"; // kit: "coin" yerine ikon
             if (_coinText.text.Length != _coinLength) { _coinLength = _coinText.text.Length; FitScorePanel(); }
         }
 
@@ -391,13 +445,15 @@ namespace BlobSurvivor.UI
         private const float ScorePanelMinWidth = 240f, ScorePanelPadding = 16f;
         private RectTransform _scorePanel;
         private int _scoreLength = -1, _coinLength = -1;
+        private const float CoinIconSize = 40f, CoinIconSpace = CoinIconSize + 6f;
+        private Image _coinIcon;
 
         private void FitScorePanel()
         {
             if (_scorePanel == null) return;
             float width = 0f;
             if (_scoreText != null) width = Mathf.Max(width, _scoreText.preferredWidth);
-            if (_coinText != null) width = Mathf.Max(width, _coinText.preferredWidth);
+            if (_coinText != null) width = Mathf.Max(width, _coinText.preferredWidth + (_coinIcon != null ? CoinIconSpace : 0f));
             Vector2 size = _scorePanel.sizeDelta;
             size.x = Mathf.Max(ScorePanelMinWidth, width + ScorePanelPadding * 2f);
             _scorePanel.sizeDelta = size;
@@ -462,11 +518,7 @@ namespace BlobSurvivor.UI
         {
             RectTransform layout = CreateLayoutRoot();
             if (layout == null) return;
-            Sprite rounded = null;
-            Transform background = _healthBar != null ? _healthBar.transform.Find("Background") : null;
-            Image bgImage = background != null ? background.GetComponent<Image>() : null;
-            if (bgImage != null) rounded = bgImage.sprite;
-            _slotStrip = SkillSlotStrip.Create(layout, "SlotStrip", StripSlot, rounded);
+            _slotStrip = SkillSlotStrip.Create(layout, "SlotStrip", StripSlot, _roundedSprite);
             var rect = (RectTransform)_slotStrip.transform;
             rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0f, 1f);
             rect.anchoredPosition = new Vector2(Edge, -StripTop);
@@ -490,6 +542,7 @@ namespace BlobSurvivor.UI
 
             RectTransform timerPanel = CreatePanel("TimerPanel", layout, new Vector2(0f, 1f), new Vector2(Edge, -TopOffset), new Vector2(190f, 72f));
             PlaceText(_timerText, timerPanel, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 50f, TextAlignmentOptions.Center, Color.white);
+            if (_k) UiKit.Outlined(_timerText, Color.white);
 
             RectTransform scorePanel = CreatePanel("ScorePanel", layout, new Vector2(1f, 1f), new Vector2(-Edge - PauseReserve, -ScorePanelTop),
                 new Vector2(ScorePanelMinWidth, ScorePanelHeight));
@@ -499,6 +552,21 @@ namespace BlobSurvivor.UI
             if (_coinText == null) _coinText = CreateText("CoinText", scorePanel, "0 coin");
             PlaceText(_coinText, scorePanel, Vector2.zero, new Vector2(1f, 0f), new Vector2(16f, 6f), new Vector2(-16f, 46f), 32f,
                 TextAlignmentOptions.Right, CoinColor);
+            if (_k)
+            {
+                UiKit.Outlined(_scoreText, Color.white);
+                UiKit.Outlined(_coinText, Color.white);
+                // Coin ikonu sağ altta, sayı onun solunda.
+                if (_coinText != null && UiKit.Get("Icons/coin") != null)
+                {
+                    _coinIcon = UiKit.NewImage("CoinIcon", scorePanel, Vector2.zero, new Vector2(CoinIconSize, CoinIconSize), "Icons/coin");
+                    RectTransform icon = _coinIcon.rectTransform;
+                    icon.anchorMin = icon.anchorMax = icon.pivot = new Vector2(1f, 0f);
+                    icon.anchoredPosition = new Vector2(-ScorePanelPadding, 6f);
+                    _coinText.rectTransform.offsetMax = new Vector2(-ScorePanelPadding - CoinIconSpace, 46f);
+                    _coinText.text = "0";
+                }
+            }
 
             // C bölgesi XP satırı: solda "Sv. N", sağda tier adı (XP barı aralarında).
             PlaceText(_levelText, layout, new Vector2(0f, 1f), new Vector2(0f, 1f),
@@ -508,6 +576,11 @@ namespace BlobSurvivor.UI
             PlaceText(_tierText, layout, new Vector2(0f, 1f), new Vector2(0f, 1f),
                 new Vector2(tierLeft, -(RowTextTop + RowTextHeight)), new Vector2(tierLeft + TierTextWidth, -RowTextTop), 32f,
                 TextAlignmentOptions.Right, Color.white);
+            if (_k)
+            {
+                UiKit.Outlined(_levelText, Color.white);
+                UiKit.Outlined(_tierText, Color.white);
+            }
         }
 
         // HUD'un kendi rect'i sahnede daraltılmış; yazılar ve barlar için güvenli alanı kaplayan bir child açılır —
@@ -533,7 +606,7 @@ namespace BlobSurvivor.UI
             return rect;
         }
 
-        private static RectTransform CreatePanel(string name, RectTransform parent, Vector2 corner, Vector2 position, Vector2 size)
+        private RectTransform CreatePanel(string name, RectTransform parent, Vector2 corner, Vector2 position, Vector2 size)
         {
             GameObject go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
             go.layer = parent.gameObject.layer;
@@ -545,6 +618,7 @@ namespace BlobSurvivor.UI
             Image image = go.GetComponent<Image>();
             image.color = PanelColor;
             image.raycastTarget = false;
+            if (_k) { UiKit.Paint(image, "Panels/hud_navy"); FitHeight(image, size.y); }
             return rect;
         }
 

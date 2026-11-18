@@ -35,6 +35,8 @@ namespace BlobSurvivor.UI
         private TMP_Text _title, _subtitle, _record;
         private TMP_Text _time, _score, _best, _coins, _credit;
         private Button _menuButton;
+        private bool _k; // arayüz kiti kurulu (UiKit.Ready)
+        private GameObject _winBanner, _loseBanner;
 
         private float _shownAt = -1f;
         private int _targetScore, _targetCoins, _targetCredit;
@@ -70,7 +72,9 @@ namespace BlobSurvivor.UI
             float t = GameManager.Instance != null ? GameManager.Instance.SurvivalTime : 0f;
 
             _title.text = won ? "KAZANDIN!" : "GAME OVER";
-            _title.color = won ? Gold : LoseTitle;
+            _title.color = _k ? Color.white : won ? Gold : LoseTitle;
+            if (_winBanner != null) _winBanner.SetActive(won);
+            if (_loseBanner != null) _loseBanner.SetActive(!won);
             _subtitle.text = won ? "Helikopteri yuttun, şehirde kırıntı kalmadı" : "Polis seni yakaladı";
             _time.text = $"{(int)t / 60:00}:{(int)t % 60:00}";
 
@@ -137,6 +141,7 @@ namespace BlobSurvivor.UI
         {
             if (_built) return;
             _built = true;
+            _k = UiKit.Ready;
 
             CoverFullScreen();
             Image backdrop = _panel.GetComponent<Image>();
@@ -155,29 +160,64 @@ namespace BlobSurvivor.UI
 
             _content = NewRect("Content", (RectTransform)_panel.transform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(860f, 1500f));
 
-            _title = Label("Title", _content, new Vector2(0f, 600f), new Vector2(860f, 140f), 112f, TextAlignmentOptions.Center, Color.white);
-            _subtitle = Label("Subtitle", _content, new Vector2(0f, 505f), new Vector2(860f, 60f), 38f, TextAlignmentOptions.Center, Subtle);
-            _subtitle.fontStyle = FontStyles.Normal;
+            // Kit: başlık bandı yazının arkasında (KAZANDIN = sarı kurdele, GAME OVER = kırmızı plaka; Show seçer).
+            if (_k)
+            {
+                Image win = UiKit.NewImage("WinRibbon", _content, new Vector2(0f, 600f), new Vector2(880f, 170f), "Banners/ribbon_gold");
+                UiKit.FitBorder(win);
+                Image lose = UiKit.NewImage("LosePlate", _content, new Vector2(0f, 600f), new Vector2(680f, 150f), "Banners/plate_red");
+                UiKit.FitBorder(lose);
+                _winBanner = win.gameObject; _loseBanner = lose.gameObject;
+            }
 
-            RectTransform badge = Panel("RecordBadge", _content, new Vector2(0f, 400f), new Vector2(420f, 84f), rounded, Gold);
+            _title = Label("Title", _content, new Vector2(0f, _k ? 608f : 600f), new Vector2(860f, 140f), _k ? 84f : 112f, TextAlignmentOptions.Center, Color.white);
+            if (_k) UiKit.Outlined(_title, Color.white, true);
+            _subtitle = Label("Subtitle", _content, new Vector2(0f, _k ? 495f : 505f), new Vector2(860f, 60f), 38f, TextAlignmentOptions.Center, Subtle);
+            _subtitle.fontStyle = FontStyles.Normal;
+            if (_k) UiKit.Outlined(_subtitle, Color.white, false, false);
+
+            RectTransform badge = Panel("RecordBadge", _content, new Vector2(0f, 400f), new Vector2(_k ? 470f : 420f, 84f), rounded, Gold);
             _record = Label("Text", badge, Vector2.zero, badge.sizeDelta, 44f, TextAlignmentOptions.Center, new Color(0.12f, 0.08f, 0.02f, 1f));
             _record.text = "YENİ REKOR!";
+            if (_k)
+            {
+                Image badgeImage = badge.GetComponent<Image>();
+                UiKit.Paint(badgeImage, "Badges/badge_gold");
+                UiKit.FitBorder(badgeImage);
+                UiKit.NewImage("Star", badge, new Vector2(-205f, 6f), new Vector2(96f, 96f), "Icons/star");
+                _record.rectTransform.anchoredPosition = new Vector2(24f, 4f);
+                UiKit.Outlined(_record, Color.white);
+            }
 
             RectTransform card = Panel("StatsCard", _content, new Vector2(0f, 20f), new Vector2(760f, 600f), rounded, PanelColor);
+            if (_k)
+            {
+                Image cardImage = card.GetComponent<Image>();
+                UiKit.Paint(cardImage, "Panels/card_cream");
+                cardImage.pixelsPerUnitMultiplier = 0.9f; // UpgradePanel kartıyla aynı çerçeve kalınlığı
+            }
             string[] names = { "Süre", "Skor", "Rekor", "Toplanan coin", "Kazanılan coin" };
             TMP_Text[] values = new TMP_Text[names.Length];
             for (int i = 0; i < names.Length; i++)
             {
                 float y = 228f - i * 114f;
-                Label(names[i] + "Label", card, new Vector2(-150f, y), new Vector2(380f, 90f), 42f, TextAlignmentOptions.Left, Subtle).text = names[i];
+                TMP_Text nameText = Label(names[i] + "Label", card, new Vector2(-150f, y), new Vector2(380f, 90f), 42f, TextAlignmentOptions.Left, Subtle);
+                nameText.text = names[i];
                 bool gold = i >= 3;
-                values[i] = Label(names[i] + "Value", card, new Vector2(150f, y), new Vector2(380f, 90f), i == 1 ? 58f : 48f,
+                // Kit: coin satırlarında değerin sağında coin ikonu, değer biraz sola.
+                values[i] = Label(names[i] + "Value", card, new Vector2(_k && gold ? 90f : 150f, y), new Vector2(380f, 90f), i == 1 ? 58f : 48f,
                     TextAlignmentOptions.Right, gold ? Gold : Color.white);
+                if (_k)
+                {
+                    UiKit.Text(nameText, false, UiKit.InkSoft);
+                    UiKit.Text(values[i], true, UiKit.Ink);
+                    if (gold) UiKit.NewImage("Coin", card, new Vector2(318f, y + 2f), new Vector2(60f, 60f), "Icons/coin");
+                }
                 if (i < names.Length - 1)
                 {
                     RectTransform line = NewRect("Line", card, new Vector2(0.5f, 0.5f), new Vector2(0f, y - 57f), new Vector2(680f, 2f));
                     var img = line.gameObject.AddComponent<Image>();
-                    img.color = new Color(1f, 1f, 1f, 0.08f);
+                    img.color = _k ? new Color(UiKit.InkSoft.r, UiKit.InkSoft.g, UiKit.InkSoft.b, 0.18f) : new Color(1f, 1f, 1f, 0.08f);
                     img.raycastTarget = false;
                 }
             }
@@ -192,6 +232,11 @@ namespace BlobSurvivor.UI
                 _menuButton.onClick = new Button.ButtonClickedEvent();
                 _menuButton.onClick.AddListener(ReturnToMenu);
                 StyleButton(_menuButton, _content, new Vector2(0f, -590f), new Vector2(700f, 116f), "Ana Menü", 46f, Secondary, rounded);
+                if (_k)
+                {
+                    KitButton(_restartButton, "green", "Glyphs/restart");
+                    KitButton(_menuButton, "gray", "Glyphs/home");
+                }
             }
         }
 
@@ -235,6 +280,33 @@ namespace BlobSurvivor.UI
                 label.color = Color.white;
                 label.enableAutoSizing = false;
             }
+        }
+
+        // Kit butonu: renkli sprite (basılı hali sprite değişimi), kenarlar boya orantılı, solda beyaz glif, konturlu yazı.
+        // Giriş korumasında (interactable false) disabled sprite yok → normal görünür.
+        private static void KitButton(Button button, string color, string glyph)
+        {
+            UiKit.StyleButton(button, color);
+            RectTransform rect = (RectTransform)button.transform;
+            if (button.targetGraphic is Image img && img.sprite != null)
+                img.pixelsPerUnitMultiplier = img.sprite.rect.height / rect.sizeDelta.y;
+
+            TMP_Text label = button.GetComponentInChildren<TMP_Text>(true);
+            if (label == null) return;
+            UiKit.Outlined(label, Color.white, rect.sizeDelta.y >= 130f);
+            label.alignment = TextAlignmentOptions.Center;
+
+            // Glif + yazı birlikte ortalı: glif yazının hemen solunda (bir kez ölçülür, metin sabit).
+            float glyphSize = rect.sizeDelta.y * 0.5f;
+            const float gap = 16f;
+            float shift = (glyphSize + gap) * 0.5f;
+            label.ForceMeshUpdate();
+            float textWidth = label.preferredWidth;
+            UiKit.NewImage("Glyph", rect, new Vector2(shift - textWidth * 0.5f - gap - glyphSize * 0.5f, 4f), new Vector2(glyphSize, glyphSize), glyph);
+            RectTransform lr = label.rectTransform;
+            lr.anchorMin = Vector2.zero; lr.anchorMax = Vector2.one;
+            lr.offsetMin = new Vector2(shift * 2f, 8f); // alt gölge payı: yazı hafif yukarı
+            lr.offsetMax = Vector2.zero;
         }
 
         private static RectTransform NewRect(string name, RectTransform parent, Vector2 anchor, Vector2 pos, Vector2 size)

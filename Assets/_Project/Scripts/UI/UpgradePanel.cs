@@ -60,6 +60,11 @@ namespace BlobSurvivor.UI
         private RectTransform _content, _dim, _hudStrip;
         private float _fittedHeight = -1f;
         private Sprite _rounded, _circle, _diamond;
+        // Arayüz kiti (UiKit): krem kart, solda skill slotu + ikon, renkli rozet ve tür hapı. Kurulu değilse eski düz kartlar.
+        private bool _k;
+        private Image[] _slots, _icons, _kindPills;
+        private static readonly Color DescInk = new Color32(58, 40, 30, 255); // açıklama: koyu kahve, krem zeminde okunaklı
+        private TMP_Text[] _letters;
         private Entities.Blob.BlobGrowth _growth;
         private float _shownAt = -1f;
 
@@ -129,18 +134,20 @@ namespace BlobSurvivor.UI
                 {
                     // B17: evrim çıktısı kartları ★ + altın renkle işaretlenir.
                     _upgradeNameTexts[i].text = evo ? $"★ {data.DisplayName}" : data.DisplayName;
-                    _upgradeNameTexts[i].color = evo ? Gold : Color.white;
+                    _upgradeNameTexts[i].color = _k ? UiKit.Ink : evo ? Gold : Color.white;
                 }
                 if (_upgradeDescTexts != null && i < _upgradeDescTexts.Length && _upgradeDescTexts[i] != null)
                     _upgradeDescTexts[i].text = data.GetDescriptionForLevel(current + 1);
 
-                if (_cardImages[i] != null) _cardImages[i].color = evo ? EvolutionCard : rare ? RareCard : CardColor;
+                if (_k) KitCard(i, data, evo, rare, active);
+                else if (_cardImages[i] != null) _cardImages[i].color = evo ? EvolutionCard : rare ? RareCard : CardColor;
 
                 // Tür: K23 şekli + metin (evrimde yok).
                 Color kindColor = rare ? RareTag : active ? ActiveTag : PassiveTag;
                 _kindTexts[i].text = evo ? "" : rare ? "NADİR" : active ? "AKTİF" : "PASİF";
-                _kindTexts[i].color = kindColor;
-                _kindShapes[i].gameObject.SetActive(!evo);
+                _kindTexts[i].color = _k ? Color.white : kindColor;
+                _kindShapes[i].gameObject.SetActive(!evo && !_k);
+                if (_k) _kindPills[i].gameObject.SetActive(!evo);
                 SetShape(_kindShapes[i], rare ? _diamond : active ? _circle : _rounded);
                 _kindShapes[i].color = kindColor;
 
@@ -153,15 +160,24 @@ namespace BlobSurvivor.UI
                 else if (isNew) badge.SetText("YENİ");
                 else if (toMax) badge.SetText("Sv. {0} <sprite name=\"ok\" tint=1> MAX", current);
                 else badge.SetText("Sv. {0} <sprite name=\"ok\" tint=1> {1}", current, next);
-                _badges[i].color = evo || toMax ? Gold : isNew ? NewBadge : LevelBadge;
-                badge.color = evo || toMax || isNew ? Ink : Color.white;
+                if (_k)
+                {
+                    UiKit.Paint(_badges[i], evo ? "Badges/badge_purple" : toMax ? "Badges/badge_red" : isNew ? "Badges/badge_green" : "Badges/badge_gold");
+                    FitBorder(_badges[i]);
+                    badge.color = Color.white;
+                }
+                else
+                {
+                    _badges[i].color = evo || toMax ? Gold : isNew ? NewBadge : LevelBadge;
+                    badge.color = evo || toMax || isNew ? Ink : Color.white;
+                }
 
                 string note = NoteFor(sys, data, current, evo, rare, out bool warn);
                 _noteTexts[i].gameObject.SetActive(note != null);
                 if (note != null)
                 {
                     _noteTexts[i].SetText(note);
-                    _noteTexts[i].color = warn ? NoteWarn : Subtle;
+                    _noteTexts[i].color = _k ? (warn ? UiKit.Red : UiKit.InkSoft) : warn ? NoteWarn : Subtle;
                 }
 
                 _upgradeButtons[i].interactable = false; // InputDelay sonra açılır
@@ -319,6 +335,7 @@ namespace BlobSurvivor.UI
             _circle = Resources.Load<Sprite>("UI/Shapes/UI_Circle");
             _diamond = Resources.Load<Sprite>("UI/Shapes/UI_Diamond");
             TMP_SpriteAsset glyphs = Resources.Load<TMP_SpriteAsset>("Sprite Assets/UI_Glyphs");
+            _k = UiKit.Ready;
             _growth = FindAnyObjectByType<Entities.Blob.BlobGrowth>();
             _panelGroup = _panel.GetComponent<CanvasGroup>();
             if (_panelGroup == null) _panelGroup = _panel.AddComponent<CanvasGroup>();
@@ -333,7 +350,7 @@ namespace BlobSurvivor.UI
             dim.anchorMin = Vector2.zero;
             dim.anchorMax = Vector2.one;
             dim.offsetMin = Vector2.zero;
-            dim.offsetMax = new Vector2(0f, -HudClearance);
+            dim.offsetMax = _k ? Vector2.zero : new Vector2(0f, -HudClearance); // kit: tam ekran karartma
             dim.SetAsFirstSibling();
             Image dimImage = dim.gameObject.AddComponent<Image>();
             dimImage.color = Backdrop;
@@ -343,13 +360,33 @@ namespace BlobSurvivor.UI
             // İçerik ayrı kökte: ekran kısaysa (yan ekran) HUD'un altındaki alana sığacak kadar küçülüp kayar (FitContent).
             _content = NewRect("Content", panel, Vector2.zero, new Vector2(1000f, ContentTop - ContentBottom));
             RectTransform content = _content;
-            Shadowed(content, new Vector2(0f, 430f), "SEVİYE ATLADIN!", 76f, Gold);
+            if (_k) KitTitle(content, new Vector2(0f, 446f), "SEVİYE ATLADIN!");
+            else Shadowed(content, new Vector2(0f, 430f), "SEVİYE ATLADIN!", 76f, Gold);
             _subtitle = Label("Subtitle", content, new Vector2(0f, 362f), new Vector2(900f, 50f), 36f, TextAlignmentOptions.Center, Subtle);
+            if (_k) UiKit.Outlined(_subtitle, Color.white, false, false);
             _subtitle.text = "Bir güç seç";
             _subtitle.fontStyle = FontStyles.Normal;
 
             _activeCount = Label("ActiveCount", content, new Vector2(-160f, 306f), new Vector2(300f, 40f), 32f, TextAlignmentOptions.Center, ActiveTag);
             _passiveCount = Label("PassiveCount", content, new Vector2(160f, 306f), new Vector2(300f, 40f), 32f, TextAlignmentOptions.Center, PassiveTag);
+            if (_k)
+            {
+                // Alt yazı ortada, sayaçlar iki yanda renkli haplarda (tek sıra, kartların üstünde).
+                const float rowY = 352f, pillX = 372f;
+                _subtitle.rectTransform.anchoredPosition = new Vector2(0f, rowY);
+                _subtitle.rectTransform.sizeDelta = new Vector2(460f, 50f);
+                AutoSize(_subtitle, 26f, 34f);
+                int at = _activeCount.transform.GetSiblingIndex();
+                Image ap = UiKit.NewImage("ActivePill", content, new Vector2(-pillX, rowY), new Vector2(240f, 70f), "Pills/pill_orange");
+                Image pp = UiKit.NewImage("PassivePill", content, new Vector2(pillX, rowY), new Vector2(240f, 70f), "Pills/pill_blue");
+                FitBorder(ap); FitBorder(pp);
+                ap.transform.SetSiblingIndex(at);
+                pp.transform.SetSiblingIndex(at + 1);
+                Place(_activeCount.rectTransform, content, new Vector2(-pillX, rowY + 3f), new Vector2(220f, 44f));
+                Place(_passiveCount.rectTransform, content, new Vector2(pillX, rowY + 3f), new Vector2(220f, 44f));
+                UiKit.Outlined(_activeCount, Color.white);
+                UiKit.Outlined(_passiveCount, Color.white);
+            }
 
             int n = _upgradeButtons.Length;
             _cards = new RectTransform[n];
@@ -361,6 +398,10 @@ namespace BlobSurvivor.UI
             _kindShapes = new Image[n];
             _noteTexts = new TMP_Text[n];
             _outlines = new Outline[n];
+            _slots = new Image[n];
+            _icons = new Image[n];
+            _kindPills = new Image[n];
+            _letters = new TMP_Text[n];
             for (int i = 0; i < n; i++)
             {
                 Button button = _upgradeButtons[i];
@@ -369,7 +410,8 @@ namespace BlobSurvivor.UI
                 Place(rect, content, new Vector2(0f, CardTopY - i * (CardHeight + CardGap)), new Vector2(920f, CardHeight));
                 _cards[i] = rect;
                 _cardImages[i] = button.targetGraphic as Image;
-                if (_cardImages[i] != null && rounded != null) { _cardImages[i].sprite = rounded; _cardImages[i].type = Image.Type.Sliced; }
+                if (_cardImages[i] != null && _k) { UiKit.Paint(_cardImages[i], "Panels/card_cream"); _cardImages[i].pixelsPerUnitMultiplier = 0.9f; }
+                else if (_cardImages[i] != null && rounded != null) { _cardImages[i].sprite = rounded; _cardImages[i].type = Image.Type.Sliced; }
                 if (_cardImages[i] != null)
                 {
                     // Seçim onayı: 6 px altın çerçeve.
@@ -420,7 +462,81 @@ namespace BlobSurvivor.UI
                 _noteTexts[i] = Label("SlotNote", rect, new Vector2(0f, -122f), new Vector2(840f, 40f), 32f, TextAlignmentOptions.Left, Subtle);
                 if (glyphs != null) _noteTexts[i].spriteAsset = glyphs;
                 _noteTexts[i].gameObject.SetActive(false);
+                if (_k) KitLayout(i, rect);
             }
+        }
+
+        // Kit kart düzeni (kart 920x290): solda skill slotu (aktif turuncu daire / pasif mavi kare) ve ikon,
+        // sağında ad + tür hapı, sağ üstte rozet, altta açıklama ve slot notu. Yazılar koyu mürekkep, haplarda beyaz konturlu.
+        private void KitLayout(int i, RectTransform rect)
+        {
+            const float half = 460f, slotX = -half + 30f + 104f, textLeft = -half + 262f, textRight = half - 32f;
+            float width = textRight - textLeft, cx = (textLeft + textRight) * 0.5f;
+
+            _slots[i] = UiKit.NewImage("Slot", rect, new Vector2(slotX, 0f), new Vector2(208f, 208f), "Slots/slot_active");
+            _slots[i].transform.SetAsFirstSibling();
+            _icons[i] = UiKit.NewImage("Icon", _slots[i].transform, Vector2.zero, new Vector2(164f, 164f), null);
+            _letters[i] = Label("Letter", (RectTransform)_slots[i].transform, Vector2.zero, new Vector2(140f, 140f), 84f, TextAlignmentOptions.Center, UiKit.Ink);
+            UiKit.Text(_letters[i], true, UiKit.Ink);
+
+            if (_upgradeNameTexts[i] != null)
+            {
+                Place(_upgradeNameTexts[i].rectTransform, rect, new Vector2(textLeft + (width - 230f) * 0.5f, 88f), new Vector2(width - 230f, 80f));
+                UiKit.Text(_upgradeNameTexts[i], true, UiKit.Ink);
+                AutoSize(_upgradeNameTexts[i], 46f, 66f);
+            }
+
+            // Tür hapı (AKTİF / PASİF / NADİR) adın altında.
+            _kindPills[i] = UiKit.NewImage("KindPill", rect, new Vector2(textLeft + 86f, 34f), new Vector2(172f, 56f), "Pills/pill_orange");
+            Place(_kindTexts[i].rectTransform, (RectTransform)_kindPills[i].transform, new Vector2(0f, 3f), new Vector2(160f, 46f));
+            UiKit.Outlined(_kindTexts[i], Color.white, false);
+            _kindTexts[i].alignment = TextAlignmentOptions.Center;
+            _kindTexts[i].fontSize = 28f;
+            _kindTexts[i].characterSpacing = 4f;
+
+            var badge = (RectTransform)_badges[i].transform;
+            Place(badge, rect, new Vector2(textRight - 110f, 90f), new Vector2(220f, 82f));
+            Place(_badgeTexts[i].rectTransform, badge, new Vector2(0f, 4f), new Vector2(190f, 60f));
+            UiKit.Outlined(_badgeTexts[i], Color.white);
+
+            if (_upgradeDescTexts[i] != null)
+            {
+                Place(_upgradeDescTexts[i].rectTransform, rect, new Vector2(cx, -48f), new Vector2(width, 120f));
+                UiKit.Text(_upgradeDescTexts[i], false, DescInk);
+                AutoSize(_upgradeDescTexts[i], 30f, 38f);
+            }
+            Place(_noteTexts[i].rectTransform, rect, new Vector2(cx, -118f), new Vector2(width, 36f));
+            UiKit.Text(_noteTexts[i], false, UiKit.InkSoft);
+            _noteTexts[i].fontSize = 27f;
+        }
+
+        // Kartın görünümü seçeneğe göre: evrim altın kart, slot türü, ikon (yoksa adın baş harfi), tür hapı rengi.
+        private void KitCard(int i, UpgradeData data, bool evo, bool rare, bool active)
+        {
+            UiKit.Paint(_cardImages[i], evo ? "Panels/card_gold" : "Panels/card_cream");
+            _cardImages[i].raycastTarget = true;
+            UiKit.Paint(_slots[i], active || rare || evo ? "Slots/slot_active" : "Slots/slot_passive");
+            Sprite icon = UiKit.SkillIcon(data);
+            _icons[i].sprite = icon;
+            _icons[i].enabled = icon != null;
+            _icons[i].preserveAspect = true;
+            _letters[i].gameObject.SetActive(icon == null);
+            if (icon == null && !string.IsNullOrEmpty(data.DisplayName)) _letters[i].SetText(data.DisplayName.Substring(0, 1));
+            UiKit.Paint(_kindPills[i], rare ? "Pills/pill_purple" : active ? "Pills/pill_orange" : "Pills/pill_blue");
+            FitBorder(_kindPills[i]);
+        }
+
+        private static void FitBorder(Image img) => UiKit.FitBorder(img);
+
+        // Başlık: düz sarı kurdele, beyaz konturlu yazı.
+        private static void KitTitle(RectTransform parent, Vector2 pos, string text)
+        {
+            Image band = UiKit.NewImage("Ribbon", parent, pos, new Vector2(860f, 120f), "Banners/ribbon_gold");
+            FitBorder(band);
+            TMP_Text t = Label("Title", (RectTransform)band.transform, new Vector2(0f, 8f), new Vector2(600f, 96f), 64f, TextAlignmentOptions.Center, Color.white);
+            UiKit.Outlined(t, Color.white, true);
+            AutoSize(t, 42f, 64f);
+            t.text = text;
         }
 
         // Dik ekranda içerik yerinde durur; HUD'un altına sığmıyorsa o alana ortalanır ve gerekirse küçülür.
@@ -438,7 +554,7 @@ namespace BlobSurvivor.UI
                 _hudStrip.GetWorldCorners(corners); // [0] sol alt
                 clearance = panel.rect.yMax - panel.InverseTransformPoint(corners[0]).y + StripGap;
             }
-            _dim.offsetMax = new Vector2(0f, -clearance);
+            _dim.offsetMax = _k ? Vector2.zero : new Vector2(0f, -clearance); // kit: tam ekran karartma
             float top = h * 0.5f - clearance - FitMargin, bottom = -h * 0.5f + FitMargin;
             float scale = 1f, y = 0f;
             if (ContentTop > top || ContentBottom < bottom)
