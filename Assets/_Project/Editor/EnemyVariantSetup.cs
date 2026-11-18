@@ -71,6 +71,9 @@ namespace BlobSurvivor.EditorTools
                 d.FindProperty("_coinOverride").intValue = 3;
                 d.FindProperty("_frontShieldHalfAngle").floatValue = 60f;
                 d.FindProperty("_frontShieldBlock").floatValue = 0.85f;
+                d.FindProperty("_maxAlive").intValue = 5; // tank tipi: az ve seyrek
+                d.FindProperty("_introTitle").stringValue = "KALKANLI POLİS!";
+                d.FindProperty("_introSub").stringValue = "Önden vurma · arkasına geç!";
                 d.FindProperty("_crumbColorA").colorValue = new Color(0.25f, 0.31f, 0.37f); // antrasit zırh
                 d.FindProperty("_crumbColorB").colorValue = new Color(0.62f, 0.77f, 0.85f); // kalkan
                 d.FindProperty("_dashRange").floatValue = 0f;
@@ -80,6 +83,8 @@ namespace BlobSurvivor.EditorTools
             EnemyData motor = MakeEnemy("MotorPolice", d =>
             {
                 d.FindProperty("_maxHealth").floatValue = 70f;
+                d.FindProperty("_introTitle").stringValue = "MOTORLU POLİS!";
+                d.FindProperty("_introSub").stringValue = "Geri yaslanınca yana kaç!";
                 d.FindProperty("_damage").floatValue = 14f;
                 d.FindProperty("_moveSpeed").floatValue = 2.6f;
                 d.FindProperty("_scoreValue").intValue = 20;
@@ -112,9 +117,9 @@ namespace BlobSurvivor.EditorTools
             WaveData eliteWave = MakeWave("Wave_PoliceElite", "PoliceElite", 240f, 2.3f,
                 (guard, 0.85f), (elite, 0.15f), (dog, 0.25f));
             WaveData riotWave = MakeWave("Wave_Riot", "Riot", 300f, 2.3f,
-                (guard, 0.7f), (elite, 0.15f), (dog, 0.15f), (riot, 0.5f));
+                (guard, 0.7f), (elite, 0.15f), (dog, 0.15f), (riot, 0.12f));
             WaveData motorWave = MakeWave("Wave_Motor", "Motor", 420f, 2.1f,
-                (guard, 0.55f), (elite, 0.15f), (dog, 0.1f), (riot, 0.4f), (motor, 0.4f));
+                (guard, 0.55f), (elite, 0.15f), (dog, 0.1f), (riot, 0.1f), (motor, 0.4f));
 
             AddAlertMark(EnemyFolder + "/Enemy_Guard.prefab");
             AddAlertMark(PolicePrefab);

@@ -21,7 +21,7 @@ MonoBehaviour:
   - EnemyData: {fileID: 11400000, guid: b84de4b6b5c944af79aac919b4c7c8fb, type: 2}
     SpawnWeight: 0.1
   - EnemyData: {fileID: 11400000, guid: 23643a70254f55e4eac87ca13e03ce7b, type: 2}
-    SpawnWeight: 0.4
+    SpawnWeight: 0.1
   - EnemyData: {fileID: 11400000, guid: 45532eeb375ff0c4b9e3564149d82b5d, type: 2}
     SpawnWeight: 0.4
   _spawnRate: 2.1

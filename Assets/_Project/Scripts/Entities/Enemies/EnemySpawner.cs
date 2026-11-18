@@ -67,6 +67,8 @@ namespace BlobSurvivor.Entities.Enemies
         private Transform _blobTransform;
         private float _spawnTimer;
         private int _activeEliteCount;
+        private readonly HashSet<EnemyData> _introduced = new HashSet<EnemyData>(); // ilk görünüş bandı run'da bir kez
+        private readonly Dictionary<EnemyData, int> _aliveByType = new Dictionary<EnemyData, int>(); // sadece MaxAlive > 0 türler
         private readonly List<GameObject> _activeEnemies = new List<GameObject>(); // polis + elit
         private readonly List<GameObject> _activeSwarm = new List<GameObject>();   // robot köpek
         private readonly Dictionary<EnemyData, ObjectPool<EnemyBase>> _pools = new Dictionary<EnemyData, ObjectPool<EnemyBase>>();
@@ -109,6 +111,8 @@ namespace BlobSurvivor.Entities.Enemies
             ReturnAll(_activeEnemies);
             ReturnAll(_activeSwarm);
             _activeEliteCount = 0;
+            _aliveByType.Clear();
+            _introduced.Clear();
             _spawnTimer = 0f;
             _behindTime.Clear();
             _survivalTime = 0f;
@@ -172,7 +176,7 @@ namespace BlobSurvivor.Entities.Enemies
             if (wave.EnemyTypes == null || wave.EnemyTypes.Length == 0) return;
 
             EnemyData data = ResolveVariant(SelectEnemyData(wave));
-            if (data?.Prefab == null) return;
+            if (data?.Prefab == null || AtTypeCap(data)) return;
 
             // Elit tavanı sürüden ayrı: NavMeshAgent pahalı.
             if (data.IsElite && _activeEliteCount >= GetEffectiveMaxElites()) return;
@@ -219,6 +223,9 @@ namespace BlobSurvivor.Entities.Enemies
 
             (data.IsSwarm ? _activeSwarm : _activeEnemies).Add(enemy.gameObject);
             if (data.IsElite) _activeEliteCount++;
+            if (data.MaxAlive > 0) { _aliveByType.TryGetValue(data, out int n); _aliveByType[data] = n + 1; }
+            if (!string.IsNullOrEmpty(data.IntroTitle) && _introduced.Add(data))
+                GameEvents.RaiseEnemyIntro(data.IntroTitle, data.IntroSub);
             return enemy;
         }
 
@@ -364,6 +371,8 @@ namespace BlobSurvivor.Entities.Enemies
 
             if (enemy.Data != null && enemy.Data.IsElite)
                 _activeEliteCount = Mathf.Max(0, _activeEliteCount - 1);
+            if (enemy.Data != null && _aliveByType.TryGetValue(enemy.Data, out int alive))
+                _aliveByType[enemy.Data] = Mathf.Max(0, alive - 1);
 
             if (_pools.TryGetValue(enemy.Data, out ObjectPool<EnemyBase> pool))
                 pool.Return(enemy);
@@ -393,19 +402,31 @@ namespace BlobSurvivor.Entities.Enemies
             return Random.value < data.ReplaceChance(_survivalTime) ? data.ReplacedBy : data;
         }
 
+        // Tavanı dolu tür (MaxAlive) çekilişe girmez: yerini dalganın diğer türleri doldurur.
         private EnemyData SelectEnemyData(WaveData wave)
         {
             float totalWeight = 0f;
-            foreach (var entry in wave.EnemyTypes) totalWeight += entry.SpawnWeight;
+            foreach (var entry in wave.EnemyTypes)
+                if (!AtTypeCap(entry.EnemyData)) totalWeight += entry.SpawnWeight;
+            if (totalWeight <= 0f) return null;
 
             float roll = Random.Range(0f, totalWeight);
             float cumulative = 0f;
+            EnemyData last = null;
             foreach (var entry in wave.EnemyTypes)
             {
+                if (AtTypeCap(entry.EnemyData)) continue;
+                last = entry.EnemyData;
                 cumulative += entry.SpawnWeight;
-                if (roll <= cumulative) return entry.EnemyData;
+                if (roll <= cumulative) return last;
             }
-            return wave.EnemyTypes[0].EnemyData;
+            return last;
+        }
+
+        private bool AtTypeCap(EnemyData data)
+        {
+            if (data == null || data.MaxAlive <= 0) return false;
+            return _aliveByType.TryGetValue(data, out int n) && n >= data.MaxAlive;
         }
 
         private const float EnemySpawnY = 0.65f;

@@ -47,6 +47,9 @@ MonoBehaviour:
   _replaceEnd: 0
   _crumbColorA: {r: 0.95, g: 0.94, b: 0.92, a: 1}
   _crumbColorB: {r: 0.23, g: 0.34, b: 0.66, a: 1}
+  _introTitle: "MOTORLU POL\u0130S!"
+  _introSub: "Geri yaslan\u0131nca yana ka\u00e7!"
+  _maxAlive: 0
   _frontShieldHalfAngle: 0
   _frontShieldBlock: 0.85
   _dashRange: 9

@@ -80,6 +80,15 @@ namespace BlobSurvivor.Data
         [SerializeField] private Color _crumbColorA = new Color(0.18f, 0.44f, 0.75f);
         [SerializeField] private Color _crumbColorB = new Color(0.23f, 0.34f, 0.66f);
 
+        [Header("İlk görünüş bandı")]
+        [Tooltip("Run'da bu tür ilk kez doğunca olay bandı (başlık + ipucu). Boş = bant yok.")]
+        [SerializeField] private string _introTitle;
+        [SerializeField] private string _introSub;
+
+        [Header("Tavan")]
+        [Tooltip("Aynı anda en fazla kaç tane (0 = sınırsız). Tank tipler az olsun; dolunca dalganın diğer türleri doğar. Lanet artırmaz.")]
+        [SerializeField] private int _maxAlive;
+
         [Header("Ön kalkan (çevik kuvvet)")]
         [Tooltip("Blob bu açının (yarım açı, derece) içinde öndeyse hasarın _frontShieldBlock kadarı kesilir. 0 = kalkan yok.")]
         [SerializeField, Range(0f, 180f)] private float _frontShieldHalfAngle;
@@ -103,6 +112,9 @@ namespace BlobSurvivor.Data
         public float AttackCooldown => _attackCooldown;
         public int ScoreValue => _scoreValue;
         public bool IsElite => _isElite;
+        public int MaxAlive => _maxAlive;
+        public string IntroTitle => _introTitle;
+        public string IntroSub => _introSub;
         public int AttackHitCount => Mathf.Max(1, _attackHitCount);
         public float AttackHitInterval => _attackHitInterval;
         public EnemyAttackType AttackType => _attackType;
