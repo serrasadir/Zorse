@@ -17,12 +17,19 @@ namespace BlobSurvivor.Systems
         [SerializeField] private float _speedBonusMultiplier = 1.15f;
         [SerializeField] private float _finalDamageThreshold = 1200f; // 20 dk
         [SerializeField] private float _finalDamageMultiplier = 3f;
+        // Sürü düşmanının canı _healthStartMinute'tan sonra dakikada bu kadar artar (10. dk'da x1.4). Boss'lar
+        // etkilenmez (BossSpawner). İlk dakikalar sabit: polis ilk geldiğinde zayıf kalsın (VS gibi).
+        [SerializeField] private float _healthPerMinute = 0.08f;
+        [SerializeField] private float _healthStartMinute = 5f;
 
         public WaveData CurrentWave { get; private set; }
         public WaveData[] AllWaves => _waves; // test (DevCheats Y)
         public float DamageMultiplier { get; private set; } = 1f;
         public float SpeedMultiplier { get; private set; } = 1f;
         public float SpawnDensityMultiplier { get; private set; } = 1f;
+        public float HealthMultiplier { get; private set; } = 1f;
+        // Market Lanet'i (0..0.5): run başında GameManager yazar. Can, hız, spawn sıklığı ve tavan bununla çarpılır.
+        public static float Curse { get; set; }
 
         private int _currentWaveIndex = -1;
 
@@ -61,6 +68,7 @@ namespace BlobSurvivor.Systems
                 {
                     _currentWaveIndex = i;
                     CurrentWave = _waves[i];
+                    GameEvents.RaiseWaveStarted(CurrentWave.WaveName);
 #if UNITY_EDITOR
                     Debug.Log($"[WaveController] Yeni dalga: {CurrentWave.WaveName}");
 #endif
@@ -75,9 +83,11 @@ namespace BlobSurvivor.Systems
                 : survivalTime >= _eliteDamageThreshold ? _eliteDamageMultiplier
                 : 1f;
 
-            SpawnDensityMultiplier = survivalTime >= _densityThreshold ? _densityMultiplier : 1f;
+            SpawnDensityMultiplier = (survivalTime >= _densityThreshold ? _densityMultiplier : 1f) * (1f + Curse);
 
-            SpeedMultiplier = survivalTime >= _speedBonusThreshold ? _speedBonusMultiplier : 1f;
+            SpeedMultiplier = (survivalTime >= _speedBonusThreshold ? _speedBonusMultiplier : 1f) * (1f + Curse);
+
+            HealthMultiplier = (1f + _healthPerMinute * Mathf.Max(0f, survivalTime / 60f - _healthStartMinute)) * (1f + Curse);
         }
     }
 }

@@ -32,7 +32,8 @@ namespace BlobSurvivor.Entities.Enemies
         public EnemyData Data => _data;
         public Transform BlobTransform { get; private set; }
         public float CurrentHealth => _currentHealth;
-        public float MaxHealth => _data != null ? _data.MaxHealth : 0f;
+        public float MaxHealth => _maxHealth;
+        private float _maxHealth; // veri canı x dalga can çarpanı (zamanla artar)
 
         // Karar 2 (GDD_v2.md §7): sürü düşmanları NavMeshAgent kullanmaz, basit steering kullanır.
         // Elit/boss NavMeshAgent'ta kalmaya devam eder.
@@ -97,6 +98,7 @@ namespace BlobSurvivor.Entities.Enemies
         // Kalabalık kafes olmasın: blob polisle katı çarpışmaz (boss hariç); içine giren polisi yana iter,
         // kalabalıkta yavaşlar (BlobCrowd). Tehlike hasardan gelir, duvardan değil.
         private Collider _blobSolidCollider;
+        private AlertMark _alertMark; // bekçi/polis: blob'u görünce başının üstünde "!"
         private Rigidbody _blobBody;
         private const float BlobPushSpeed = 9f;
         private static int s_contactFrame = -1, s_contactCount, s_contactPrev;
@@ -176,6 +178,7 @@ namespace BlobSurvivor.Entities.Enemies
         {
             _agent = GetComponent<NavMeshAgent>();
             _healthBar = GetComponentInChildren<EnemyHealthBar>(true);
+            _alertMark = GetComponent<AlertMark>();
             CapsuleCollider body = GetComponent<CapsuleCollider>();
             _bodyCollider = GetComponent<Collider>();
             _bodyRadius = body != null
@@ -200,7 +203,8 @@ namespace BlobSurvivor.Entities.Enemies
 
         private void OnEnable()
         {
-            _currentHealth = _data != null ? _data.MaxHealth : 100f;
+            _maxHealth = _data != null ? _data.MaxHealth : 100f;
+            _currentHealth = _maxHealth;
             if (_healthBar != null) _healthBar.SetRatio(1f);
             _knockbackVelocity = Vector3.zero;
             _aiUpdateTimer = Random.Range(0f, AIUpdateInterval); // stagger — hepsi aynı anda çalışmasın
@@ -495,7 +499,9 @@ namespace BlobSurvivor.Entities.Enemies
             if (aiTick)
             {
                 _aiUpdateTimer = AIUpdateInterval;
+                bool sawBlob = _canSeeBlobCached;
                 _canSeeBlobCached = ComputeCanSeeBlob();
+                if (!sawBlob && _canSeeBlobCached && _alertMark != null) _alertMark.Play();
 
                 // Ayrım (separation) ve engel kaçınma sorguları pahalı (komşu grid taraması / raycast) —
                 // her frame değil, throttle tick'te hesaplanıp cache'lenir. Seek her frame taze kalır
@@ -703,10 +709,11 @@ namespace BlobSurvivor.Entities.Enemies
         // OnEnable() zaten prefab'da serialize edilmiş (muhtemelen yanlış/stale) _data'ya göre
         // _currentHealth'i set etmiş olur; burada doğru data'ya göre yeniden set edilmesi şart,
         // yoksa boss yanlış HP'yle (spawn anındaki prefab-serialized data'nın MaxHealth'iyle) hayata başlar.
-        public void SetData(EnemyData data, float damageMultiplier = 1f, float speedMultiplier = 1f)
+        public void SetData(EnemyData data, float damageMultiplier = 1f, float speedMultiplier = 1f, float healthMultiplier = 1f)
         {
             _data = data;
-            _currentHealth = data.MaxHealth;
+            _maxHealth = data.MaxHealth * Mathf.Max(0.1f, healthMultiplier);
+            _currentHealth = _maxHealth;
             if (_healthBar != null) _healthBar.SetRatio(1f);
             // Havuzlu örnek başına bir kez eklenir (tank miniboss). Veri değişirse açık/kapalı izler.
             if (data.CrushesObstacles || TryGetComponent(out TankCrusher _))
@@ -1059,7 +1066,8 @@ namespace BlobSurvivor.Entities.Enemies
 
             int coinAmount = _data.CoinOverride > 0 ? _data.CoinOverride : _data.IsElite ? Random.Range(5, 11) : PoliceCoin;
             CoinSource source = IsBoss ? CoinSource.Boss : _data.IsElite ? CoinSource.Elite : CoinSource.Police;
-            CoinPickup coin = CoinSpawner.Instance != null ? CoinSpawner.Instance.SpawnCoin(transform.position, coinAmount, source) : null;
+            bool dropCoin = IsBoss || _data.IsElite || Random.value < _data.CoinDropChance;
+            CoinPickup coin = dropCoin && CoinSpawner.Instance != null ? CoinSpawner.Instance.SpawnCoin(transform.position, coinAmount, source) : null;
             if (coin != null && !eaten)
             {
                 Vector2 dir = Random.insideUnitCircle.normalized * Random.Range(0.6f, 1.1f);

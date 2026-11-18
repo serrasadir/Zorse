@@ -59,6 +59,8 @@ namespace BlobSurvivor.UI
             new PowerItem { Header = "EKONOMİ" },
             new PowerItem { Stat = MetaStatType.CoinGain },
             new PowerItem { Stat = MetaStatType.XpMultiplier },
+            new PowerItem { Header = "ZORLUK" },
+            new PowerItem { PowerUp = PowerUps.Curse },
         };
 
         private class Row
@@ -162,6 +164,7 @@ namespace BlobSurvivor.UI
         {
             MetaProgression meta = MetaProgression.Instance;
             if (!_built || meta == null) return;
+            RefreshResetRow(meta);
 
             _credit.text = $"{meta.Credit:N0} coin";
             foreach (Row row in _characterRows) RefreshCharacterRow(row, meta);
@@ -387,6 +390,7 @@ namespace BlobSurvivor.UI
                 else if (item.PowerUp != null) powerLayout.Add(BuildPowerUpRow(item.PowerUp, powerContent, rounded).Rect, RowHeight);
                 else powerLayout.Add(BuildStatRow(item.Stat.Value, powerContent, rounded).Rect, RowHeight);
             }
+            powerLayout.Add(BuildResetRow(powerContent, rounded), RowHeight);
             powerLayout.Finish();
 
             RectTransform skillsPage = BuildScrollPage("SkillsPage", panel, out RectTransform skillContent);
@@ -513,6 +517,55 @@ namespace BlobSurvivor.UI
             row.Pill = Box("Price", row.Rect, new Vector2(330f, 0f), new Vector2(200f, 84f), rounded, Gold).GetComponent<Image>();
             row.Price = Text("Text", (RectTransform)row.Pill.transform, Vector2.zero, new Vector2(200f, 84f), 38f, TextAlignmentOptions.Center, GoldInk);
             return row;
+        }
+
+        // GÜÇLER sonunda: bütün güçlendiricileri sıfırla, coin'in tamamı geri (VS "Refund"). Yanlışlıkla basılmasın
+        // diye iki dokunuş: ilki onay sorar, 3 sn içinde ikincisi sıfırlar.
+        private RectTransform _resetRow;
+        private TMP_Text _resetText;
+        private float _resetArmedUntil = -1f;
+
+        private RectTransform BuildResetRow(RectTransform parent, Sprite rounded)
+        {
+            _resetRow = Box("Reset", parent, Vector2.zero, new Vector2(RowWidth, RowHeight), rounded, new Color(0.35f, 0.08f, 0.1f, 0.85f));
+            MakeButton(_resetRow, ResetPowerUps);
+            _resetText = Text("Label", _resetRow, Vector2.zero, _resetRow.sizeDelta, 38f, TextAlignmentOptions.Center, Color.white);
+            return _resetRow;
+        }
+
+        private void RefreshResetRow(MetaProgression meta)
+        {
+            if (_resetText == null) return;
+            int spent = meta.PowerUpSpent();
+            bool armed = Time.unscaledTime < _resetArmedUntil;
+            _resetText.text = spent <= 0 ? "SIFIRLA · alınmış güç yok"
+                : armed ? $"EMİN MİSİN? Dokun: +{spent:N0} coin geri"
+                : $"GÜÇLERİ SIFIRLA · +{spent:N0} coin geri";
+            _resetText.color = spent <= 0 ? Faint : armed ? Gold : Color.white;
+        }
+
+        private void ResetPowerUps()
+        {
+            MetaProgression meta = MetaProgression.Instance;
+            if (meta == null || meta.PowerUpSpent() <= 0) return;
+            if (Time.unscaledTime >= _resetArmedUntil)
+            {
+                _resetArmedUntil = Time.unscaledTime + 3f;
+                StartCoroutine(Punch(_resetRow, 1.04f));
+                StartCoroutine(DisarmReset());
+                Refresh();
+                return;
+            }
+            _resetArmedUntil = -1f;
+            meta.RefundPowerUps();
+            StartCoroutine(Punch(_creditChip, 1.1f));
+            Refresh();
+        }
+
+        private IEnumerator DisarmReset()
+        {
+            yield return new WaitForSecondsRealtime(3.05f);
+            Refresh();
         }
 
         private Row BuildStatRow(MetaStatType type, RectTransform parent, Sprite rounded)

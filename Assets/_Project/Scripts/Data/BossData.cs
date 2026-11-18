@@ -9,6 +9,7 @@ namespace BlobSurvivor.Data
         public int RequiredLevel; // blob bu seviyeye gelince çıkar (0 = seviyeye bakılmaz)
         [UnityEngine.Serialization.FormerlySerializedAs("SpawnTime")]
         public float LatestTime;  // saniye: seviyeye ulaşılamasa da en geç bu sürede çıkar (0 = yok)
+        public float EarliestTime; // saniye: seviyeye erken ulaşılsa da bundan önce çıkmaz (0 = yok)
         public int BonusCoinMin;
         public int BonusCoinMax;
     }

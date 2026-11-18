@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
   _displayName: Police
   _prefab: {fileID: 5896680904072327028, guid: 2d258be3b3b864c49b3b9a86b6b8671b, type: 3}
-  _maxHealth: 50
+  _maxHealth: 30
   _damage: 10
   _moveSpeed: 2.3
   _attackRange: 2
@@ -31,10 +31,12 @@ MonoBehaviour:
   _aimDuration: 0.5
   _aimLockDuration: 0.2
   _massReward: 3
-  _killXp: 1
+  _killXp: 2
   _preventConsumption: 0
   _requiredConsumeTier: 4
   _consumeDamage: 5
   _heartPrefab: {fileID: 7633646316503275560, guid: 0bd1dfcaa907047789043c4bbd111054, type: 3}
   _heartDropChance: 0.05
   _requiresConsumptionToDie: 0
+  _coinOverride: 5
+  _coinDropChance: 0.4

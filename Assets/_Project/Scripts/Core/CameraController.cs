@@ -112,11 +112,14 @@ namespace BlobSurvivor.Core
             Mathf.Tan(ReferenceFov * 0.5f * Mathf.Deg2Rad) / Mathf.Tan(_fieldOfView * 0.5f * Mathf.Deg2Rad);
 
         // Gölge mesafesi kameradan ölçülür: kamera referanstan ne kadar uzaksa o kadar artır ki blob'un çevresinde gölge kalsın.
+        private const float MaxShadowDistance = 45f;
+
         private void UpdateShadowDistance()
         {
             if (_urpAsset == null || _baseShadowDistance < 0f) return;
             float distance = _heightMultiplier * _baseHeight / Mathf.Sin(_baseTilt * Mathf.Deg2Rad);
-            _urpAsset.shadowDistance = _baseShadowDistance + Mathf.Max(0f, distance - ShadowReferenceDistance);
+            // Üst sınır: büyük blob'da kamera uzaklaşınca bütün şehir gölge çizmesin (mobil).
+            _urpAsset.shadowDistance = Mathf.Min(MaxShadowDistance, _baseShadowDistance + Mathf.Max(0f, distance - ShadowReferenceDistance));
         }
 
         private void OnDestroy()

@@ -26,6 +26,7 @@ namespace BlobSurvivor.EditorTools
             new Entry { Prefab = "Enemy_Police", Mesh = "H_Police", ArmL = true, ArmR = true },
             new Entry { Prefab = "Enemy_ElitePolice", Mesh = "H_Elite", ArmL = true, ArmR = true },
             new Entry { Prefab = "Enemy_RiotPolice", Mesh = "H_RiotPolice", ArmL = false, ArmR = true }, // sol kol kalkanı tutar
+            new Entry { Prefab = "Enemy_Guard", Mesh = "H_Guard", ArmL = true, ArmR = true },
         };
 
         [MenuItem("Tools/Blob.io/Polis Yürüyüş Parçalarını Kur")]
@@ -94,7 +95,7 @@ namespace BlobSurvivor.EditorTools
             go.AddComponent<MeshFilter>().sharedMesh = mesh;
             MeshRenderer renderer = go.AddComponent<MeshRenderer>();
             renderer.sharedMaterials = source.sharedMaterials;
-            renderer.shadowCastingMode = source.shadowCastingMode;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; // gövdenin gölgesi yeter
             renderer.receiveShadows = source.receiveShadows;
             return go.transform;
         }

@@ -69,9 +69,9 @@ namespace BlobSurvivor.EditorTools
                 "Sopa ve Havai Fişek %8 daha sık, Yer Sarsıntısı daha az darbede dolar.", "Bekleme −%16.", "Her 5. atış hemen tekrarlanır.",
                 "Bekleme −%24.", "Her öldürmede bekleme 0.2 sn kısalır." }),
             // 4. Savunma
-            S("Upgrade_Armor", "FX_DamageReduction", typeof(ArmorEffect), "damage_reduction", "Zırh", SkillKind.Active, new[] {
-                "Hasarı önce emen kalkan: 20.", "Kalkan 35, daha çabuk yenilenir.", "Kalkan 50. Kırılınca 1 sn dokunulmazlık.",
-                "Kalkan 65, 1 sn'de dolar.", "Kalkan 80. İKİNCİ KATMAN: kırılınca bir kez anında dolar (30 sn'de bir)." }),
+            S("Upgrade_Armor", "FX_DamageReduction", typeof(ArmorEffect), "damage_reduction", "Zırh", SkillKind.Passive, new[] {
+                "Her darbeden 1 hasar düşer.", "Her darbeden 2 hasar düşer.", "Her darbeden 3 düşer. Darbe sonrası dokunulmazlık uzar.",
+                "Her darbeden 4 hasar düşer.", "Her darbeden 5 düşer. Darbe alınca etraftakiler 2 kat uzağa savrulur." }),
             S("Upgrade_MaxHealth", "FX_HealthBoost", typeof(HealthBoostEffect), "health_boost", "Can Artışı", SkillKind.Passive, new[] {
                 "Max can +15.", "Max can +30.", "Kalpler %50 daha fazla can verir.",
                 "Max can +45.", "Max can +60, kalpler 2 kat can verir." }),

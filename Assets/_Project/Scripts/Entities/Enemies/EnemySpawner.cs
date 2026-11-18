@@ -100,8 +100,12 @@ namespace BlobSurvivor.Entities.Enemies
         private void OnBossHealth(float current, float max) => _bossActive = max > 0f;
 
         // Restart sahneyi yeniden yüklemiyor: önceki run'ın polisleri havuza dönmezse oyuncunun başında kalır.
+        // Sıradan düşmanın şu an polis olma oranı (bekçi → polis geçişi). Görev metni buna bakar.
+        public static float PoliceShare { get; private set; }
+
         private void HandleRestart(CharacterData _)
         {
+            PoliceShare = 0f;
             ReturnAll(_activeEnemies);
             ReturnAll(_activeSwarm);
             _activeEliteCount = 0;
@@ -167,7 +171,7 @@ namespace BlobSurvivor.Entities.Enemies
             WaveData wave = _waveController.CurrentWave;
             if (wave.EnemyTypes == null || wave.EnemyTypes.Length == 0) return;
 
-            EnemyData data = SelectEnemyData(wave);
+            EnemyData data = ResolveVariant(SelectEnemyData(wave));
             if (data?.Prefab == null) return;
 
             // Elit tavanı sürüden ayrı: NavMeshAgent pahalı.
@@ -208,7 +212,7 @@ namespace BlobSurvivor.Entities.Enemies
         {
             EnemyBase enemy = _pools[data].Get(spawnPos, Quaternion.identity);
             enemy.WarpTo(spawnPos);
-            enemy.SetData(data, _waveController.DamageMultiplier, _waveController.SpeedMultiplier);
+            enemy.SetData(data, _waveController.DamageMultiplier, _waveController.SpeedMultiplier, _waveController.HealthMultiplier);
 
             enemy.OnDeath -= HandleEnemyDeath;
             enemy.OnDeath += HandleEnemyDeath;
@@ -330,7 +334,9 @@ namespace BlobSurvivor.Entities.Enemies
             {
                 Vector3 dir = Quaternion.Euler(0f, start + i * 360f / count, 0f) * Vector3.forward;
                 if (!TryEdgePointInDirection(dir, out Vector3 pos)) continue;
-                SpawnOne(data, pos).Alert(_encircleAlert);
+                EnemyData variant = ResolveVariant(data);
+                if (variant?.Prefab == null || !EnsurePool(variant)) variant = data;
+                SpawnOne(variant, pos).Alert(_encircleAlert);
                 spawned++;
             }
             if (spawned > 0) GameEvents.RaiseEncirclement();
@@ -364,16 +370,27 @@ namespace BlobSurvivor.Entities.Enemies
         }
 
         // _maxActiveEnemies / _maxActiveElites mutlak tavan: hiçbir çarpan aşamaz (kuşatma hariç, _encircleOvershoot).
+        // Lanet: tavan +%10/seviye, mutlak üst sınır +%5/seviye (mobilde steering maliyeti; 30 → en fazla 37).
         private int GetEffectiveMaxActive() =>
-            Mathf.RoundToInt(Mathf.Min(_maxActiveEnemies, _policeCapAtStart + _policeCapPerLevel * Level));
+            Mathf.RoundToInt(Mathf.Min(_maxActiveEnemies * (1f + WaveController.Curse * 0.5f),
+                (_policeCapAtStart + _policeCapPerLevel * Level) * (1f + WaveController.Curse)));
 
         private int GetEffectiveMaxSwarm() =>
-            Mathf.RoundToInt(Mathf.Min(_maxActiveSwarm, _swarmCapAtStart + _swarmCapPerLevel * Level));
+            Mathf.RoundToInt(Mathf.Min(_maxActiveSwarm * (1f + WaveController.Curse * 0.5f),
+                (_swarmCapAtStart + _swarmCapPerLevel * Level) * (1f + WaveController.Curse)));
 
         private int GetEffectiveMaxElites()
         {
             float cap = _eliteCapAtLevel5 + _eliteCapPerLevel * (Level - 5);
             return Mathf.Clamp(Mathf.RoundToInt(cap), 1, _maxActiveElites);
+        }
+
+        // Bekçi zamanla polise döner: dalga tablosu bekçi yazar, oranı süre belirler (EnemyData.ReplaceChance).
+        private EnemyData ResolveVariant(EnemyData data)
+        {
+            if (data?.ReplacedBy == null) return data;
+            PoliceShare = data.ReplaceChance(_survivalTime);
+            return Random.value < data.ReplaceChance(_survivalTime) ? data.ReplacedBy : data;
         }
 
         private EnemyData SelectEnemyData(WaveData wave)

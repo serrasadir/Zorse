@@ -34,6 +34,7 @@ namespace BlobSurvivor.UI
             go.AddComponent<EdgeWarning>().Init(hud.gameObject, rect, FindHealthBar(hud, root));
             go.AddComponent<EventBanner>().Init(hud.gameObject, rect);
             go.AddComponent<MissionTracker>().Init(hud.gameObject, rect);
+            go.AddComponent<ComboPopup>().Init(hud.gameObject, rect);
         }
 
         // HUD'un kendi referansı (bar taşınsa da aynı nesne); yoksa sahnedeki adıyla.

@@ -109,6 +109,7 @@ namespace BlobSurvivor.UI
             GameEvents.OnBlobTierChanged += OnTierChanged;
             GameEvents.OnBossSpawned += OnBossSpawned;
             GameEvents.OnEncirclement += OnEncirclement;
+            GameEvents.OnWaveStarted += OnWaveStarted;
             GameEvents.OnMissionStarted += OnMissionStarted;
             GameEvents.OnMissionCompleted += OnMissionCompleted;
             GameEvents.OnSkillUnlocked += OnSkillUnlocked;
@@ -123,6 +124,7 @@ namespace BlobSurvivor.UI
             GameEvents.OnBlobTierChanged -= OnTierChanged;
             GameEvents.OnBossSpawned -= OnBossSpawned;
             GameEvents.OnEncirclement -= OnEncirclement;
+            GameEvents.OnWaveStarted -= OnWaveStarted;
             GameEvents.OnMissionStarted -= OnMissionStarted;
             GameEvents.OnMissionCompleted -= OnMissionCompleted;
             GameEvents.OnSkillUnlocked -= OnSkillUnlocked;
@@ -158,6 +160,13 @@ namespace BlobSurvivor.UI
             else if (!string.IsNullOrEmpty(hudName)) Show(hudName + " GELDİ!", BossSub, BossColor, HoldBoss);
             else return;
             Haptics.Impact(2);
+        }
+
+        // İlk düşmanlar (bekçi) geldiğinde ne olduklarını söyle.
+        private void OnWaveStarted(string waveName)
+        {
+            if (!IsPlaying() || waveName != "Guard") return;
+            Show("BEKÇİLER GELDİ!", "Seni durdurmak istiyorlar · yakala, yut!", BossColor, HoldBoss);
         }
 
         private void OnEncirclement()

@@ -1061,7 +1061,7 @@ namespace BlobSurvivor.EditorTools
             float height = source.sharedMesh.bounds.size.y * scale.y;
             if (mesh.StartsWith("B_") && !IsKit2(mesh)) // v2 binaları oyun boyunda modellendi, ezilmez
                 scale.y *= TallBuildingYScale(height);
-            if (mesh == "H_Police" || mesh == "H_RiotPolice" || mesh == "H_MotorPolice")
+            if (mesh == "H_Police" || mesh == "H_RiotPolice" || mesh == "H_MotorPolice" || mesh == "H_Guard")
                 scale *= PoliceModelScale;
             else if (mesh == "H_Elite")
                 scale *= EliteModelScale;
