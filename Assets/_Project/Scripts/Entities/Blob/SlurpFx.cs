@@ -62,11 +62,14 @@ namespace BlobSurvivor.Entities.Blob
             s_instance.Spawn(renderer, mesh, blob, flight);
         }
 
+        private static readonly System.Collections.Generic.List<MeshRenderer> s_renderers = new System.Collections.Generic.List<MeshRenderer>(8);
+
         private static MeshRenderer LargestRenderer(GameObject source)
         {
             MeshRenderer best = null;
             float bestSize = 0f;
-            foreach (MeshRenderer r in source.GetComponentsInChildren<MeshRenderer>(false)) // yeme anında, obje başına bir kez
+            source.GetComponentsInChildren(false, s_renderers); // yeme anında; liste paylaşılır, dizi ayrılmaz
+            foreach (MeshRenderer r in s_renderers)
             {
                 if (!r.enabled) continue;
                 float size = r.bounds.size.sqrMagnitude;

@@ -77,6 +77,15 @@ namespace BlobSurvivor.Entities.Blob
             _rigidbody.linearVelocity = new Vector3(targetVel.x, _rigidbody.linearVelocity.y, targetVel.z);
         }
 
+        // Yeni run (GameManager.ClearPreviousRunState): yarıda kalan tekme savrulması ve ağır çekimi taşınmasın.
+        public void ResetRunState()
+        {
+            _kickTime = -1f;
+            _kickVelocity = Vector3.zero;
+            _nextKickAt = 0f;
+            _slowMoStart = -1f;
+        }
+
         // Dışarıdan savurma (yaya tekmesi vb.): hız süre boyunca sönümlenir.
         public void Kick(Vector3 velocity, float duration)
         {

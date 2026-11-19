@@ -35,7 +35,8 @@ MonoBehaviour:
   _killXp: 0.5
   _preventConsumption: 0
   _requiredConsumeTier: 2
-  _consumeDamage: 1
+  _consumeDamage: 3
+  _consumeDamageOneTierUp: 2
   _heartPrefab: {fileID: 7633646316503275560, guid: 0bd1dfcaa907047789043c4bbd111054, type: 3}
   _heartDropChance: 0.05
   _requiresConsumptionToDie: 0

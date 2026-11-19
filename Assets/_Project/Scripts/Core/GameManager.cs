@@ -168,9 +168,10 @@ namespace BlobSurvivor.Core
             foreach (WeaponBase oldWeapon in blob.GetComponentsInChildren<WeaponBase>())
                 DetachAndDestroy(oldWeapon.gameObject, blob);
 
-            // Skill efektleri blob'a component olarak eklenir; kalırsa bonuslar yeni run'a sızar.
-            RemoveComponent<BlackHoleComponent>(blob);
-            // Skill bileşenleri hemen silinir: başlangıç skill'i (BlobSkills'e yazan Hız vb.) aynı karede yenisini kurar.
+            // Skill bileşenleri hemen silinir: başlangıç skill'i (BlobSkills'e yazan Hız vb.) aynı karede yenisini kurar;
+            // kare sonuna kalan eski bileşen (Kara Delik'in evrim anı zaman ölçeğini) yeni run'da bir kare daha yazabilir.
+            DestroyNow<BlackHoleComponent>(blob);
+            DestroyNow<SpeedVisual>(blob); // Hız kaykayı/roketi (Topik'in başlangıç Hız'ı aynı olayda yenisini kurar)
             DestroyNow<BlobSkills>(blob); // OnDestroy hız çarpanını ve ölüm kancasını sıfırlar
             DestroyNow<SlipTrail>(blob);
             DestroyNow<GroundQuake>(blob);
@@ -178,9 +179,11 @@ namespace BlobSurvivor.Core
             DestroyNow<ScrapOrbit>(blob); // Hurda Kalkanı (BlobHealth.AbsorbHit kancası OnDestroy'da bırakılır)
             DestroyNow<SplitDrops>(blob);
             BlobSkills.ResetStatics();
+            DestroyNow<DizzyStars>(blob); // tekme yıldızları
             RemoveComponent<SpeedTrail>(blob);
             RemoveComponent<ArmorShield>(blob); // Zırh baloncuğu + dikenler (kalkan havuzunu ResetHealth sıfırlar)
 
+            blob.GetComponent<BlobController>()?.ResetRunState();
             blob.GetComponent<BlobGrowth>()?.ResetGrowth();
             blob.GetComponent<BlobHealth>()?.ResetHealth();
 

@@ -161,7 +161,7 @@ namespace BlobSurvivor.EditorTools
             AddLink(list, pool, "Evolution_Karadelik", "vacuum", "Sindirim", karaDelik, new Color(0.35f, 0.25f, 0.9f), true);
 
             Evolution(list, pool, "LambaDiregi", typeof(LampPostEffect), "lamba_diregi", "Lamba Direği", "LD",
-                "Dalı bırak, direği sök. Tam tur, uzun menzil; vurup öldürdüğün düşman ağzına uçar.",
+                "Dalı bırak, direği sök. Tam tur, sert itme; vurup öldürdüğün düşman ağzına uçar.",
                 "weapon", "yara_ofkesi", new Color(1f, 0.85f, 0.35f));
             Evolution(list, pool, "BayramGecesi", typeof(FestivalNightEffect), "bayram_gecesi", "Bayram Gecesi", "BG",
                 "Her roket isabette 4 misket rokete bölünür, misketler yakındaki düşmanlara saçılır.",

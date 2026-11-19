@@ -1,6 +1,5 @@
 using UnityEngine;
 using BlobSurvivor.Core;
-using BlobSurvivor.Data;
 
 namespace BlobSurvivor.Entities.Blob
 {
@@ -8,8 +7,7 @@ namespace BlobSurvivor.Entities.Blob
     //   SetLevel eşikleri eski 8 seviyeli: 1 kaykay · 4 alevli kaykay · 8 roket. SpeedBoostEffect 5 seviyeyi 1/4/8e eşler.
     // Modeller zorse-blender/build_speed.py → Resources/FX/Speed (blob görünüm mesh'iyle aynı uzay, pivot blob merkezi).
     // Kaykay varken görünüm Lift kadar kalkar (tekerlekler yere basar); collider/yeme değişmez.
-    // SpeedBoostEffect ekler ve seviyeyi verir. Yeni run'da (OnCharacterSelected) sıfırlanır; görünüm yeniden kurulunca
-    // eski kaykay onunla birlikte gider, bir sonraki Hız seçiminde yeni görünüme takılır.
+    // SpeedBoostEffect ekler ve seviyeyi verir; yeni run'da GameManager siler.
     public class SpeedVisual : MonoBehaviour
     {
         private const string Folder = "FX/Speed/";
@@ -40,10 +38,9 @@ namespace BlobSurvivor.Entities.Blob
             _rigidbody = GetComponent<Rigidbody>();
         }
 
-        private void OnEnable() => GameEvents.OnCharacterSelected += HandleCharacterSelected;
-        private void OnDisable() => GameEvents.OnCharacterSelected -= HandleCharacterSelected;
-
-        private void HandleCharacterSelected(CharacterData _)
+        // Yeni run'da GameManager.ClearPreviousRunState hemen siler (OnCharacterSelected'da sıfırlamak, aynı olayda
+        // verilen başlangıç Hız'ının — Topik — kaykayını siliyordu).
+        private void OnDestroy()
         {
             if (_board != null) Destroy(_board.gameObject);
             if (_rocket != null) Destroy(_rocket.gameObject);

@@ -455,6 +455,7 @@ namespace BlobSurvivor.UI
             OnLevelUp(_blobGrowth != null ? _blobGrowth.CurrentLevel : 0);
             OnTierChanged(GameEvents.CurrentBlobTier);
             OnXPChanged(0);
+            if (_banner != null) { _banner.gameObject.SetActive(false); _bannerTime = -1f; } // yarıda kalan evrim yazısı
         }
 
         // --- Slot şeridi (K19): D bölgesi, sol hizalı. Kendi olaylarını dinler. ---

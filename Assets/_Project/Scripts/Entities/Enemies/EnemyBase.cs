@@ -213,7 +213,7 @@ namespace BlobSurvivor.Entities.Enemies
             _damageMultiplier = 1f;
             _speedMultiplier = 1f;
             _catchUpMultiplier = 1f;
-            _slowFactor = 1f; _slowUntil = 0f; _stunUntil = 0f; _statusSpeed = 1f;
+            _slowFactor = 1f; _slowUntil = 0f; _stunUntil = 0f; _statusSpeed = 1f; _nextSlipAt = 0f;
             _isDead = false;
             _dyingTime = -1f;
             if (_bodyCollider != null) _bodyCollider.enabled = true;
@@ -1086,8 +1086,7 @@ namespace BlobSurvivor.Entities.Enemies
             int tierGap = (int)blobTier - (int)_data.RequiredConsumeTier;
             if (tierGap >= 2) return 0f;
 
-            float damage = _data.ConsumeDamage * _damageMultiplier;
-            return tierGap == 1 ? damage * 0.5f : damage;
+            return (tierGap == 1 ? _data.ConsumeDamageOneTierUp : _data.ConsumeDamage) * _damageMultiplier;
         }
 
         private const int PoliceCoin = 2; // denge: elit sandığı coin'in tamamına yakınını vermesin (OYUN.md Hedefler)

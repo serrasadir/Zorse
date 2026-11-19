@@ -76,7 +76,7 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 
 ## Tuzaklar (bilinmesi gerekenler)
 
-- **Restart sahneyi yeniden yüklemez.** Run'a ait her durum `GameManager.ClearPreviousRunState()` ya da `OnCharacterSelected` dinleyicisinde sıfırlanmalı; skill bileşenleri orada silinir (`RemoveComponent<T>`). Yeni run-scoped şey eklerken buraya ekle.
+- **Restart sahneyi yeniden yüklemez.** Run'a ait her durum `GameManager.ClearPreviousRunState()` ya da `OnCharacterSelected` dinleyicisinde sıfırlanmalı; skill bileşenleri orada silinir (`RemoveComponent<T>`). Yeni run-scoped şey eklerken buraya ekle. Skill'in blob'a eklediği bileşen kendini `OnCharacterSelected`'da sıfırlamasın: başlangıç skill'i (Topik'in Hız'ı) aynı olayda verilir ve dinleyici sırası belirsizdir; `ClearPreviousRunState`'te `DestroyNow` ile silinir.
 - **Havuz:** `Get()` `OnEnable`'ı `SetData()`'dan önce tetikler — veriye bağlı kurulumu `SetData`'da ya da ilk Update'te yap. `ObjectPool.Return` pasif nesneyi tekrar kuyruğa almaz (çift tetiklenme koruması).
 - **İki NavMesh var** (Humanoid + geniş "Tank" ajanı). Her NavMesh sorgusunda filtre ver: `SpawnPositionUtility.HumanoidFilter` — filtresiz `NavMesh.AllAreas` "hangi ajan tipi" uyarısı basar. Sokak eşyaları sadece Humanoid NavMesh'te engel (`m_AffectedAgents = [0]`), tank onları ezer.
 - **Blender çıktısı ön yüzü ters çeviriyor:** `H_`/`V_`/`B_` modellere 180° düzeltme (`CityKitPipeline.ApplyModelTransform`). Prefab model kuralları (ölçek, yön, collider) orada; `Şehir Görsel Düzeltmeleri` tekrar çalışınca ezilmez.

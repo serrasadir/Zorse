@@ -21,7 +21,8 @@ namespace BlobSurvivor.Entities.Weapons
         [SerializeField] private float _fullCircleDamage = 1.5f;
 
         [Header("Lamba Direği (evrim)")]
-        [SerializeField] private float _lampRangeFactor = 1.5f;
+        [Tooltip("Menzile eklenir (Sopa Sv.5'te 3 → 3.5).")]
+        [SerializeField] private float _lampRangeBonus = 0.5f;
         [SerializeField] private float _lampKnockbackFactor = 2f;
         [Tooltip("Savuruş başına ağza uçan en fazla düşman (en ağırlar); kalanlar yerinde kırıntıya dağılır.")]
         [SerializeField] private int _maxFlights = 3;
@@ -65,7 +66,7 @@ namespace BlobSurvivor.Entities.Weapons
         public bool IsLampPost => _lamp;
 
         private float Interval => _interval / (_fast ? _fastFactor : 1f);
-        private float EffectiveRange => (_blobRoot != null ? _blobRoot.localScale.x * _bodyLocalRadius : 0f) + _range * (_lamp ? _lampRangeFactor : 1f);
+        private float EffectiveRange => (_blobRoot != null ? _blobRoot.localScale.x * _bodyLocalRadius : 0f) + _range + (_lamp ? _lampRangeBonus : 0f);
 
         private void Awake()
         {

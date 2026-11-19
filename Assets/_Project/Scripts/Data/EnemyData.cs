@@ -48,8 +48,10 @@ namespace BlobSurvivor.Data
         // EnemyBase.TryConsumeByBlob() içinde IsElite'e göre hardcoded'du (Giant/Medium). Alan bu
         // amaç için yeniden adlandırılıp gerçekten okunur hale getirildi (bkz. EnemyBase.cs).
         [SerializeField] private BlobTier _requiredConsumeTier = BlobTier.Medium;
-        [Tooltip("Yutulurken blob'a verdiği hasar. Blob eşiğin 1 tier üstündeyse yarısı, 2+ tier üstündeyse sıfır.")]
+        [Tooltip("Yutulurken blob'a verdiği hasar (eşikteyken). 2+ tier üstteyse sıfır.")]
         [SerializeField] private float _consumeDamage;
+        [Tooltip("Bir tier üstteyken ısırık. Negatif = Consume Damage'ın yarısı.")]
+        [SerializeField] private float _consumeDamageOneTierUp = -1f;
 
         [Header("Kalp Düşürme")]
         [SerializeField] private HeartPickup _heartPrefab;
@@ -137,6 +139,7 @@ namespace BlobSurvivor.Data
         public bool PreventConsumption => _preventConsumption;
         public BlobTier RequiredConsumeTier => _requiredConsumeTier;
         public float ConsumeDamage => _consumeDamage;
+        public float ConsumeDamageOneTierUp => _consumeDamageOneTierUp >= 0f ? _consumeDamageOneTierUp : _consumeDamage * 0.5f;
         public HeartPickup HeartPrefab => _heartPrefab;
         public float HeartDropChance => _heartDropChance;
         public bool RequiresConsumptionToDie => _requiresConsumptionToDie;

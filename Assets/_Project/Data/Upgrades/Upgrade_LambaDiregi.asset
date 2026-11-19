@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
   _id: lamba_diregi
   _displayName: "Lamba Dire\u011Fi"
-  _description: "Dal\u0131 b\u0131rak, dire\u011Fi s\xF6k. Tam tur, uzun menzil;
+  _description: "Dal\u0131 b\u0131rak, dire\u011Fi s\xF6k. Tam tur, sert itme;
     vurup \xF6ld\xFCrd\xFC\u011F\xFCn d\xFC\u015Fman a\u011Fz\u0131na u\xE7ar."
   _icon: {fileID: 0}
   _kind: 1
@@ -23,7 +23,7 @@ MonoBehaviour:
   _maxLevel: 1
   _perLevelValue: 0
   _levelDescriptions:
-  - "Dal\u0131 b\u0131rak, dire\u011Fi s\xF6k. Tam tur, uzun menzil; vurup \xF6ld\xFCrd\xFC\u011F\xFCn
+  - "Dal\u0131 b\u0131rak, dire\u011Fi s\xF6k. Tam tur, sert itme; vurup \xF6ld\xFCrd\xFC\u011F\xFCn
     d\xFC\u015Fman a\u011Fz\u0131na u\xE7ar."
   _isEvolution: 1
   _abbr: LD

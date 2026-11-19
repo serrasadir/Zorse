@@ -20,6 +20,7 @@ namespace BlobSurvivor.Entities.Blob
         public float SurfSlip = 0.6f;
         public float SurfDamage = 10f;
         public float SurfKnockback = 1.5f;
+        public float SurfDuration = 8f;        // evrimliyken iz ömrü (geri dönüp üstünden geçilebilsin)
         private const float SurfMinAge = 0.6f; // yeni bırakılan noktalar sayılmaz (blob hep onların üstünde)
         private BlobSkills _skills;
 
@@ -32,7 +33,7 @@ namespace BlobSurvivor.Entities.Blob
         private const float WidthExtra = 0.3f;
         private const float SlipCooldown = 1.5f;
         private const int EnemyMask = 1 << 14;
-        private const int MaxPoints = 24;
+        private const int MaxPoints = 48; // Sabun Sörfü'nün uzun izi (8 sn) için; normal iz ~12 nokta kullanır
         // Görsel: her iz noktasına yere yapışan sümük lekesi (Blender: build_skill_fx.py → Resources/FX/Slime/FX_Slime,
         // yarıçap 0.5, renk/saydamlık köşe renginde). Leke belirir, ömrünün sonunda küçülüp söner. Asit: sarı ton.
         private const string MaterialPath = "FX/SpeedTrail/Mat_SpeedTrail";
@@ -79,6 +80,7 @@ namespace BlobSurvivor.Entities.Blob
         public void EnableSurf()
         {
             Surf = true;
+            Duration = Mathf.Max(Duration, SurfDuration);
             _skills = BlobSkills.Of(gameObject);
         }
 

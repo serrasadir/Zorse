@@ -200,7 +200,7 @@ Robot köpek **Little**, polis **Medium**, elit polis **Giant** blob ister.
 
 **Polis ağırdır:** yutulan polis, yenebildiği tier'daki şehir eşyası kadar kütle verir: bekçi 3, robot köpek 2 (Little), polis 10 (Medium), motorlu 15, çevik kuvvet 20 (Large), elit 50 (Giant). Yeme birincil: yutmak, silahla öldürmenin XP'sinden (polis 2) fazla verir.
 
-**Isırık bedeli:** Polis yutulurken ısırır: tier tam eşikteyse 5, 1 tier üstteyse 2.5, 2+ tier üstteyse 0 hasar (robot köpek 2 / 1 / 0). Isırık normal hasar gibi kırmızı parlama + kamera sarsıntısı + titreşim verir. Yara Öfkesi Sv.5 öfkeliyken ısırığı kaldırır.
+**Isırık bedeli:** Polis yutulurken ısırır: tier tam eşikteyse 5, 1 tier üstteyse 2.5, 2+ tier üstteyse 0 hasar (robot köpek 2 / 1 / 0, bekçi 3 / 2 / 0; bir üst tier değeri `EnemyData._consumeDamageOneTierUp`, boşsa yarısı). Isırık normal hasar gibi kırmızı parlama + kamera sarsıntısı + titreşim verir. Yara Öfkesi Sv.5 öfkeliyken ısırığı kaldırır.
 
 **Kaçmazlar:** Düşmanlar blob onları yiyebilecek boyda olsa da kaçmaz, saldırmaya devam eder.
 
@@ -242,8 +242,8 @@ Henüz yiyemediğin (senden büyük) yayaya çarparsan yaya seni tekmeler: geriy
 
 ### ★ Lamba Direği
 - **Gereken:** Sopa 5 + Yara Öfkesi en az 1
-- **Ne yapar:** Dal yerine yerinden sökülmüş sokak lambası. Tam tur (360°), menzil ×1.5, geri itme ×2. **Sopayla öldürdüğün düşman yutulur:** kütlesi (yemekle aynı, Sindirim dahil) + kill XP'si gelir, yeme görevine de silahla öldürme görevine de sayılır. Boss'lar hariç.
-- **Ağza uçma:** savuruş başına en ağır **3** düşman havaya fırlayıp takla atarak ağza uçar (`SlurpFx.PlayFlight`); kalanlar olduğu yerde kendi renginde kırıntıya dağılır. Şişme + titreşim savuruş başına bir kez (`StickWeapon._maxFlights`, `_lampRangeFactor`, `_lampKnockbackFactor`).
+- **Ne yapar:** Dal yerine yerinden sökülmüş sokak lambası. Tam tur (360°), menzil **+0.5** (Sopa Sv.5'in 3'ü → 3.5), geri itme ×2. **Sopayla öldürdüğün düşman yutulur:** kütlesi (yemekle aynı, Sindirim dahil) + kill XP'si gelir, yeme görevine de silahla öldürme görevine de sayılır. Boss'lar hariç.
+- **Ağza uçma:** savuruş başına en ağır **3** düşman havaya fırlayıp takla atarak ağza uçar (`SlurpFx.PlayFlight`); kalanlar olduğu yerde kendi renginde kırıntıya dağılır. Şişme + titreşim savuruş başına bir kez (`StickWeapon._maxFlights`, `_lampRangeBonus`, `_lampKnockbackFactor`).
 - **Kod:** `LampPostEffect` (`FX_LambaDiregi`) → `StickWeapon.EnableLampPost`, `EnemyBase.WouldDieFrom` / `Devour`.
 - **Görsel:** `G_Stick_5` (`build_stick.py`): koyu gri direk, uçta aşağı kıvrık kol, sarı fener. Seçilince lamba bir tur döner.
 
@@ -255,7 +255,7 @@ Henüz yiyemediğin (senden büyük) yayaya çarparsan yaya seni tekmeler: geriy
 
 ### ★ Sabun Sörfü
 - **Gereken:** Kaygan Zemin 5 + Hız en az 1
-- **Ne yapar:** Kendi **eski** izinin (0.6 sn'den yaşlı noktalar) üstündeyken hız **+%30** (`BlobSkills.SurfBoost`). İzdeki her düşman (boss hariç) **kayar**: 0.6 sn sersemler (çevik kuvvetin kalkanı iner), blob'dan uzağa 1.5 savrulur, 10 hasar alır; aynı düşman 1.5 sn bekleme. Sürü kayması (Sv.3) bunun yerine geçer.
+- **Ne yapar:** İz ömrü **8 sn**'ye çıkar (Kaygan Zemin Sv.5'te 3 sn; `SurfDuration`). Kendi **eski** izinin (0.6 sn'den yaşlı noktalar) üstündeyken hız **+%30** (`BlobSkills.SurfBoost`). İzdeki her düşman (boss hariç) **kayar**: 0.6 sn sersemler (çevik kuvvetin kalkanı iner), blob'dan uzağa 1.5 savrulur, 10 hasar alır; aynı düşman 1.5 sn bekleme. Sürü kayması (Sv.3) bunun yerine geçer.
 - **Kod:** `SoapSurfEffect` → `SlipTrail.EnableSurf` (`SurfSpeed`, `SurfSlip`, `SurfDamage`, `SurfKnockback`).
 
 ### ★ Hurda Kalkanı
