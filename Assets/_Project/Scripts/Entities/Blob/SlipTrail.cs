@@ -21,6 +21,7 @@ namespace BlobSurvivor.Entities.Blob
         public float SurfDamage = 10f;
         public float SurfKnockback = 1.5f;
         public float SurfDuration = 8f;        // evrimliyken iz ömrü (geri dönüp üstünden geçilebilsin)
+        private const float SurfSplatScale = 1.35f; // seyrek lekeler (her ikinci nokta) biraz büyük
         private const float SurfMinAge = 0.6f; // yeni bırakılan noktalar sayılmaz (blob hep onların üstünde)
         private BlobSkills _skills;
 
@@ -90,6 +91,14 @@ namespace BlobSurvivor.Entities.Blob
         private void PlaceSplat(int index, Vector3 point)
         {
             if (_splatMesh == null || _material == null) return;
+            // Sörfte iz 8 sn: her noktaya leke ~30 saydam çizim eder. Mantık noktaları sık kalır, lekenin yarısı çizilir
+            // (biraz büyük, aradaki boşluğu kapatır).
+            bool sparse = Surf && (index & 1) == 1;
+            if (sparse)
+            {
+                if (_splatRenderers[index] != null) _splatRenderers[index].enabled = false;
+                return;
+            }
             if (_splatRoot == null) _splatRoot = new GameObject("SlipTrailSplats").transform;
             if (_splats[index] == null)
             {
@@ -105,7 +114,7 @@ namespace BlobSurvivor.Entities.Blob
             }
             _splats[index].position = new Vector3(point.x, SplatY, point.z);
             _splats[index].rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
-            _splatScale[index] = HalfWidth * 2f * SplatSize * Random.Range(0.9f, 1.1f); // model yarıçapı 0.5
+            _splatScale[index] = HalfWidth * 2f * SplatSize * (Surf ? SurfSplatScale : 1f) * Random.Range(0.9f, 1.1f); // model yarıçapı 0.5
             _splatRenderers[index].enabled = true;
         }
 

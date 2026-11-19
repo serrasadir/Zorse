@@ -104,7 +104,6 @@ namespace BlobSurvivor.Entities.Weapons
 
         public void IncreaseDamage(float amount) => _damage += amount;
         public void MultiplyFireRate(float factor) => _fireRate *= factor;
-        public void IncreaseRange(float amount) => _range += amount;
 
         protected abstract void Fire(Transform target);
 

@@ -1,29 +1,14 @@
 using UnityEngine;
-using BlobSurvivor.Entities.Enemies;
 
 namespace BlobSurvivor.Entities.Blob
 {
-    // 2026-11-04 (Serra: "zırh çalışıyor mu emin olamadım, görsel olarak destekleyelim"): Zırh skill'inin görseli
-    // ve dikenleri. Kalkan havuzunun kendisi BlobHealth'te; bu bileşen onun event'lerini dinler.
-    // - Görsel: blob'un sağ yanında süzülen, yüzü dışa bakan, gidiş yönüyle dönen "sokak eşyası" kalkan. Seviyeyle form değişir, her form yeni bir mekanikle aynı anda gelir:
-    //     Form 0 Sv.1-2 çöp kutusu kapağı · Form 1 Sv.3 girilmez tabelası · Form 2 Sv.4 menhol kapağı · Form 3 Sv.5 altın menhol
-    //   (Yeni sette Zırh hasar vermez: ArmorEffect dikenleri ve şok dalgasını 0 verir; kod yolu ileride lazım olursa duruyor.)
-    //   Modeller: zorse-blender/build_armor_shields.py → Resources/FX/Shield (tek palet materyali).
-    //   Kalkan azaldıkça koyulaşır, vuruşta parlar ve şişer, kırılınca dönerek küçülüp kaybolur,
-    //   dolmaya başlayınca geri "pop" eder. Kesin değer HUD'daki kalkan barında.
-    // - Dikenler (Sv.3+): kalkan sağlamken blob'a değen düşmanlara 0.5 sn'de bir hasar.
-    // - Şok dalgası (Sv.8): kalkan kırılınca çevredeki düşmanlara tek seferlik hasar.
-    // ArmorEffect ekler/ayarlar; restart'ta GameManager siler (kalkan modeli de gider).
+    // Zırh skill'inin görseli: blob'un sağ yanında (Fişek'te kafada) süzülen, gidiş yönüyle dönen "sokak eşyası" kalkan.
+    // Seviyeyle form değişir: Form 0 Sv.1-2 çöp kutusu kapağı · 1 Sv.3 girilmez tabelası · 2 Sv.4 menhol · 3 Sv.5 altın menhol.
+    // Zırh'ın düştüğü her darbede (BlobHealth.OnShieldHit) parlar ve şişer. Modeller: zorse-blender/build_armor_shields.py
+    // → Resources/FX/Shield (tek palet materyali). ArmorEffect ekler/ayarlar; restart'ta GameManager siler.
     [RequireComponent(typeof(BlobHealth))]
     public class ArmorShield : MonoBehaviour
     {
-        private const float ThornInterval = 0.5f;
-        private const float ThornRadiusFactor = 1.3f; // blob gövde yarıçapına göre (tetikleyici 0.6'nın biraz dışı)
-        private const float ShockwaveExtraRadius = 2f;
-        private const float ThornKnockback = 0.8f;
-        private const float ShockwaveKnockback = 1.6f;
-        private const int EnemyLayerMask = 1 << 14;
-
         private const string ShieldFolder = "FX/Shield/";
         private const string MaterialPath = ShieldFolder + "Mat_ShieldPalette";
         private static readonly string[] FormMeshes =
@@ -53,13 +38,8 @@ namespace BlobSurvivor.Entities.Blob
         private static Mesh[] s_meshes;
         private static Material s_material;
 
-        private readonly Collider[] _hits = new Collider[16];
         private BlobHealth _health;
         private Rigidbody _rigidbody;
-        private float _bodyRadius = 0.5f; // blob'un katı collider'ı (yerel)
-        private float _thornDamagePerTick;
-        private float _shockwaveDamage;
-        private float _thornTimer;
 
         private Transform _pivot;   // blob merkezinde, gidiş yönüne döner
         private Transform _shield;  // pivot'un önünde, modeli taşır
@@ -67,96 +47,34 @@ namespace BlobSurvivor.Entities.Blob
         private Renderer _shieldRenderer;
         private MaterialPropertyBlock _block;
         private int _form = -1;
-        private float _fill;        // 0..1 kalkan doluluğu
         private float _flash;       // vuruş parlaması, sönümlenir
         private float _punch;       // ölçek şişmesi (vuruş / form değişimi)
         private float _shown;       // 0 gizli .. 1 tam görünür
-        private float _breakTime = -1f;
         private float _bobPhase;
         private Color _lastColor = new Color(-1f, 0f, 0f, 0f);
 
         // form: 0..3 (bkz. sınıf yorumu). ArmorEffect seviyeye göre hesaplar.
-        public void Configure(float thornDamagePerSecond, float shockwaveDamage, int form)
-        {
-            _thornDamagePerTick = thornDamagePerSecond * ThornInterval;
-            _shockwaveDamage = shockwaveDamage;
-            SetForm(form);
-        }
+        public void SetForm(int form) => ApplyForm(form);
 
         private void Awake()
         {
             _health = GetComponent<BlobHealth>();
             _rigidbody = GetComponent<Rigidbody>();
-            foreach (SphereCollider c in GetComponents<SphereCollider>())
-                if (!c.isTrigger) { _bodyRadius = c.radius; break; }
             CreateShield();
         }
 
-        private void OnEnable()
-        {
-            _health.OnShieldChanged += HandleShieldChanged;
-            _health.OnShieldHit += HandleShieldHit;
-            _health.OnShieldBroken += HandleShieldBroken;
-            HandleShieldChanged(_health.ShieldCurrent, _health.ShieldMax);
-        }
-
-        private void OnDisable()
-        {
-            _health.OnShieldChanged -= HandleShieldChanged;
-            _health.OnShieldHit -= HandleShieldHit;
-            _health.OnShieldBroken -= HandleShieldBroken;
-        }
+        private void OnEnable() => _health.OnShieldHit += HandleShieldHit;
+        private void OnDisable() => _health.OnShieldHit -= HandleShieldHit;
 
         private void OnDestroy()
         {
             if (_pivot != null) Destroy(_pivot.gameObject);
         }
 
-        private void HandleShieldChanged(float current, float max) => _fill = max > 0f ? current / max : 0f;
-
         private void HandleShieldHit(float absorbed)
         {
             _flash = 1f;
             _punch = Mathf.Max(_punch, 0.12f);
-        }
-
-        private void HandleShieldBroken()
-        {
-            _breakTime = 0f;
-            if (_shockwaveDamage > 0f)
-                DamageEnemiesInRadius(ThornWorldRadius() + ShockwaveExtraRadius, _shockwaveDamage, ShockwaveKnockback);
-        }
-
-        private float ThornWorldRadius() => transform.localScale.x * _bodyRadius * ThornRadiusFactor;
-
-        private void Update()
-        {
-            if (_thornDamagePerTick <= 0f || _health.ShieldCurrent <= 0f) return;
-
-            _thornTimer -= Time.deltaTime;
-            if (_thornTimer > 0f) return;
-            _thornTimer = ThornInterval;
-            // Blob'a değen (merkezi değil, collider'ı) düşmanlar — OverlapSphere collider yüzeyine bakar.
-            if (DamageEnemiesInRadius(ThornWorldRadius() + 0.15f, _thornDamagePerTick, ThornKnockback) > 0)
-            {
-                _flash = Mathf.Max(_flash, 0.6f);
-                _punch = Mathf.Max(_punch, 0.08f);
-            }
-        }
-
-        private int DamageEnemiesInRadius(float radius, float damage, float knockback)
-        {
-            int count = Physics.OverlapSphereNonAlloc(transform.position, radius, _hits, EnemyLayerMask);
-            int damaged = 0;
-            for (int i = 0; i < count; i++)
-            {
-                EnemyBase enemy = _hits[i].GetComponent<EnemyBase>();
-                if (enemy == null || !enemy.isActiveAndEnabled) continue;
-                enemy.TakeDamage(damage);
-                enemy.Knockback(enemy.transform.position - transform.position, knockback); // kızarır + dışa seker
-                damaged++;
-            }
-            return damaged;
         }
 
         // --- Görsel ---
@@ -191,7 +109,7 @@ namespace BlobSurvivor.Entities.Blob
             _shield.SetParent(_pivot, false);
             _onHead = OnHead;
             _shield.localPosition = _onHead ? HeadOffset : ShieldOffset;
-            _shield.localRotation = BaseRotation(0f);
+            _shield.localRotation = BaseRotation();
             _shieldFilter = go.AddComponent<MeshFilter>();
             var mr = go.AddComponent<MeshRenderer>();
             mr.sharedMaterial = s_material;
@@ -204,11 +122,10 @@ namespace BlobSurvivor.Entities.Blob
             _shieldRenderer.enabled = false;
         }
 
-        // Kırılma dönüşü modelin kendi yüz ekseni (Z) etrafında: yanda tekerlek gibi, kafada fırıldak gibi.
-        private Quaternion BaseRotation(float spin) =>
-            (_onHead ? HeadRotation : Quaternion.Euler(ShieldTilt, ShieldYaw, 0f)) * Quaternion.Euler(0f, 0f, spin);
+        private Quaternion BaseRotation() =>
+            _onHead ? HeadRotation : Quaternion.Euler(ShieldTilt, ShieldYaw, 0f);
 
-        private void SetForm(int form)
+        private void ApplyForm(int form)
         {
             if (_shieldFilter == null) return;
             form = Mathf.Clamp(form, 0, FormMeshes.Length - 1);
@@ -218,7 +135,7 @@ namespace BlobSurvivor.Entities.Blob
             _shieldFilter.sharedMesh = s_meshes[form];
             if (upgrade)
             {
-                _punch = 0.35f; // yeni form "pop" ile gelsin
+                _punch = 0.35f; // yeni form "pop" ile gelsin (ilk çıkış: _shown 0'dan büyür)
                 _flash = 1f;
             }
         }
@@ -240,22 +157,8 @@ namespace BlobSurvivor.Entities.Blob
                 }
             }
 
-            // Kırılma: 0.3 sn'de dönerek küçülür, sonra kalkan dolmaya başlayana kadar gizli.
-            float breakSpin = 0f;
-            bool breaking = _breakTime >= 0f;
-            if (breaking)
-            {
-                _breakTime += dt;
-                float k = _breakTime / 0.3f;
-                if (k >= 1f) { _breakTime = -1f; _shown = 0f; breaking = false; }
-                else { _shown = 1f - k; breakSpin = k * 360f; }
-            }
-            else
-            {
-                float target = _fill > 0.01f ? 1f : 0f;
-                _shown = Mathf.MoveTowards(_shown, target, dt * 5f);
-            }
-
+            // Zırh alınınca belirir, run boyunca kalır.
+            _shown = Mathf.MoveTowards(_shown, _form >= 0 ? 1f : 0f, dt * 5f);
             bool visible = _shown > 0.001f;
             if (_shieldRenderer.enabled != visible) _shieldRenderer.enabled = visible;
             if (!visible) return;
@@ -265,14 +168,14 @@ namespace BlobSurvivor.Entities.Blob
             _bobPhase += BobFrequency * Mathf.PI * 2f * dt;
 
             // Pop-in'de hafif taşma (overshoot), vuruşta şişme.
-            float pop = breaking ? _shown : 1f - Mathf.Pow(1f - _shown, 3f) + Mathf.Sin(_shown * Mathf.PI) * 0.15f;
+            float pop = 1f - Mathf.Pow(1f - _shown, 3f) + Mathf.Sin(_shown * Mathf.PI) * 0.15f;
             _shield.localScale = Vector3.one * (pop * (1f + _punch) * (_onHead ? HeadScale : 1f));
             float bob = Mathf.Sin(_bobPhase) * (_onHead ? HeadBobAmplitude : BobAmplitude);
             _shield.localPosition = (_onHead ? HeadOffset : ShieldOffset) + new Vector3(0f, bob, 0f);
-            _shield.localRotation = BaseRotation(breakSpin);
+            _shield.localRotation = BaseRotation();
 
-            // Doluluk: azaldıkça koyulaşır; vuruşta parlar (HDR > 1 dokuyu açar).
-            float shade = Mathf.Lerp(0.55f, 1f, _fill) + _flash * 0.8f;
+            // Vuruşta parlar (HDR > 1 dokuyu açar).
+            float shade = 1f + _flash * 0.8f;
             Color color = new Color(shade, shade, shade, 1f);
             if (color != _lastColor)
             {

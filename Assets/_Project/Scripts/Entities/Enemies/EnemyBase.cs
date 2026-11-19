@@ -883,7 +883,6 @@ namespace BlobSurvivor.Entities.Enemies
             _canSeeBlobCached = true;
             ChangeState(new ChaseState());
         }
-        public float DetectionRange => _detectionRange;
 
         // Elit/boss'ta EnemyData.AttackRange bilinçli bir "menzil/alan saldırısı" değeridir, olduğu gibi
         // kalır. Sıradan sürü düşmanında gerçek temas mesafesine (iki collider'ın o anki dünya-uzayı

@@ -237,8 +237,6 @@ namespace BlobSurvivor.Entities.Blob
             }
         }
 
-        public void IncreaseReach(float amount) => Reach += amount;
-
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = new Color(1f, 0.5f, 0.2f, 0.2f);

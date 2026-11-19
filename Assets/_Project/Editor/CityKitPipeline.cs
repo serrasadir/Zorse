@@ -130,37 +130,16 @@ namespace BlobSurvivor.EditorTools
         [MenuItem("Tools/Blob.io/Şehir Kur (Büyük)")]
         private static void BuildLarge() => BuildCity(true);
 
-        // 2026-11-04: performans denemesi. Büyük şehri kurar, bina noktalarına kit2 binalarını koyar (restoran kalır).
-        // Eski şehre dönmek: Şehir Kur (Büyük). Yerleşim geçici: v2 mahalle sistemi gelince bu menü kalkar.
-        // 2026-11-04: şehir v2 (zorse-blender/build_city2.py --export → Kit2/city_v2.json). Mahalle sistemi: yollar, kaldırımlar,
+        // Şehir v2 (zorse-blender/build_city2.py --export → Kit2/city_v2.json). Mahalle sistemi: yollar, kaldırımlar,
         // yaya/araba/NavMesh büyük şehirle aynı; blokların içi tamamen kit2 (bina, eşya, blok zemini). Eski şehre dönmek: Şehir Kur (Büyük).
         [MenuItem("Tools/Blob.io/Şehir Kur (v2)")]
         private static void BuildV2() => BuildCity(true, v2: true);
 
-        [MenuItem("Tools/Blob.io/Şehir Kur (Kit2 Deneme)")]
-        private static void BuildKit2Test() => BuildCity(true, kit2Test: true);
-
-        private static readonly string[] Kit2Small =
-        {
-            "B_Bakery", "B_Pizzeria", "B_Barber", "B_AptSage", "B_AptBlue", "B_AptBrick", "B_Cafe", "B_Bookstore",
-            "B_AptCumba", "B_AptPink",
-        };
-        private static readonly string[] Kit2Large = { "B_GrandHotel", "B_PoliceStation", "B_Hospital", "B_Cinema", "B_Lokanta" };
-
         internal static bool IsKit2(string mesh) => AssetDatabase.LoadAssetAtPath<GameObject>($"{Kit2Root}/{mesh}.fbx") != null;
-
-        // Konumdan deterministik seçim (her kurulumda aynı). Geniş eski binaların yerine geniş v2 binası.
-        private static CityItem SwapToKit2(CityItem item)
-        {
-            if (!item.mesh.StartsWith("B_") || item.mesh == RestaurantMesh) return item;
-            string[] pool = item.sx >= 4.4f ? Kit2Large : Kit2Small;
-            int hash = Mathf.Abs(Mathf.RoundToInt(item.x * 7.31f) * 73856093 ^ Mathf.RoundToInt(item.z * 3.17f) * 19349663);
-            return new CityItem { mesh = pool[hash % pool.Length], x = item.x, y = item.y, z = item.z, yaw = 0f };
-        }
 
         private const string V2LayoutPath = Kit2Root + "/city_v2.json";
 
-        private static void BuildCity(bool large, bool kit2Test = false, bool v2 = false)
+        private static void BuildCity(bool large, bool v2 = false)
         {
             AssetDatabase.Refresh();
 
@@ -226,18 +205,15 @@ namespace BlobSurvivor.EditorTools
                 }
                 placed = JsonUtility.FromJson<CityLayout>(v2Json.text).items;
             }
-            Material paletteV2 = kit2Test || v2 ? GetPaletteV2Material() : null;
-            if ((kit2Test || v2) && paletteV2 == null)
+            Material paletteV2 = v2 ? GetPaletteV2Material() : null;
+            if (v2 && paletteV2 == null)
             {
                 Debug.LogError($"[CityKitPipeline] {PaletteV2Path} yok: önce build_kit2.py --export.");
                 return;
             }
-            int swapped = 0;
-            foreach (CityItem source in placed)
+            foreach (CityItem item in placed)
             {
-                if (IsVehicle(source.mesh)) continue; // araçlar sahnede durmaz, CarSpawner havuzundan gelir
-                CityItem item = kit2Test ? SwapToKit2(source) : source;
-                if (item != source) swapped++;
+                if (IsVehicle(item.mesh)) continue; // araçlar sahnede durmaz, CarSpawner havuzundan gelir
                 if (!prefabs.ContainsKey(item.mesh))
                 {
                     GameObject built = BuildPrefab(item, IsKit2(item.mesh) ? paletteV2 : palette);
@@ -268,8 +244,7 @@ namespace BlobSurvivor.EditorTools
 
             EditorSceneManager.MarkSceneDirty(root.scene);
             Selection.activeGameObject = root;
-            Debug.Log($"[CityKitPipeline] Şehir kuruldu: {root.transform.childCount} obje, {cars.Count} araç tipi" +
-                      (kit2Test ? $", {swapped} bina kit2 ile değişti" : "") + ". NavMesh bake bitince sahneyi kaydet (Cmd+S).");
+            Debug.Log($"[CityKitPipeline] Şehir kuruldu: {root.transform.childCount} obje, {cars.Count} araç tipi. NavMesh bake bitince sahneyi kaydet (Cmd+S).");
         }
 
         // Kapsül görselini modelle değiştirir; collider, NavMeshAgent ve EnemyBase ayarlarına dokunmaz.

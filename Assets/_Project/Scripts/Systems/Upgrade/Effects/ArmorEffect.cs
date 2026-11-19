@@ -24,7 +24,7 @@ namespace BlobSurvivor.Systems
             ArmorShield armor = GetOrAdd<ArmorShield>(blobRoot);
             // Kalkan modeli seviyeyle değişir: kapak → tabela → menhol → altın menhol.
             int form = level >= 5 ? 3 : level >= 4 ? 2 : level >= 3 ? 1 : 0;
-            armor.Configure(0f, 0f, form);
+            armor.SetForm(form);
             health.SkillArmor = At(_reductionByLevel, level);
             health.HitInvulnerabilityBonus = level >= 3 ? _invulnerabilityBonus : 0f;
             health.HitPushMultiplier = level >= 5 ? _pushMultiplier : 1f;

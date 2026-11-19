@@ -10,9 +10,9 @@ namespace BlobSurvivor.Systems
     [CreateAssetMenu(fileName = "FestivalNightEffect", menuName = "BlobSurvivor/Effects/Bayram Gecesi (Evolution)")]
     public class FestivalNightEffect : UpgradeEffect
     {
-        [SerializeField] private int _misketCount = 4;
+        [SerializeField] private int _misketCount = 3;
         [Tooltip("Misket hasarı = roketin temel hasarı × bu (Yara Öfkesi çarpanı dahil).")]
-        [SerializeField] private float _misketDamageFactor = 0.4f;
+        [SerializeField] private float _misketDamageFactor = 0.25f;
 
         public override void Apply(GameObject blobRoot, UpgradeData data)
         {

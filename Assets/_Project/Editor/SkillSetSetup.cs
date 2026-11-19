@@ -164,7 +164,7 @@ namespace BlobSurvivor.EditorTools
                 "Dalı bırak, direği sök. Tam tur, sert itme; vurup öldürdüğün düşman ağzına uçar.",
                 "weapon", "yara_ofkesi", new Color(1f, 0.85f, 0.35f));
             Evolution(list, pool, "BayramGecesi", typeof(FestivalNightEffect), "bayram_gecesi", "Bayram Gecesi", "BG",
-                "Her roket isabette 4 misket rokete bölünür, misketler yakındaki düşmanlara saçılır.",
+                "Her roket isabette 3 misket rokete bölünür, misketler yakındaki düşmanlara saçılır.",
                 "firework", "tetikci", new Color(1f, 0.45f, 0.85f));
             Evolution(list, pool, "SabunSorfu", typeof(SoapSurfEffect), "sabun_sorfu", "Sabun Sörfü", "SS",
                 "Kendi izinde %30 hızlı kayarsın. İzdeki düşman kayar, savrulur, 10 hasar alır ve sersemler.",

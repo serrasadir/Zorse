@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
   _id: bayram_gecesi
   _displayName: Bayram Gecesi
-  _description: "Her roket isabette 4 misket rokete b\xF6l\xFCn\xFCr, misketler yak\u0131ndaki
+  _description: "Her roket isabette 3 misket rokete b\xF6l\xFCn\xFCr, misketler yak\u0131ndaki
     d\xFC\u015Fmanlara sa\xE7\u0131l\u0131r."
   _icon: {fileID: 0}
   _kind: 1
@@ -23,7 +23,7 @@ MonoBehaviour:
   _maxLevel: 1
   _perLevelValue: 0
   _levelDescriptions:
-  - "Her roket isabette 4 misket rokete b\xF6l\xFCn\xFCr, misketler yak\u0131ndaki
+  - "Her roket isabette 3 misket rokete b\xF6l\xFCn\xFCr, misketler yak\u0131ndaki
     d\xFC\u015Fmanlara sa\xE7\u0131l\u0131r."
   _isEvolution: 1
   _abbr: BG

@@ -103,7 +103,6 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 | Robot Köpek Rengini Uygula | `CityPalette`'in doygun mavilerini açık metalik griye çeviren köpek paleti (`Art/City/RobotDogPalette.png`) + `Mat_RobotDog` → `Enemy_RobotDog.prefab`. Robot Köpeği Kur da bu materyali kullanır |
 | Sandık Modelini Uygula | `Art/City/C_Chest.fbx` (Blender: `build_chest.py`) → Chest.prefab modeli |
 | **Şehir Kur (v2)** | Yeni şehir (yol genişliği `CityExpansion.BlockPitch`/`RoadHalf` ↔ Blender `build_city2.py` PITCH; arabalar ve yiyecek sınırı kurulumda bağlanır; sonra Şehir Kıyısını Kur): `Art/City/Kit2/city_v2.json` (Blender: `build_kit2.py --export` binalar, `build_props2.py --export` eşya + blok zeminleri, `build_city2.py --export` mahalle yerleşimi). Yollar/kaldırım/yaya/araba/NavMesh büyük şehirle aynı. Sonra Şehir Görsel Düzeltmeleri + Cmd+S |
-| Şehir Kur (Kit2 Deneme) | Büyük şehir + bina noktalarına şehir kiti v2 binaları (`Art/City/Kit2`, Blender: `build_kit2.py --export`). Performans denemesi; eski şehre dönmek için Şehir Kur (Büyük). Sonra Şehir Görsel Düzeltmeleri |
 | Skill Setini Kur | Skill seti (`Editor/SkillSetSetup.cs`): 16 skill + efekt asset'ini oluşturur/günceller (tür, 5 seviye, kart metinleri, ağırlık) ve `UpgradeSystem._allUpgrades` kart havuzuna yazar; evrimleri (`SetupEvolutions`: Lamba Direği asset'i, koşullar) `EvolutionSystem._evolutions`'a yazar. GameScene açıkken; sahneyi kaydeder. Kart metni değişince tekrar çalıştır |
 | Karakter Görünümlerini Uygula | `Art/City/Characters/CH_*.fbx` (Blender: `build_blobs.py`, karakter ve tier başına `CH_<Karakter>_T1..T5`) → `Prefabs/Blob/BlobVisual_*` (+ `BlobTierMeshes`) + `CharacterData._blobVisualPrefab`. Runtime'da `BlobVisual` takar, gidiş yönüne çevirir; boş = varsayılan küre |
 | Yerdeki Yiyecekleri Kur | `Art/City/Litter/J_*.fbx` (Blender: `build_litter.py`) → prefab + ConsumableData, ConsumableSpawner havuzunu bunlarla değiştirir. GameScene açıkken; sonra Cmd+S |
@@ -127,6 +126,7 @@ void Update() { _timer -= Time.deltaTime; if (_timer > 0f) return; _timer = Inte
 | Blob Çevresini Raporla | Play'de blob çevresini `Temp/blob_probe.txt`'ye yazar (`Temp/blob_probe.request` ile de tetiklenir) |
 | TestFlight Xcode Projesi Üret | Release iOS build, TestFlight için (build no +1) |
 | iOS Xcode Projesi Üret | Geliştirme build'i, cihaza doğrudan kurmak için |
+| Android APK Üret · Android: Telefona Kur (USB) | Android build (`AndroidBuildTool`); performans testi için orta segment cihaza |
 
 **Performans göstergesi** (`PerfOverlay`, telefonda da): 3 parmakla dokun (Editor'da F3) → FPS, en kötü kare, +500 kütle ve **DEV** düğmesi. DEV paneli (açıkken oyun durur, uGUI tıklaması kapanır; parmakla kaydırılır): en üstte coin +1.000 / +10.000, karakterleri kilitle (alımlar + run sayısı sıfır), tüm karakterleri aç, kaydı sıfırla; run içinde skill +1 / MAX, kütle, can, sıradaki boss, final boss −%25. Test API'leri (`UpgradeSystem.DebugGrant`, `BossSpawner.DebugSpawnNextStage`, `MetaProgression.Dev*`) build'de de derlenir. **Yayın öncesi `PerfOverlay.Enabled = false`.**
 

@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac8845bd5603d4af8aeea457465a2364, type: 3}
   m_Name: FX_BayramGecesi
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Systems.FestivalNightEffect
-  _misketCount: 4
-  _misketDamageFactor: 0.4
+  _misketCount: 3
+  _misketDamageFactor: 0.25

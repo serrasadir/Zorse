@@ -5,8 +5,8 @@ using BlobSurvivor.Entities.Weapons;
 
 namespace BlobSurvivor.Entities.Blob
 {
-    // Evrim "Hurda Kalkanı" (Geri Dönüşüm + Zırh): blob'un etrafında dönen hurda parçaları (Zırh'ın sokak eşyası
-    // kalkan modelleri). Değdiği düşmana vurur; gelen bir darbeyi tamamen yutar ve kırılır. Yutulan her araba yeni
+    // Evrim "Hurda Kalkanı" (Geri Dönüşüm + Zırh): blob'un etrafında dönen araba hurdası (lastik, kapı, tampon, kaput;
+    // zorse-blender/build_scrap.py → Resources/FX/Scrap, Zırh kalkanlarıyla aynı palet materyali). Değdiği düşmana vurur; gelen bir darbeyi tamamen yutar ve kırılır. Yutulan her araba yeni
     // parça ekler (en fazla MaxPieces). Restart'ta GameManager.ClearPreviousRunState siler.
     public class ScrapOrbit : MonoBehaviour
     {
@@ -24,8 +24,9 @@ namespace BlobSurvivor.Entities.Blob
         private const float PieceCooldown = 0.4f;
         private const float PopDuration = 0.3f;
         private const int EnemyMask = 1 << 14;
-        private const string ShieldFolder = "FX/Shield/";
-        private static readonly string[] Meshes = { "FX_Shield1_TrashLid", "FX_Shield2_Sign", "FX_Shield3_Manhole" };
+        private const string ScrapFolder = "FX/Scrap/";
+        private const string MaterialPath = "FX/Shield/Mat_ShieldPalette";
+        private static readonly string[] Meshes = { "FX_Scrap1_Tire", "FX_Scrap2_Door", "FX_Scrap3_Bumper", "FX_Scrap4_Hood" };
         private static readonly Color DebrisA = new Color(0.55f, 0.58f, 0.62f), DebrisB = new Color(0.85f, 0.85f, 0.8f);
 
         private readonly Transform[] _pieces = new Transform[MaxPieces];
@@ -62,7 +63,7 @@ namespace BlobSurvivor.Entities.Blob
         // Run başına tek seferlik: 4 parça objesi, gizli başlar.
         private void Build()
         {
-            Material material = Resources.Load<Material>(ShieldFolder + "Mat_ShieldPalette");
+            Material material = Resources.Load<Material>(MaterialPath);
             _pivot = new GameObject("ScrapOrbit").transform;
             _pivot.SetParent(transform, false);
             for (int i = 0; i < MaxPieces; i++)
@@ -70,7 +71,7 @@ namespace BlobSurvivor.Entities.Blob
                 var go = new GameObject("Scrap" + i);
                 go.layer = gameObject.layer;
                 go.transform.SetParent(_pivot, false);
-                go.AddComponent<MeshFilter>().sharedMesh = Resources.Load<Mesh>(ShieldFolder + Meshes[i % Meshes.Length]);
+                go.AddComponent<MeshFilter>().sharedMesh = Resources.Load<Mesh>(ScrapFolder + Meshes[i % Meshes.Length]);
                 var r = go.AddComponent<MeshRenderer>();
                 r.sharedMaterial = material;
                 r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;

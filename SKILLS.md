@@ -249,7 +249,7 @@ Henüz yiyemediğin (senden büyük) yayaya çarparsan yaya seni tekmeler: geriy
 
 ### ★ Bayram Gecesi
 - **Gereken:** Havai Fişek 5 + Tetikçi en az 1
-- **Ne yapar:** Her roket bir düşmana çarpınca **4 misket rokete** bölünür. Misketler isabet noktasından 6 birim içindeki diğer düşmanlara (en yakından başlayarak) uçar; yeterli düşman yoksa eşit aralıklı yönlere saçılır. Misket hasarı roketin temel hasarının **%40'ı** (Yara Öfkesi çarpanı dahil), boyu roketin %55'i, renk renk. Misket tekrar bölünmez. Boss'a giden roketin gücü değişmez; misketler sürüyü temizler.
+- **Ne yapar:** Her roket bir düşmana çarpınca **3 misket rokete** bölünür. Misketler isabet noktasından 6 birim içindeki diğer düşmanlara (en yakından başlayarak) uçar; yeterli düşman yoksa eşit aralıklı yönlere saçılır. Misket hasarı roketin temel hasarının **%25'i** (Sv.5'te ~10: bekçi/köpeği tek vuruşta düşürür; Yara Öfkesi çarpanı dahil), boyu roketin %55'i, renk renk. Misket tekrar bölünmez. Boss'a giden roketin gücü değişmez; misketler sürüye destek (kalabalıkta toplam hasar ~1.6 kat).
 - **Kod:** `FestivalNightEffect` (`FX_BayramGecesi`; `_misketCount`, `_misketDamageFactor`) → `FireworkWeapon.EnableCluster` → `FireworkProjectile.SetCluster` / `OnHitEnemy`. Misketler roketle aynı havuzdan.
 - **Görsel:** atar formu değişmiyor (Sv.5 çift tüp kalır).
 
@@ -260,7 +260,7 @@ Henüz yiyemediğin (senden büyük) yayaya çarparsan yaya seni tekmeler: geriy
 
 ### ★ Hurda Kalkanı
 - **Gereken:** Geri Dönüşüm 5 + Zırh en az 1
-- **Ne yapar:** Blob'un etrafında dönen hurda parçaları (Zırh'ın çöp kutusu kapağı / tabela / menhol modelleri). 2 parçayla başlar, yutulan her araba +1 (en fazla **4**). Parça değdiği düşmana **15 hasar** + geri itme (parça başına 0.4 sn bekleme). Gelen **bir darbeyi tamamen yutar** ve kırılır (gri kırıntı); her kaynaktan darbe sayılır (ısırık dahil).
+- **Ne yapar:** Blob'un etrafında dönen araba hurdası: lastik, ezik kapı, bükük tampon, paslı kaput (`build_scrap.py` → `Resources/FX/Scrap`; Zırh kalkanından ayrılsın diye paslı tonlar). 2 parçayla başlar, yutulan her araba +1 (en fazla **4**). Parça değdiği düşmana **15 hasar** + geri itme (parça başına 0.4 sn bekleme). Gelen **bir darbeyi tamamen yutar** ve kırılır (gri kırıntı); her kaynaktan darbe sayılır (ısırık dahil).
 - **Kod:** `ScrapShieldEffect` → `ScrapOrbit` (`BlobHealth.AbsorbHit` kancası). Restart'ta `GameManager.ClearPreviousRunState` siler.
 
 ### ★ Geğirme

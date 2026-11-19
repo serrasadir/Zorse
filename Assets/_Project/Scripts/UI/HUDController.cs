@@ -37,11 +37,7 @@ namespace BlobSurvivor.UI
         // de flag'lenip hiç düzeltilmemişti). OnCharacterSelected'da (run başına bir kere) cache'leniyor.
         private Entities.Blob.BlobGrowth _blobGrowth;
 
-        // 2026-11-04: Zırh kalkanı barı — can barının hemen altında ince mavi bar, çalışma zamanında can barından
-        // kopyalanır (sahne kurulumu yok). Kalkan yokken (Zırh alınmamış) gizli.
-        private static readonly Color ShieldFillColor = new Color(0.55f, 0.82f, 1f, 1f);
-        private static readonly Color ShieldBackgroundColor = new Color(0.08f, 0.1f, 0.2f, 0.7f);
-        private Slider _shieldBar;
+        private static readonly Color ShieldFillColor = new Color(0.55f, 0.82f, 1f, 1f); // geçici kalkan uzantısı
         private Entities.Blob.BlobHealth _blobHealth;
 
         // Yerleşim (hud.md §3.1, safe area üstünden ref px): A boss adı + barı, B süre/skor, C can/kalkan/XP, D slot şeridi.
@@ -58,7 +54,6 @@ namespace BlobSurvivor.UI
         {
             LayoutHud();
             LayoutBars();
-            CreateShieldBar();
             CreateBonusShield();
             CreateBossName();
             CreateSlotStrip();
@@ -94,7 +89,6 @@ namespace BlobSurvivor.UI
             GameEvents.OnBossHealthChanged -= OnBossHealthChanged;
             GameEvents.OnBossSpawned -= OnBossSpawned;
             GameEvents.OnUpgradeApplied -= OnUpgradeApplied;
-            if (_blobHealth != null) _blobHealth.OnShieldChanged -= OnShieldChanged;
         }
 
         // --- Evrim yazısı: "★ KARA DELİK" ekranın üst ortasında belirir (pop), durur, söner. Ölçeksiz zaman. ---
@@ -226,39 +220,6 @@ namespace BlobSurvivor.UI
             rect.offsetMin = rect.offsetMax = Vector2.zero;
         }
 
-        private void CreateShieldBar()
-        {
-            if (_healthBar == null) return;
-
-            RectTransform healthRect = _healthBar.GetComponent<RectTransform>();
-            GameObject copy = Instantiate(_healthBar.gameObject, healthRect);
-            copy.name = "ShieldBar";
-            _shieldBar = copy.GetComponent<Slider>();
-            _shieldBar.interactable = false;
-            if (_shieldBar.handleRect != null)
-            {
-                Destroy(_shieldBar.handleRect.gameObject);
-                _shieldBar.handleRect = null;
-            }
-
-            // Can barının hemen altına, aynı genişlikte, onun %45'i kalınlığında (en az 12).
-            RectTransform rect = copy.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0f, 0f);
-            rect.anchorMax = new Vector2(1f, 0f);
-            rect.pivot = new Vector2(0.5f, 1f);
-            rect.anchoredPosition = new Vector2(0f, -3f);
-            rect.sizeDelta = new Vector2(0f, Mathf.Max(12f, HealthHeight * 0.45f));
-            rect.localScale = Vector3.one;
-
-            foreach (Image image in copy.GetComponentsInChildren<Image>(true))
-            {
-                bool isFill = _shieldBar.fillRect != null && image.transform == _shieldBar.fillRect;
-                image.color = isFill ? ShieldFillColor : ShieldBackgroundColor;
-            }
-
-            copy.SetActive(false);
-        }
-
         // Geçici kalkan (görev ödülü, Geri Dönüşüm): can barının sağ ucunda, can ölçeğinde mavi uzantı.
         // Olayı yok; değer değişince boyu yeniden hesaplanır (float karşılaştırması, ucuz).
         private RectTransform _bonusShield;
@@ -294,16 +255,6 @@ namespace BlobSurvivor.UI
             bool show = bonus > 0.01f;
             if (_bonusShield.gameObject.activeSelf != show) _bonusShield.gameObject.SetActive(show);
             if (show) _bonusShield.sizeDelta = new Vector2(Mathf.Max(6f, px), 0f);
-        }
-
-        private void OnShieldChanged(float current, float max)
-        {
-            if (_shieldBar == null) return;
-            bool hasShield = max > 0f;
-            if (_shieldBar.gameObject.activeSelf != hasShield) _shieldBar.gameObject.SetActive(hasShield);
-            if (!hasShield) return;
-            _shieldBar.maxValue = max;
-            _shieldBar.value = current;
         }
 
         // --- Boss: ad bar üstünde (A bölgesi); boss varken haber bandı gizlenir (bar onun yerini alır). ---
@@ -442,14 +393,7 @@ namespace BlobSurvivor.UI
         {
             _blobGrowth = FindAnyObjectByType<Entities.Blob.BlobGrowth>();
 
-            // Run başına bir kez: kalkan event'ine bağlan (restart'ta aynı blob — çift abonelik olmasın).
-            if (_blobHealth != null) _blobHealth.OnShieldChanged -= OnShieldChanged;
             _blobHealth = _blobGrowth != null ? _blobGrowth.GetComponent<Entities.Blob.BlobHealth>() : null;
-            if (_blobHealth != null)
-            {
-                _blobHealth.OnShieldChanged += OnShieldChanged;
-                OnShieldChanged(_blobHealth.ShieldCurrent, _blobHealth.ShieldMax);
-            }
 
             // Restart sahneyi yüklemez: seviye/tier/XP yazıları yeni run'ın değerleriyle başlar.
             OnLevelUp(_blobGrowth != null ? _blobGrowth.CurrentLevel : 0);
