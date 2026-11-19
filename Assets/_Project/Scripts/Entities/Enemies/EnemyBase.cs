@@ -1056,6 +1056,27 @@ namespace BlobSurvivor.Entities.Enemies
             return true;
         }
 
+        // Lamba Direği evrimi: bu vuruş öldürür mü (boss hariç; kalkan payı dahil).
+        public bool WouldDieFrom(float damage) =>
+            !_isDead && _data != null && !IsBoss && !_data.RequiresConsumptionToDie
+            && _currentHealth - damage * FrontShieldFactor() <= 0f;
+
+        // Lamba Direği: silahla öldürülüp yutulur. Silah öldürmesi sayılır (kill XP, görev), ölüm anı oynamaz;
+        // crumbs = yerinde kırıntıya dağılır (ağza uçmayanlar). Kütleyi çağıran ekler.
+        public bool Devour(bool crumbs, out float massReward)
+        {
+            massReward = 0f;
+            if (_isDead || _data == null || IsBoss) return false;
+            OnDamageDealt?.Invoke(Mathf.Max(_currentHealth, 0f));
+            _currentHealth = 0f;
+            if (crumbs && _flashRenderers != null && _flashRenderers.Length > 0)
+                DeathFx.Play(_flashRenderers[0].bounds, _data.CrumbColorA, _data.CrumbColorB, _data.IsElite);
+            if (_blobGrowth != null) _blobGrowth.AddKillXP(_data.KillXp);
+            massReward = _data.MassReward;
+            Die(true, countAsKill: true);
+            return true;
+        }
+
         // 2026-11-02 (Serra): polisi yemek bedelsizdi. Eşiğe yeni ulaşmışken ısırık acıtır, büyüdükçe azalır
         // ve 2 tier fark kalınca biter.
         public float GetConsumeDamage(BlobTier blobTier)
@@ -1071,7 +1092,8 @@ namespace BlobSurvivor.Entities.Enemies
 
         private const int PoliceCoin = 2; // denge: elit sandığı coin'in tamamına yakınını vermesin (OYUN.md Hedefler)
 
-        private void Die(bool eaten = false)
+        // countAsKill: yutuldu ama silah öldürmesi sayılır (Lamba Direği; görev/rozet "silahla").
+        private void Die(bool eaten = false, bool countAsKill = false)
         {
             if (_isDead) return;
             _isDead = true;
@@ -1088,7 +1110,7 @@ namespace BlobSurvivor.Entities.Enemies
                 coin.Pop(new Vector3(dir.x, 0f, dir.y));
             }
             GameEvents.RaiseEnemyKilled(_data);
-            GameEvents.RaiseEnemyDefeated(_data, eaten);
+            GameEvents.RaiseEnemyDefeated(_data, eaten && !countAsKill);
             if (_data.IsElite)
                 ChestSpawner.Instance?.SpawnChest(transform.position);
             if (_data.HeartPrefab != null && Random.value < _data.HeartDropChance)

@@ -10,9 +10,10 @@ namespace BlobSurvivor.Systems.Meta
     // Açılan skill için ekranda "YENİ SKİLL!" bandı. Sahne kurulumu gerekmez: HUD olan sahnede kendini kurar.
     public class UnlockTracker : MonoBehaviour
     {
-        private const float BossLowHealthFraction = 0.2f;
+        private const float LowHealthFraction = 0.25f;
 
         private BlobHealth _health;
+        private int _lowHealthSeconds; // bu run'da can %25 altında geçen sn
         private int _carsEaten, _policeEaten;
         private int _lastReportedSecond = -1;
 
@@ -62,6 +63,7 @@ namespace BlobSurvivor.Systems.Meta
         {
             _carsEaten = 0;
             _policeEaten = 0;
+            _lowHealthSeconds = 0;
             _lastReportedSecond = -1;
         }
 
@@ -73,7 +75,7 @@ namespace BlobSurvivor.Systems.Meta
 
         private void OnTierChanged(BlobTier tier)
         {
-            if (tier >= BlobTier.Colossal) Meta?.ReportStat(UnlockStat.ReachedDev, 1);
+            if (tier >= BlobTier.Large) Meta?.ReportStat(UnlockStat.ReachedLarge, 1);
         }
 
         private void OnSurvivalTime(float t)
@@ -82,6 +84,8 @@ namespace BlobSurvivor.Systems.Meta
             if (second == _lastReportedSecond) return; // olay 0,1 sn'de bir gelir
             _lastReportedSecond = second;
             Meta?.ReportStat(UnlockStat.SurviveSeconds, second);
+            if (_health != null && _health.IsAlive && _health.CurrentHealth < _health.MaxHealth * LowHealthFraction)
+                Meta?.ReportStat(UnlockStat.LowHealthSeconds, ++_lowHealthSeconds);
         }
 
         private void OnEnemyDefeated(EnemyData data, bool eaten)
@@ -90,8 +94,6 @@ namespace BlobSurvivor.Systems.Meta
             if (data.PreventConsumption) // boss
             {
                 if (!data.RequiresConsumptionToDie) Meta.AddStat(UnlockStat.TankKills, 1);
-                if (_health != null && _health.CurrentHealth < _health.MaxHealth * BossLowHealthFraction)
-                    Meta.ReportStat(UnlockStat.BossLowHealth, 1);
                 return;
             }
             if (data.IsSwarm) return; // robot köpek polis sayılmaz
@@ -107,12 +109,8 @@ namespace BlobSurvivor.Systems.Meta
 
         private void OnSkillUnlocked(string id)
         {
-            string name = id;
-            UpgradeData[] all = UpgradeSystem.Instance != null ? UpgradeSystem.Instance.AllUpgrades : null;
-            if (all != null)
-                foreach (UpgradeData u in all)
-                    if (u != null && u.Id == id) { name = u.DisplayName; break; }
-            GameEvents.RaiseSkillUnlocked(name);
+            UpgradeData skill = UpgradeSystem.Instance != null ? UpgradeSystem.Instance.FindById(id) : null;
+            GameEvents.RaiseSkillUnlocked(skill != null ? skill.DisplayName : id);
         }
     }
 }

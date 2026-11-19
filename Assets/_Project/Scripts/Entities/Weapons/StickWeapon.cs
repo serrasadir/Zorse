@@ -20,6 +20,12 @@ namespace BlobSurvivor.Entities.Weapons
         [SerializeField] private float _knockback = 0.4f;
         [SerializeField] private float _fullCircleDamage = 1.5f;
 
+        [Header("Lamba Direği (evrim)")]
+        [SerializeField] private float _lampRangeFactor = 1.5f;
+        [SerializeField] private float _lampKnockbackFactor = 2f;
+        [Tooltip("Savuruş başına ağza uçan en fazla düşman (en ağırlar); kalanlar yerinde kırıntıya dağılır.")]
+        [SerializeField] private int _maxFlights = 3;
+
         private const int EnemyLayerMask = 1 << 14;
         private const int WallMask = 1 << 16; // Environment: bina engel kutuları + harita duvarı
         // Menzil yatay ölçülür: blob'un üstünde bu yüksekliğe kadar uçan hedef (helikopter) de sayılır.
@@ -38,6 +44,12 @@ namespace BlobSurvivor.Entities.Weapons
 
         // Sopa skill'i açar; restart'ta silah yeniden yaratıldığı için kendiliğinden sıfırlanır.
         private bool _backSwing, _wide, _fast, _fullCircle;
+        private bool _lamp; // Lamba Direği: öldürdüğünü yutar
+
+        // Lamba Direği savuruşunda öldürülecekler (vuruştan sonra, en ağır önce işlenir).
+        private readonly EnemyBase[] _devoured = new EnemyBase[32];
+        private int _devouredCount;
+        private BlobConsumption _consumption;
 
         public void AddDamage(float damage, float range)
         {
@@ -49,9 +61,11 @@ namespace BlobSurvivor.Entities.Weapons
         public void EnableWideArc() => _wide = true;
         public void EnableFastSwing() => _fast = true;
         public void EnableFullCircle() => _fullCircle = true;
+        public void EnableLampPost() { _lamp = true; _fullCircle = true; }
+        public bool IsLampPost => _lamp;
 
         private float Interval => _interval / (_fast ? _fastFactor : 1f);
-        private float EffectiveRange => (_blobRoot != null ? _blobRoot.localScale.x * _bodyLocalRadius : 0f) + _range;
+        private float EffectiveRange => (_blobRoot != null ? _blobRoot.localScale.x * _bodyLocalRadius : 0f) + _range * (_lamp ? _lampRangeFactor : 1f);
 
         private void Awake()
         {
@@ -59,6 +73,7 @@ namespace BlobSurvivor.Entities.Weapons
             _blobRoot = transform.parent;
             if (_blobRoot == null) return;
             _stickVisual = _blobRoot.GetComponent<WeaponVisual>();
+            _consumption = _blobRoot.GetComponent<BlobConsumption>();
             foreach (SphereCollider c in _blobRoot.GetComponents<SphereCollider>())
                 if (!c.isTrigger) { _bodyLocalRadius = c.radius; break; }
         }
@@ -91,6 +106,8 @@ namespace BlobSurvivor.Entities.Weapons
             float range = EffectiveRange;
             float damage = _hitDamage * (full ? _fullCircleDamage : 1f) * BlobSkills.WeaponDamageScale; // Yara Öfkesi
 
+            float knockback = _knockback * (_lamp ? _lampKnockbackFactor : 1f);
+            _devouredCount = 0;
             int hitCount = Physics.OverlapCapsuleNonAlloc(origin, origin + Vector3.up * VerticalReach, range, _hits, EnemyLayerMask);
             bool hitFront = false, hitBack = false;
             for (int i = 0; i < hitCount; i++)
@@ -111,12 +128,18 @@ namespace BlobSurvivor.Entities.Weapons
 
                 EnemyBase enemy = _hits[i].GetComponent<EnemyBase>(); // vuruş anında, saniyede bir
                 if (enemy == null) continue;
-                enemy.TakeDamage(damage);
-                enemy.Knockback(flat, _knockback);
                 hitFront |= front;
                 hitBack |= rear;
+                if (_lamp && _consumption != null && enemy.WouldDieFrom(damage) && _devouredCount < _devoured.Length)
+                {
+                    _devoured[_devouredCount++] = enemy;
+                    continue;
+                }
+                enemy.TakeDamage(damage);
+                enemy.Knockback(flat, knockback);
             }
             if (!hitFront && !hitBack) return false;
+            if (_devouredCount > 0) DevourKilled();
 
             PlayFx(ref _fxFront, "SwingArc_Front", forward, range, arc);
             if (back) PlayFx(ref _fxBack, "SwingArc_Back", -forward, range, arc);
@@ -124,6 +147,34 @@ namespace BlobSurvivor.Entities.Weapons
             if (_stickVisual != null) _stickVisual.PlaySwing(arc, full);
             return true;
         }
+
+        // Lamba Direği: en ağır _maxFlights düşman havaya fırlayıp ağza uçar, kalanlar yerinde kırıntıya dağılır.
+        // Hepsinin kütlesi gelir; şişme ve titreşim savuruş başına bir kez.
+        private void DevourKilled()
+        {
+            int flights = Mathf.Min(_maxFlights, _devouredCount);
+            for (int f = 0; f < flights; f++) // kısmi seçim sıralaması: en ağır başa
+            {
+                int best = f;
+                for (int j = f + 1; j < _devouredCount; j++)
+                    if (MassOf(_devoured[j]) > MassOf(_devoured[best])) best = j;
+                (_devoured[f], _devoured[best]) = (_devoured[best], _devoured[f]);
+            }
+            for (int i = 0; i < _devouredCount; i++)
+            {
+                EnemyBase enemy = _devoured[i];
+                _devoured[i] = null;
+                bool fly = i < flights;
+                if (fly) SlurpFx.PlayFlight(enemy.gameObject, _blobRoot); // havuza dönmeden önce kopyası alınır
+                if (!enemy.Devour(!fly, out float mass)) continue;
+                _consumption.AddEnemyMass(mass, enemy.Data != null ? enemy.Data.RequiredConsumeTier : BlobSurvivor.Core.BlobTier.Tiny);
+            }
+            _devouredCount = 0;
+            _consumption.Punch();
+            BlobSurvivor.Core.Haptics.Impact(1);
+        }
+
+        private static float MassOf(EnemyBase e) => e.Data != null ? e.Data.MassReward : 0f;
 
         private void PlayFx(ref SwingArcFx fx, string name, Vector3 dir, float radius, float arc)
         {

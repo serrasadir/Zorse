@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a39f692a12e49499b3cddabf07df41, type: 3}
+  m_Name: Upgrade_BayramGecesi
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
+  _id: bayram_gecesi
+  _displayName: Bayram Gecesi
+  _description: "Her roket isabette 4 misket rokete b\xF6l\xFCn\xFCr, misketler yak\u0131ndaki
+    d\xFC\u015Fmanlara sa\xE7\u0131l\u0131r."
+  _icon: {fileID: 0}
+  _kind: 1
+  _weight: 10
+  _effect: {fileID: 11400000, guid: 70aa81f382a074ea98b379382f9756c9, type: 2}
+  _maxLevel: 1
+  _perLevelValue: 0
+  _levelDescriptions:
+  - "Her roket isabette 4 misket rokete b\xF6l\xFCn\xFCr, misketler yak\u0131ndaki
+    d\xFC\u015Fmanlara sa\xE7\u0131l\u0131r."
+  _isEvolution: 1
+  _abbr: BG
+  _isBaseWeapon: 0

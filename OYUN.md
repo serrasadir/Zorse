@@ -42,7 +42,7 @@
 ## 3. Run Akışı
 
 0. **Açılış (sadece uygulama ilk açılırken):** Zorse Studio giriş videosu oynar (3 sn, dikey, sesli; koyu gri zemin ekranın kalanını doldurur), bitince söner (`StudioSplash`, video `Resources/UI/zorse-intro.mp4`). Video açılamazsa eski hâl: siyahta logo (`Resources/UI/zorse-logo.png`).
-1. **Giriş ekranı:** arkada canlı şehir, kamera Topik'e yakın; Topik göz kırpar, sağa sola bakınır. Logo + OYNA. Duraklatma ve oyun sonundaki "Ana Menü" de buraya döner (run sıfırlanır).
+1. **Giriş ekranı:** arkada canlı şehir, kamera Topik'e yakın; Topik göz kırpar, sağa sola bakınır. Logo + OYNA + **REHBER**. Duraklatma ve oyun sonundaki "Ana Menü" de buraya döner (run sıfırlanır).
 2. **Lobi:** OYNA'dan sonra karakter seç (Topik, Mıknato, Fişek, Dalcık, Cano; 4'ten fazla karakterde kartlar alçalır), Market'e gir. HUD diliyle: başlık, coin, her karakter için kart (portre `Art/UI/Characters/Icon_*.png` ← `build_blobs.py`, ad, pasif açıklaması; kilitliyse soluk + koşul rozeti), altın MARKET tuşu ve geri (giriş ekranına) tuşu. Karta dokunmak oyunu başlatır.
 3. Şehirde başlarsın; yerdeki çöpleri, sokak eşyalarını, yayaları yiyerek büyürsün. Senden büyük şeyler seni durdurur (katı), hazard'lar hasar verir.
 4. Kütle = XP; yenen her şeyin kütlesi genel büyüme hızıyla (×0.35, `BlobGrowth._globalGainScale`) çarpılır. Silahla öldürülen düşman sadece XP verir, kütle vermez (büyüme yemeğe bağlı): robot köpek 0,5, bekçi 0,5, polis 2, motorlu 2, çevik kuvvet 3, elit 7, 1. tank 80, 2. tank 130 (`EnemyData._killXp`). Level atlayınca oyun durur, **3 karttan 1** seçilir. Aynı skill tekrar seçilirse seviye atlar (en fazla 5).
@@ -120,7 +120,7 @@ Bekçi, polis ve elit sayılır; robot köpek ve boss sayılmaz. Görev metni o 
 | 7 Dev (kodda `Colossal`) | 1650 | 5.0 | Cumbalı/adaçayı apartman, karakol, lokanta, hastane, sinema, büyük otel |
 
 - **Tier boydan gelir** (`Editor/TierRules.cs`): obje, blob o tier'a yeni girdiğindeki çapından en fazla %5 büyükse o tier'da yenir. Boy = kenarların geometrik ortalaması; uzun ince objelerde en uzun kenarın yarısı daha büyükse o. Şehir kurulumu bunu otomatik uygular; elle ayar için `Tools → Blob.io → Tier'ları Boya Göre Kur`. Polis ve elit istisna: tier'ları tasarım gereği `EnemyData`'da. Elle istisnalar `TierRules.TierShift`'te (oyun hissi): sokak lambası (`P_Lamp2`) bir tier aşağı (Small), telefon kulübesi bir tier yukarı (Medium).
-- **Şehir objesi kütlesi tier'a göre:** 2 / 3 / 4 / 10 / 25 / 50 / 80. Hareketli araba 15 (otobüs 25), yaya 1 (iri 3), yerdeki yiyecek 1–3.
+- **Şehir objesi kütlesi tier'a göre:** 2 / 3 / 4 / 10 / 25 / 50 / 80. Hareketli araba 15 (otobüs 25), yaya 1 (iri 3), yerdeki yiyecek 1–3. Polis ağırdır, yenebildiği tier kadar: bekçi 3, köpek 2, polis 10, motorlu 15, çevik kuvvet 20, elit 50.
 - **Yerdeki yiyecek tier'a göre seyrelir:** tavan 80 × (Tiny 1 · Little 0.85 · Small 0.7 · Medium 0.5 · Large 0.35 · Giant 0.25 · Dev 0.15) — büyüyünce yenen şey zaten büyük (`ConsumableSpawner._tierDensity`). Tier düşerse/restart'ta tekrar dolar.
 - **Yeme temasla olur.** Tier'ın yetmediği obje katıdır (çarparsın, içinden geçemezsin); yetince içinden geçip yersin. Katı kısım yerdeki ayak izidir (direk, gövde); havada büyük çıkıntısı olan eşyalarda (pota panosu, ağaç tacı, lamba kolu, durak/benzinlik tentesi) görünür boy kadar bir **yeme alanı** da var: yiyebilecek boydaysan çıkıntıya değince yenir, küçükken altından geçersin.
 - **Önle yenir.** Blob'un yüzü gidiş yönüne bakar; arkadaki 120°'lik dilim (popo) yemez. Arkadan değen yenebilir obje içinden geçer, yüz ona dönünce yenir; arkadan çarpan araba yenmez ve hasar da vermez. İstisnalar: vakumla çekilenler, Kara Delik, boss'lar (`BlobConsumption.RearAngle`).
@@ -146,7 +146,7 @@ Ayrıntı ve tüm sayılar **`SKILLS.md`**'de. Özet:
 
 - **16 skill, 5 kategori:** Sindirim ve Büyüme (Sindirim, Vakum, Geri Dönüşüm, Hızlı Metabolizma) · Hareket (Hız, Kaygan Zemin) · Saldırı (Sopa, Havai Fişek, Yer Sarsıntısı, Sindirim Gazı, Tetikçi) · Savunma (Zırh, Can Artışı, Rejenerasyon, Yara Öfkesi) · Nadir (Bölünme). Yer Sarsıntısı deneme aşamasında.
 - **Slot:** en fazla **3 aktif + 3 pasif**; bir tür dolunca o türden yeni skill gelmez. Nadir ve evrim kartları slot harcamaz. Her skill **en fazla 5 seviye**; ⭐ seviyeler yeni yetenek açar. Garanti kart yok. Kart kalmazsa level atlamak canın %30'unu doldurur.
-- **1 evrim:** Vakum 5 + Sindirim 5 → **Kara Delik**. Evrim kartı ★ ve altın renkle gelir. Seçilince evrim anı oynar (ağır çekim, kasırga blob'a çöker, indigo şok dalgası, ekranda ★ KARA DELİK); sonra blob'un altında siyah olay ufku ve siyah-lacivert kasırga kalır.
+- **6 evrim** (aktif max + eş en az Sv.1 olunca **kendiliğinden** gelir, ~1.8 sn evrim anıyla: ağır çekim, evrim renginde halka blob'a çöker, patlama, ★ yazı; eş kartta altın ★ ipucu): Vakum + Sindirim → **Kara Delik** (evrim anı: ağır çekim, kasırga blob'a çöker, indigo şok dalgası; sonra siyah olay ufku), Sopa + Yara Öfkesi → **Lamba Direği** (sokak lambası, tam tur, öldürdüğünü yutar: en ağır 3'ü ağza uçar, kalanı kırıntı), Havai Fişek + Tetikçi → **Bayram Gecesi** (roket isabette 4 misket rokete bölünüp yakındaki düşmanlara saçılır), Kaygan Zemin + Hız → **Sabun Sörfü** (eski izde hızlanır, izdeki düşman kayıp savrulur), Geri Dönüşüm + Zırh → **Hurda Kalkanı** (dönen hurda parçaları vurur, darbe yutar), Sindirim Gazı + Hızlı Metabolizma → **Geğirme** (6 sn'de bir gaz patlaması). Ayrıntı `SKILLS.md` §3.
 - Max seviyedeki skill havuzdan çıkar; birden çok level aynı anda atlanırsa kartlar sırayla gelir; run bittiyse kart açılmaz.
 - **5 karakter**, hepsi top formunda, silahlar otomatik. Ana silah herkeste aynı (sopa); fark başlangıç skill'inde (o skill favori, kartta ×3; slot kaplar). Ayrıntı `SKILLS.md` §4:
   - **Topik** — pasif: run'a **Hız Sv.2** ile başlar (kaykay baştan var). Baştan açık. Hızlı giderken arkasında hafif rüzgar çizgileri (iki yandan ve tepeden üç ince beyaz iz; `CharacterData._speedTrail`, `SpeedTrail`).
@@ -239,17 +239,17 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 
 Market üç sekme: **KARAKTERLER**, **GÜÇLER** (kategorili, kaydırmalı: Savunma · Büyüme ve Yeme · Ekonomi · Zorluk, en altta Sıfırla) ve **KİLİTLER** (oynayarak açılan skiller: koşul + ilerleme çubuğu; altında başlangıç skilleri).
 
-**Skill kilitleri (VS gibi, coin'le değil oynayarak):** başlangıçta 8 skill açık (Sopa, Havai Fişek, Vakum, Zırh, Sindirim, Hız, Can Artışı, Rejenerasyon); diğerleri koşul gerçekleşince kart havuzuna girer, o an **YENİ SKİLL! · <ad> açıldı** bandı çıkar. Karakterin başlangıç ve favori skill'i o karakterle kilitli olsa da çıkar. İlerleme kayıtta (`unlockStats`), sayan `UnlockTracker`; koşullar `SkillUnlocks` (`Systems/Meta/PowerUps.cs`).
+**Skill kilitleri (VS gibi, coin'le değil oynayarak):** başlangıçta 8 skill açık (Sopa, Havai Fişek, Vakum, Zırh, Sindirim, Hız, Can Artışı, Rejenerasyon); diğerleri koşul gerçekleşince kart havuzuna girer (ilk 1–2 run basit skill'lerle geçer, stratejik olanlar normal oynarken ~2.–8. run arasında açılır; evrim eşlerinin çoğu bunlar, evrimler de böylece sonradan gelir), o an **YENİ SKİLL! · <ad> açıldı** bandı çıkar. Karakterin başlangıç ve favori skill'i o karakterle kilitli olsa da çıkar. İlerleme kayıtta (`unlockStats`), sayan `UnlockTracker`; koşullar `SkillUnlocks` (`Systems/Meta/PowerUps.cs`).
 
 | Skill | Açılma koşulu |
 |---|---|
-| Geri Dönüşüm | Bir run'da 10 (hareketli) araba ye |
-| Hızlı Metabolizma | Dev boyuna ulaş |
-| Kaygan Zemin | Bir run'da 10 dakika hayatta kal |
-| Tetikçi | Toplam 300 polis indir (silahla; köpek sayılmaz) |
-| Yara Öfkesi | Canın %20'nin altındayken bir boss yen |
+| Kaygan Zemin | Bir run'da 5 dakika hayatta kal |
+| Geri Dönüşüm | Bir run'da 5 (hareketli) araba ye |
+| Hızlı Metabolizma | Büyük (Large) boya ulaş |
+| Sindirim Gazı | Bir run'da 10 polis yut |
+| Yara Öfkesi | Bir run'da canın %25'in altındayken 15 sn dayan |
+| Tetikçi | Toplam 150 polis indir (silahla; köpek sayılmaz) |
 | Yer Sarsıntısı | Bir tank yen |
-| Sindirim Gazı | Bir run'da 30 polis yut |
 | Bölünme | Helikopteri yut | Güçlendiriciler `Systems/Meta/PowerUps.cs` kataloğunda (id, fiyat, etki), kayıtta id ile tutulur; run başında `GameManager.ApplyMetaProgression` uygular. Saldırı (Güç, Alan, Bekleme, Süre, Ek atış) ve kart güçlendiricileri (Şans, Kart yenile/atla/yasakla, Diriliş) sonraki paketlerde.
 
 Sınıra gelen satırda fiyat yerine MAX yazar. Hepsinin toplamı 16.000 coin (karakterler 3.000). Coin kazancı kesirli birikir (1 coin × 1.05 kaybolmaz). Kayıt yerel JSON'da (`meta_progression.json`).
@@ -291,7 +291,8 @@ Fiyatlar ve ödüller bu hedeflere göre ayarlanır; ölçülen değer hedeften 
 - **Ekranlar:** Açılış logosu, giriş, lobi, Market, kart seçimi, Game Over / KAZANDIN.
 - **Market ekranı:** lobiden açılır, lobi diliyle (aynı başlık/coin rozeti/geri tuşu yerleşimi, altın "MARKET" başlığı). Başlığın altında iki sekme: **KARAKTERLER** (açılışta; Topik hariç her karakter: portre, ad, pasif, fiyat hapı ya da Dalcık için "x/5 run" + ilerleme çubuğu; açılınca yeşil AÇIK) ve **GÜÇLER** ("KALICI GÜÇLER" satırları: ad, seviye (Sv. x), etki + şu anki toplam, sağda fiyat hapı (yetiyorsa altın, yetmiyorsa gri, alınmışsa yeşil ALINDI/MAX)). Satıra dokunmak satın alır (satır ve coin rozeti zıplar); coin yetmezse rozet kırmızı sallanır. Düzen `MarketPanel` içinde kodla kurulur.
 - **Seviye atlama ekranı:** HUD diliyle, tüm ekran. Gölgeli altın "SEVİYE ATLADIN!" + "Bir güç seç"; 3 koyu kart: ad, sağ üstte rozet (YENİ yeşil / mavi Sv. x/5 şu anki seviye / EVRİM altın), altında tür (AKTİF / PASİF / NADİR), seviyeye özel açıklama; evrim kartı altın tonlu. Kartlar sırayla belirir; yanlışlıkla seçilmesin diye ilk 0.4 sn dokunulmaz.
-- **Oyun sonu ekranı:** HUD diliyle (yarı saydam gece mavisi panel, kalın beyaz yazı, coin altın), tüm ekran. Başlık GAME OVER (kırmızımsı) ya da KAZANDIN! (altın) + alt satır, rekor kırıldıysa YENİ REKOR! rozeti, kart: Süre / Skor / Rekor / Toplanan coin / Kazanılan coin (+kasaya giren; ölümde toplananın %50'si, kazanınca %100). Kart yumuşakça açılır, skor ve coin'ler sayarak yükselir. Butonlar: Tekrar Oyna, Ana Menü (lobiye döner, coin zaten kasaya girmiştir).
+- **Rehber** (giriş ekranında REHBER, `GuidePanel`): oyunun minik wikisi, Market'in görsel diliyle. Üç sekme: **KARAKTERLER** (açıklama, başlangıç ve favori skill, hedef evrim, kilit koşulu + ilerleme), **SKİLLER** (aktif/pasif/nadir; her seviyenin metni, evrim eşi, kilit koşulu + ilerleme çubuğu), **EVRİMLER** (tarif, ne yaptığı, en kolay karakter; evrimin kendiliğinden geldiği yazar). Metinler `UpgradeData`/`CharacterData`/`SkillUnlocks`/`EvolutionSystem`'den okunur, her açılışta güncellenir.
+- **Oyun sonu ekranı:** HUD diliyle (yarı saydam gece mavisi panel, kalın beyaz yazı, coin altın), tüm ekran. Başlık GAME OVER (kırmızımsı) ya da KAZANDIN! (altın) + alt satır, rekor kırıldıysa YENİ REKOR! rozeti, kart: Süre / Skor / Rekor / Toplanan coin / Kazanılan coin (+kasaya giren; ölümde toplananın %50'si, kazanınca %100). Kartın altında **NEREDEYSE AÇILDI**: koşula en çok yaklaşılan 2 kilitli skill ve ilerlemesi ("Kaygan Zemin · Bir run'da 10 dakika hayatta kal · 7:12/10:00"); hiç ilerleme yoksa SIRADAKİ KİLİT ve koşulu. Kart yumuşakça açılır, skor ve coin'ler sayarak yükselir. Butonlar: Tekrar Oyna, Ana Menü (lobiye döner, coin zaten kasaya girmiştir).
 - Ses yok (henüz).
 
 ### 10.1 Rozetler ve sıralama (Game Center)

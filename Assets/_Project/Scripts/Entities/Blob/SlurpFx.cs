@@ -11,6 +11,10 @@ namespace BlobSurvivor.Entities.Blob
         private const int Count = 16;
         private const float Duration = 0.14f;
         private const float SpinDegrees = 160f;
+        // Uçuş (Lamba Direği): öldürülen düşman havaya fırlayıp yayla ağza düşer.
+        private const float FlightDuration = 0.38f;
+        private const float FlightSpin = 540f;
+        private const float FlightHopBase = 1.2f, FlightHopPerUnit = 0.35f;
 
         private static SlurpFx s_instance;
 
@@ -23,13 +27,20 @@ namespace BlobSurvivor.Entities.Blob
             public Vector3 Scale;
             public Quaternion Rotation;
             public float Time;
+            public float Duration;
+            public float Hop; // 0 = düz çekim
         }
 
         private Item[] _items;
         private int _next;
         private Transform _target;
 
-        public static void Play(GameObject source, Transform blob, bool allowStatic)
+        public static void Play(GameObject source, Transform blob, bool allowStatic) => Play(source, blob, allowStatic, false);
+
+        // Havaya fırlayıp ağza uçar (statik batch'li şehir objesi değil, düşman için).
+        public static void PlayFlight(GameObject source, Transform blob) => Play(source, blob, false, true);
+
+        private static void Play(GameObject source, Transform blob, bool allowStatic, bool flight)
         {
             if (source == null || blob == null) return;
             MeshRenderer renderer = LargestRenderer(source);
@@ -48,7 +59,7 @@ namespace BlobSurvivor.Entities.Blob
             }
             if (mesh == null) return;
             if (s_instance == null) Create();
-            s_instance.Spawn(renderer, mesh, blob);
+            s_instance.Spawn(renderer, mesh, blob, flight);
         }
 
         private static MeshRenderer LargestRenderer(GameObject source)
@@ -87,7 +98,7 @@ namespace BlobSurvivor.Entities.Blob
             }
         }
 
-        private void Spawn(MeshRenderer renderer, Mesh mesh, Transform blob)
+        private void Spawn(MeshRenderer renderer, Mesh mesh, Transform blob, bool flight)
         {
             _target = blob;
             ref Item item = ref _items[_next]; // hepsi meşgulse en eskisi yeniden kullanılır
@@ -100,6 +111,9 @@ namespace BlobSurvivor.Entities.Blob
             item.Rotation = src.rotation;
             item.Scale = src.lossyScale;
             item.Time = 0f;
+            item.Duration = flight ? FlightDuration : Duration;
+            float dist = flight ? Vector3.Distance(item.From, blob.position) : 0f;
+            item.Hop = flight ? FlightHopBase + dist * FlightHopPerUnit : 0f;
             item.Transform.SetPositionAndRotation(item.From, item.Rotation);
             item.Transform.localScale = item.Scale;
             item.Transform.gameObject.SetActive(true);
@@ -115,7 +129,7 @@ namespace BlobSurvivor.Entities.Blob
             {
                 ref Item item = ref _items[i];
                 if (item.Time < 0f) continue;
-                item.Time += dt / Duration;
+                item.Time += dt / item.Duration;
                 if (item.Time >= 1f)
                 {
                     item.Time = -1f;
@@ -123,6 +137,14 @@ namespace BlobSurvivor.Entities.Blob
                     continue;
                 }
                 float t = item.Time;
+                if (item.Hop > 0f)
+                {
+                    // Yay: yukarı fırlar, takla atarak ağza düşer; sonda küçülür.
+                    item.Transform.position = Vector3.LerpUnclamped(item.From, center, t) + Vector3.up * (item.Hop * Mathf.Sin(t * Mathf.PI));
+                    item.Transform.rotation = Quaternion.AngleAxis(FlightSpin * t, Vector3.right) * item.Rotation;
+                    item.Transform.localScale = item.Scale * Mathf.Lerp(1f, 0.25f, t * t);
+                    continue;
+                }
                 float pull = t * t; // yavaş başlar, içine hızla girer
                 item.Transform.position = Vector3.LerpUnclamped(item.From, center, pull);
                 item.Transform.rotation = Quaternion.AngleAxis(SpinDegrees * t, Vector3.up) * item.Rotation;

@@ -7,7 +7,7 @@ using UnityEngine.TextCore;
 
 namespace BlobSurvivor.EditorTools
 {
-    // Tools → Blob.io → UI Glif ve Şekillerini Kur: UI_Glyphs TMP Sprite Asset'i (ok, yukari, asagi, uyari; beyaz,
+    // Tools → Blob.io → UI Glif ve Şekillerini Kur: UI_Glyphs TMP Sprite Asset'i (ok, yukari, asagi, uyari, yildiz; beyaz,
     // tint ile renk alır) ve şekil sprite'ları (daire, elmas, ayarlar dişlisi, kupa, podyum; Resources/UI/Shapes). Hepsi koddan çizilir.
     // TMP Settings'e dokunmaz: varsayılan sprite asset EmojiOne kalır, UI_Glyphs metinlere ayrıca bağlanır.
     // Tekrar çalıştırmak güvenli.
@@ -20,7 +20,7 @@ namespace BlobSurvivor.EditorTools
         private const string ShapeFolder = "Assets/_Project/Resources/UI/Shapes";
         private const int GlyphSize = 64, ShapeSize = 128;
 
-        private static readonly string[] GlyphNames = { "ok", "yukari", "asagi", "uyari" };
+        private static readonly string[] GlyphNames = { "ok", "yukari", "asagi", "uyari", "yildiz" }; // yıldız: font'ta ★ yok (evrim)
 
         [MenuItem("Tools/Blob.io/UI Glif ve Şekillerini Kur")]
         public static void Run()
@@ -96,6 +96,22 @@ namespace BlobSurvivor.EditorTools
             return Mathf.Max(tri, -Mathf.Min(bar, dot)); // ünlem üçgenden oyulur
         }
 
+        // Beş köşeli yıldız, ucu yukarı (iq sdStar5).
+        private static float Star(float u, float v)
+        {
+            const float r = 0.95f, rf = 0.48f;
+            var k1 = new Vector2(0.809016994f, -0.587785252f);
+            var k2 = new Vector2(-k1.x, k1.y);
+            var p = new Vector2(Mathf.Abs(u), v + 0.08f); // görsel ortalama: alt kollar daha kısa
+            p -= 2f * Mathf.Max(Vector2.Dot(k1, p), 0f) * k1;
+            p -= 2f * Mathf.Max(Vector2.Dot(k2, p), 0f) * k2;
+            p.x = Mathf.Abs(p.x);
+            p.y -= r;
+            Vector2 ba = rf * new Vector2(-k1.y, k1.x) - new Vector2(0f, 1f);
+            float h = Mathf.Clamp(Vector2.Dot(p, ba) / Vector2.Dot(ba, ba), 0f, r);
+            return (p - ba * h).magnitude * Mathf.Sign(p.y * ba.x - p.x * ba.y);
+        }
+
         private static float Box(float u, float v, float halfW, float halfH) =>
             Mathf.Max(Mathf.Abs(u) - halfW, Mathf.Abs(v) - halfH);
 
@@ -138,7 +154,7 @@ namespace BlobSurvivor.EditorTools
 
         private static Texture2D WriteGlyphSheet()
         {
-            System.Func<float, float, float>[] shapes = { Arrow, Up, Down, Warning };
+            System.Func<float, float, float>[] shapes = { Arrow, Up, Down, Warning, Star };
             int width = GlyphSize * shapes.Length;
             var px = new Color[width * GlyphSize];
             const float inset = 0.88f; // hücre kenarında boşluk (bilinear taşmasın)

@@ -10,7 +10,7 @@ namespace BlobSurvivor.UI
 {
     // Giriş ekranı: oyun açılınca ve "Ana Menü"de. Arkada gerçek şehir canlı akar, kamera Topik'e yaklaşır; Topik
     // göz kırpar (BlobTierMeshes) ve sağa sola bakınır (BlobVisual.MenuIdle). Üstte logo, altta nefes alan OYNA →
-    // lobi (karakter seçimi). Sahne kurulumu yok: sahne yüklenince kendini kök Canvas'a kurar.
+    // lobi (karakter seçimi), altında REHBER (GuidePanel: karakterler, skiller, evrimler). Sahne kurulumu yok: sahne yüklenince kendini kök Canvas'a kurar.
     public class TitleScreen : MonoBehaviour
     {
         private static TitleScreen s_instance;
@@ -23,6 +23,7 @@ namespace BlobSurvivor.UI
         private RectTransform _root;
         private RectTransform _playButton;
         private LobbyPanel _lobby;
+        private GuidePanel _guide;
         private CameraController _camera;
         private bool _entering;
         private bool _shown;
@@ -80,6 +81,17 @@ namespace BlobSurvivor.UI
             _root.gameObject.SetActive(false);
             _shown = false;
             _lobby?.Show(); // karakter seçimi; kamera Topik'e yakın kalır
+        }
+
+        private void OnGuide()
+        {
+            _root.gameObject.SetActive(false);
+            _guide.Show();
+        }
+
+        private void OnGuideClosed()
+        {
+            if (_shown) _root.gameObject.SetActive(true);
         }
 
         // Lobi'de karakter seçildi → oyun başladı.
@@ -143,6 +155,20 @@ namespace BlobSurvivor.UI
             button.onClick.AddListener(OnPlay);
             TMP_Text label = Label("Label", _playButton, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(640f, 180f), "OYNA", 96f, Color.white);
             label.raycastTarget = false;
+
+            RectTransform guideButton = NewRect("GuideButton", safe, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, Vector2.zero);
+            guideButton.pivot = new Vector2(0.5f, 0.5f);
+            guideButton.anchoredPosition = new Vector2(0f, 120f);
+            guideButton.sizeDelta = new Vector2(440f, 110f);
+            var guideImage = guideButton.gameObject.AddComponent<Image>();
+            guideImage.color = MarketPanel.CardColor;
+            if (rounded != null) { guideImage.sprite = rounded; guideImage.type = Image.Type.Sliced; }
+            var guideTap = guideButton.gameObject.AddComponent<Button>();
+            guideTap.targetGraphic = guideImage;
+            guideTap.onClick.AddListener(OnGuide);
+            Label("Label", guideButton, new Vector2(0.5f, 0.5f), Vector2.zero, guideButton.sizeDelta, "REHBER", 52f, Gold);
+
+            _guide = GuidePanel.Create(self, rounded, _lobby != null ? _lobby.Characters : null, OnGuideClosed);
 
             _root.gameObject.SetActive(false);
         }

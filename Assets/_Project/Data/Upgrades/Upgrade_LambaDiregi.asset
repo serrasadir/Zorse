@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a39f692a12e49499b3cddabf07df41, type: 3}
+  m_Name: Upgrade_LambaDiregi
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
+  _id: lamba_diregi
+  _displayName: "Lamba Dire\u011Fi"
+  _description: "Dal\u0131 b\u0131rak, dire\u011Fi s\xF6k. Tam tur, uzun menzil;
+    vurup \xF6ld\xFCrd\xFC\u011F\xFCn d\xFC\u015Fman a\u011Fz\u0131na u\xE7ar."
+  _icon: {fileID: 0}
+  _kind: 1
+  _weight: 10
+  _effect: {fileID: 11400000, guid: 4dbb957f2078b41aaacb905be207fd56, type: 2}
+  _maxLevel: 1
+  _perLevelValue: 0
+  _levelDescriptions:
+  - "Dal\u0131 b\u0131rak, dire\u011Fi s\xF6k. Tam tur, uzun menzil; vurup \xF6ld\xFCrd\xFC\u011F\xFCn
+    d\xFC\u015Fman a\u011Fz\u0131na u\xE7ar."
+  _isEvolution: 1
+  _abbr: LD
+  _isBaseWeapon: 0

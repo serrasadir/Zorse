@@ -19,6 +19,8 @@ namespace BlobSurvivor.Entities.Weapons
         private static readonly Vector3 RearLocal = new Vector3(-0.400f, 0.232f, -0.338f);
 
         private float _priorityDamageScale = 1f; // boss + elit
+        private int _misketCount;                // Bayram Gecesi: isabette bölünme
+        private float _misketDamageFactor;
         private int _burst = 1;
         private int _burstLeft;
         private float _burstTimer;
@@ -37,6 +39,8 @@ namespace BlobSurvivor.Entities.Weapons
         public void SetForm(int form) => _launcher?.SetForm(form);
         public void SetPriorityDamageScale(float scale) => _priorityDamageScale = Mathf.Max(1f, scale);
         public void SetBurst(int count) => _burst = Mathf.Max(1, count);
+        public void EnableCluster(int count, float damageFactor) { _misketCount = count; _misketDamageFactor = damageFactor; }
+        public bool HasCluster => _misketCount > 0;
 
         protected override float TargetCost(Collider hit, float flatSqr)
         {
@@ -70,7 +74,9 @@ namespace BlobSurvivor.Entities.Weapons
         {
             EnemyBase enemy = target.GetComponent<EnemyBase>();
             bool priority = enemy != null && (enemy.IsBoss || (enemy.Data != null && enemy.Data.IsElite));
-            SpawnProjectile(GetAimDirection(target, lead: true), priority ? _priorityDamageScale : 1f);
+            Projectile rocket = SpawnProjectile(GetAimDirection(target, lead: true), priority ? _priorityDamageScale : 1f);
+            if (rocket is FireworkProjectile firework)
+                firework.SetCluster(_misketCount, _damage * _misketDamageFactor * BlobSkills.WeaponDamageScale);
 
             PlayAtRear(FireworkBurstFx.Smoke);
             Haptics.LightTap();

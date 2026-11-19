@@ -14,15 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
   _id: kara_delik
   _displayName: Kara Delik
-  _description: "Uzanmaya \xFC\u015Fendin, hakl\u0131s\u0131n. Art\u0131k evren sana
-    geliyor."
+  _description: "De\u011Fmeden yutars\u0131n: \xE7evrendeki yiyebildi\u011Fin her
+    \u015Fey sana \xE7ekilir. Polisler hari\xE7."
   _icon: {fileID: 0}
   _kind: 1
   _weight: 10
   _effect: {fileID: 11400000, guid: 4c4e5f515aa3a44cabdb9e469611129d, type: 2}
   _maxLevel: 1
   _perLevelValue: 0
-  _levelDescriptions: []
+  _levelDescriptions:
+  - "De\u011Fmeden yutars\u0131n: \xE7evrendeki yiyebildi\u011Fin her \u015Fey sana
+    \xE7ekilir. Polisler hari\xE7."
   _isEvolution: 1
   _abbr: KD
   _isBaseWeapon: 0

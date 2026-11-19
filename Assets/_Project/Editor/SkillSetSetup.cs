@@ -114,12 +114,8 @@ namespace BlobSurvivor.EditorTools
                 pool.Add(data);
             }
             var karaDelik = AssetDatabase.LoadAssetAtPath<UpgradeData>(Folder + KaraDelikAsset + ".asset");
-            if (karaDelik != null)
-            {
-                karaDelik.EditorSetLabel("KD", false);
-                EditorUtility.SetDirty(karaDelik);
-            }
-            else Debug.LogWarning("[SkillSetSetup] " + KaraDelikAsset + " bulunamadı, kısaltması yazılmadı.");
+            if (karaDelik == null) Debug.LogWarning("[SkillSetSetup] " + KaraDelikAsset + " bulunamadı.");
+            List<SkillEvolutionData> evolutions = SetupEvolutions(pool, karaDelik);
             AssetDatabase.SaveAssets();
 
             UpgradeSystem system = UnityEngine.Object.FindAnyObjectByType<UpgradeSystem>(FindObjectsInactive.Include);
@@ -133,9 +129,82 @@ namespace BlobSurvivor.EditorTools
             list.arraySize = pool.Count;
             for (int i = 0; i < pool.Count; i++) list.GetArrayElementAtIndex(i).objectReferenceValue = pool[i];
             so.ApplyModifiedProperties();
+
+            EvolutionSystem evoSystem = UnityEngine.Object.FindAnyObjectByType<EvolutionSystem>(FindObjectsInactive.Include);
+            if (evoSystem != null)
+            {
+                var evoSo = new SerializedObject(evoSystem);
+                SerializedProperty evoList = evoSo.FindProperty("_evolutions");
+                evoList.arraySize = evolutions.Count;
+                for (int i = 0; i < evolutions.Count; i++) evoList.GetArrayElementAtIndex(i).objectReferenceValue = evolutions[i];
+                evoSo.ApplyModifiedProperties();
+            }
+            else Debug.LogWarning("[SkillSetSetup] Sahnede EvolutionSystem yok, evrimler bağlanmadı.");
             EditorSceneManager.MarkSceneDirty(system.gameObject.scene);
             EditorSceneManager.SaveScene(system.gameObject.scene);
             Debug.Log($"[SkillSetSetup] {pool.Count} skill kart havuzunda (3 aktif + 3 pasif slot). Sahne kaydedildi.");
+        }
+
+        // Evrimler (SKILLS.md §3): A max + B en az EvoPartnerLevel. Kara Delik'in efekt asset'i elle kuruldu, metni ve koşulu burada yazılır.
+        private const int EvoPartnerLevel = 1;
+
+        private static List<SkillEvolutionData> SetupEvolutions(List<UpgradeData> pool, UpgradeData karaDelik)
+        {
+            var list = new List<SkillEvolutionData>();
+            // Kara Delik: asset'leri elle kuruldu, kendi evrim sahnesi var (ortak an oynamaz).
+            if (karaDelik != null)
+            {
+                karaDelik.EditorSetupEvolution("kara_delik", "Kara Delik",
+                    "Değmeden yutarsın: çevrendeki yiyebildiğin her şey sana çekilir. Polisler hariç.", karaDelik.Effect, "KD");
+                EditorUtility.SetDirty(karaDelik);
+            }
+            AddLink(list, pool, "Evolution_Karadelik", "vacuum", "Sindirim", karaDelik, new Color(0.35f, 0.25f, 0.9f), true);
+
+            Evolution(list, pool, "LambaDiregi", typeof(LampPostEffect), "lamba_diregi", "Lamba Direği", "LD",
+                "Dalı bırak, direği sök. Tam tur, uzun menzil; vurup öldürdüğün düşman ağzına uçar.",
+                "weapon", "yara_ofkesi", new Color(1f, 0.85f, 0.35f));
+            Evolution(list, pool, "BayramGecesi", typeof(FestivalNightEffect), "bayram_gecesi", "Bayram Gecesi", "BG",
+                "Her roket isabette 4 misket rokete bölünür, misketler yakındaki düşmanlara saçılır.",
+                "firework", "tetikci", new Color(1f, 0.45f, 0.85f));
+            Evolution(list, pool, "SabunSorfu", typeof(SoapSurfEffect), "sabun_sorfu", "Sabun Sörfü", "SS",
+                "Kendi izinde %30 hızlı kayarsın. İzdeki düşman kayar, savrulur, 10 hasar alır ve sersemler.",
+                "kaygan_zemin", "speed_boost", new Color(0.35f, 0.9f, 0.95f));
+            Evolution(list, pool, "HurdaKalkani", typeof(ScrapShieldEffect), "hurda_kalkani", "Hurda Kalkanı", "HK",
+                "Etrafında hurda parçaları döner: değdiği düşmana vurur, bir darbeyi tamamen yutup kırılır. Her araba yeni parça (en fazla 4).",
+                "geri_donusum", "damage_reduction", new Color(1f, 0.6f, 0.3f));
+            Evolution(list, pool, "Gegirme", typeof(BurpEffect), "gegirme", "Geğirme", "GĞ",
+                "6 sn'de bir koca geğirme: gaz alanı bir anlığına 2 katına çıkar, içindekilere 30 hasar, geri itme ve sersemletme.",
+                "sindirim_gazi", "hizli_metabolizma", new Color(0.55f, 0.9f, 0.35f));
+            return list;
+        }
+
+        // Evrim çıktısı asset'leri (Upgrade_<ad>, FX_<ad>) + koşul (Evolution_<ad>).
+        private static void Evolution(List<SkillEvolutionData> list, List<UpgradeData> pool, string asset, Type effectType,
+            string id, string name, string abbr, string description, string inputA, string inputB, Color color)
+        {
+            var fx = LoadOrCreate(Folder + "FX_" + asset + ".asset", effectType) as UpgradeEffect;
+            var output = LoadOrCreate(Folder + "Upgrade_" + asset + ".asset", typeof(UpgradeData)) as UpgradeData;
+            if (output != null && fx != null)
+            {
+                output.EditorSetupEvolution(id, name, description, fx, abbr);
+                EditorUtility.SetDirty(output);
+            }
+            AddLink(list, pool, "Evolution_" + asset, inputA, inputB, output, color, false);
+        }
+
+        private static void AddLink(List<SkillEvolutionData> list, List<UpgradeData> pool, string asset, string a, string b,
+            UpgradeData output, Color color, bool ownMoment)
+        {
+            UpgradeData inA = pool.Find(u => u.Id == a), inB = pool.Find(u => u.Id == b);
+            var evo = LoadOrCreate(Folder + asset + ".asset", typeof(SkillEvolutionData)) as SkillEvolutionData;
+            if (evo == null || inA == null || inB == null || output == null)
+            {
+                Debug.LogError($"[SkillSetSetup] Evrim {asset} kurulamadı ({a} + {b}).");
+                return;
+            }
+            evo.EditorSetup(inA, inB, EvoPartnerLevel, output, color, ownMoment);
+            EditorUtility.SetDirty(evo);
+            list.Add(evo);
         }
 
         // Var olanı (tip uyuyorsa) korur; referanslar ve diğer alanlar (Havai Fişek mermisi vb.) kalır.

@@ -109,7 +109,7 @@ namespace BlobSurvivor.Entities.Blob
             if (_weapon != null) Destroy(_weapon.gameObject);
         }
 
-        // form 0 = gizli, 1..4 = G_<Model>_<form>.
+        // form 0 = gizli, 1.. = G_<Model>_<form> (Sopa 5 = Lamba Direği).
         public void SetForm(int form) => SetForm(form, pop: true);
 
         private void SetForm(int form, bool pop)
@@ -131,12 +131,17 @@ namespace BlobSurvivor.Entities.Blob
             _weapon.localScale = wasHidden ? Vector3.zero : Vector3.one;
         }
 
+        // Eksik form bir öncekine düşer (yeni form modeli gelmeden test edilebilsin).
         private static Mesh LoadMesh(string model, int form)
         {
             string path = $"{Folder}{model}_{form}";
             if (s_meshes.TryGetValue(path, out Mesh mesh)) return mesh;
             mesh = Resources.Load<Mesh>(path);
-            if (mesh == null) Debug.LogWarning($"[WeaponVisual] Resources/{path} bulunamadı.");
+            if (mesh == null)
+            {
+                Debug.LogWarning($"[WeaponVisual] Resources/{path} bulunamadı.");
+                if (form > 1) mesh = LoadMesh(model, form - 1);
+            }
             s_meshes[path] = mesh;
             return mesh;
         }

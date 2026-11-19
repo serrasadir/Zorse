@@ -154,12 +154,21 @@ namespace BlobSurvivor.Entities.Blob
             if (_blobGrowth == null || enemy == null) return false;
             BlobTier foodTier = enemy.Data != null ? enemy.Data.RequiredConsumeTier : tier;
             if (!enemy.TryConsumeByBlob(tier, out float massReward)) return false;
-            _blobGrowth.AddMass(massReward * SkillMass(EatKind.Enemy, foodTier));
-            Skills?.OnAte(EatKind.Enemy, foodTier);
-            Core.GameEvents.RaiseBlobAte(foodTier);
+            AddEnemyMass(massReward, foodTier);
             _blobGrowth.PunchScale();
             return true;
         }
+
+        // Yutulan düşmanın kütlesi + skill kancası + yeme görevi (şişmeyi çağıran yapar: Lamba Direği savuruşta bir kez).
+        public void AddEnemyMass(float massReward, BlobTier foodTier)
+        {
+            if (_blobGrowth == null) return;
+            _blobGrowth.AddMass(massReward * SkillMass(EatKind.Enemy, foodTier));
+            Skills?.OnAte(EatKind.Enemy, foodTier);
+            Core.GameEvents.RaiseBlobAte(foodTier);
+        }
+
+        public void Punch() => _blobGrowth?.PunchScale();
 
         // Hareketli araba (CarController kendi havuzuna döner).
         public void ConsumeVehicle(float mass, int score, BlobTier tier, Bounds bounds, Color crumbA, Color crumbB)

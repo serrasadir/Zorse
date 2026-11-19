@@ -27,7 +27,6 @@ namespace BlobSurvivor.UI
         private const float ContentTop = 480f, ContentBottom = CardTopY - 2f * (CardHeight + CardGap) - CardHeight * 0.5f - 20f;
         private const float FitMargin = 20f;
         private static readonly Color CardColor = new Color(0.05f, 0.05f, 0.17f, 0.88f);
-        private static readonly Color EvolutionCard = new Color(0.24f, 0.17f, 0.03f, 0.92f);
         private static readonly Color RareCard = new Color(0.26f, 0.06f, 0.16f, 0.92f);
         private static readonly Color ActiveTag = new Color(1f, 0.6f, 0.3f, 1f);
         private static readonly Color PassiveTag = new Color(0.55f, 0.8f, 1f, 1f);
@@ -120,48 +119,47 @@ namespace BlobSurvivor.UI
                 if (!hasChoice) continue;
 
                 UpgradeData data = choices[i];
-                bool evo = data.IsEvolution;
                 bool rare = data.Kind == SkillKind.Rare;
                 bool active = data.Kind == SkillKind.Active;
                 int current = sys != null ? sys.GetLevel(data) : 0;
 
                 if (_upgradeNameTexts != null && i < _upgradeNameTexts.Length && _upgradeNameTexts[i] != null)
                 {
-                    // B17: evrim çıktısı kartları ★ + altın renkle işaretlenir.
-                    _upgradeNameTexts[i].text = evo ? $"★ {data.DisplayName}" : data.DisplayName;
-                    _upgradeNameTexts[i].color = evo ? Gold : Color.white;
+                    _upgradeNameTexts[i].text = data.DisplayName;
+                    _upgradeNameTexts[i].color = Color.white;
                 }
                 if (_upgradeDescTexts != null && i < _upgradeDescTexts.Length && _upgradeDescTexts[i] != null)
                     _upgradeDescTexts[i].text = data.GetDescriptionForLevel(current + 1);
 
-                if (_cardImages[i] != null) _cardImages[i].color = evo ? EvolutionCard : rare ? RareCard : CardColor;
+                if (_cardImages[i] != null) _cardImages[i].color = rare ? RareCard : CardColor;
 
-                // Tür: K23 şekli + metin (evrimde yok).
+                // Tür: K23 şekli + metin.
                 Color kindColor = rare ? RareTag : active ? ActiveTag : PassiveTag;
-                _kindTexts[i].text = evo ? "" : rare ? "NADİR" : active ? "AKTİF" : "PASİF";
+                _kindTexts[i].text = rare ? "NADİR" : active ? "AKTİF" : "PASİF";
                 _kindTexts[i].color = kindColor;
-                _kindShapes[i].gameObject.SetActive(!evo);
                 SetShape(_kindShapes[i], rare ? _diamond : active ? _circle : _rounded);
                 _kindShapes[i].color = kindColor;
 
                 // Rozet: kazanılan seviye görünür (K4). Sopa herkeste baştan var: Sv.0'da "Sv. 0 → 1".
                 bool isNew = rare || (current == 0 && !data.IsBaseWeapon);
                 int next = current + 1;
-                bool toMax = !evo && !isNew && next >= data.MaxLevel;
+                bool toMax = !isNew && next >= data.MaxLevel;
                 TMP_Text badge = _badgeTexts[i];
-                if (evo) badge.SetText("EVRİM");
-                else if (isNew) badge.SetText("YENİ");
+                if (isNew) badge.SetText("YENİ");
                 else if (toMax) badge.SetText("Sv. {0} <sprite name=\"ok\" tint=1> MAX", current);
                 else badge.SetText("Sv. {0} <sprite name=\"ok\" tint=1> {1}", current, next);
-                _badges[i].color = evo || toMax ? Gold : isNew ? NewBadge : LevelBadge;
-                badge.color = evo || toMax || isNew ? Ink : Color.white;
+                _badges[i].color = toMax ? Gold : isNew ? NewBadge : LevelBadge;
+                badge.color = toMax || isNew ? Ink : Color.white;
 
-                string note = NoteFor(sys, data, current, evo, rare, out bool warn);
+                // Evrim eşi: elindeki bir skill'le evrim açıyorsa slot notunun yerine altın ipucu.
+                string partner = EvolutionSystem.Instance?.PartnerHint(data);
+                bool warn = false;
+                string note = partner != null ? UiGlyphs.Star + " Evrim: " + partner : NoteFor(sys, data, current, rare, out warn);
                 _noteTexts[i].gameObject.SetActive(note != null);
                 if (note != null)
                 {
                     _noteTexts[i].SetText(note);
-                    _noteTexts[i].color = warn ? NoteWarn : Subtle;
+                    _noteTexts[i].color = partner != null ? Gold : warn ? NoteWarn : Subtle;
                 }
 
                 _upgradeButtons[i].interactable = false; // InputDelay sonra açılır
@@ -171,11 +169,10 @@ namespace BlobSurvivor.UI
             Animate(0f);
         }
 
-        // Slot notu (kart spec §6): son boş slot uyarısı, Sopa Sv.0, nadir ve evrim slot harcamaz.
-        private static string NoteFor(UpgradeSystem sys, UpgradeData data, int current, bool evo, bool rare, out bool warn)
+        // Slot notu (kart spec §6): son boş slot uyarısı, Sopa Sv.0, nadir slot harcamaz.
+        private static string NoteFor(UpgradeSystem sys, UpgradeData data, int current, bool rare, out bool warn)
         {
             warn = false;
-            if (evo) return "Slot harcamaz";
             if (rare) return "Tek kullanımlık · Slot harcamaz";
             if (current > 0 || sys == null || !data.UsesSlot) return null;
             bool active = data.Kind == SkillKind.Active;

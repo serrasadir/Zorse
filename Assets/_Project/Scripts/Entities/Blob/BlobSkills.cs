@@ -62,6 +62,7 @@ namespace BlobSurvivor.Entities.Blob
         private float _boostUntil, _boostAmount;
 
         // --- Hız Sv.5 Roket ---
+        [HideInInspector] public float SurfBoost;           // Sabun Sörfü: eski izdeyken hız +oran (SlipTrail yazar)
         [HideInInspector] public float RocketBonus;
         [HideInInspector] public float RocketDelay = 2f;
         private float _movingTime;
@@ -181,6 +182,7 @@ namespace BlobSurvivor.Entities.Blob
             if (Time.time < _boostUntil) factor += _boostAmount;
             if (RocketBonus > 0f && _movingTime >= RocketDelay) factor += RocketBonus;
             if (Enraged) factor += RageSpeed;
+            factor += SurfBoost;
             if (_controller != null) _controller.SkillSpeedFactor = factor;
 
             // Rejenerasyon (toplu uygulanır: her karede HUD olayı üretmesin)

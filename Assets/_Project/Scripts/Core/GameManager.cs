@@ -175,6 +175,7 @@ namespace BlobSurvivor.Core
             DestroyNow<SlipTrail>(blob);
             DestroyNow<GroundQuake>(blob);
             DestroyNow<DigestGas>(blob);
+            DestroyNow<ScrapOrbit>(blob); // Hurda Kalkanı (BlobHealth.AbsorbHit kancası OnDestroy'da bırakılır)
             DestroyNow<SplitDrops>(blob);
             BlobSkills.ResetStatics();
             RemoveComponent<SpeedTrail>(blob);

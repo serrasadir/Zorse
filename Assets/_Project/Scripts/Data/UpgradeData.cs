@@ -25,7 +25,7 @@ namespace BlobSurvivor.Data
         [SerializeField] private string[] _levelDescriptions;
 
         [Header("Evrim (B17)")]
-        [Tooltip("true ise UpgradePanel bu kartı görsel olarak (★ + altın renk) işaretler — EvolutionSystem tarafından havuza dinamik eklenen çıktı skillerinde kullanılır.")]
+        [Tooltip("Evrim çıktısı: kart havuzunda yok, EvolutionSystem verir (HUD yazısı ★ ile).")]
         [SerializeField] private bool _isEvolution;
 
         [Header("HUD")]
@@ -84,11 +84,13 @@ namespace BlobSurvivor.Data
             _description = levelDescriptions != null && levelDescriptions.Length > 0 ? levelDescriptions[0] : displayName;
         }
 
-        // Skill seti dışındaki asset'ler (evrim) için: yalnız HUD alanları, diğerleri korunur.
-        public void EditorSetLabel(string abbr, bool isBaseWeapon)
+        // Evrim çıktısı (tek seviye, slot harcamaz).
+        public void EditorSetupEvolution(string id, string displayName, string description, UpgradeEffect effect, string abbr, int weight = 10)
         {
-            _abbr = abbr; _isBaseWeapon = isBaseWeapon; _abbrCache = null;
+            EditorSetup(id, displayName, SkillKind.Passive, weight, effect, 1, 0f, new[] { description }, abbr, false);
+            _isEvolution = true;
         }
+
 #endif
     }
 }

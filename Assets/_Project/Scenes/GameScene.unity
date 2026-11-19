@@ -92645,6 +92645,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Systems.EvolutionSystem
   _evolutions:
   - {fileID: 11400000, guid: 68324a5f6aca54172b629a86a7e21d56, type: 2}
+  - {fileID: 11400000, guid: e276de83e30e5456f954182bc80faf8a, type: 2}
+  - {fileID: 11400000, guid: 2881be8da9c7b4a47ba1da456392ddfb, type: 2}
+  - {fileID: 11400000, guid: 33ad57cb3aa3a45cb9ee9c384fe8aed1, type: 2}
+  - {fileID: 11400000, guid: 7b1c66088d7bf44ac9f36d665b594b53, type: 2}
+  - {fileID: 11400000, guid: 7c1ab1111e43940aa88b2398f74b75cb, type: 2}
 --- !u!4 &1802187662
 Transform:
   m_ObjectHideFlags: 0

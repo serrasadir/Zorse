@@ -13,7 +13,10 @@ namespace BlobSurvivor.Core
     //   H  canı doldur
     //   N  sıradaki boss aşamasını hemen çıkar (aktif boss ödülsüz kalkar) — miniboss → miniboss 2 → helikopter
     //   V  Vakum skill'i +1 seviye (kart ekranı açılmaz)
-    //   K  Kara Delik: Vakum 8 + Sindirim 8 + evrim (evrim anı efekti oynar)
+    //   K  Kara Delik: Vakum max + Sindirim 1 + evrim (evrim anı efekti oynar)
+    //   X  Lamba Direği: Sopa max + Yara Öfkesi 1 + evrim
+    //   F  Bayram Gecesi: Havai Fişek max + Tetikçi 1 + evrim
+    //   R  Sabun Sörfü · Q  Hurda Kalkanı · E  Geğirme (aktif max + eş 1 + evrim)
     //   Z  Zırh skill'i +1 seviye (kalkan; Sv.3 kırılınca dokunulmazlık, Sv.5 ikinci katman)
     //   G  Sopa +1 seviye (görünür sopa: Sv.1, 2, 4, 5'te form değişir)
     //   J  Hız +1 seviye (Sv.1 kaykay, Sv.3 alevli kaykay, Sv.5 roket)
@@ -30,7 +33,7 @@ namespace BlobSurvivor.Core
         {
             GameObject go = new GameObject("DevCheats (Editor)") { hideFlags = HideFlags.DontSave };
             go.AddComponent<DevCheats>();
-            Debug.Log("[DevCheats] M: +500 kütle · B: final boss −%25 can · H: canı doldur · N: sıradaki boss · L: kuşatma · Y: çevik kuvvet + motorlu polis · T: dönme dolap dönüşümü · O: yeni görev · P: görevi bitir · V: Vakum +1 · K: Kara Delik · Z: Zırh +1 · U: Havai Fişek +1 · C: +500 coin (sadece Editor)");
+            Debug.Log("[DevCheats] M: +500 kütle · B: final boss −%25 can · H: canı doldur · N: sıradaki boss · L: kuşatma · Y: çevik kuvvet + motorlu polis · T: dönme dolap dönüşümü · O: yeni görev · P: görevi bitir · V: Vakum +1 · K: Kara Delik · X: Lamba Direği · F: Bayram Gecesi · R: Sabun Sörfü · Q: Hurda Kalkanı · E: Geğirme · Z: Zırh +1 · U: Havai Fişek +1 · C: +500 coin (sadece Editor)");
         }
 
         private void Update()
@@ -73,12 +76,12 @@ namespace BlobSurvivor.Core
             if (keyboard.vKey.wasPressedThisFrame && BlobSurvivor.Systems.UpgradeSystem.Instance != null)
                 Debug.Log("[DevCheats] " + BlobSurvivor.Systems.UpgradeSystem.Instance.DebugGrant("vacuum"));
 
-            if (keyboard.kKey.wasPressedThisFrame && BlobSurvivor.Systems.UpgradeSystem.Instance != null)
-            {
-                var upgrades = BlobSurvivor.Systems.UpgradeSystem.Instance;
-                for (int i = 0; i < 8; i++) { upgrades.DebugGrant("vacuum"); upgrades.DebugGrant("Sindirim"); }
-                Debug.Log("[DevCheats] " + upgrades.DebugGrant("kara_delik")); // evrim, ikisi max olunca havuza girer
-            }
+            if (keyboard.kKey.wasPressedThisFrame) DebugEvolution("vacuum", "Sindirim");
+            if (keyboard.xKey.wasPressedThisFrame) DebugEvolution("weapon", "yara_ofkesi");
+            if (keyboard.fKey.wasPressedThisFrame) DebugEvolution("firework", "tetikci");
+            if (keyboard.rKey.wasPressedThisFrame) DebugEvolution("kaygan_zemin", "speed_boost");
+            if (keyboard.qKey.wasPressedThisFrame) DebugEvolution("geri_donusum", "damage_reduction");
+            if (keyboard.eKey.wasPressedThisFrame) DebugEvolution("sindirim_gazi", "hizli_metabolizma");
 
             if (keyboard.zKey.wasPressedThisFrame && BlobSurvivor.Systems.UpgradeSystem.Instance != null)
                 Debug.Log("[DevCheats] " + BlobSurvivor.Systems.UpgradeSystem.Instance.DebugGrant("damage_reduction"));
@@ -115,6 +118,15 @@ namespace BlobSurvivor.Core
 
             if (keyboard.hKey.wasPressedThisFrame && _health != null)
                 _health.Heal(_health.MaxHealth);
+        }
+
+        // Aktif skill'i max'a, eşi Sv.1'e çıkarır; evrim kendiliğinden gelir (evrim anı oynar).
+        private static void DebugEvolution(string active, string partner)
+        {
+            var upgrades = BlobSurvivor.Systems.UpgradeSystem.Instance;
+            if (upgrades == null) return;
+            for (int i = 0; i < 5; i++) upgrades.DebugGrant(active);
+            Debug.Log("[DevCheats] " + upgrades.DebugGrant(partner) + " → evrim anı");
         }
     }
 }

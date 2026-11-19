@@ -14,6 +14,20 @@ namespace BlobSurvivor.Entities.Blob
         public float Slow;                 // 0 = yok
         public float FeedFraction;         // gazda ölenin kütlesinden pay (0 = yok)
 
+        // Geğirme (evrim): BurpInterval sn'de bir gaz alanı bir anlığına BurpRadiusScale katına çıkar; içindekilere
+        // hasar + geri itme + sersemletme (boss sersemlemez). 0 = kapalı.
+        public float BurpInterval;
+        public float BurpDamage = 30f;
+        public float BurpRadiusScale = 2f;
+        public float BurpKnockback = 2f;
+        public float BurpStun = 0.8f;
+        private const float BurpPulseTime = 0.45f;
+        private const int WallMask = 1 << 16;
+        private static readonly Color BurpA = new Color(0.55f, 0.85f, 0.35f), BurpB = new Color(0.85f, 1f, 0.6f);
+        private float _burpTimer, _burpPulse = -1f;
+        private Weapons.SwingArcFx _burpFx;
+        private BlobVisual _visual;
+
         private const float TickInterval = 0.25f;
         private const int EnemyMask = 1 << 14;
         private const float VerticalReach = 3f;
@@ -42,6 +56,14 @@ namespace BlobSurvivor.Entities.Blob
         private void OnDestroy()
         {
             if (_clouds != null) Destroy(_clouds.gameObject);
+            if (_burpFx != null) Destroy(_burpFx.gameObject);
+        }
+
+        public void EnableBurp(float interval)
+        {
+            BurpInterval = interval;
+            _burpTimer = 1f; // evrim seçilince hemen bir tane
+            _visual = GetComponent<BlobVisual>();
         }
 
         private float EffectiveRadius => transform.localScale.x * _bodyLocalRadius + Radius;
@@ -66,6 +88,13 @@ namespace BlobSurvivor.Entities.Blob
             _pulse += Time.deltaTime * 2f;
             _spin += CloudSpin * Time.deltaTime;
             float d = EffectiveRadius * (1f + Mathf.Sin(_pulse) * 0.03f);
+            if (_burpPulse >= 0f)
+            {
+                // Geğirmede bulut halkası dışa fırlar, sonra yerine döner.
+                _burpPulse += Time.deltaTime / BurpPulseTime;
+                if (_burpPulse >= 1f) _burpPulse = -1f;
+                else d *= 1f + (BurpRadiusScale - 1f) * Mathf.Sin(_burpPulse * Mathf.PI);
+            }
             Vector3 p = transform.position;
             _clouds.position = new Vector3(p.x, 0.12f, p.z);
             _clouds.rotation = Quaternion.Euler(0f, _spin, 0f);
@@ -76,6 +105,11 @@ namespace BlobSurvivor.Entities.Blob
 
         private void Update()
         {
+            if (BurpInterval > 0f)
+            {
+                _burpTimer -= Time.deltaTime;
+                if (_burpTimer <= 0f) { _burpTimer = BurpInterval; Burp(); }
+            }
             _timer -= Time.deltaTime;
             if (_timer > 0f) return;
             _timer = TickInterval;
@@ -93,6 +127,34 @@ namespace BlobSurvivor.Entities.Blob
                 if (FeedFraction > 0f && enemy.IsDead && enemy.Data != null && _growth != null)
                     _growth.AddMass(enemy.Data.MassReward * FeedFraction);
             }
+        }
+
+        private void Burp()
+        {
+            Vector3 origin = transform.position;
+            float radius = EffectiveRadius * BurpRadiusScale;
+            float damage = BurpDamage * BlobSkills.WeaponDamageScale;
+            int count = Physics.OverlapCapsuleNonAlloc(origin, origin + Vector3.up * VerticalReach, radius, _hits, EnemyMask);
+            for (int i = 0; i < count; i++)
+            {
+                EnemyBase enemy = _hits[i].GetComponent<EnemyBase>(); // geğirme anında, 6 sn'de bir
+                if (enemy == null || enemy.IsDead) continue;
+                if (Physics.Linecast(origin, _hits[i].bounds.center, WallMask, QueryTriggerInteraction.Ignore)) continue;
+                enemy.TakeDamage(damage);
+                enemy.Knockback(enemy.transform.position - origin, BurpKnockback);
+                if (!enemy.IsBoss) enemy.Stun(BurpStun);
+                if (enemy.IsDead) GameEvents.RaiseGasKill();
+            }
+
+            if (_burpFx == null) _burpFx = Weapons.SwingArcFx.Create("BurpShock");
+            _burpFx.Play(transform, Vector3.forward, radius, 360f, false);
+            _burpPulse = 0f;
+            float s = transform.localScale.x;
+            if (_growth != null) _growth.PunchScale(0.3f);
+            if (_visual != null) _visual.Gulp(0.22f);
+            Vector3 face = _visual != null && _visual.HasFacing ? _visual.Forward : Vector3.back;
+            Weapons.FireworkBurstFx.Puff(origin + face * s * 0.5f + Vector3.up * s * 0.6f, BurpA, BurpB, s, 18, 2.5f, 1.5f);
+            Haptics.Impact(1);
         }
     }
 }

@@ -18,22 +18,22 @@ namespace BlobSurvivor.UI
         [SerializeField] private GameObject _panel;
         [SerializeField] private Button[] _buttons; // eski düzen; sadece yuvarlak sprite'ı alınır
 
-        private static readonly Color Backdrop = new Color(0.05f, 0.05f, 0.17f, 0.7f);
-        private static readonly Color CardColor = new Color(0.05f, 0.05f, 0.17f, 0.82f);
-        private static readonly Color Gold = new Color(1f, 0.82f, 0.25f, 1f);
-        private static readonly Color GoldInk = new Color(0.12f, 0.08f, 0.02f, 1f);
-        private static readonly Color Subtle = new Color(1f, 1f, 1f, 0.78f);
-        private static readonly Color Faint = new Color(1f, 1f, 1f, 0.45f);
-        private static readonly Color Owned = new Color(0.35f, 0.82f, 0.45f, 1f);
-        private static readonly Color PillLocked = new Color(0.32f, 0.32f, 0.36f, 0.9f);
+        internal static readonly Color Backdrop = new Color(0.05f, 0.05f, 0.17f, 0.7f);
+        internal static readonly Color CardColor = new Color(0.05f, 0.05f, 0.17f, 0.82f);
+        internal static readonly Color Gold = new Color(1f, 0.82f, 0.25f, 1f);
+        internal static readonly Color GoldInk = new Color(0.12f, 0.08f, 0.02f, 1f);
+        internal static readonly Color Subtle = new Color(1f, 1f, 1f, 0.78f);
+        internal static readonly Color Faint = new Color(1f, 1f, 1f, 0.45f);
+        internal static readonly Color Owned = new Color(0.35f, 0.82f, 0.45f, 1f);
+        internal static readonly Color PillLocked = new Color(0.32f, 0.32f, 0.36f, 0.9f);
         private static readonly Color Warn = new Color(1f, 0.42f, 0.38f, 1f);
         private static readonly Color ShadowColor = new Color(0.05f, 0.05f, 0.17f, 0.85f);
-        private static readonly Color ActiveColor = new Color(1f, 0.6f, 0.25f, 1f);
-        private static readonly Color PassiveColor = new Color(0.45f, 0.75f, 1f, 1f);
-        private static readonly Color RareColor = new Color(0.78f, 0.52f, 1f, 1f);
+        internal static readonly Color ActiveColor = new Color(1f, 0.6f, 0.25f, 1f);
+        internal static readonly Color PassiveColor = new Color(0.45f, 0.75f, 1f, 1f);
+        internal static readonly Color RareColor = new Color(0.78f, 0.52f, 1f, 1f);
 
-        private const float RowWidth = 900f, RowHeight = 152f, SkillRowHeight = 176f, RowGap = 18f, HeaderHeight = 64f;
-        private const float HeaderTop = 500f, ListBottom = 60f, ListWidth = 960f;
+        internal const float RowWidth = 900f, RowHeight = 152f, SkillRowHeight = 176f, RowGap = 18f, HeaderHeight = 64f;
+        internal const float HeaderTop = 500f, ListBottom = 60f, ListWidth = 960f;
 
         // GÜÇLER sekmesi: kategori başlığı + o kategorinin satırları (eski statlar ve yeni güçlendiriciler bir arada).
         private struct PowerItem
@@ -430,7 +430,7 @@ namespace BlobSurvivor.UI
         }
 
         // Başlıkların altından ekranın altına uzanan dikey kaydırma alanı (ekran boyuna uyar).
-        private static RectTransform BuildScrollPage(string name, RectTransform panel, out RectTransform content)
+        internal static RectTransform BuildScrollPage(string name, RectTransform panel, out RectTransform content)
         {
             RectTransform page = NewRect(name, panel, Vector2.zero, Vector2.zero);
             page.anchorMin = Vector2.zero;
@@ -463,7 +463,7 @@ namespace BlobSurvivor.UI
         }
 
         // Liste satırlarını yukarıdan aşağı dizer, içerik boyunu ayarlar.
-        private class ListLayout
+        internal class ListLayout
         {
             private readonly RectTransform _content;
             private float _y;
@@ -481,7 +481,7 @@ namespace BlobSurvivor.UI
             public void Finish() => _content.sizeDelta = new Vector2(_content.sizeDelta.x, _y + RowGap);
         }
 
-        private static RectTransform SectionLabel(RectTransform parent, string text)
+        internal static RectTransform SectionLabel(RectTransform parent, string text)
         {
             TMP_Text label = Text("Section", parent, Vector2.zero, new Vector2(RowWidth, HeaderHeight), 34f, TextAlignmentOptions.BottomLeft, Faint);
             label.text = text;
@@ -662,9 +662,9 @@ namespace BlobSurvivor.UI
             _credit.color = Gold;
         }
 
-        // ---------------------------------------------------------------- yardımcılar (LobbyPanel ile aynı)
+        // ---------------------------------------------------------------- yardımcılar (LobbyPanel ile aynı; GuidePanel de kullanır)
 
-        private static void MakeButton(RectTransform rect, UnityEngine.Events.UnityAction onClick)
+        internal static void MakeButton(RectTransform rect, UnityEngine.Events.UnityAction onClick)
         {
             var image = rect.GetComponent<Image>();
             image.raycastTarget = true;
@@ -676,7 +676,7 @@ namespace BlobSurvivor.UI
             button.onClick.AddListener(onClick);
         }
 
-        private static void Place(RectTransform rect, RectTransform parent, Vector2 pos, Vector2 size)
+        internal static void Place(RectTransform rect, RectTransform parent, Vector2 pos, Vector2 size)
         {
             rect.SetParent(parent, false);
             rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0.5f);
@@ -685,7 +685,7 @@ namespace BlobSurvivor.UI
             rect.localScale = Vector3.one;
         }
 
-        private static RectTransform NewRect(string name, RectTransform parent, Vector2 pos, Vector2 size)
+        internal static RectTransform NewRect(string name, RectTransform parent, Vector2 pos, Vector2 size)
         {
             var go = new GameObject(name, typeof(RectTransform));
             go.layer = parent.gameObject.layer;
@@ -694,7 +694,7 @@ namespace BlobSurvivor.UI
             return rect;
         }
 
-        private static RectTransform Box(string name, RectTransform parent, Vector2 pos, Vector2 size, Sprite sprite, Color color)
+        internal static RectTransform Box(string name, RectTransform parent, Vector2 pos, Vector2 size, Sprite sprite, Color color)
         {
             RectTransform rect = NewRect(name, parent, pos, size);
             var image = rect.gameObject.AddComponent<Image>();
@@ -704,7 +704,7 @@ namespace BlobSurvivor.UI
             return rect;
         }
 
-        private static TMP_Text Text(string name, RectTransform parent, Vector2 pos, Vector2 size, float fontSize,
+        internal static TMP_Text Text(string name, RectTransform parent, Vector2 pos, Vector2 size, float fontSize,
             TextAlignmentOptions alignment, Color color)
         {
             RectTransform rect = NewRect(name, parent, pos, size);
@@ -719,7 +719,7 @@ namespace BlobSurvivor.UI
             return t;
         }
 
-        private static void Shadowed(string name, RectTransform parent, Vector2 pos, Vector2 size, string text, float fontSize, Color color)
+        internal static void Shadowed(string name, RectTransform parent, Vector2 pos, Vector2 size, string text, float fontSize, Color color)
         {
             Text(name + "Shadow", parent, pos + new Vector2(0f, -fontSize * 0.06f), size, fontSize, TextAlignmentOptions.Center, ShadowColor).text = text;
             Text(name, parent, pos, size, fontSize, TextAlignmentOptions.Center, color).text = text;

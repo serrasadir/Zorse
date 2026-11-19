@@ -42,6 +42,8 @@ namespace BlobSurvivor.Entities.Weapons
         private float _elapsed;
 
         protected float Damage { get; private set; }
+        protected ObjectPool<Projectile> Pool => _pool; // alt mermi (Bayram Gecesi misketi) aynı havuzdan
+        protected float VisualScale => _visualScale;
         protected Vector3 Direction { get; set; }
 
         // Restart sahneyi yeniden yüklemiyor: havadaki mermiler yeni run'a taşınmasın (EnemyProjectile ile aynı).

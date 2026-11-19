@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a39f692a12e49499b3cddabf07df41, type: 3}
+  m_Name: Upgrade_Gegirme
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
+  _id: gegirme
+  _displayName: "Ge\u011Firme"
+  _description: "6 sn'de bir koca ge\u011Firme: gaz alan\u0131 bir anl\u0131\u011F\u0131na
+    2 kat\u0131na \xE7\u0131kar, i\xE7indekilere 30 hasar, geri itme ve sersemletme."
+  _icon: {fileID: 0}
+  _kind: 1
+  _weight: 10
+  _effect: {fileID: 11400000, guid: c567094b9302f484eb7f6b8ae8dbb24f, type: 2}
+  _maxLevel: 1
+  _perLevelValue: 0
+  _levelDescriptions:
+  - "6 sn'de bir koca ge\u011Firme: gaz alan\u0131 bir anl\u0131\u011F\u0131na 2
+    kat\u0131na \xE7\u0131kar, i\xE7indekilere 30 hasar, geri itme ve sersemletme."
+  _isEvolution: 1
+  _abbr: "G\u011E"
+  _isBaseWeapon: 0

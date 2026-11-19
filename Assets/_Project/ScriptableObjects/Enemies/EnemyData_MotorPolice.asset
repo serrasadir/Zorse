@@ -31,7 +31,7 @@ MonoBehaviour:
   _projectileMaxDistance: 12
   _aimDuration: 0.5
   _aimLockDuration: 0.2
-  _massReward: 5
+  _massReward: 15
   _killXp: 2
   _preventConsumption: 0
   _requiredConsumeTier: 5

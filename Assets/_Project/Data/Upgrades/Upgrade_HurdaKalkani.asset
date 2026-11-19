@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a39f692a12e49499b3cddabf07df41, type: 3}
+  m_Name: Upgrade_HurdaKalkani
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
+  _id: hurda_kalkani
+  _displayName: "Hurda Kalkan\u0131"
+  _description: "Etraf\u0131nda hurda par\xE7alar\u0131 d\xF6ner: de\u011Fdi\u011Fi
+    d\xFC\u015Fmana vurur, bir darbeyi tamamen yutup k\u0131r\u0131l\u0131r. Her
+    araba yeni par\xE7a (en fazla 4)."
+  _icon: {fileID: 0}
+  _kind: 1
+  _weight: 10
+  _effect: {fileID: 11400000, guid: c226eeee7069242b68b99ec3f5dacb20, type: 2}
+  _maxLevel: 1
+  _perLevelValue: 0
+  _levelDescriptions:
+  - "Etraf\u0131nda hurda par\xE7alar\u0131 d\xF6ner: de\u011Fdi\u011Fi d\xFC\u015Fmana
+    vurur, bir darbeyi tamamen yutup k\u0131r\u0131l\u0131r. Her araba yeni par\xE7a
+    (en fazla 4)."
+  _isEvolution: 1
+  _abbr: HK
+  _isBaseWeapon: 0

@@ -14,6 +14,15 @@ namespace BlobSurvivor.Entities.Blob
         public float SwarmSlip;          // >0: sürü düşmanı bu kadar sn kayar
         public float AcidDps;            // >0: yutamadıklarına sn başı hasar
 
+        // Sabun Sörfü (evrim): blob kendi eski izindeyken hızlanır; izdeki düşman (boss hariç) kayar, savrulur, hasar alır.
+        public bool Surf;
+        public float SurfSpeed = 0.3f;
+        public float SurfSlip = 0.6f;
+        public float SurfDamage = 10f;
+        public float SurfKnockback = 1.5f;
+        private const float SurfMinAge = 0.6f; // yeni bırakılan noktalar sayılmaz (blob hep onların üstünde)
+        private BlobSkills _skills;
+
         private const float DropInterval = 0.25f;
         private const float TickInterval = 0.2f;
         private const float MinDropDistance = 0.3f;
@@ -64,6 +73,13 @@ namespace BlobSurvivor.Entities.Blob
         private void OnDestroy()
         {
             if (_splatRoot != null) Destroy(_splatRoot.gameObject);
+            if (_skills != null) _skills.SurfBoost = 0f;
+        }
+
+        public void EnableSurf()
+        {
+            Surf = true;
+            _skills = BlobSkills.Of(gameObject);
         }
 
         private float HalfWidth => transform.localScale.x * _bodyLocalRadius * WidthFactor + WidthExtra;
@@ -162,6 +178,8 @@ namespace BlobSurvivor.Entities.Blob
             }
             if (!any) return;
 
+            if (_skills != null) _skills.SurfBoost = Surf && OnOldTrail(origin, now, half) ? SurfSpeed : 0f;
+
             float radius = Mathf.Sqrt(reachSqr) + half;
             int hitCount = Physics.OverlapCapsuleNonAlloc(origin, origin + Vector3.up * 3f, radius, _hits, EnemyMask);
             BlobSurvivor.Core.BlobTier tier = _growth != null ? _growth.CurrentTier : BlobSurvivor.Core.BlobTier.Tiny;
@@ -179,10 +197,27 @@ namespace BlobSurvivor.Entities.Blob
                 EnemyBase enemy = _hits[h].GetComponent<EnemyBase>();
                 if (enemy == null || enemy.IsDead) continue;
                 enemy.ApplySlow(1f - Slow, TickInterval + 0.15f);
-                if (SwarmSlip > 0f && enemy.Data != null && enemy.Data.IsSwarm && enemy.Slip(SwarmSlip, SlipCooldown))
+                if (!Surf && SwarmSlip > 0f && enemy.Data != null && enemy.Data.IsSwarm && enemy.Slip(SwarmSlip, SlipCooldown))
                     Core.GameEvents.RaiseEnemySlipped();
                 if (AcidDps > 0f && !enemy.CanBeConsumedBy(tier)) enemy.TakeDamage(AcidDps * TickInterval);
+                if (Surf && !enemy.IsBoss && !enemy.IsDead && enemy.Slip(SurfSlip, SlipCooldown))
+                {
+                    enemy.Knockback(e - origin, SurfKnockback);
+                    enemy.TakeDamage(SurfDamage * BlobSkills.WeaponDamageScale);
+                    Core.GameEvents.RaiseEnemySlipped();
+                }
             }
+        }
+
+        private bool OnOldTrail(Vector3 origin, float now, float half)
+        {
+            float halfSqr = half * half;
+            for (int i = 0; i < _count; i++)
+            {
+                float age = now - _times[i];
+                if (age >= SurfMinAge && age <= Duration && (_points[i] - origin).sqrMagnitude <= halfSqr) return true;
+            }
+            return false;
         }
     }
 }

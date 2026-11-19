@@ -62,6 +62,8 @@ namespace BlobSurvivor.Entities.Blob
 
         // Bölünme: ölümcül hasarda çağrılır; true dönerse ölüm iptal (can ve kütle orada ayarlanır).
         public System.Func<bool> SaveFromDeath;
+        // Darbeyi tamamen yutan kalkan (Hurda Kalkanı): true dönerse hasar hiç işlenmez.
+        public System.Func<bool> AbsorbHit;
 
         private float _baseMaxHealth;
 
@@ -101,6 +103,7 @@ namespace BlobSurvivor.Entities.Blob
             HitInvulnerabilityBonus = 0f;
             HitPushMultiplier = 1f;
             SaveFromDeath = null;
+            AbsorbHit = null;
             OnShieldChanged?.Invoke(0f, 0f);
             GameEvents.RaiseHealthChanged(CurrentHealth, _maxHealth);
         }
@@ -159,6 +162,11 @@ namespace BlobSurvivor.Entities.Blob
             if (!IsAlive || amount <= 0f || Invulnerable || TemporarilyInvulnerable) return;
 
             _lastHitTime = Time.time; // her hasar (kalkana ya da cana) yenilenmeyi erteler
+            if (AbsorbHit != null && AbsorbHit())
+            {
+                GrantInvulnerability(HitInvulnerability); // aynı sürüden üst üste parça gitmesin
+                return;
+            }
             float armor = MetaArmor + SkillArmor;
             if (armor > 0f)
             {

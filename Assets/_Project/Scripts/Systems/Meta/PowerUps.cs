@@ -61,13 +61,14 @@ namespace BlobSurvivor.Systems.Meta
     // Oynayarak açılan skiller (VS gibi): koşul gerçekleşince kart havuzuna girer. Listede olmayan skill baştan açık.
     // Karakterin başlangıç ve favori skill'i o karakterle kilitli olsa da çıkar (UpgradeSystem).
     // İlerleme MetaProgression'da stat başına tutulur (run içi en iyi ya da tüm run'lar toplamı); UnlockTracker sayar.
+    // Kayıtta ad (string) olarak tutulur: ad değişirse o ilerleme kaybolur.
     public enum UnlockStat
     {
         CarsEatenInRun,    // bir run'da yenen hareketli araba (en iyi)
-        ReachedDev,        // Dev boyuna ulaşıldı (1)
+        ReachedLarge,      // Büyük (Large) boya ulaşıldı (1)
         SurviveSeconds,    // bir run'da hayatta kalma (en iyi, sn)
         PoliceKillsTotal,  // silahla indirilen polis (toplam)
-        BossLowHealth,     // can %20'nin altındayken boss yenildi (1)
+        LowHealthSeconds,  // bir run'da can %25'in altındayken geçen süre (en iyi, sn)
         TankKills,         // yenilen tank (toplam)
         PoliceEatenInRun,  // bir run'da yutulan polis (en iyi)
         FinalBossEaten,    // helikopter yutuldu (1)
@@ -83,15 +84,17 @@ namespace BlobSurvivor.Systems.Meta
             public string Text;
         }
 
+        // Sıra = beklenen açılış sırası (Market/rehber listesi de bu sırada). İlk run'lar basit skill'lerle geçer;
+        // stratejik olanlar normal oynarken 2.–8. run arasında açılır. Bölünme oyunun sonu.
         public static readonly Entry[] Locked =
         {
-            new Entry { Id = "geri_donusum", Stat = UnlockStat.CarsEatenInRun, Target = 10, Text = "Bir run'da 10 araba ye" },
-            new Entry { Id = "hizli_metabolizma", Stat = UnlockStat.ReachedDev, Target = 1, Text = "Dev boyuna ulaş" },
-            new Entry { Id = "kaygan_zemin", Stat = UnlockStat.SurviveSeconds, Target = 600, Text = "Bir run'da 10 dakika hayatta kal" },
-            new Entry { Id = "tetikci", Stat = UnlockStat.PoliceKillsTotal, Target = 300, Text = "Toplam 300 polis indir" },
-            new Entry { Id = "yara_ofkesi", Stat = UnlockStat.BossLowHealth, Target = 1, Text = "Canın %20'nin altındayken bir boss yen" },
+            new Entry { Id = "kaygan_zemin", Stat = UnlockStat.SurviveSeconds, Target = 300, Text = "Bir run'da 5 dakika hayatta kal" },
+            new Entry { Id = "geri_donusum", Stat = UnlockStat.CarsEatenInRun, Target = 5, Text = "Bir run'da 5 araba ye" },
+            new Entry { Id = "hizli_metabolizma", Stat = UnlockStat.ReachedLarge, Target = 1, Text = "Büyük boya ulaş" },
+            new Entry { Id = "sindirim_gazi", Stat = UnlockStat.PoliceEatenInRun, Target = 10, Text = "Bir run'da 10 polis yut" },
+            new Entry { Id = "yara_ofkesi", Stat = UnlockStat.LowHealthSeconds, Target = 15, Text = "Bir run'da canın %25'in altındayken 15 sn dayan" },
+            new Entry { Id = "tetikci", Stat = UnlockStat.PoliceKillsTotal, Target = 150, Text = "Toplam 150 polis indir" },
             new Entry { Id = "yer_sarsintisi", Stat = UnlockStat.TankKills, Target = 1, Text = "Bir tank yen" },
-            new Entry { Id = "sindirim_gazi", Stat = UnlockStat.PoliceEatenInRun, Target = 30, Text = "Bir run'da 30 polis yut" },
             new Entry { Id = "bolunme", Stat = UnlockStat.FinalBossEaten, Target = 1, Text = "Helikopteri yut" },
         };
 
@@ -111,6 +114,7 @@ namespace BlobSurvivor.Systems.Meta
             if (e.Target <= 1) return "";
             value = System.Math.Min(value, e.Target);
             if (e.Stat == UnlockStat.SurviveSeconds) return $"{value / 60}:{value % 60:00}/{e.Target / 60}:{e.Target % 60:00}";
+            if (e.Stat == UnlockStat.LowHealthSeconds) return $"{value}/{e.Target} sn";
             return $"{value}/{e.Target}";
         }
     }

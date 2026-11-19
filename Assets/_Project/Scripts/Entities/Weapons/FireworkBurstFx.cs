@@ -3,7 +3,7 @@ using BlobSurvivor.Entities.Blob;
 
 namespace BlobSurvivor.Entities.Weapons
 {
-    // Havai fişek efektleri: isabette renkli kıvılcım patlaması, atarın arkasından gri duman. Paylaşılan sabit havuz
+    // Havai fişek efektleri: isabette renkli kıvılcım patlaması, atarın arkasından gri duman; evrimlerin kırıntı/bulutu. Paylaşılan sabit havuz
     // (Resources/FX/EatCrumbs, ilk kullanımda bir kez kurulur); hepsi meşgulse en eskisine Emit eklenir.
     public static class FireworkBurstFx
     {
@@ -28,6 +28,17 @@ namespace BlobSurvivor.Entities.Weapons
             float size = Mathf.Clamp(Mathf.Sqrt(blobScale / 0.5f), 1f, 3f);
             Next().PlayBurst(point, SmokeA, SmokeB, size * 0.9f, 7, 1.2f, 2.5f);
         }
+
+        // Genel kırıntı/bulut püskürmesi (Hurda Kalkanı parçası kırılınca, Geğirme bulutu). blobScale: blob ölçeği.
+        public static void Puff(Vector3 point, Color a, Color b, float blobScale, int count, float speed, float gravity)
+        {
+            if (!Ensure()) return;
+            float size = Mathf.Clamp(Mathf.Sqrt(blobScale / 0.5f), 1f, 3f);
+            Next().PlayBurst(point, a, b, size, count, speed * size, gravity);
+        }
+
+        public static void Debris(Vector3 point, Color a, Color b, float blobScale) =>
+            Puff(point, a, b, blobScale, 14, 3.5f, -9f);
 
         private static EatCrumbs Next()
         {

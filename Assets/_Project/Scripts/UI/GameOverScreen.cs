@@ -2,7 +2,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using BlobSurvivor.Core;
+using BlobSurvivor.Data;
 using BlobSurvivor.Systems;
+using BlobSurvivor.Systems.Meta;
 
 namespace BlobSurvivor.UI
 {
@@ -34,6 +36,7 @@ namespace BlobSurvivor.UI
         private RectTransform _content;
         private TMP_Text _title, _subtitle, _record;
         private TMP_Text _time, _score, _best, _coins, _credit;
+        private TMP_Text _unlocks; // en yakın kilitler
         private Button _menuButton;
 
         private float _shownAt = -1f;
@@ -79,12 +82,53 @@ namespace BlobSurvivor.UI
             _targetCredit = Mathf.RoundToInt(_targetCoins * (won ? 1f : 0.5f)); // MetaProgression ile aynı oran
             _best.text = score != null ? $"{Mathf.Max(score.HighScore, _targetScore):N0}" : "0";
             _record.gameObject.SetActive(score != null && score.HasNewHighScore);
+            _unlocks.text = UnlockHint();
             SetCounters(0f);
 
             SetButtonsInteractable(false);
             _shownAt = Time.unscaledTime;
             _group.alpha = 0f;
             _content.localScale = Vector3.one * 0.92f;
+        }
+
+        // Koşula en çok yaklaşılan 2 kilitli skill ("Kaygan Zemin · 7:12/10:00"); ilerleme yoksa sıradaki kilidin koşulu.
+        private static readonly SkillUnlocks.Entry[] s_near = new SkillUnlocks.Entry[2];
+
+        private static string UnlockHint()
+        {
+            MetaProgression meta = MetaProgression.Instance;
+            if (meta == null) return "";
+            int count = 0;
+            float best0 = -1f, best1 = -1f;
+            SkillUnlocks.Entry first = default;
+            bool any = false;
+            foreach (SkillUnlocks.Entry e in SkillUnlocks.Locked)
+            {
+                if (meta.IsSkillUnlocked(e.Id)) continue;
+                if (!any) { first = e; any = true; }
+                if (e.Target <= 1) continue;
+                float r = Mathf.Clamp01((float)meta.GetStat(e.Stat) / e.Target);
+                if (r <= 0f) continue;
+                if (r > best0) { s_near[1] = s_near[0]; best1 = best0; s_near[0] = e; best0 = r; }
+                else if (r > best1) { s_near[1] = e; best1 = r; }
+                count = Mathf.Min(count + 1, 2);
+            }
+            if (!any) return "";
+            if (count == 0)
+                return $"<color=#FFFFFFAA>SIRADAKİ KİLİT</color>\n<color=#FFD140>{SkillName(first.Id)}</color> · {first.Text}";
+            string text = "<color=#FFFFFFAA>NEREDEYSE AÇILDI</color>";
+            for (int i = 0; i < count; i++)
+            {
+                SkillUnlocks.Entry e = s_near[i];
+                text += $"\n<color=#FFD140>{SkillName(e.Id)}</color> · {e.Text} · {SkillUnlocks.ProgressText(e, meta.GetStat(e.Stat))}";
+            }
+            return text;
+        }
+
+        private static string SkillName(string id)
+        {
+            UpgradeData u = UpgradeSystem.Instance != null ? UpgradeSystem.Instance.FindById(id) : null;
+            return u != null ? u.DisplayName : id;
         }
 
         private void Update()
@@ -183,15 +227,22 @@ namespace BlobSurvivor.UI
             }
             _time = values[0]; _score = values[1]; _best = values[2]; _coins = values[3]; _credit = values[4];
 
+            _unlocks = Label("Unlocks", _content, new Vector2(0f, -350f), new Vector2(800f, 130f), 32f, TextAlignmentOptions.Center, Color.white);
+            _unlocks.fontStyle = FontStyles.Normal;
+            _unlocks.textWrappingMode = TextWrappingModes.Normal;
+            _unlocks.enableAutoSizing = true;
+            _unlocks.fontSizeMin = 22f;
+            _unlocks.fontSizeMax = 32f;
+
             if (_restartButton != null)
             {
-                StyleButton(_restartButton, _content, new Vector2(0f, -420f), new Vector2(700f, 140f), "Tekrar Oyna", 58f, Crimson, rounded);
+                StyleButton(_restartButton, _content, new Vector2(0f, -510f), new Vector2(700f, 140f), "Tekrar Oyna", 58f, Crimson, rounded);
                 GameObject copy = Instantiate(_restartButton.gameObject, _content); // tek seferlik UI kurulumu
                 copy.name = "MenuButton";
                 _menuButton = copy.GetComponent<Button>();
                 _menuButton.onClick = new Button.ButtonClickedEvent();
                 _menuButton.onClick.AddListener(ReturnToMenu);
-                StyleButton(_menuButton, _content, new Vector2(0f, -590f), new Vector2(700f, 116f), "Ana Menü", 46f, Secondary, rounded);
+                StyleButton(_menuButton, _content, new Vector2(0f, -670f), new Vector2(700f, 116f), "Ana Menü", 46f, Secondary, rounded);
             }
         }
 

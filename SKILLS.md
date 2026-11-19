@@ -198,6 +198,8 @@ Tablolarda her satır Sv.1 → Sv.5; ⭐ yeni yetenek açan seviye.
 ### 🚓 Polis yutma (skill değil, genel kural)
 Robot köpek **Little**, polis **Medium**, elit polis **Giant** blob ister.
 
+**Polis ağırdır:** yutulan polis, yenebildiği tier'daki şehir eşyası kadar kütle verir: bekçi 3, robot köpek 2 (Little), polis 10 (Medium), motorlu 15, çevik kuvvet 20 (Large), elit 50 (Giant). Yeme birincil: yutmak, silahla öldürmenin XP'sinden (polis 2) fazla verir.
+
 **Isırık bedeli:** Polis yutulurken ısırır: tier tam eşikteyse 5, 1 tier üstteyse 2.5, 2+ tier üstteyse 0 hasar (robot köpek 2 / 1 / 0). Isırık normal hasar gibi kırmızı parlama + kamera sarsıntısı + titreşim verir. Yara Öfkesi Sv.5 öfkeliyken ısırığı kaldırır.
 
 **Kaçmazlar:** Düşmanlar blob onları yiyebilecek boyda olsa da kaçmaz, saldırmaya devam eder.
@@ -207,12 +209,24 @@ Henüz yiyemediğin (senden büyük) yayaya çarparsan yaya seni tekmeler: geriy
 
 ---
 
-## 3. Evrim (1 adet)
+## 3. Evrim (6 adet)
 
-Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza girer. Kart ★ ve altın renkle işaretlenir, slot harcamaz. Max seviyesi 1'dir: bir kez seçilince havuzdan çıkar. Ağırlık 10.
+**Koşul:** aktif skill **max seviyede** + eş skill **en az Sv.1** (`SkillEvolutionData._inputBMinLevel`, 0 = max). Koşul sağlanınca evrim **kendiliğinden** gerçekleşir; kart ya da sandık yok (`EvolutionSystem`).
+- **Evrim anı** (~1.8 sn, `EvolutionMoment`): oyun akarken başlar (kart ekranı/duraklatmada bekler). Ağır çekim (×0.25) + kamera yaklaşır, evrim renginde halka blob'a çöker → **patlama**: evrim uygulanır, renkli şok dalgası ve kırıntı, blob şişip yutkunur, kamera sarsılır, ekranın üstünde altın **★ <EVRİM ADI>** → zaman ve kamera normale döner. Renk `SkillEvolutionData._color`. Kara Delik kendi sahnesini oynar (`_ownMoment`). Aynı anda birden fazla evrim hazırsa sırayla.
+- Evrim slot harcamaz, kart havuzunda yoktur. **Eş ipucu:** bir kart elindeki bir skill'le evrim açıyorsa kartın altında altın **★ Evrim: <ad>** yazar (slot notunun yerine). ★ UI_Glyphs `yildiz` ikonu (fontta ★ yok).
+- Evrimler, koşulları ve renkleri `Tools → Blob.io → Skill Setini Kur` ile kurulur (`EvolutionSystem._evolutions`).
+
+| Evrim | Gereken | Karakter |
+|---|---|---|
+| ★ Kara Delik | Vakum 5 + Sindirim 1+ | Mıknato |
+| ★ Lamba Direği | Sopa 5 + Yara Öfkesi 1+ | Dalcık |
+| ★ Bayram Gecesi | Havai Fişek 5 + Tetikçi 1+ | Fişek |
+| ★ Sabun Sörfü | Kaygan Zemin 5 + Hız 1+ | Topik |
+| ★ Hurda Kalkanı | Geri Dönüşüm 5 + Zırh 1+ | Cano |
+| ★ Geğirme | Sindirim Gazı 5 + Hızlı Metabolizma 1+ | — |
 
 ### ★ Kara Delik
-- **Gereken:** Vakum 5 + Sindirim 5 (toplam 10 seçim)
+- **Gereken:** Vakum 5 + Sindirim en az 1
 - **Ne yapar:** Blob'un çevresindeki, **yiyebildiğin tier'daki her şey** temas gerekmeden otomatik yutulur: consumable, yaya, şehir objesi. Hazard'ları yemez.
 - **Yarıçap:** gövde yarıçapının 2 katı; blob büyüdükçe büyür. 0.1 sn'de bir tarar.
 - **Kod:** `KaraDelikEffect` → `BlackHoleComponent`
@@ -225,6 +239,35 @@ Evrim kartı, iki girdi skilinin ikisi de **max seviyeye** ulaşınca havuza gir
 | Giant | ~2.0 | ~4.0 |
 
 **Not:** Polisleri yutmaz; onlar için temas gerekir.
+
+### ★ Lamba Direği
+- **Gereken:** Sopa 5 + Yara Öfkesi en az 1
+- **Ne yapar:** Dal yerine yerinden sökülmüş sokak lambası. Tam tur (360°), menzil ×1.5, geri itme ×2. **Sopayla öldürdüğün düşman yutulur:** kütlesi (yemekle aynı, Sindirim dahil) + kill XP'si gelir, yeme görevine de silahla öldürme görevine de sayılır. Boss'lar hariç.
+- **Ağza uçma:** savuruş başına en ağır **3** düşman havaya fırlayıp takla atarak ağza uçar (`SlurpFx.PlayFlight`); kalanlar olduğu yerde kendi renginde kırıntıya dağılır. Şişme + titreşim savuruş başına bir kez (`StickWeapon._maxFlights`, `_lampRangeFactor`, `_lampKnockbackFactor`).
+- **Kod:** `LampPostEffect` (`FX_LambaDiregi`) → `StickWeapon.EnableLampPost`, `EnemyBase.WouldDieFrom` / `Devour`.
+- **Görsel:** `G_Stick_5` (`build_stick.py`): koyu gri direk, uçta aşağı kıvrık kol, sarı fener. Seçilince lamba bir tur döner.
+
+### ★ Bayram Gecesi
+- **Gereken:** Havai Fişek 5 + Tetikçi en az 1
+- **Ne yapar:** Her roket bir düşmana çarpınca **4 misket rokete** bölünür. Misketler isabet noktasından 6 birim içindeki diğer düşmanlara (en yakından başlayarak) uçar; yeterli düşman yoksa eşit aralıklı yönlere saçılır. Misket hasarı roketin temel hasarının **%40'ı** (Yara Öfkesi çarpanı dahil), boyu roketin %55'i, renk renk. Misket tekrar bölünmez. Boss'a giden roketin gücü değişmez; misketler sürüyü temizler.
+- **Kod:** `FestivalNightEffect` (`FX_BayramGecesi`; `_misketCount`, `_misketDamageFactor`) → `FireworkWeapon.EnableCluster` → `FireworkProjectile.SetCluster` / `OnHitEnemy`. Misketler roketle aynı havuzdan.
+- **Görsel:** atar formu değişmiyor (Sv.5 çift tüp kalır).
+
+### ★ Sabun Sörfü
+- **Gereken:** Kaygan Zemin 5 + Hız en az 1
+- **Ne yapar:** Kendi **eski** izinin (0.6 sn'den yaşlı noktalar) üstündeyken hız **+%30** (`BlobSkills.SurfBoost`). İzdeki her düşman (boss hariç) **kayar**: 0.6 sn sersemler (çevik kuvvetin kalkanı iner), blob'dan uzağa 1.5 savrulur, 10 hasar alır; aynı düşman 1.5 sn bekleme. Sürü kayması (Sv.3) bunun yerine geçer.
+- **Kod:** `SoapSurfEffect` → `SlipTrail.EnableSurf` (`SurfSpeed`, `SurfSlip`, `SurfDamage`, `SurfKnockback`).
+
+### ★ Hurda Kalkanı
+- **Gereken:** Geri Dönüşüm 5 + Zırh en az 1
+- **Ne yapar:** Blob'un etrafında dönen hurda parçaları (Zırh'ın çöp kutusu kapağı / tabela / menhol modelleri). 2 parçayla başlar, yutulan her araba +1 (en fazla **4**). Parça değdiği düşmana **15 hasar** + geri itme (parça başına 0.4 sn bekleme). Gelen **bir darbeyi tamamen yutar** ve kırılır (gri kırıntı); her kaynaktan darbe sayılır (ısırık dahil).
+- **Kod:** `ScrapShieldEffect` → `ScrapOrbit` (`BlobHealth.AbsorbHit` kancası). Restart'ta `GameManager.ClearPreviousRunState` siler.
+
+### ★ Geğirme
+- **Gereken:** Sindirim Gazı 5 + Hızlı Metabolizma en az 1
+- **Ne yapar:** **6 sn'de bir** koca geğirme: gaz alanı bir anlığına **2 katına** çıkar; içindekilere **30 hasar**, geri itme 2, **0.8 sn sersemletme** (boss sersemlemez). Bina arkasındakine vurmaz. Evrim seçilince hemen bir tane.
+- **Görsel:** beyaz şok dalgası, gaz bulutu halkası dışa fırlayıp döner, blob şişip yutkunur, ağızdan yeşil bulut.
+- **Kod:** `BurpEffect` (`_interval`) → `DigestGas.EnableBurp` (`BurpDamage`, `BurpRadiusScale`, `BurpKnockback`, `BurpStun`).
 
 ---
 
@@ -258,14 +301,14 @@ Beş karakter de aynı blob'dur; farkları **görünüm** ve **başlangıç avan
 ### 🧲 Mıknato
 - **Pasif:** Run'a **Vakum Sv.2** ile başlar (menzil gövde yüzeyinden 2). Vakum favori skili (×3). `Char_Miknato.asset`.
 - **Görünüm:** mavi, tepede kırmızı at nalı mıknatıs.
-- **Örnek:** Diğerleri Vakum'u kart olarak beklerken Mıknato ilk saniyeden çevresini toplar: erken büyüme, erken level. Kara Delik evrimine (Vakum 5 + Sindirim 5) en doğal giden karakter.
+- **Örnek:** Diğerleri Vakum'u kart olarak beklerken Mıknato ilk saniyeden çevresini toplar: erken büyüme, erken level. Kara Delik evrimine (Vakum 5 + Sindirim) en doğal giden karakter.
 
 ### 🎆 Fişek
 - **Pasif:** Run'a **Havai Fişek Sv.1** ile başlar: atar baştan sol omzunda, 2 sn'de bir 25 hasarlık roket. Havai Fişek favori skili (×3). `Char_Fisek.asset`.
 - **Görünüm:** korsan bomba: siyah gövde, sol gözde kırmızı göz bandı, tepede metal ağızlık ve yanan fitil (`build_blobs.py`; model adları hâlâ `CH_Mermo_*`). Kalkanı diğerleri gibi sağ yanda.
 
 ### 🌿 Dalcık
-- **Pasif:** Run'a **Sopa Sv.2** ile başlar: sopa ilk saniyeden 15 hasar, menzil 2.5 ve **180° yayla** vurur. Sopa favori skili (×3); kilometre taşlarına (Sv.3 çift yön, Sv.5 tam tur) en hızlı giden karakter. `Char_Dalcik.asset`.
+- **Pasif:** Run'a **Sopa Sv.2** ile başlar: sopa ilk saniyeden 15 hasar, menzil 2.5 ve **180° yayla** vurur. Sopa favori skili (×3); kilometre taşlarına (Sv.3 çift yön, Sv.5 tam tur) ve **Lamba Direği** evrimine en hızlı giden karakter. `Char_Dalcik.asset`.
 - **Görünüm:** fıstık yeşili, tepede minicik kısa dal (`build_blobs.py` → `CH_Dalcik_T1..T5`, portre `Icon_Dalcik.png`).
 
 ### ♻️ Cano
@@ -287,7 +330,7 @@ Beş karakter de aynı blob'dur; farkları **görünüm** ve **başlangıç avan
 | **Görme** | 40 (doğduğu andan koşar) | 15 | 23 |
 | **Yutulma** | Little blob | Medium blob | Giant blob |
 | **Davranış** | Kaçmaz | Kaçmaz | Kaçmaz |
-| **Ödül** | 1.5 mass, 1 coin, %2 kalp | 3 mass, 2 coin, %5 kalp | 20 mass, 5–10 coin, **sandık** (35 coin + ekstra kart), %100 kalp |
+| **Ödül** | 2 mass, 1 coin, %2 kalp | 10 mass, 2 coin, %5 kalp | 50 mass, 5–10 coin, **sandık** (35 coin + ekstra kart), %100 kalp |
 
 ### 👹 Miniboss: "Polis Tankı"
 Aynı tasarım, iki kez gelir, ikincisi daha güçlü. Elit polisin nişan-kilit-ateş akışını top mermisiyle kullanır; üstünden geçtiği arabaları ve sokak eşyalarını ezer.

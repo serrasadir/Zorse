@@ -19,9 +19,6 @@ namespace BlobSurvivor.Systems
         // sızıntı riski ortadan kalkar.
         private readonly Dictionary<UpgradeData, int> _levels = new Dictionary<UpgradeData, int>();
 
-        // B17: EvolutionSystem, input skiller max level'a ulaşınca output skill'i buraya kaydeder —
-        // _allUpgrades sahnede sabit dizildiği için evrim çıktıları ayrı bir runtime listede tutulur.
-        private readonly List<UpgradeData> _dynamicUpgrades = new List<UpgradeData>();
 
         // 2026-11-03: tek lokma eşiği birden fazla kez geçince (AddXP döngüsü) ikinci level-up ilk kart
         // ekranının üstüne yazıyor, seçilmeyen seviye kayboluyordu. Kart ekranı açıkken gelenler sıraya
@@ -90,13 +87,15 @@ namespace BlobSurvivor.Systems
         {
             _blobRoot = GameObject.FindWithTag("Blob");
             ClearOwned();
-            _dynamicUpgrades.Clear();
         }
 
-        public void RegisterDynamicUpgrade(UpgradeData data)
+        // Evrim (EvolutionSystem, evrim anının patlamasında): kart ekranı olmadan Sv.1 olarak uygulanır.
+        public void GrantEvolution(UpgradeData data)
         {
-            if (data != null && !_dynamicUpgrades.Contains(data))
-                _dynamicUpgrades.Add(data);
+            if (data == null || GetLevel(data) > 0) return;
+            SetLevel(data, 1);
+            if (_blobRoot != null && data.Effect != null) data.Effect.Apply(_blobRoot, data);
+            GameEvents.RaiseUpgradeApplied(data, 1);
         }
 
         private void OnEnable()
@@ -118,7 +117,6 @@ namespace BlobSurvivor.Systems
         {
             _character = character;
             ClearOwned();
-            _dynamicUpgrades.Clear();
             _awaitingChoice = false;
             _pendingLevelUps = 0;
             GrantStartingUpgrade(character);
@@ -203,12 +201,11 @@ namespace BlobSurvivor.Systems
             GameManager.Instance?.ResumeGame();
         }
 
-        // Test listesi (DevCheats, PerfOverlay dev paneli): havuzdaki skiller + açılmış evrimler.
+        // Test listesi (DevCheats, PerfOverlay dev paneli): havuzdaki skiller.
         public List<UpgradeData> DebugAllUpgrades()
         {
             var all = new List<UpgradeData>();
             if (_allUpgrades != null) all.AddRange(_allUpgrades);
-            foreach (var u in _dynamicUpgrades) if (!all.Contains(u)) all.Add(u);
             all.RemoveAll(u => u == null);
             return all;
         }
@@ -217,9 +214,7 @@ namespace BlobSurvivor.Systems
         public string DebugGrant(string id)
         {
             if (_allUpgrades == null) return "Skill listesi boş.";
-            var all = new List<UpgradeData>(_allUpgrades);
-            all.AddRange(_dynamicUpgrades); // açılmış evrimler
-            foreach (var u in all)
+            foreach (var u in _allUpgrades)
             {
                 if (u == null || u.Id != id) continue;
                 int level = GetLevel(u);
@@ -242,6 +237,14 @@ namespace BlobSurvivor.Systems
 
         // Market'in skill sekmesi (kart havuzundaki skiller, sahnedeki sırayla).
         public UpgradeData[] AllUpgrades => _allUpgrades;
+
+        public UpgradeData FindById(string id)
+        {
+            if (_allUpgrades != null)
+                foreach (UpgradeData u in _allUpgrades)
+                    if (u != null && u.Id == id) return u;
+            return null;
+        }
 
         private float WeightOf(UpgradeData u) =>
             _character != null && u == _character.FavoredUpgrade ? u.Weight * _character.FavoredWeightMultiplier : u.Weight;
@@ -274,8 +277,6 @@ namespace BlobSurvivor.Systems
             var pool = new List<UpgradeData>();
             foreach (var u in _allUpgrades)
                 if (Offerable(u)) pool.Add(u);
-            foreach (var u in _dynamicUpgrades)
-                if (Offerable(u) && !pool.Contains(u)) pool.Add(u);
             if (pool.Count == 0) return null;
 
             int count = Mathf.Min(_choiceCount, pool.Count);

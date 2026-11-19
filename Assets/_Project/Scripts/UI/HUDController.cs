@@ -110,7 +110,7 @@ namespace BlobSurvivor.UI
             if (data == null || !data.IsEvolution) return;
             if (_banner == null) CreateBanner();
             if (_banner == null) return;
-            string text = "★ " + data.DisplayName.ToUpper(new System.Globalization.CultureInfo("tr-TR"));
+            string text = UiGlyphs.Star + " " + data.DisplayName.ToUpper(new System.Globalization.CultureInfo("tr-TR"));
             _bannerText.text = text;
             _bannerShadow.text = text;
             _banner.gameObject.SetActive(true);
@@ -129,6 +129,8 @@ namespace BlobSurvivor.UI
             _banner.sizeDelta = new Vector2(1000f, 140f);
             _bannerShadow = CreateText("Shadow", _banner, "");
             _bannerText = CreateText("Text", _banner, "");
+            UiGlyphs.Apply(_bannerShadow);
+            UiGlyphs.Apply(_bannerText);
             PlaceText(_bannerShadow, _banner, Vector2.zero, Vector2.one, new Vector2(0f, -6f), new Vector2(0f, -6f), 92f, TextAlignmentOptions.Center, EvolutionShadow);
             PlaceText(_bannerText, _banner, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 92f, TextAlignmentOptions.Center, EvolutionGold);
             go.SetActive(false);

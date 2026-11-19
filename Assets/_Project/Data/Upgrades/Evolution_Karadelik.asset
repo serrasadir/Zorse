@@ -14,4 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.SkillEvolutionData
   _inputA: {fileID: 11400000, guid: 9a1a53f3539f54aa9a01b50dfc7fccc9, type: 2}
   _inputB: {fileID: 11400000, guid: bfcdcf59c7e9e4d83b18c0271b27d009, type: 2}
+  _inputBMinLevel: 1
   _output: {fileID: 11400000, guid: bdd728211585e4f6a8bb5232c9777f08, type: 2}
+  _color: {r: 0.35, g: 0.25, b: 0.9, a: 1}
+  _ownMoment: 1
