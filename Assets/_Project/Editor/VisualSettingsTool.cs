@@ -8,7 +8,7 @@ namespace BlobSurvivor.EditorTools
 {
     // Blender'daki görünüme yaklaşmak için sahnenin "çıplak" URP ayarlarını tamamlar (2026-11-01, Bahar):
     // tonemapping + renk ayarı (Volume), FXAA, gradient ortam ışığı, güneş rengi/gölgesi.
-    // Hepsi mobilde ucuz: tek uber post pass + FXAA; bloom/SSAO/MSAA bilinçli olarak yok.
+    // Hepsi mobilde ucuz: tek uber post pass; bloom/SSAO yok. Kenar yumuşatma: RP asset 4x MSAA (RenderQualitySetup).
     public static class VisualSettingsTool
     {
         private const string ProfilePath = "Assets/_Project/Settings/PP_City.asset";
@@ -48,7 +48,7 @@ namespace BlobSurvivor.EditorTools
             UniversalAdditionalCameraData data = camera.GetUniversalAdditionalCameraData();
             Undo.RecordObject(data, "Görsel Ayarlar");
             data.renderPostProcessing = true;
-            data.antialiasing = AntialiasingMode.FastApproximateAntialiasing; // MSAA'dan çok daha ucuz
+            data.antialiasing = AntialiasingMode.None; // kenar yumuşatma RP asset'teki 4x MSAA'da (RenderQualitySetup); FXAA üstüne bulanıklaştırırdı
             EditorUtility.SetDirty(data);
             return true;
         }

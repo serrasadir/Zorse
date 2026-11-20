@@ -34,7 +34,7 @@ Transform:
   m_Children:
   - {fileID: 1587632478409782526}
   - {fileID: 6858906141612889978}
-  - {fileID: 5427589623818431948}
+  - {fileID: 6660052987010883170}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &1722484161646777071
@@ -144,7 +144,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3.8799996, y: 5.200014, z: 3.6699948}
   m_Center: {x: 0.000001013279, y: 2.6, z: -0.045000017}
---- !u!1 &5470950205980682380
+--- !u!1 &6620250437811365485
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -152,9 +152,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 5427589623818431948}
-  - component: {fileID: 3803399614458117521}
-  - component: {fileID: 1175055637150226536}
+  - component: {fileID: 6660052987010883170}
+  - component: {fileID: 1819253146131642844}
+  - component: {fileID: 5583379657604186868}
   m_Layer: 0
   m_Name: ContactShadow
   m_TagString: Untagged
@@ -162,13 +162,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4
   m_IsActive: 1
---- !u!4 &5427589623818431948
+--- !u!4 &6660052987010883170
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5470950205980682380}
+  m_GameObject: {fileID: 6620250437811365485}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0.0000009536743, y: 0.08, z: -0.045000076}
@@ -177,21 +177,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3313743129769242027}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &3803399614458117521
+--- !u!33 &1819253146131642844
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5470950205980682380}
+  m_GameObject: {fileID: 6620250437811365485}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &1175055637150226536
+--- !u!23 &5583379657604186868
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5470950205980682380}
+  m_GameObject: {fileID: 6620250437811365485}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0

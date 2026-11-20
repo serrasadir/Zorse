@@ -1,9 +1,10 @@
 """Kuşatılmış Kale haritasının yerleşimi (Unity birimi, oyun ölçeğinde). Blender gerekmez: python build_castle_layout.py
 Çıktı: Assets/_Project/Art/City/Medieval/castle_layout.json → Tools/Blob.io/Kale Sahnesini Kur okur.
+Blender'da önizleme: tools/medieval/preview_layout.py ('CastleLayout' sahnesi).
 
-Düzen (Bahar, 2026-11-20): TEK YOL. Güneyden kuzeye bölgeler, her geçişte işaretli kapı:
-  Köy (başlangıç) → çit kapısı (Little) → Kasaba (dar sokaklar) → taş kapı (Medium) → Kale avlusu → kale kapısı (Large) → Burç
-Kapılar zikzak (sağ, sol, orta): yol düz koridor olmasın. Oyun alanı x ∈ ±SIDE; yanlarda ağaç sırası + görünmez duvar.
+Düzen (Bahar'ın kuşbakışı krokisi, 2026-11-20): TEK YOL, güneyden kuzeye 4 bölge, her geçişte işaretli kapı:
+  Köy (başlangıç) → çit kapısı S (sağ) → Tarla + pazar → taş kapı M (sol) → Kasaba → kale kapısı L (orta) → Burç + ejderha meydanı
+Yollar yumuşak eğri (Catmull-Rom): Unity'de şerit mesh (meta.paths). Yanlarda sur + hendek, dışında ağaçlar.
 Yön: modelin ön yüzü −Z (yaw 0) = güneye, oyuncunun geldiği yöne.
 """
 import json
@@ -16,9 +17,10 @@ OUT = os.path.normpath(os.path.join(HERE, "..", "..", "Assets", "_Project", "Art
 
 SCALE = 0.7                 # build_medieval.GAME_SCALE
 SEG = 3.0 * SCALE           # duvar parçası boyu
-HALF = 56.0                 # harita sınırı (kare)
+HALF = 56.0                 # harita sınırı
 SIDE = 24.0                 # oynanan genişlik yarısı
 START = (0.0, -50.0)
+MOAT = (SIDE + 1.6, SIDE + 4.6)   # hendek şeridi (x aralığı, iki yanda)
 
 # Bölge sınırları (güneyden kuzeye): (z, duvar öneki, kapı mesh'i, kapı genişliği, kapı x, kapı ölçeği)
 LINES = [
@@ -26,9 +28,10 @@ LINES = [
     (6.0, "B_MedStoneWall", "B_MedGateClosed", 2.73, -9.0, 1.4),
     (32.0, "B_MedCastleWall", "B_MedMainGate", 6.455, 0.0, 1.0),
 ]
-KEEP = (0.0, 45.0)
+KEEP = (0.0, 50.0)
+ARENA = (0.0, 42.0, 5.5)    # ejderha meydanı (x, z, yarıçap)
 
-rnd = random.Random(20261120)
+rnd = random.Random(20261121)
 items = []
 taken = []  # (x, z, yarıçap)
 
@@ -45,29 +48,62 @@ def take(x, z, r):
     taken.append((x, z, r))
 
 
-# ---------- yollar (merkez çizgileri; çevresi boş kalır) ----------
-ROADS = [  # (x0, z0, x1, z1, yarı genişlik)
-    (0.0, -56.0, 0.0, -36.0, 2.4),            # köy: başlangıçtan kuzeye
-    (0.0, -36.0, 9.0, -30.0, 2.4),            # çit kapısına kıvrılır
-    (9.0, -30.0, 9.0, -24.0, 2.4),
-    (9.0, -24.0, 9.0, -11.0, 2.6),            # kasaba: kapıdan kuzeye ana cadde
-    (9.0, -11.0, -9.0, -11.0, 2.6),           # batıya dönen cadde
-    (-9.0, -11.0, -9.0, 6.0, 2.6),            # taş kapıya
-    (-9.0, 6.0, -9.0, 14.0, 3.0),             # avlu: kapıdan içeri
-    (-9.0, 14.0, 0.0, 24.0, 3.0),
-    (0.0, 24.0, 0.0, 32.0, 3.0),              # kale kapısına
-    (0.0, 32.0, 0.0, 40.0, 3.0),              # burca
+def place(mesh, x, z, yaw=0.0, r=1.0, s=1.0):
+    put(mesh, x, z, yaw, s=s)
+    take(x, z, r)
+
+
+# ---------- yollar: kontrol noktaları → yumuşak eğri ----------
+def catmull(points, step=0.5, loop=False):
+    pts = list(points)
+    if loop:
+        ext = [pts[-1]] + pts + [pts[0], pts[1]]
+    else:
+        ext = [pts[0]] + pts + [pts[-1]]
+    out = []
+    for i in range(1, len(ext) - 2):
+        p0, p1, p2, p3 = ext[i - 1], ext[i], ext[i + 1], ext[i + 2]
+        n = max(2, int(math.hypot(p2[0] - p1[0], p2[1] - p1[1]) / step))
+        for k in range(n):
+            t = k / n
+            t2, t3 = t * t, t * t * t
+            out.append(tuple(0.5 * (2 * p1[j] + (-p0[j] + p2[j]) * t + (2 * p0[j] - 5 * p1[j] + 4 * p2[j] - p3[j]) * t2
+                                    + (-p0[j] + 3 * p1[j] - 3 * p2[j] + p3[j]) * t3) for j in range(2)))
+    if not loop:
+        out.append(pts[-1])
+    return [(round(x, 3), round(z, 3)) for x, z in out]
+
+
+# (doku, yarı genişlik, kontrol noktaları, halka mı)
+PATH_DEFS = [  # tek kesintisiz şerit (kapılarda iki şerit üst üste binince kıvrımda kırık görünüyordu); kapıdan düz geçer
+    ("Dirt", 2.4, [(0.0, -57.0), (0.0, -48.0), (1.5, -40.0), (6.0, -33.5), (9.0, -28.5),
+                   (9.0, -24.0), (9.0, -19.5),                      # S kapısı (sağ)
+                   (5.5, -14.0), (0.5, -7.5), (-5.0, -1.5), (-9.0, 1.5),
+                   (-9.0, 6.0), (-9.0, 10.0),                       # M kapısı (sol)
+                   (-5.0, 14.0), (0.5, 18.5), (1.5, 24.0), (0.0, 28.0),
+                   (0.0, 32.0), (0.0, ARENA[1] - ARENA[2] + 0.5)], False),   # L kapısı (orta) → meydan
 ]
-ROAD_HW = 2.6
+PATHS = [{"tex": tex, "hw": hw, "pts": catmull(pts, loop=loop), "loop": loop} for tex, hw, pts, loop in PATH_DEFS]
+# Meydan: dolu daire (zemin) + kenar halkası
+arena_ring = [(ARENA[0] + ARENA[2] * math.cos(a), ARENA[1] + ARENA[2] * math.sin(a)) for a in [i * math.pi / 16 for i in range(32)]]
+PATHS.append({"tex": "Cobble", "hw": 0.9, "pts": catmull(arena_ring, loop=True), "loop": True})
+SEGS = []
+for p in PATHS:
+    pts = p["pts"] + ([p["pts"][0]] if p["loop"] else [])
+    for a, b in zip(pts, pts[1:]):
+        SEGS.append((a[0], a[1], b[0], b[1], p["hw"]))
+ROAD_HW = 2.4
 
 
 def dist_to_roads(x, z):
     best = 1e9
-    for x0, z0, x1, z1, _ in ROADS:
+    for x0, z0, x1, z1, hw in SEGS:
         dx, dz = x1 - x0, z1 - z0
         L2 = dx * dx + dz * dz or 1e-9
         t = max(0.0, min(1.0, ((x - x0) * dx + (z - z0) * dz) / L2))
-        best = min(best, math.hypot(x - (x0 + dx * t), z - (z0 + dz * t)))
+        best = min(best, math.hypot(x - (x0 + dx * t), z - (z0 + dz * t)) - (hw - ROAD_HW))
+    if math.hypot(x - ARENA[0], z - ARENA[1]) < ARENA[2] + 0.5:
+        best = min(best, 0.0)
     return best
 
 
@@ -76,95 +112,178 @@ for z, prefix, gate, gate_w, gate_x, gate_s in LINES:
     put(gate, gate_x, z, 0, s=gate_s)
     take(gate_x, z, gate_w * gate_s / 2 + 0.5)
     half_gap = gate_w * gate_s / 2 - 0.1                     # parçalar kapıya hafif biner: arada boşluk kalmaz
-    hole_x = gate_x + (-6.3 if gate_x > 0 else 6.3)        # kapının yanında kestirme
-    # Kapının iki kenarından dışarı doğru dizilir; son parça oyun alanının dışına taşar (yan duvarla arada boşluk yok).
+    hole_x = gate_x + (-4.3 if gate_x > 0 else 4.3)        # kapının hemen yanında kestirme (krokideki gibi)
     for direction in (-1, 1):
         x = gate_x + direction * half_gap
-        while abs(x) < SIDE + SEG:
+        while abs(x) < SIDE + 0.6:
             cx = x + direction * SEG / 2
             put(prefix + ("Hole" if abs(cx - hole_x) < SEG / 2 else ""), cx, z, 0)
             take(cx, z, 1.2)
             x += direction * SEG
+    if prefix != "B_MedFence":                               # taş ve kale suru: iki uçta kule
+        for sx in (-1, 1):
+            place("B_MedCornerTower", sx * (SIDE + 0.6), z, 0, r=2.0)
     if prefix == "B_MedCastleWall":
         for sx in (-1, 1):
-            put("B_MedCornerTower", sx * (SIDE - 0.5), z, 0)
+            place("P_MedTorchPole", gate_x + sx * 4.2, z - 1.6, 0, r=0.5)
 
-# ---------- yanlar: ağaç sırası (görünmez duvarın dışında, sadece görüntü) ----------
+# ---------- dış sur: yanlar, güney (başlangıç kapısıyla) ve kuzey ----------
+for sx in (-1, 1):
+    zz = -HALF + SEG / 2
+    while zz < HALF:
+        put("B_MedCastleWall", sx * (SIDE + 0.6), zz, 90 if sx > 0 else 270)
+        zz += SEG
+for zz in (-HALF, HALF):
+    x = -SIDE - 0.6 + SEG / 2
+    while x < SIDE + 0.6:
+        if not (zz < 0 and abs(x) < 3.5):            # başlangıçta kemerli boşluk
+            put("B_MedCastleWall", x, zz, 0 if zz > 0 else 180)
+        x += SEG
+    for sx in (-1, 1):
+        put("B_MedCornerTower", sx * (SIDE + 0.6), zz, 0)
+for sx in (-1, 1):
+    put("B_MedCornerTower", sx * 3.6, -HALF, 0, s=0.7)   # başlangıç kapısının kuleleri
+
+# ---------- hendeğin dışı: ağaç sırası (görünmez duvarın dışında, sadece görüntü) ----------
 for sx in (-1, 1):
     zz = -HALF + 1.5
     while zz < HALF - 1:
-        put("P_MedOakTree", sx * (SIDE + rnd.uniform(2.0, 3.2)), zz + rnd.uniform(-0.6, 0.6), rnd.uniform(0, 360))
-        put("P_MedOakTree", sx * (SIDE + rnd.uniform(4.5, 6.5)), zz + 1.5 + rnd.uniform(-0.6, 0.6), rnd.uniform(0, 360))
+        put("P_MedOakTree", sx * (MOAT[1] + rnd.uniform(1.6, 2.6)), zz + rnd.uniform(-0.6, 0.6), rnd.uniform(0, 360))
+        put("P_MedOakTree", sx * (MOAT[1] + rnd.uniform(4.0, 6.0)), zz + 1.5 + rnd.uniform(-0.6, 0.6), rnd.uniform(0, 360))
         zz += 3.0
 
 
-def scatter(meshes, count, z0, z1, r, road_margin=1.2, yaw_any=True, x_lim=SIDE - 1.5, tries=5000):
+def scatter(meshes, count, z0, z1, r, road_margin=1.2, yaw_any=True, x0=-(SIDE - 1.5), x1=SIDE - 1.5, tries=6000):
     placed = 0
     for _ in range(tries):
         if placed >= count:
             break
-        x, z = rnd.uniform(-x_lim, x_lim), rnd.uniform(z0, z1)
+        x, z = rnd.uniform(x0, x1), rnd.uniform(z0, z1)
         if dist_to_roads(x, z) < ROAD_HW + road_margin + r or not free(x, z, r):
             continue
-        if math.hypot(x - START[0], z - START[1]) < 5:
+        if math.hypot(x - START[0], z - START[1]) < 4:
             continue
         put(rnd.choice(meshes), x, z, rnd.uniform(0, 360) if yaw_any else rnd.choice((0, 90, 180, 270)))
         take(x, z, r)
         placed += 1
 
 
-# ---------- köy (güney) ----------
-put("P_MedWindmill", -15.0, -44.0, 20); take(-15.0, -44.0, 3.2)
-put("B_MedChapel", 15.0, -46.0, 270); take(15.0, -46.0, 3.4)
-put("P_MedWaterWell", -4.5, -40.0, 0); take(-4.5, -40.0, 1.0)
-scatter(["B_MedCottage", "B_MedCottage", "B_MedBarn"], 7, -54, -27, 2.8, yaw_any=False)
-scatter(["P_MedHaystack", "P_MedHayBale", "P_MedHayBale", "P_MedScarecrow", "P_MedWagon", "P_MedVegetableCart", "P_MedBarrel"], 40, -55, -26, 0.9)
-scatter(["P_MedOakTree"], 16, -55, -26, 1.3)
-scatter(["P_MedChicken", "P_MedChicken", "P_MedWoodenBucket", "P_MedHayBundle", "P_MedSmallCrate", "P_MedStool", "P_MedFlowerPot"], 60, -55, -26, 0.45, road_margin=0.2)
+def facing_road(x, z):
+    best, yaw = 1e9, 0
+    for a in (0, 90, 180, 270):  # ön yüz en yakın yola
+        fx, fz = -math.sin(math.radians(a)), -math.cos(math.radians(a))
+        d = dist_to_roads(x + fx * 2.5, z + fz * 2.5)
+        if d < best:
+            best, yaw = d, a
+    return yaw
 
-# ---------- kasaba (dar sokaklar) ----------
-TOWN = ["B_MedTownhouse", "B_MedTownhouse", "B_MedNarrowTownhouse", "B_MedNarrowTownhouse", "B_MedTavern",
-        "B_MedBakery", "B_MedBlacksmith"]
-put("P_MedStoneFountain", 0.0, -5.0, 0); take(0.0, -5.0, 3.6)       # meydan
-for mx, mz in ((-3.2, -2.2), (3.2, -2.2), (0.0, -1.0)):
-    put("P_MedMarketStall", mx, mz, 0); take(mx, mz, 1.1)
-STEP = 3.4
-z = -24 + 2.2
-while z < 6 - 2.0:
-    x = -SIDE + 2.0
-    while x < SIDE - 1.8:
-        jx, jz = x + rnd.uniform(-0.2, 0.2), z + rnd.uniform(-0.2, 0.2)
-        if dist_to_roads(jx, jz) > ROAD_HW + 1.2 and free(jx, jz, 1.45) and rnd.random() > 0.12:  # %12 boş: ara sokak
-            best, yaw = 1e9, 0
-            for a in (0, 90, 180, 270):  # ön yüz en yakın caddeye
-                fx, fz = -math.sin(math.radians(a)), -math.cos(math.radians(a))
-                dd = dist_to_roads(jx + fx * 2.0, jz + fz * 2.0)
-                if dd < best:
-                    best, yaw = dd, a
-            put(rnd.choice(TOWN), jx, jz, yaw)
-            take(jx, jz, 1.45)
-        x += STEP
-    z += STEP
+
+def houses(meshes, count, z0, z1, r, tries=8000):
+    """Binalar: yoldan uzak, birbirine değmeden; ön yüz yola."""
+    placed = 0
+    for _ in range(tries):
+        if placed >= count:
+            break
+        x, z = rnd.uniform(-SIDE + r + 0.4, SIDE - r - 0.4), rnd.uniform(z0, z1)
+        if dist_to_roads(x, z) < ROAD_HW + r + 0.3 or not free(x, z, r):
+            continue
+        place(rnd.choice(meshes), x, z, facing_road(x, z), r=r)
+        placed += 1
+
+
+def fence_pen(x0, z0, x1, z1, gap_side=None):
+    """Çit çevrili alan (bahçe, ağıl). Parçalar kenarı boşluksuz kaplar (hafif biner); köşelerde direk.
+    gap_side: 'S'/'N'/'E'/'W' tarafında tek giriş boşluğu."""
+    n = math.ceil((x1 - x0) / SEG)
+    for i in range(n):
+        cx = x0 + (i + 0.5) * (x1 - x0) / n
+        for zz, side in ((z0, "S"), (z1, "N")):
+            if gap_side == side and i == n // 2:
+                continue
+            put("B_MedFence", cx, zz, 0)
+    m = math.ceil((z1 - z0) / SEG)
+    for i in range(m):
+        cz = z0 + (i + 0.5) * (z1 - z0) / m
+        for xx, side in ((x0, "W"), (x1, "E")):
+            if gap_side == side and i == m // 2:
+                continue
+            put("B_MedFence", xx, cz, 90)
+    for cx, cz in ((x0, z0), (x0, z1), (x1, z0), (x1, z1)):
+        put("B_MedFenceCorner", cx, cz, 0)
+    take((x0 + x1) / 2, (z0 + z1) / 2, max(x1 - x0, z1 - z0) / 2 + 0.3)  # içine bina girmesin
+
+
+# ---------- 1. köy (güney, başlangıç) ----------
+for mesh, x, z in (("B_MedCottage", -17.0, -30.0), ("B_MedCottage", -9.5, -30.5), ("B_MedCottage", -17.0, -40.0),
+                   ("B_MedCottage", 7.5, -36.0), ("B_MedBarn", 17.5, -30.5), ("B_MedCottage", -9.0, -47.5),
+                   ("B_MedCottage", 16.5, -50.5)):
+    place(mesh, x, z, facing_road(x, z), r=2.8)
+place("P_MedWaterWell", -11.0, -39.0, 0, r=1.0)
+fence_pen(8.0, -48.0, 15.0, -41.0, gap_side="W")              # sebze bahçesi
+for i in range(3):
+    for j in range(3):
+        put("P_MedTurnip", 9.6 + i * 2.0, -46.4 + j * 2.0, rnd.uniform(0, 360))
+fence_pen(-21.5, -54.0, -14.5, -48.0, gap_side="E")          # tavuk ağılı
+for _ in range(6):
+    put("P_MedChicken", rnd.uniform(-20.5, -15.5), rnd.uniform(-53, -49), rnd.uniform(0, 360))
+houses(["B_MedCottage", "B_MedCottage", "B_MedBarn"], 8, -54, -27, 2.6)
+scatter(["P_MedHaystack", "P_MedHayBale", "P_MedHayBale", "P_MedScarecrow", "P_MedWagon", "P_MedBarrel"], 22, -55, -26, 0.9)
+scatter(["P_MedOakTree"], 10, -55, -26, 1.3)
+scatter(["P_MedChicken", "P_MedChicken", "P_MedWoodenBucket", "P_MedHayBundle", "P_MedSmallCrate", "P_MedStool", "P_MedFlowerPot"], 50, -55, -26, 0.45, road_margin=0.2)
+
+# ---------- 2. tarla + pazar ----------
+place("P_MedWindmill", -16.5, -8.0, 20, r=3.2)
+for i, (x, z) in enumerate(((-20.5, -15.0), (-18.0, -17.5), (-21.0, -19.5))):
+    place("P_MedHaystack", x, z, rnd.uniform(0, 360), r=1.1)
+# ekin tarlası: sıra sıra şalgam + saman demeti (sol alt)
+for i in range(6):                                            # yenebilir ekin sıraları
+    for j in range(8):
+        if rnd.random() < 0.5:                                    # yarısı hasat edilmiş: tarla dolu görünmesin
+            continue
+        put("P_MedTurnip" if i % 2 else "P_MedHayBundle", -15.6 + j * 1.25 + rnd.uniform(-0.1, 0.1), -22.2 + i * 1.3, rnd.uniform(0, 360))
+take(-11.5, -19.0, 4.0)
+place("P_MedMarketStall", -6.5, -8.0, 90, r=1.2)
+place("P_MedMarketStall", 4.0, -9.5, 270, r=1.2)
+place("P_MedMarketStall", -5.0, -12.5, 90, r=1.2)
+place("P_MedVegetableCart", 6.5, -15.5, 30, r=1.2)
+place("P_MedWagon", 2.5, -3.5, 300, r=1.4)
+fence_pen(11.0, -18.0, 21.0, -4.0, gap_side="W")              # meyve bahçesi
+for i in range(3):
+    for j in range(3):
+        put("P_MedOakTree", 13.0 + i * 3.2, -15.5 + j * 4.6, rnd.uniform(0, 360))
+houses(["B_MedBarn", "B_MedCottage", "B_MedStables"], 4, -22, 4, 2.8)
+scatter(["P_MedHayBale", "P_MedHayBale", "P_MedBarrel", "P_MedSmallCrate", "P_MedScarecrow", "P_MedHayBundle"], 26, -23, 5, 0.8)
+scatter(["P_MedChicken", "P_MedWoodenBucket", "P_MedTurnip", "P_MedStool", "P_MedFlowerPot", "P_MedCartWheel"], 50, -23, 5, 0.45, road_margin=0.2)
+
+# ---------- 3. kasaba ----------
+for mesh, x, z in (("B_MedTavern", -14.5, 26.0), ("B_MedChapel", 13.5, 26.5), ("B_MedBlacksmith", 16.0, 17.0),
+                   ("B_MedTownhouse", -20.0, 17.5), ("B_MedTownhouse", -6.0, 25.5), ("B_MedNarrowTownhouse", 6.0, 25.0),
+                   ("B_MedNarrowTownhouse", 7.5, 14.0), ("B_MedTownhouse", -15.0, 11.0), ("B_MedBakery", -20.0, 28.5),
+                   ("B_MedNarrowTownhouse", 20.0, 27.5)):
+    place(mesh, x, z, facing_road(x, z), r=2.6)
+for i in range(3):
+    place("P_MedTrainingDummy", 11.0 + i * 1.8, 9.5, 0, r=0.8)
+place("P_MedMarketStall", 19.0, 10.0, 270, r=1.2)
+place("P_MedWeaponRack", 13.5, 12.5, 0, r=0.9)
+houses(["B_MedTownhouse", "B_MedTownhouse", "B_MedNarrowTownhouse", "B_MedNarrowTownhouse", "B_MedBakery"], 22, 8, 30.5, 1.7)
 scatter(["P_MedBarrel", "P_MedWoodenBucket", "P_MedSmallCrate", "P_MedFlowerPot", "P_MedTorchPole", "P_MedStool",
-         "P_MedHayBundle", "P_MedChicken", "P_MedVegetableCart"], 75, -23, 5, 0.45, road_margin=-1.6)
+         "P_MedHayBundle", "P_MedChicken", "P_MedVegetableCart", "P_MedWoodenMug"], 70, 7.5, 31, 0.45, road_margin=0.0)
 
-# ---------- kale avlusu ----------
-for mesh, x, z, yaw in (("B_MedStables", 12.0, 12.0, 270), ("B_MedBarracks", 12.0, 24.0, 270),
-                        ("B_MedBarracks", -16.0, 26.0, 90)):
-    put(mesh, x, z, yaw); take(x, z, 3.2)
-for i in range(4):
-    put("P_MedTrainingDummy", -18 + i * 1.8, 10.0, 0); take(-18 + i * 1.8, 10.0, 0.8)
-for i in range(4):
-    put("P_MedArcheryTarget", 4 + i * 2.4, 29.0, 180); take(4 + i * 2.4, 29.0, 1.0)
-put("P_MedWeaponRack", -4.0, 18.0, 0); take(-4.0, 18.0, 1.0)
-scatter(["P_MedBarrel", "P_MedHayBale", "P_MedSmallCrate", "P_MedTorchPole", "P_MedWagon", "P_MedWoodenBucket",
-         "P_MedStool", "P_MedHayBundle", "P_MedTrainingDummy"], 55, 7.5, 31, 0.6, road_margin=0.4)
+# ---------- 4. burç + ejderha meydanı ----------
+place("B_MedCastleKeep", KEEP[0], KEEP[1], 0, r=5.0)
+take(ARENA[0], ARENA[1], ARENA[2])                            # meydan boş: ejderha savaşı
+for a in range(0, 360, 90):                                   # meydanın köşelerinde meşale
+    ax, az = ARENA[0] + (ARENA[2] + 0.9) * math.cos(math.radians(a + 45)), ARENA[1] + (ARENA[2] + 0.9) * math.sin(math.radians(a + 45))
+    place("P_MedTorchPole", ax, az, 0, r=0.4)
+for i in range(3):
+    place("P_MedArcheryTarget", -19.0 + i * 2.6, 40.0, 180, r=1.0)
+place("B_MedBarracks", -15.0, 49.0, 90, r=3.2)
+place("B_MedStables", 15.5, 40.5, 270, r=3.2)
+place("P_MedWeaponRack", 9.0, 47.0, 0, r=0.9)
+place("P_MedWeaponRack", 11.0, 47.0, 0, r=0.9)
+houses(["B_MedBarracks", "B_MedStables"], 3, 35, 54, 3.0)
+scatter(["P_MedBarrel", "P_MedSmallCrate", "P_MedWoodenBucket", "P_MedHayBale", "P_MedTorchPole"], 26, 34, 54, 0.6, road_margin=0.4)
 
-# ---------- burç (kuzey) ----------
-put("B_MedCastleKeep", KEEP[0], KEEP[1], 0); take(KEEP[0], KEEP[1], 5.0)
-for sx in (-1, 1):
-    put("P_MedTorchPole", sx * 4.0, 38.5, 0)
-scatter(["P_MedBarrel", "P_MedTorchPole", "P_MedSmallCrate", "P_MedWoodenBucket", "P_MedHayBale"], 28, 34, 54, 0.6, road_margin=0.4)
 
 # ---------- zemin süsleri (D_: yenmez, çarpışmasız) ----------
 def decor(meshes, count, z0, z1, x_lim=SIDE - 0.6, road_min=None, road_max=None, tries=20000):
@@ -178,40 +297,40 @@ def decor(meshes, count, z0, z1, x_lim=SIDE - 0.6, road_min=None, road_max=None,
             continue
         if road_max is not None and d > road_max:
             continue
-        if not free(x, z, 0.35):               # binaların ve eşyaların üstüne gelmesin (alan almaz)
+        if not free(x, z, 0.35):
             continue
-        put(rnd.choice(meshes), x, z, rnd.uniform(0, 360))
+        mesh = rnd.choice(meshes)
+        # Çiçekler yenir: belli olsun diye büyük, kümeler halinde (Bahar: "aşırı küçükler")
+        put(mesh, x, z, rnd.uniform(0, 360), s=2.2 if mesh.startswith("D_MedFlowers") else 1.0)
         placed += 1
 
 
 GRASS = ["D_MedGrassTuft"]
 FLOWERS = ["D_MedFlowersWhite", "D_MedFlowersWhite", "D_MedFlowersYellow", "D_MedFlowersRed"]
-decor(GRASS, 240, -HALF + 1, -25.5, road_min=ROAD_HW + 0.3)                       # köy çimeni
-decor(FLOWERS, 120, -HALF + 1, -25.5, road_min=ROAD_HW + 0.6)
-decor(["D_MedBushLow"], 40, -HALF + 1, -25.5, road_min=ROAD_HW + 1.0)
-decor(["D_MedPebbles", "D_MedGrassTuft"], 70, -HALF + 1, -25.0, road_min=ROAD_HW - 0.4, road_max=ROAD_HW + 0.5)  # yol kenarı
-decor(["D_MedGrassTuft", "D_MedPebbles"], 60, -23.0, 5.0, road_min=ROAD_HW + 0.5)    # kasaba: duvar ve ev dipleri
-decor(["D_MedGrassTuft", "D_MedGrassTuft", "D_MedPebbles", "D_MedBushLow"], 80, 7.5, 31.0, road_min=ROAD_HW + 0.4)  # avlu
+decor(GRASS, 200, -HALF + 1, -25.5, road_min=ROAD_HW + 0.3)                       # köy çimeni
+decor(FLOWERS, 55, -HALF + 1, -25.5, road_min=ROAD_HW + 0.8)
+decor(GRASS, 160, -23.0, 5.0, road_min=ROAD_HW + 0.3)                             # tarla çimeni
+decor(FLOWERS, 35, -23.0, 5.0, road_min=ROAD_HW + 0.8)
+decor(["D_MedPebbles", "D_MedGrassTuft"], 90, -HALF + 1, 5.0, road_min=ROAD_HW - 0.4, road_max=ROAD_HW + 0.5)  # toprak yol kenarı
+decor(["D_MedGrassTuft", "D_MedPebbles"], 50, 7.5, 31.0, road_min=ROAD_HW + 0.5)    # kasaba: duvar ve ev dipleri
 decor(["D_MedGrassTuft", "D_MedPebbles"], 30, 33.5, HALF - 1, road_min=ROAD_HW + 0.4)
-for sx in (-1, 1):                                                                   # yan ağaç sırasının dibi
-    decor(GRASS + FLOWERS, 40, -HALF + 1, HALF - 1, x_lim=SIDE + 6)
 
-# ---------- zemin: dokulu düzlemler (üst üste, sonraki üstte) ----------
+# ---------- zemin: dokulu düzlemler (üst üste, sonraki üstte) + yol şeritleri ----------
 GROUND = [
-    {"tex": "Grass", "x0": -HALF, "z0": -HALF, "x1": HALF, "z1": HALF},
-    {"tex": "Cobble", "x0": -SIDE, "z0": -24.0, "x1": SIDE, "z1": 6.0},
-    {"tex": "Flagstone", "x0": -SIDE, "z0": 6.0, "x1": SIDE, "z1": HALF},
+    {"tex": "Grass", "x0": -HALF - 10, "z0": -HALF - 6, "x1": HALF + 10, "z1": HALF + 6},
+    {"tex": "Dirt", "x0": -16.5, "z0": -23.0, "x1": -6.5, "z1": -14.5},              # ekin tarlasının toprağı
+    {"tex": "Cobble", "x0": -SIDE, "z0": 6.0, "x1": SIDE, "z1": 32.0},               # kasaba
+    {"tex": "Flagstone", "x0": -SIDE, "z0": 32.0, "x1": SIDE, "z1": HALF},           # burç avlusu
 ]
-for x0, z0, x1, z1, hw in ROADS[:3]:  # köy toprak yolu: düz kısım tek kutu, çapraz kısım adım adım küçük kutular
-    if x0 == x1 or z0 == z1:
-        GROUND.append({"tex": "Dirt", "x0": min(x0, x1) - hw, "z0": min(z0, z1) - hw, "x1": max(x0, x1) + hw, "z1": min(max(z0, z1) + hw, LINES[0][0])})  # çitin ötesine taşmasın
-        continue
-    n = int(math.hypot(x1 - x0, z1 - z0) / 1.2) + 1
-    for k in range(n + 1):
-        cx, cz = x0 + (x1 - x0) * k / n, z0 + (z1 - z0) * k / n
-        GROUND.append({"tex": "Dirt", "x0": cx - hw, "z0": cz - hw, "x1": cx + hw, "z1": cz + hw})
+for sx in (-1, 1):                                                                  # hendek
+    GROUND.append({"tex": "Water", "x0": min(sx * MOAT[0], sx * MOAT[1]), "z0": -HALF - 4,
+                   "x1": max(sx * MOAT[0], sx * MOAT[1]), "z1": HALF + 4})
+DISCS = [{"tex": "Flagstone", "x": ARENA[0], "z": ARENA[1], "r": ARENA[2]}]          # ejderha meydanı
 
-meta = {"ground": GROUND, "zLines": [l[0] for l in LINES], "side": SIDE, "half": HALF, "start": list(START), "keep": list(KEEP)}
+meta = {"ground": GROUND, "paths": [{"tex": p["tex"], "hw": p["hw"], "loop": p["loop"],
+                                     "pts": [c for xz in p["pts"] for c in xz]} for p in PATHS],
+        "discs": DISCS, "zLines": [l[0] for l in LINES], "side": SIDE, "half": HALF,
+        "start": list(START), "keep": list(KEEP)}
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 with open(OUT, "w", encoding="utf-8") as f:
     json.dump({"meta": meta, "items": items}, f, ensure_ascii=False, indent=0)
@@ -219,4 +338,4 @@ counts = {}
 for it in items:
     counts[it["mesh"]] = counts.get(it["mesh"], 0) + 1
 print("yazıldı:", OUT, "obje:", len(items))
-print(sorted(counts.items(), key=lambda kv: -kv[1])[:14])
+print(sorted(counts.items(), key=lambda kv: -kv[1])[:16])

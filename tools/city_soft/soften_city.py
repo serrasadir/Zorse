@@ -9,6 +9,7 @@ import glob
 import os
 import sys
 
+import bmesh
 import bpy
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -19,7 +20,9 @@ import build_medieval as core  # bake_ao
 ART = os.path.join(ROOT, "Assets", "_Project", "Art", "City")
 FOLDERS = [ART, os.path.join(ART, "Kit2"), os.path.join(ART, "People")]
 # önek → kenar yuvarlatma genişliği (oyun birimi; şehir kiti oyun boyunda)
-WIDTH = {"B_": 0.04, "W_": 0.04, "P_": 0.02, "V_": 0.025, "C_": 0.015, "H_": 0.012}
+WIDTH = {"B_": 0.08, "W_": 0.08, "P_": 0.04, "V_": 0.09, "C_": 0.03, "H_": 0.02}
+# Arabalar küçük (1×2): ince pah görünmüyordu (Bahar: "arabalar soft olmamış") → geniş, iki kademe yuvarlak
+SEGMENTS = {"V_": 2}
 
 
 def files(only):
@@ -48,16 +51,23 @@ def soften_file(path, write):
     if any(o.data.color_attributes.get("Col") is not None for o in meshes):
         return "zaten soft"  # tekrar çalıştırmak güvenli: yuvarlatma iki kez uygulanmaz
     before = [tuple(round(v, 3) for v in o.dimensions) for o in meshes]
-    width = WIDTH[os.path.basename(path)[:2]]
+    prefix = os.path.basename(path)[:2]
+    width = WIDTH[prefix]
     for o in meshes:
         bpy.ops.object.select_all(action="DESELECT")
         bpy.context.view_layer.objects.active = o
         o.select_set(True)
         # Uygulanmış ölçek modifier'ı bozmasın: genişlik nesne ölçeğine bölünür
         s = max(1e-4, max(abs(o.scale.x), abs(o.scale.y), abs(o.scale.z)))
+        # Şehir FBX'lerinde her yüz ayrı (köşeler paylaşılmıyor): birleştirmeden yuvarlatılacak kenar bulunamıyordu.
+        bm = bmesh.new()
+        bm.from_mesh(o.data)
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-4)
+        bm.to_mesh(o.data)
+        bm.free()
         m = o.modifiers.new("Bevel", "BEVEL")
         m.width = width / s
-        m.segments = 1
+        m.segments = SEGMENTS.get(prefix, 1)
         m.limit_method = "ANGLE"
         m.angle_limit = 0.9
         w = o.modifiers.new("WN", "WEIGHTED_NORMAL")

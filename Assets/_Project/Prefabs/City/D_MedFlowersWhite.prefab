@@ -9,7 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4922494775258075575}
-  m_Layer: 0
+  - component: {fileID: 1414522807954006477}
+  - component: {fileID: 1164724465235285802}
+  m_Layer: 9
   m_Name: D_MedFlowersWhite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -32,6 +34,43 @@ Transform:
   - {fileID: 6133191443617214178}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1414522807954006477
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3762196400059869983}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.24018578, y: 0.17992629, z: 0.22593942}
+  m_Center: {x: 0.032668717, y: 0.08314799, z: 0.037723873}
+--- !u!114 &1164724465235285802
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3762196400059869983}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3a26c56a5c3d4f6ca75de844150b607, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.CityConsumable
+  _data: {fileID: 11400000, guid: 2521ac564959dea4190151973d2cb619, type: 2}
+  _obstacle: {fileID: 0}
+  _eatZone: {fileID: 0}
+  _slurpMesh: {fileID: 753819580086585620, guid: ad68b343ebfa45d4092d00e43cf6f4e0, type: 3}
 --- !u!1 &7153685917046139540
 GameObject:
   m_ObjectHideFlags: 0

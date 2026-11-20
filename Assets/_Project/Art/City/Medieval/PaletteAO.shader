@@ -8,7 +8,6 @@ Shader "BlobSurvivor/PaletteAO"
         _BaseMap ("Base Map", 2D) = "white" {}
         _BaseColor ("Base Color", Color) = (1, 1, 1, 1)
         _AOStrength ("Köşe karartması", Range(0, 1)) = 1
-        _GlowAmount ("Gece parlaması (pencere, ateş)", Range(0, 2)) = 0
     }
 
     SubShader
@@ -25,9 +24,7 @@ Shader "BlobSurvivor/PaletteAO"
             float4 _BaseMap_ST;
             half4 _BaseColor;
             half _AOStrength;
-            half _GlowAmount;
         CBUFFER_END
-        float _NightGlow; // DayNightCycle: 0 gündüz, 1 gece
         ENDHLSL
 
         Pass
@@ -88,10 +85,6 @@ Shader "BlobSurvivor/PaletteAO"
                 half3 direct = sun.color * (ndl * sun.shadowAttenuation * sun.distanceAttenuation);
                 half3 ambient = SampleSH(n);
                 half3 c = albedo * (direct + ambient * ao) * lerp(1.0h, ao, 0.5h); // karartma en çok gölgede okunur
-                // Gece: palet hücresi pencere sarısı ya da ateş turuncusu olan yüzler kendi ışığıyla parlar.
-                half win = 1.0h - saturate(distance(albedo, half3(0.977h, 0.638h, 0.119h)) * 14.0h); // doğrusal renk uzayı
-                half fire = 1.0h - saturate(distance(albedo, half3(1.0h, 0.263h, 0.019h)) * 14.0h);
-                c += albedo * saturate(win + fire) * (_NightGlow * _GlowAmount);
                 return half4(MixFog(c, i.fog), 1.0h);
             }
             ENDHLSL

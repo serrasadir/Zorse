@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PedestrianData_MedMale
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.PedestrianData
   _displayName: "K\xF6yl\xFC Male"
-  _prefab: {fileID: 209580712890757938, guid: fa8238ff4761aff42948c42af2fe59e2, type: 3}
+  _prefab: {fileID: 209580712890757938, guid: aab24ff91558bae45913d444bdf84cfd, type: 3}
   _scoreValue: 5
   _massValue: 1
   _requiredTier: 2

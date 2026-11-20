@@ -37,8 +37,26 @@ namespace BlobSurvivor.EditorTools
         }
 
         [Serializable]
+        private class GroundPath
+        {
+            public string tex;
+            public float hw;
+            public bool loop;
+            public float[] pts;   // x0, z0, x1, z1, ... (yumuşatılmış eğri, build_castle_layout.py)
+        }
+
+        [Serializable]
+        private class GroundDisc
+        {
+            public string tex;
+            public float x, z, r;
+        }
+
+        [Serializable]
         private class Meta
         {
+            public GroundPath[] paths = null;
+            public GroundDisc[] discs = null;
             public float half = 60f;
             public float[] start = null;
             public GroundRect[] ground = null;
@@ -49,6 +67,8 @@ namespace BlobSurvivor.EditorTools
 
         private const string TextureFolder = "Assets/_Project/Art/City/Textures";
         private const string SidewalkMaterial = TextureFolder + "/Mat_Sidewalk.mat";
+        // Toprak dokusu turuncu blob'la karışıyordu (Bahar): koyu, kahverengiye çekilir.
+        private static readonly Color DirtTint = new Color(0.5f, 0.44f, 0.4f);
         private const float GroundTile = 4f;     // bir doku tekrarı = 4×4 birim
         private const float GroundStep = 0.003f; // üst üste binen zeminler arası (z-fighting); temas gölgesi hepsinin üstünde
 
@@ -87,7 +107,8 @@ namespace BlobSurvivor.EditorTools
                 GameObject prefab = CityKitPipeline.BuildPrefab(new CityKitPipeline.CityItem { mesh = item.mesh, sx = 1f, sy = 1f, sz = 1f }, palette);
                 if (prefab == null) { Debug.LogError($"[CastleScene] {item.mesh} prefab'ı kurulamadı."); return; }
                 if (IsRingWall(item.mesh)) prefab = SetupRingWall(prefab);
-                if (item.mesh.StartsWith("B_") || item.mesh.StartsWith("P_")) AddContactShadow(prefab);
+                if (item.mesh.StartsWith("B_MedFence") && item.mesh != "B_MedFenceGate") prefab = MakeInedible(prefab); // çitler yenmez: bölgeden kapıdan geçilir
+                if ((item.mesh.StartsWith("B_") || item.mesh.StartsWith("P_")) && item.mesh != "P_MedChicken") AddContactShadow(prefab); // tavuk gezinir
                 prefabs.Add(item.mesh, prefab);
             }
             AssetDatabase.SaveAssets();
@@ -109,7 +130,7 @@ namespace BlobSurvivor.EditorTools
             }
             BuildSideBounds(root.transform, meta.side, meta.half);
 
-            if (layout.meta != null && layout.meta.ground != null) BuildGround(root.transform, layout.meta.ground);
+            if (layout.meta != null && layout.meta.ground != null) BuildGround(root.transform, layout.meta);
             float half = layout.meta != null ? layout.meta.half : 60f;
             CityExpansion.BuildBounds(root.transform, half); // MapBounds "CityBounds"ı adla bulur
 
@@ -244,6 +265,28 @@ namespace BlobSurvivor.EditorTools
                     plugBox.center = new Vector3(0f, 1f, body.center.z);
                     plugBox.size = new Vector3(HoleGap + 0.1f, 2f, body.size.z);
                 }
+                return PrefabUtility.SaveAsPrefabAsset(root, path);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
+        // Yenmeyen engel (Bahar: çitler yenmesin): yeme bileşeni kalkar, kök Environment katmanında katı kutu.
+        // Fare delikli parçanın ortadaki boşluğu (SplitBox) korunur: en küçük blob yine geçer.
+        private static GameObject MakeInedible(GameObject prefab)
+        {
+            string path = AssetDatabase.GetAssetPath(prefab);
+            GameObject root = PrefabUtility.LoadPrefabContents(path);
+            try
+            {
+                var consumable = root.GetComponent<CityConsumable>();
+                if (consumable != null) UnityEngine.Object.DestroyImmediate(consumable);
+                Transform zone = root.transform.Find(CityConsumable.EatZoneName);
+                if (zone != null) UnityEngine.Object.DestroyImmediate(zone.gameObject);
+                root.layer = LayerMask.NameToLayer("Environment");
+                foreach (BoxCollider box in root.GetComponents<BoxCollider>()) box.isTrigger = false;
                 return PrefabUtility.SaveAsPrefabAsset(root, path);
             }
             finally
@@ -494,28 +537,105 @@ namespace BlobSurvivor.EditorTools
         }
 
         // Dokulu düzlemler (çarpışmasız; yürünen zemin sahnedeki 'Ground' collider'ı). Mesh ve materyaller asset olarak.
-        private static void BuildGround(Transform root, GroundRect[] rects)
+        // Sıra: dikdörtgenler, daireler (meydan), yol şeritleri; her katman bir öncekinin hafif üstünde (z-fighting).
+        private static void BuildGround(Transform root, Meta meta)
         {
             var parent = new GameObject("Ground_Medieval").transform;
             parent.SetParent(root, false);
+            GroundRect[] rects = meta.ground;
+            int layer = 0;
             for (int i = 0; i < rects.Length; i++)
+                AddGroundObject(parent, rects[i].tex, GroundMesh(i, rects[i], ++layer * GroundStep));
+            if (meta.discs != null)
+                for (int i = 0; i < meta.discs.Length; i++)
+                    AddGroundObject(parent, meta.discs[i].tex, DiscMesh(i, meta.discs[i], ++layer * GroundStep));
+            if (meta.paths != null)
+                for (int i = 0; i < meta.paths.Length; i++)
+                    AddGroundObject(parent, meta.paths[i].tex, PathMesh(i, meta.paths[i], ++layer * GroundStep));
+        }
+
+        private static void AddGroundObject(Transform parent, string tex, Mesh mesh)
+        {
+            Material mat = GroundMaterial(tex);
+            if (mat == null || mesh == null) return;
+            var go = new GameObject("Ground_" + tex);
+            go.transform.SetParent(parent, false);
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var mr = go.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = mat;
+            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+            if (tex == "Water" && go.GetComponent<BlobSurvivor.Core.WaterScroll>() == null) go.AddComponent<BlobSurvivor.Core.WaterScroll>();
+        }
+
+        // Yol: eğri boyunca şerit (her noktada yola dik iki köşe). UV dünya koordinatından: doku dikişsiz, gerilmez.
+        private static Mesh PathMesh(int index, GroundPath p, float y)
+        {
+            int n = p.pts.Length / 2;
+            if (n < 2) return null;
+            var verts = new Vector3[n * 2];
+            var uv = new Vector2[n * 2];
+            for (int i = 0; i < n; i++)
             {
-                GroundRect r = rects[i];
-                Material mat = GroundMaterial(r.tex);
-                if (mat == null) continue;
-                Mesh mesh = GroundMesh(i, r, (i + 1) * GroundStep);
-                var go = new GameObject("Ground_" + r.tex);
-                go.transform.SetParent(parent, false);
-                go.AddComponent<MeshFilter>().sharedMesh = mesh;
-                var mr = go.AddComponent<MeshRenderer>();
-                mr.sharedMaterial = mat;
-                mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+                Vector2 c = new Vector2(p.pts[i * 2], p.pts[i * 2 + 1]);
+                int a = p.loop ? (i - 1 + n) % n : Mathf.Max(i - 1, 0);
+                int b = p.loop ? (i + 1) % n : Mathf.Min(i + 1, n - 1);
+                Vector2 dir = new Vector2(p.pts[b * 2] - p.pts[a * 2], p.pts[b * 2 + 1] - p.pts[a * 2 + 1]).normalized;
+                Vector2 side = new Vector2(-dir.y, dir.x) * p.hw;
+                Vector2 l = c + side, r = c - side;
+                verts[i * 2] = new Vector3(l.x, y, l.y);
+                verts[i * 2 + 1] = new Vector3(r.x, y, r.y);
+                uv[i * 2] = l / GroundTile;
+                uv[i * 2 + 1] = r / GroundTile;
             }
+            int segs = p.loop ? n : n - 1;
+            var tris = new int[segs * 6];
+            for (int i = 0; i < segs; i++)
+            {
+                int j = (i + 1) % n, t = i * 6;
+                // üstten bakınca saat yönü (Unity ön yüz): sol-i, sol-j, sağ-j / sol-i, sağ-j, sağ-i
+                tris[t] = i * 2; tris[t + 1] = j * 2; tris[t + 2] = j * 2 + 1;
+                tris[t + 3] = i * 2; tris[t + 4] = j * 2 + 1; tris[t + 5] = i * 2 + 1;
+            }
+            return SaveGroundMesh($"PathMesh_{index}", verts, uv, tris);
+        }
+
+        private static Mesh DiscMesh(int index, GroundDisc d, float y)
+        {
+            const int n = 48;
+            var verts = new Vector3[n + 1];
+            var uv = new Vector2[n + 1];
+            verts[0] = new Vector3(d.x, y, d.z);
+            uv[0] = new Vector2(d.x, d.z) / GroundTile;
+            for (int i = 0; i < n; i++)
+            {
+                float a = i * Mathf.PI * 2f / n;
+                var v = new Vector2(d.x + Mathf.Cos(a) * d.r, d.z + Mathf.Sin(a) * d.r);
+                verts[i + 1] = new Vector3(v.x, y, v.y);
+                uv[i + 1] = v / GroundTile;
+            }
+            var tris = new int[n * 3];
+            for (int i = 0; i < n; i++)
+            {
+                tris[i * 3] = 0; tris[i * 3 + 1] = 1 + (i + 1) % n; tris[i * 3 + 2] = 1 + i; // saat yönü (üstten)
+            }
+            return SaveGroundMesh($"DiscMesh_{index}", verts, uv, tris);
+        }
+
+        private static Mesh SaveGroundMesh(string name, Vector3[] verts, Vector2[] uv, int[] tris)
+        {
+            string path = $"{CityKitPipeline.MedievalRoot}/{name}.asset";
+            var mesh = new Mesh { name = name, vertices = verts, uv = uv, triangles = tris };
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            AssetDatabase.DeleteAsset(path);
+            AssetDatabase.CreateAsset(mesh, path);
+            return mesh;
         }
 
         private static Material GroundMaterial(string tex)
         {
+            if (tex == "Water") return AssetDatabase.LoadAssetAtPath<Material>(TextureFolder + "/Mat_Water.mat"); // hendek: şehir kıyısının suyu
             string path = $"{CityKitPipeline.MedievalRoot}/Mat_Ground{tex}.mat";
             Material mat = AssetDatabase.LoadAssetAtPath<Material>(path);
             Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>($"{TextureFolder}/Med_{tex}.png");
@@ -528,7 +648,7 @@ namespace BlobSurvivor.EditorTools
             }
             mat.SetTexture("_BaseMap", texture);
             mat.SetTextureScale("_BaseMap", Vector2.one);
-            mat.SetColor("_BaseColor", Color.white);
+            mat.SetColor("_BaseColor", tex == "Dirt" ? DirtTint : Color.white);
             EditorUtility.SetDirty(mat);
             return mat;
         }

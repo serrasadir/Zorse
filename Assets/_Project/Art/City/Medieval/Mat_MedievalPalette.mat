@@ -59,7 +59,6 @@ Material:
     m_Ints: []
     m_Floats:
     - _AOStrength: 1
-    - _GlowAmount: 1.4
     - _AddPrecomputedVelocity: 0
     - _AlphaClip: 0
     - _AlphaToMask: 0

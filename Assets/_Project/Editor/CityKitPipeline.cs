@@ -941,7 +941,6 @@ namespace BlobSurvivor.EditorTools
             if (ao != null && material.shader != ao) material.shader = ao;
             if (texture != null) material.SetTexture("_BaseMap", texture);
             material.SetColor("_BaseColor", Color.white);
-            material.SetFloat("_GlowAmount", 1.4f); // gece pencereler ve meşaleler parlar (DayNightCycle)
             EditorUtility.SetDirty(material);
             return material;
         }
@@ -1124,13 +1123,15 @@ namespace BlobSurvivor.EditorTools
             if (!IsKit2(item.mesh) && (bounds.size - expected).magnitude > expected.magnitude * 0.1f)
                 Debug.LogWarning($"[CityKitPipeline] {item.mesh}: boyut {bounds.size}, beklenen {expected}. Eksen/ölçek hatalı olabilir.");
 
-            const StaticEditorFlags staticFlags = StaticEditorFlags.BatchingStatic;
+            // Kale tavukları gezinir (ChickenWander): static olamaz, yürüyüş engeli almaz.
+            bool walker = item.mesh == "P_MedChicken";
+            StaticEditorFlags staticFlags = walker ? 0 : StaticEditorFlags.BatchingStatic;
             GameObjectUtility.SetStaticEditorFlags(root, staticFlags);
             GameObjectUtility.SetStaticEditorFlags(renderer.gameObject, staticFlags);
 
             string prefabPath = $"{PrefabRoot}/{item.mesh}.prefab";
-            // L_ zemin, D_ kale haritasının zemin süsü (çimen, çiçek, çakıl): yenmez, çarpışmasız, gölgesiz.
-            bool isGround = item.mesh.StartsWith("L_") || item.mesh.StartsWith("D_");
+            // L_ zemin, D_ kale haritasının zemin süsü (çimen, çakıl): yenmez, çarpışmasız, gölgesiz. Çiçekler yenir.
+            bool isGround = item.mesh.StartsWith("L_") || (item.mesh.StartsWith("D_") && !item.mesh.StartsWith("D_MedFlowers"));
             if (item.mesh.StartsWith("D_")) renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             ConsumableData data = isGround ? null : GetConsumableData(item.mesh, root.transform);
             if (!isGround)
@@ -1152,6 +1153,8 @@ namespace BlobSurvivor.EditorTools
                     so.FindProperty("_obstacle").objectReferenceValue = AddObstacle(root, colliderBounds);
                     ApplyNavBlocker(root, colliderBounds);
                 }
+                else if (walker)
+                    root.AddComponent<ChickenWander>();
                 else if (item.mesh.StartsWith("P_"))
                 {
                     ApplyNavBlocker(root, colliderBounds, humanoidOnly: true);

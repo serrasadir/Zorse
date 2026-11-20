@@ -107,7 +107,6 @@ namespace BlobSurvivor.Core
                 if (spawner != null) Debug.Log("[DevCheats] " + spawner.DebugSpawnSpecialTypes());
             }
 
-            if (keyboard.iKey.wasPressedThisFrame) DayNightCycle.Instance?.DebugAdvance(180f); // gün 3 dk ileri
             if (keyboard.tKey.wasPressedThisFrame && _growth != null)
                 FerrisWheelForm.Begin(_growth.gameObject);
 
