@@ -14,7 +14,7 @@ namespace BlobSurvivor.Systems.Meta
 
         private BlobHealth _health;
         private int _lowHealthSeconds; // bu run'da can %25 altında geçen sn
-        private int _carsEaten, _policeEaten;
+        private int _carsEaten, _policeEaten, _eaten;
         private int _lastReportedSecond = -1;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -40,6 +40,8 @@ namespace BlobSurvivor.Systems.Meta
             GameEvents.OnSurvivalTimeUpdated += OnSurvivalTime;
             GameEvents.OnEnemyDefeated += OnEnemyDefeated;
             GameEvents.OnFinalBossConsumed += OnFinalBossConsumed;
+            GameEvents.OnCoinsChanged += OnCoinsChanged;
+            GameEvents.OnBlobAte += OnBlobAte;
         }
 
         private void OnDisable()
@@ -50,6 +52,8 @@ namespace BlobSurvivor.Systems.Meta
             GameEvents.OnSurvivalTimeUpdated -= OnSurvivalTime;
             GameEvents.OnEnemyDefeated -= OnEnemyDefeated;
             GameEvents.OnFinalBossConsumed -= OnFinalBossConsumed;
+            GameEvents.OnCoinsChanged -= OnCoinsChanged;
+            GameEvents.OnBlobAte -= OnBlobAte;
         }
 
         private void OnDestroy()
@@ -63,6 +67,7 @@ namespace BlobSurvivor.Systems.Meta
         {
             _carsEaten = 0;
             _policeEaten = 0;
+            _eaten = 0;
             _lowHealthSeconds = 0;
             _lastReportedSecond = -1;
         }
@@ -104,6 +109,11 @@ namespace BlobSurvivor.Systems.Meta
             }
             else Meta.AddStat(UnlockStat.PoliceKillsTotal, 1);
         }
+
+        // Run'ın coin toplamı (ScoreSystem run başında sıfırlar).
+        private void OnCoinsChanged(int total) => Meta?.ReportStat(UnlockStat.CoinsInRun, total);
+
+        private void OnBlobAte(BlobTier _) => Meta?.ReportStat(UnlockStat.EatenInRun, ++_eaten);
 
         private void OnFinalBossConsumed() => Meta?.ReportStat(UnlockStat.FinalBossEaten, 1);
 

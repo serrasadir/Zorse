@@ -72,6 +72,8 @@ namespace BlobSurvivor.Systems.Meta
         TankKills,         // yenilen tank (toplam)
         PoliceEatenInRun,  // bir run'da yutulan polis (en iyi)
         FinalBossEaten,    // helikopter yutuldu (1)
+        CoinsInRun,        // bir run'da toplanan coin (en iyi)
+        EatenInRun,        // bir run'da yenen her şey (en iyi; yaya ve düşman dahil)
     }
 
     public static class SkillUnlocks
@@ -90,6 +92,8 @@ namespace BlobSurvivor.Systems.Meta
         {
             new Entry { Id = "kaygan_zemin", Stat = UnlockStat.SurviveSeconds, Target = 300, Text = "Bir run'da 5 dakika hayatta kal" },
             new Entry { Id = "geri_donusum", Stat = UnlockStat.CarsEatenInRun, Target = 5, Text = "Bir run'da 5 araba ye" },
+            new Entry { Id = "cop_firlatma", Stat = UnlockStat.EatenInRun, Target = 200, Text = "Bir run'da 200 şey ye" },
+            new Entry { Id = "nal", Stat = UnlockStat.CoinsInRun, Target = 150, Text = "Bir run'da 150 coin topla" },
             new Entry { Id = "hizli_metabolizma", Stat = UnlockStat.ReachedLarge, Target = 1, Text = "Büyük boya ulaş" },
             new Entry { Id = "sindirim_gazi", Stat = UnlockStat.PoliceEatenInRun, Target = 10, Text = "Bir run'da 10 polis yut" },
             new Entry { Id = "yara_ofkesi", Stat = UnlockStat.LowHealthSeconds, Target = 15, Text = "Bir run'da canın %25'in altındayken 15 sn dayan" },

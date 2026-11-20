@@ -239,12 +239,14 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 
 Market üç sekme: **KARAKTERLER**, **GÜÇLER** (kategorili, kaydırmalı: Savunma · Büyüme ve Yeme · Ekonomi · Zorluk, en altta Sıfırla) ve **KİLİTLER** (oynayarak açılan skiller: koşul + ilerleme çubuğu; altında başlangıç skilleri).
 
-**Skill kilitleri (VS gibi, coin'le değil oynayarak):** başlangıçta 8 skill açık (Sopa, Havai Fişek, Vakum, Zırh, Sindirim, Hız, Can Artışı, Rejenerasyon); diğerleri koşul gerçekleşince kart havuzuna girer (ilk 1–2 run basit skill'lerle geçer, stratejik olanlar normal oynarken ~2.–8. run arasında açılır; evrim eşlerinin çoğu bunlar, evrimler de böylece sonradan gelir), o an **YENİ SKİLL! · <ad> açıldı** bandı çıkar. Karakterin başlangıç ve favori skill'i o karakterle kilitli olsa da çıkar. İlerleme kayıtta (`unlockStats`), sayan `UnlockTracker`; koşullar `SkillUnlocks` (`Systems/Meta/PowerUps.cs`).
+**Skill kilitleri (VS gibi, coin'le değil oynayarak):** başlangıçta 8 skill açık (Sopa, Havai Fişek, Vakum, Zırh, Sindirim, Hız, Can Artışı, Rejenerasyon); karakter silahları (Nal Bumerangı, Çöp Fırlatma) kendi karakterinde hep açık, diğer karakterlerin kart havuzuna koşulla girer; diğerleri koşul gerçekleşince kart havuzuna girer (ilk 1–2 run basit skill'lerle geçer, stratejik olanlar normal oynarken ~2.–8. run arasında açılır; evrim eşlerinin çoğu bunlar, evrimler de böylece sonradan gelir), o an **YENİ SKİLL! · <ad> açıldı** bandı çıkar. Karakterin başlangıç ve favori skill'i o karakterle kilitli olsa da çıkar. İlerleme kayıtta (`unlockStats`), sayan `UnlockTracker`; koşullar `SkillUnlocks` (`Systems/Meta/PowerUps.cs`).
 
 | Skill | Açılma koşulu |
 |---|---|
 | Kaygan Zemin | Bir run'da 5 dakika hayatta kal |
 | Geri Dönüşüm | Bir run'da 5 (hareketli) araba ye |
+| Çöp Fırlatma | Bir run'da 200 şey ye (yaya ve düşman dahil) |
+| Nal Bumerangı | Bir run'da 150 coin topla |
 | Hızlı Metabolizma | Büyük (Large) boya ulaş |
 | Sindirim Gazı | Bir run'da 10 polis yut |
 | Yara Öfkesi | Bir run'da canın %25'in altındayken 15 sn dayan |
