@@ -366,8 +366,9 @@ namespace BlobSurvivor.EditorTools
         private static void BakeWeapons(Material med, System.Text.StringBuilder log)
         {
             string matPath = WeaponFolder + "/Mat_MedWeapon.mat";
-            if (AssetDatabase.LoadAssetAtPath<Material>(matPath) == null)
-                AssetDatabase.CreateAsset(new Material(med) { name = "Mat_MedWeapon" }, matPath);
+            var weaponMat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+            if (weaponMat == null) AssetDatabase.CreateAsset(new Material(med) { name = "Mat_MedWeapon" }, matPath);
+            else { weaponMat.shader = med.shader; weaponMat.CopyPropertiesFromMaterial(med); EditorUtility.SetDirty(weaponMat); }
             int n = 0;
             for (int f = 1; f <= 5; f++)
                 if (BakeAlongAxis($"{WeaponFolder}/G_Stick_{f}.fbx", $"G_MedSword_{f}", $"{WeaponFolder}/G_MedStick_{f}.asset")) n++;
@@ -442,6 +443,7 @@ namespace BlobSurvivor.EditorTools
             mesh.vertices = v;
             if (nr.Length == v.Length) mesh.normals = nr;
             mesh.uv = source.uv;
+            if (source.colors != null && source.colors.Length == v.Length) mesh.colors = source.colors; // köşe karartması
             mesh.subMeshCount = 1;
             mesh.triangles = source.triangles;
             if (nr.Length != v.Length) mesh.RecalculateNormals();

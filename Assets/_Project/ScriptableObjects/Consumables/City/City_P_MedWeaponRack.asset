@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
   _displayName: P_MedWeaponRack
   _prefab: {fileID: 5884352845209766233, guid: 04de538b543a95e4b92f3ef877121666, type: 3}
-  _scoreValue: 4
-  _massValue: 4
-  _requiredTier: 3
+  _scoreValue: 3
+  _massValue: 3
+  _requiredTier: 2
   _isHazard: 0
   _hazardAmount: 0
   _spawnYOffset: 0.15

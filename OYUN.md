@@ -354,6 +354,9 @@ Toplam 1.000 puan (Game Center sınırı). Toplam sayaçlı rozetler Game Center
 
 ## 11. Görsel Stil
 
+- **Gün döngüsü (run'a bağlı, iki harita):** her run sabah başlar; 6. dk öğle, 12. dk ikindi, 15,5. dk gün batımı, 17,5. dk gece. Final boss gelince gece hızla gelir. Güneşin açısı/rengi/gücü ve üç renkli ortam ışığı yumuşakça geçer; gece kale kitinde pencereler ve ateşler parlar (`DayNightCycle`, `PaletteAO._GlowAmount`; şehirde parlama kapalı). Test: Editor **I**.
+- **Soft görünüm (iki harita):** modellere tek kademe kenar yuvarlatma + yumuşak normal + köşe karartması (köşe rengi, `BlobSurvivor/PaletteAO`); kale `tools/medieval`, şehir `tools/city_soft/soften_city.py` + `Tools → Blob.io → Şehri Soft Görünüme Geçir`. Binaların/eşyaların altında temas gölgesi (lightmap bake yerine: yenince kaybolur).
+
 - 2.5D stilize 3D, low-poly; şehir, insanlar, araçlar, boss'lar ve kalkanlar tek bir palet dokusunu paylaşır.
 - Yumuşak post-processing (tonemapping, hafif kontrast/doygunluk, vinyet, FXAA); bloom/SSAO yok (mobil).
 - **Yürüyüş (polis, elit, çevik kuvvet):** model gövde + bacak + kol parçalarına bölünmüş; bacaklar karşılıklı, kollar karşı bacakla adım ritminde sallanır (gidilen yola bağlı, vururken/nişan alırken düzleşir; `LimbWalk`). Çevik kuvvette kalkan + onu tutan kol ayrı parça (`H_RiotShield`, pivot omuzda), coplu kol sallanır. Kurulum `Tools → Blob.io → Polis Yürüyüş Parçalarını Kur`. Motorlu polis ve robot köpek henüz yürümüyor.

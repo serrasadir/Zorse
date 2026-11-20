@@ -928,13 +928,21 @@ namespace BlobSurvivor.EditorTools
         internal static Material GetMedievalMaterial()
         {
             Material material = AssetDatabase.LoadAssetAtPath<Material>(MedievalMaterialPath);
-            if (material != null) return material;
-            Material city = GetPaletteMaterial();
             Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(MedievalPalettePath);
-            if (city == null || texture == null) return null;
-            material = new Material(city) { name = "Mat_MedievalPalette" };
-            material.SetTexture("_BaseMap", texture);
-            AssetDatabase.CreateAsset(material, MedievalMaterialPath);
+            if (material == null)
+            {
+                Material city = GetPaletteMaterial();
+                if (city == null || texture == null) return null;
+                material = new Material(city) { name = "Mat_MedievalPalette" };
+                AssetDatabase.CreateAsset(material, MedievalMaterialPath);
+            }
+            // Soft kit: köşe karartması köşe renginde, bunu okuyan shader (Art/City/Medieval/PaletteAO.shader).
+            Shader ao = Shader.Find("BlobSurvivor/PaletteAO");
+            if (ao != null && material.shader != ao) material.shader = ao;
+            if (texture != null) material.SetTexture("_BaseMap", texture);
+            material.SetColor("_BaseColor", Color.white);
+            material.SetFloat("_GlowAmount", 1.4f); // gece pencereler ve meşaleler parlar (DayNightCycle)
+            EditorUtility.SetDirty(material);
             return material;
         }
 
@@ -1121,7 +1129,9 @@ namespace BlobSurvivor.EditorTools
             GameObjectUtility.SetStaticEditorFlags(renderer.gameObject, staticFlags);
 
             string prefabPath = $"{PrefabRoot}/{item.mesh}.prefab";
-            bool isGround = item.mesh.StartsWith("L_");
+            // L_ zemin, D_ kale haritasının zemin süsü (çimen, çiçek, çakıl): yenmez, çarpışmasız, gölgesiz.
+            bool isGround = item.mesh.StartsWith("L_") || item.mesh.StartsWith("D_");
+            if (item.mesh.StartsWith("D_")) renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             ConsumableData data = isGround ? null : GetConsumableData(item.mesh, root.transform);
             if (!isGround)
             {

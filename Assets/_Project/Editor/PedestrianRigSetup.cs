@@ -219,11 +219,13 @@ namespace BlobSurvivor.EditorTools
             Vector3[] pos = source.vertices;
             Vector3[] nrm = source.normals;
             Vector2[] uv = source.uv;
+            Color[] col = source.colors; // ortaçağ kiti: köşe karartması (AO)
             int[] tris = source.triangles;
             var map = new Dictionary<int, int>();
             var outPos = new List<Vector3>();
             var outNrm = new List<Vector3>();
             var outUv = new List<Vector2>();
+            var outCol = new List<Color>();
             var outTris = new List<int>();
             for (int t = 0; t < parts.Length; t++)
             {
@@ -238,6 +240,7 @@ namespace BlobSurvivor.EditorTools
                         outPos.Add(pos[i] - pivot);
                         if (nrm.Length > i) outNrm.Add(nrm[i]);
                         if (uv.Length > i) outUv.Add(uv[i]);
+                        if (col.Length > i) outCol.Add(col[i]);
                     }
                     outTris.Add(j);
                 }
@@ -253,6 +256,7 @@ namespace BlobSurvivor.EditorTools
             mesh.SetVertices(outPos);
             if (outNrm.Count == outPos.Count) mesh.SetNormals(outNrm);
             if (outUv.Count == outPos.Count) mesh.SetUVs(0, outUv);
+            if (outCol.Count == outPos.Count) mesh.SetColors(outCol);
             mesh.SetTriangles(outTris, 0);
             mesh.RecalculateBounds();
             if (outNrm.Count != outPos.Count) mesh.RecalculateNormals();

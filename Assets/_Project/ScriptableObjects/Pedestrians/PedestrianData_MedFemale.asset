@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PedestrianData_MedFemale
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.PedestrianData
   _displayName: "K\xF6yl\xFC Female"
-  _prefab: {fileID: 209580712890757938, guid: 762d2ab2c84460541a6b443483f58f74, type: 3}
+  _prefab: {fileID: 209580712890757938, guid: 7547cacdb13e5b7478d004c2760e9415, type: 3}
   _scoreValue: 5
   _massValue: 1
   _requiredTier: 2
@@ -37,10 +37,10 @@ MonoBehaviour:
     LegR: {fileID: 4300000, guid: 6dd2e69f4cc8b094794ce95ee0d76b6a, type: 2}
     ArmL: {fileID: 4300000, guid: f1d19b139045e504eaaf200307a9b1c5, type: 2}
     ArmR: {fileID: 4300000, guid: e1dc99f7b84e7d94094edfa0a7def95d, type: 2}
-    HipL: {x: -0.07466664, y: -0.046666555, z: 0.36399952}
-    HipR: {x: 0.06719998, y: -0.041999903, z: 0.36399952}
-    ShoulderL: {x: -0.21606645, y: 0.0014000532, z: 0.7300007}
-    ShoulderR: {x: 0.21606661, y: 0.0014000532, z: 0.7300007}
+    HipL: {x: -0.06474979, y: -0.041999873, z: 0.36399958}
+    HipR: {x: 0.06474978, y: -0.041999865, z: 0.36399958}
+    ShoulderL: {x: -0.204454, y: 0.006408496, z: 0.7405002}
+    ShoulderR: {x: 0.20445381, y: 0.006408486, z: 0.7405002}
     SwingAxis: {x: 1, y: -0, z: 0}
   _stepRate: 5
   _legSwing: 32

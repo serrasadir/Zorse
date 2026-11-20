@@ -166,6 +166,36 @@ for sx in (-1, 1):
     put("P_MedTorchPole", sx * 4.0, 38.5, 0)
 scatter(["P_MedBarrel", "P_MedTorchPole", "P_MedSmallCrate", "P_MedWoodenBucket", "P_MedHayBale"], 28, 34, 54, 0.6, road_margin=0.4)
 
+# ---------- zemin süsleri (D_: yenmez, çarpışmasız) ----------
+def decor(meshes, count, z0, z1, x_lim=SIDE - 0.6, road_min=None, road_max=None, tries=20000):
+    placed = 0
+    for _ in range(tries):
+        if placed >= count:
+            break
+        x, z = rnd.uniform(-x_lim, x_lim), rnd.uniform(z0, z1)
+        d = dist_to_roads(x, z)
+        if road_min is not None and d < road_min:
+            continue
+        if road_max is not None and d > road_max:
+            continue
+        if not free(x, z, 0.35):               # binaların ve eşyaların üstüne gelmesin (alan almaz)
+            continue
+        put(rnd.choice(meshes), x, z, rnd.uniform(0, 360))
+        placed += 1
+
+
+GRASS = ["D_MedGrassTuft"]
+FLOWERS = ["D_MedFlowersWhite", "D_MedFlowersWhite", "D_MedFlowersYellow", "D_MedFlowersRed"]
+decor(GRASS, 240, -HALF + 1, -25.5, road_min=ROAD_HW + 0.3)                       # köy çimeni
+decor(FLOWERS, 120, -HALF + 1, -25.5, road_min=ROAD_HW + 0.6)
+decor(["D_MedBushLow"], 40, -HALF + 1, -25.5, road_min=ROAD_HW + 1.0)
+decor(["D_MedPebbles", "D_MedGrassTuft"], 70, -HALF + 1, -25.0, road_min=ROAD_HW - 0.4, road_max=ROAD_HW + 0.5)  # yol kenarı
+decor(["D_MedGrassTuft", "D_MedPebbles"], 60, -23.0, 5.0, road_min=ROAD_HW + 0.5)    # kasaba: duvar ve ev dipleri
+decor(["D_MedGrassTuft", "D_MedGrassTuft", "D_MedPebbles", "D_MedBushLow"], 80, 7.5, 31.0, road_min=ROAD_HW + 0.4)  # avlu
+decor(["D_MedGrassTuft", "D_MedPebbles"], 30, 33.5, HALF - 1, road_min=ROAD_HW + 0.4)
+for sx in (-1, 1):                                                                   # yan ağaç sırasının dibi
+    decor(GRASS + FLOWERS, 40, -HALF + 1, HALF - 1, x_lim=SIDE + 6)
+
 # ---------- zemin: dokulu düzlemler (üst üste, sonraki üstte) ----------
 GROUND = [
     {"tex": "Grass", "x0": -HALF, "z0": -HALF, "x1": HALF, "z1": HALF},

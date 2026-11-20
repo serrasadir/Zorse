@@ -50,7 +50,7 @@ namespace BlobSurvivor.EditorTools
         private const string TextureFolder = "Assets/_Project/Art/City/Textures";
         private const string SidewalkMaterial = TextureFolder + "/Mat_Sidewalk.mat";
         private const float GroundTile = 4f;     // bir doku tekrarı = 4×4 birim
-        private const float GroundStep = 0.012f; // üst üste binen zeminler arası (z-fighting)
+        private const float GroundStep = 0.003f; // üst üste binen zeminler arası (z-fighting); temas gölgesi hepsinin üstünde
 
         [Serializable]
         private class Layout
@@ -87,6 +87,7 @@ namespace BlobSurvivor.EditorTools
                 GameObject prefab = CityKitPipeline.BuildPrefab(new CityKitPipeline.CityItem { mesh = item.mesh, sx = 1f, sy = 1f, sz = 1f }, palette);
                 if (prefab == null) { Debug.LogError($"[CastleScene] {item.mesh} prefab'ı kurulamadı."); return; }
                 if (IsRingWall(item.mesh)) prefab = SetupRingWall(prefab);
+                if (item.mesh.StartsWith("B_") || item.mesh.StartsWith("P_")) AddContactShadow(prefab);
                 prefabs.Add(item.mesh, prefab);
             }
             AssetDatabase.SaveAssets();
@@ -137,6 +138,7 @@ namespace BlobSurvivor.EditorTools
                 string dataPath = surface.navMeshData != null ? AssetDatabase.GetAssetPath(surface.navMeshData) : null;
                 if (dataPath != null && !dataPath.Contains("/CastleScene/")) surface.navMeshData = null;
             }
+            ApplyCastleLighting();
             CityKitPipeline.BakeNavMesh();
             RenderMinimap(castleMap.MinimapWorld);
             AddToBuildSettings();
@@ -265,6 +267,179 @@ namespace BlobSurvivor.EditorTools
             second.isTrigger = box.isTrigger;
             second.center = new Vector3(gap / 2f + right / 2f, c.y, c.z);
             second.size = new Vector3(right, s.y, s.z);
+        }
+
+        // Kale ışığı (Bahar, 2026-11-20: ChatGPT referanslarına yakın): sıcak, alçak güneş, yumuşak gölge; gökten sıcak,
+        // yerden serin ortam; renk profili şehrinkinin kopyası (Art/City/Medieval/CastleVolumeProfile), biraz sıcak ve doygun.
+        private const string CastleProfilePath = CityKitPipeline.MedievalRoot + "/CastleVolumeProfile.asset";
+
+        private static void ApplyCastleLighting() => ApplyWarmLighting(CastleProfilePath);
+
+        // Şehir de aynı sıcak ışığı kullanır (CitySoftSetup), kendi profil kopyasıyla.
+        internal static void ApplyWarmLighting(string profilePath)
+        {
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
+            RenderSettings.ambientSkyColor = new Color(1.0f, 0.93f, 0.82f);
+            RenderSettings.ambientEquatorColor = new Color(0.80f, 0.74f, 0.68f);
+            RenderSettings.ambientGroundColor = new Color(0.46f, 0.47f, 0.56f);
+            DynamicGI.UpdateEnvironment();
+
+            foreach (Light light in UnityEngine.Object.FindObjectsByType<Light>(FindObjectsInactive.Include))
+            {
+                if (light.type != LightType.Directional) continue;
+                light.color = new Color(1f, 0.9f, 0.74f);
+                light.intensity = 1.15f;
+                light.shadows = LightShadows.Soft;
+                light.shadowStrength = 0.55f; // yumuşak, renkli zeminde kirli durmasın
+                Vector3 e = light.transform.eulerAngles;
+                light.transform.rotation = Quaternion.Euler(48f, e.y, 0f); // biraz alçak: gölgeler uzun ve okunur
+                break;
+            }
+
+            GameObject go = GameObject.Find("GlobalVolume");
+            var volume = go != null ? go.GetComponent<UnityEngine.Rendering.Volume>() : null;
+            if (volume == null || volume.sharedProfile == null) return;
+            string cityPath = AssetDatabase.GetAssetPath(volume.sharedProfile);
+            if (cityPath != profilePath)
+            {
+                if (AssetDatabase.LoadAssetAtPath<UnityEngine.Rendering.VolumeProfile>(profilePath) == null)
+                    AssetDatabase.CopyAsset(cityPath, profilePath);
+                volume.sharedProfile = AssetDatabase.LoadAssetAtPath<UnityEngine.Rendering.VolumeProfile>(profilePath);
+            }
+            var profile = volume.sharedProfile;
+            if (profile.TryGet(out UnityEngine.Rendering.Universal.ColorAdjustments color))
+            {
+                color.postExposure.Override(0.3f);
+                color.contrast.Override(8f);
+                color.saturation.Override(22f);
+            }
+            if (!profile.TryGet(out UnityEngine.Rendering.Universal.WhiteBalance white))
+            {
+                white = profile.Add<UnityEngine.Rendering.Universal.WhiteBalance>(true);
+                AssetDatabase.AddObjectToAsset(white, profile);
+            }
+            white.temperature.Override(10f);
+            EditorUtility.SetDirty(profile);
+            AssetDatabase.SaveAssets();
+        }
+
+        // ---------- temas gölgesi ----------
+        // Lightmap bake yerine (yenen binanın gölgesi yerde kalırdı): her bina/eşyanın altında yumuşak kenarlı koyu leke,
+        // nesnenin child'ı olduğu için yenince o da kaybolur. Tek doku + tek saydam materyal, statik birleşir.
+        private const string ShadowTexPath = "Assets/_Project/Art/FX/ContactShadow.png"; // Art/City dışında: oradaki ön işlemci alfayı siler
+        private const string ShadowMatPath = CityKitPipeline.MedievalRoot + "/Mat_ContactShadow.mat";
+        private const string ShadowMeshPath = CityKitPipeline.MedievalRoot + "/ContactShadowQuad.asset";
+        private const float ShadowY = 0.08f;         // zemin düzlemlerinin (en fazla ~0.06) üstünde
+        private const float ShadowGrow = 1.12f; // koyu çekirdek ayak izi kadar, dışa doğru yumuşak sönüm (pay boyla orantılı)
+        private static Material s_shadowMat;
+        private static Mesh s_shadowMesh;
+
+        internal static void AddContactShadow(GameObject prefab)
+        {
+            EnsureShadowAssets();
+            if (s_shadowMat == null) return;
+            string path = AssetDatabase.GetAssetPath(prefab);
+            GameObject root = PrefabUtility.LoadPrefabContents(path);
+            try
+            {
+                Transform old = root.transform.Find("ContactShadow");
+                if (old != null) UnityEngine.Object.DestroyImmediate(old.gameObject);
+                BoxCollider body = root.GetComponent<BoxCollider>();
+                if (body == null) return;
+                Bounds b = new Bounds(body.center, body.size);
+                foreach (BoxCollider extra in root.GetComponents<BoxCollider>()) // fare delikli parça: iki kutu
+                    b.Encapsulate(new Bounds(extra.center, extra.size));
+                GameObject go = GameObject.CreatePrimitive(PrimitiveType.Quad); // Unity'nin dörtgeni (helikopter gölgesi gibi)
+                UnityEngine.Object.DestroyImmediate(go.GetComponent<Collider>());
+                go.name = "ContactShadow";
+                go.transform.SetParent(root.transform, false);
+                go.transform.localPosition = new Vector3(b.center.x, ShadowY, b.center.z);
+                go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f); // yere yatık, yüzü yukarı
+                float pad = Mathf.Clamp(0.6f * Mathf.Min(b.size.x, b.size.z), 0.3f, 1.6f);
+                go.transform.localScale = new Vector3(b.size.x * ShadowGrow + pad, b.size.z * ShadowGrow + pad, 1f);
+                var mr = go.GetComponent<MeshRenderer>();
+                mr.sharedMaterial = s_shadowMat;
+                mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                mr.receiveShadows = false;
+                GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+                PrefabUtility.SaveAsPrefabAsset(root, path);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
+        private static void EnsureShadowAssets()
+        {
+            if (s_shadowMat != null && s_shadowMesh != null) return;
+            if (AssetDatabase.LoadAssetAtPath<Texture2D>(ShadowTexPath) == null)
+            {
+                const int n = 64;
+                var tex = new Texture2D(n, n, TextureFormat.RGBA32, false);
+                for (int y = 0; y < n; y++)
+                    for (int x = 0; x < n; x++)
+                    {
+                        // Yuvarlatılmış kare: kenara doğru yumuşak sönüm.
+                        float u = Mathf.Abs((x + 0.5f) / n * 2f - 1f), v = Mathf.Abs((y + 0.5f) / n * 2f - 1f);
+                        float d = Mathf.Pow(Mathf.Pow(u, 4f) + Mathf.Pow(v, 4f), 0.25f);
+                        float a = 1f - Mathf.SmoothStep(0.55f, 1f, d);
+                        tex.SetPixel(x, y, new Color(0f, 0f, 0f, a));
+                    }
+                System.IO.File.WriteAllBytes(ShadowTexPath, tex.EncodeToPNG()); // eğri değişirse dosyayı sil, yeniden üretilir
+                UnityEngine.Object.DestroyImmediate(tex);
+                AssetDatabase.ImportAsset(ShadowTexPath);
+                if (AssetImporter.GetAtPath(ShadowTexPath) is TextureImporter ti)
+                {
+                    ti.alphaIsTransparency = true;
+                    ti.wrapMode = TextureWrapMode.Clamp;
+                    ti.mipmapEnabled = false;
+                    ti.filterMode = FilterMode.Bilinear; // Art/City ön işlemcisi Point yapar: gradyan basamaklanmasın
+                    ti.SaveAndReimport();
+                }
+            }
+            s_shadowMat = AssetDatabase.LoadAssetAtPath<Material>(ShadowMatPath);
+            if (s_shadowMat == null)
+            {
+                Shader unlit = Shader.Find("Universal Render Pipeline/Unlit");
+                if (unlit == null) return;
+                s_shadowMat = new Material(unlit) { name = "Mat_ContactShadow" };
+                s_shadowMat.SetFloat("_Surface", 1f);          // Transparent
+                s_shadowMat.SetFloat("_Blend", 0f);            // Alpha
+                s_shadowMat.SetFloat("_ZWrite", 0f);
+                s_shadowMat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                s_shadowMat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                s_shadowMat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                s_shadowMat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent - 50;
+                s_shadowMat.SetOverrideTag("RenderType", "Transparent");
+                AssetDatabase.CreateAsset(s_shadowMat, ShadowMatPath);
+            }
+            // Saydamlık her seferinde baştan (URP materyal arayüzünün yaptığı kurulum; kodla açınca kendiliğinden olmuyor).
+            s_shadowMat.SetFloat("_Surface", 1f);
+            s_shadowMat.SetFloat("_Blend", 0f);
+            s_shadowMat.SetFloat("_ZWrite", 0f);
+            s_shadowMat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            s_shadowMat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            s_shadowMat.SetFloat("_SrcBlendAlpha", (float)UnityEngine.Rendering.BlendMode.One);
+            s_shadowMat.SetFloat("_DstBlendAlpha", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            s_shadowMat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            s_shadowMat.SetOverrideTag("RenderType", "Transparent");
+            s_shadowMat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent - 50;
+            s_shadowMat.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(ShadowTexPath));
+            s_shadowMat.SetColor("_BaseColor", new Color(0.1f, 0.08f, 0.14f, 0.6f)); // mor-siyah: sıcak sahnede yumuşak
+            EditorUtility.SetDirty(s_shadowMat);
+
+            s_shadowMesh = AssetDatabase.LoadAssetAtPath<Mesh>(ShadowMeshPath);
+            if (s_shadowMesh == null)
+            {
+                s_shadowMesh = new Mesh { name = "ContactShadowQuad" };
+                s_shadowMesh.vertices = new[] { new Vector3(-0.5f, 0f, -0.5f), new Vector3(-0.5f, 0f, 0.5f), new Vector3(0.5f, 0f, 0.5f), new Vector3(0.5f, 0f, -0.5f) };
+                s_shadowMesh.uv = new[] { new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(1f, 0f) };
+                s_shadowMesh.triangles = new[] { 0, 1, 2, 0, 2, 3 };
+                s_shadowMesh.RecalculateNormals();
+                s_shadowMesh.RecalculateBounds();
+                AssetDatabase.CreateAsset(s_shadowMesh, ShadowMeshPath);
+            }
         }
 
         // Küçük harita: oyun alanının üstten ortografik görüntüsü (UI hariç) → Resources/UI/CastleMinimap.png (GateGuide).

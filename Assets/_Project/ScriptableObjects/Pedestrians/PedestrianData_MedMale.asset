@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PedestrianData_MedMale
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.PedestrianData
   _displayName: "K\xF6yl\xFC Male"
-  _prefab: {fileID: 209580712890757938, guid: 79597172ef973034e8471f7fbdda00af, type: 3}
+  _prefab: {fileID: 209580712890757938, guid: fa8238ff4761aff42948c42af2fe59e2, type: 3}
   _scoreValue: 5
   _massValue: 1
   _requiredTier: 2
@@ -38,10 +38,10 @@ MonoBehaviour:
     LegR: {fileID: 4300000, guid: 668c1fca0143e174aa4ac398bd9bd7cb, type: 2}
     ArmL: {fileID: 4300000, guid: b4b7d79eb565a1f49b13a56567c2fb49, type: 2}
     ArmR: {fileID: 4300000, guid: e5b46e63394e2e243b12e91b25b82389, type: 2}
-    HipL: {x: -0.07430757, y: -0.012923283, z: 0.36400065}
-    HipR: {x: 0.08049956, y: -0.014000214, z: 0.36400065}
-    ShoulderL: {x: -0.22913322, y: -0.00000012001405, z: 0.68800074}
-    ShoulderR: {x: 0.22913304, y: -0.00000011968292, z: 0.68800074}
+    HipL: {x: -0.07871084, y: -0.0136891, z: 0.36400065}
+    HipR: {x: 0.08049987, y: -0.014000192, z: 0.36400065}
+    ShoulderL: {x: -0.22090119, y: 0.0037370361, z: 0.7509998}
+    ShoulderR: {x: 0.22090079, y: 0.0037005641, z: 0.7509998}
     SwingAxis: {x: 1, y: -0, z: 0}
   - Source: {fileID: 1795162417984978658, guid: 9458cc1a682554148bf852a61e03e2f7, type: 3}
     Body: {fileID: 4300000, guid: 6c8fca60790101645ae43dc8c4105bcb, type: 2}
@@ -49,10 +49,10 @@ MonoBehaviour:
     LegR: {fileID: 4300000, guid: 8feac084747d9e144ade5abed1fa5803, type: 2}
     ArmL: {fileID: 4300000, guid: d6f9f6d0c2b8c8e45933705b8b98808d, type: 2}
     ArmR: {fileID: 4300000, guid: 8cdc8636dc681cb42a2e5e55eb26959d, type: 2}
-    HipL: {x: -0.0805004, y: -0.014000098, z: 0.36399993}
-    HipR: {x: 0.06899995, y: -0.012000057, z: 0.36399993}
-    ShoulderL: {x: -0.23249991, y: -0.00000019625824, z: 0.68799984}
-    ShoulderR: {x: 0.23250034, y: -0.00000019590345, z: 0.68799984}
+    HipL: {x: -0.0805004, y: -0.014000098, z: 0.36399996}
+    HipR: {x: 0.07700017, y: -0.01339138, z: 0.36399996}
+    ShoulderL: {x: -0.22191107, y: 0.00474159, z: 0.8384992}
+    ShoulderR: {x: 0.22191136, y: 0.004741594, z: 0.8384992}
     SwingAxis: {x: 1, y: -0, z: 0}
   _stepRate: 5
   _legSwing: 32

@@ -179,7 +179,7 @@ def _rz(a):
 
 # ---------- parçalar: kategori modülleri (kit_*.py), her biri BUILDERS = {ad: fonksiyon} ----------
 
-MODULES = ["kit_buildings", "kit_props", "kit_walls", "kit_characters", "kit_bosses", "kit_weapons"]
+MODULES = ["kit_buildings", "kit_props", "kit_walls", "kit_characters", "kit_bosses", "kit_weapons", "kit_decor"]
 
 
 def rz(a):
@@ -230,7 +230,7 @@ GAME_SCALE = 0.7
 # Unity'deki şehir hattı davranışı ön ekten okur (CityKitPipeline): B_ bina (engel + NavMesh deliği, yenir),
 # P_ sokak eşyası (yenir), L_ zemin (çarpışmasız), H_ karakter, X_ efekt/mermi/boss parçası, G_ silah görünümü.
 MODULE_PREFIX = {"kit_buildings": "B_", "kit_props": "P_", "kit_walls": "B_", "kit_characters": "H_",
-                 "kit_bosses": "X_", "kit_weapons": "G_"}
+                 "kit_bosses": "X_", "kit_weapons": "G_", "kit_decor": "D_"}
 PREFIX_OVERRIDE = {"M_Tile": "L_", "M_Windmill": "P_", "M_WindmillSails": "X_", "M_OilWarning": "X_",
                    "M_PortcullisGrid": "X_"}
 
@@ -287,6 +287,81 @@ def render(objs, path):
     print("Render:", path)
 
 
+# ---------- "Soft" görünüm (Bahar seçti, 2026-11-20): tek kademe kenar yuvarlatma + yumuşak normaller + köşe karartması ----------
+# Köşe karartması (AO) "Col" köşe rengine pişirilir; Unity'de Mat_MedievalPalette (BlobSurvivor/PaletteAO) dokuyla çarpar.
+# Poligon ~2–3.5×. Zemin karosu (L_) ve efekt parçaları dokunulmaz.
+SOFT_WIDTH = {"kit_buildings": 0.05, "kit_walls": 0.045, "kit_props": 0.025, "kit_characters": 0.02,
+              "kit_bosses": 0.035, "kit_weapons": 0.015}
+AO_FLOOR = 0.6     # en koyu köşe (1 = karartma yok)
+AO_SAMPLES = 32
+
+
+def soften(obj, module, all_objs):
+    width = SOFT_WIDTH.get(module)
+    if width is None or obj.name.startswith("M_Tile"):
+        # Yuvarlatma yok ama shader köşe rengini çarpar: beyaz (karartmasız) köşe rengi şart.
+        me = obj.data
+        col = me.color_attributes.get("Col") or me.color_attributes.new("Col", "BYTE_COLOR", "CORNER")
+        for d in col.data:
+            d.color = (1.0, 1.0, 1.0, 1.0)
+        return
+    m = obj.modifiers.new("Bevel", "BEVEL")
+    m.width = width
+    m.segments = 1
+    m.limit_method = "ANGLE"
+    m.angle_limit = 0.9
+    w = obj.modifiers.new("WN", "WEIGHTED_NORMAL")
+    w.keep_sharp = True
+    bpy.context.view_layer.objects.active = obj
+    for mod in list(obj.modifiers):
+        bpy.ops.object.modifier_apply(modifier=mod.name)
+    for p in obj.data.polygons:
+        p.use_smooth = True
+    bake_ao(obj, all_objs)
+
+
+def _ground():
+    g = bpy.data.objects.get("AO_Ground")
+    if g is None:
+        bpy.ops.mesh.primitive_plane_add(size=80, location=(0, 0, 0))
+        g = bpy.context.object
+        g.name = "AO_Ground"
+    return g
+
+
+def bake_ao(obj, all_objs):
+    """Tek başına (diğer parçalar gizli), zemine göre AO → "Col" köşe rengi, AO_FLOOR..1 aralığına sıkıştırılır."""
+    scene = bpy.context.scene
+    ground = _ground()
+    hidden = []
+    for o in all_objs:
+        if o is not obj and not o.hide_render:
+            o.hide_render = True
+            hidden.append(o)
+    me = obj.data
+    col = me.color_attributes.get("Col") or me.color_attributes.new("Col", "BYTE_COLOR", "CORNER")
+    me.color_attributes.active_color = col
+    scene.render.engine = "CYCLES"
+    scene.cycles.samples = AO_SAMPLES
+    scene.render.bake.target = "VERTEX_COLORS"
+    if scene.world is None:
+        scene.world = bpy.data.worlds.new("W")
+    bpy.ops.object.select_all(action="DESELECT")
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+    try:
+        bpy.ops.object.bake(type="AO")
+    finally:
+        for o in hidden:
+            o.hide_render = False
+    for d in col.data:
+        c = d.color
+        v = (c[0] + c[1] + c[2]) / 3.0
+        v = AO_FLOOR + (1.0 - AO_FLOOR) * (max(0.0, min(1.0, v)) ** 0.5)
+        d.color = (v, v, v, 1.0)
+    ground.hide_render = False
+
+
 def main(argv):
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.delete()
@@ -304,7 +379,10 @@ def main(argv):
         objs.append(o)
         keys.append(key)
     if "--export" in argv:
+        soft_on = "--hard" not in argv
         for o, key in zip(objs, keys):
+            if soft_on:
+                soften(o, BUILDER_MODULE.get(key, ""), objs)
             export(o, export_name(BUILDER_MODULE.get(key, ""), o.name))
     if "--render" in argv:
         render(objs, argv[argv.index("--render") + 1])
