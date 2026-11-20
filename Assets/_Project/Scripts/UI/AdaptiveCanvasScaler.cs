@@ -17,9 +17,13 @@ namespace BlobSurvivor.UI
         private bool _landscape, _applied;
         private float _timer;
 
+        private static bool s_sceneHooked;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void InstallOnSceneCanvases()
         {
+            // Harita değişince (MapSelection.Switch → LoadScene) yeni sahnede de kurulsun: AfterSceneLoad sadece ilk sahnede çalışır.
+            if (!s_sceneHooked) { s_sceneHooked = true; UnityEngine.SceneManagement.SceneManager.sceneLoaded += (_, __) => InstallOnSceneCanvases(); }
             foreach (CanvasScaler s in FindObjectsByType<CanvasScaler>(FindObjectsInactive.Include))
                 Attach(s);
         }

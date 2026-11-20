@@ -28,9 +28,13 @@ namespace BlobSurvivor.UI
         private bool _entering;
         private bool _shown;
 
+        private static bool s_sceneHooked;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Create()
         {
+            // Harita değişince (MapSelection.Switch → LoadScene) yeni sahnede de kurulsun: AfterSceneLoad sadece ilk sahnede çalışır.
+            if (!s_sceneHooked) { s_sceneHooked = true; UnityEngine.SceneManagement.SceneManager.sceneLoaded += (_, __) => Create(); }
             LobbyPanel lobby = FindAnyObjectByType<LobbyPanel>(FindObjectsInactive.Include);
             Canvas canvas = lobby != null ? lobby.GetComponentInParent<Canvas>(true) : null;
             if (canvas == null) return;

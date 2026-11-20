@@ -10,9 +10,13 @@ namespace BlobSurvivor.UI
     {
         private const string LayerName = "HUDFeedbackLayer";
 
+        private static bool s_sceneHooked;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Install()
         {
+            // Harita değişince (MapSelection.Switch → LoadScene) yeni sahnede de kurulsun: AfterSceneLoad sadece ilk sahnede çalışır.
+            if (!s_sceneHooked) { s_sceneHooked = true; UnityEngine.SceneManagement.SceneManager.sceneLoaded += (_, __) => Install(); }
             HUDController hud = Object.FindAnyObjectByType<HUDController>(FindObjectsInactive.Include);
             if (hud == null) return;
             Canvas canvas = hud.GetComponentInParent<Canvas>(true);

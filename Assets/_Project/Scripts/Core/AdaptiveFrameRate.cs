@@ -3,14 +3,14 @@ using UnityEngine;
 namespace BlobSurvivor.Core
 {
     // 60 FPS, kaldıramayan telefonda 30 (Bahar, 2026-11-21). Sadece oynarken ölçer (yükleme/menü sayılmaz):
-    // 60 hedefindeyken 1 sn'lik pencerelerin ortalaması art arda LowWindows kez 45'in altındaysa 30'a iner ve telefona yazar
+    // 60 hedefindeyken 1 sn'lik pencerelerin ortalaması art arda LowWindows kez Threshold'un altındaysa 30'a iner ve telefona yazar
     // (ısınıp yavaşlayan telefon da run içinde iner). 45'te bırakmaz: 60 Hz ekranda düzensiz takılır, sabit 30 daha akıcı.
     // 30'a inen telefon RetryAfterRuns run sonra bir kez daha 60'ı dener (o an arka planda başka iş olabilir).
     public class AdaptiveFrameRate : MonoBehaviour
     {
         private const string CapKey = "fps_cap";
         private const string RunsKey = "fps_runs_at_30";
-        private const float Threshold = 45f;
+        private const float Threshold = 52f;   // 45–50 bandında kalan telefon (A06: ~45) sabit 30 daha akıcı
         private const int LowWindows = 8;        // ~8 sn sürekli düşük
         private const int RetryAfterRuns = 5;
 

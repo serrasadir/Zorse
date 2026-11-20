@@ -22,6 +22,25 @@ namespace BlobSurvivor.EditorTools
             "Assets/_Project/Art/City/Mat_RobotDog.mat",
         };
 
+        // Sadece ışığı iki haritaya yeniden uygular (ApplyWarmLighting değişince), modellere dokunmaz.
+        [MenuItem("Tools/Blob.io/Işığı İki Haritaya Uygula")]
+        public static void ApplyLightingBoth()
+        {
+            Scene active = SceneManager.GetActiveScene();
+            if (active.isDirty) { Debug.LogError($"[CitySoft] {active.name} kaydedilmemiş: önce kaydet."); return; }
+            string back = active.path;
+            foreach (var (scenePath, profile) in new[] { (GameScenePath, CityProfilePath),
+                         ("Assets/_Project/Scenes/CastleScene.unity", "Assets/_Project/Art/City/Medieval/CastleVolumeProfile.asset") })
+            {
+                Scene s = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+                CastleSceneBuilder.ApplyWarmLighting(profile);
+                EditorSceneManager.MarkSceneDirty(s);
+                EditorSceneManager.SaveScene(s);
+            }
+            if (!string.IsNullOrEmpty(back)) EditorSceneManager.OpenScene(back, OpenSceneMode.Single);
+            Debug.Log("[CitySoft] Işık iki haritaya uygulandı.");
+        }
+
         [MenuItem("Tools/Blob.io/Şehri Soft Görünüme Geçir")]
         public static void Run()
         {

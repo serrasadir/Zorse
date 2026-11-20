@@ -42,9 +42,13 @@ namespace BlobSurvivor.Systems.Social
         private float _lastHealth = -1f, _lastDamageTime;
         private bool _runEnded;
 
+        private static bool s_sceneHooked;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Install()
         {
+            // Harita değişince (MapSelection.Switch → LoadScene) yeni sahnede de kurulsun: AfterSceneLoad sadece ilk sahnede çalışır.
+            if (!s_sceneHooked) { s_sceneHooked = true; UnityEngine.SceneManagement.SceneManager.sceneLoaded += (_, __) => Install(); }
             if (FindAnyObjectByType<AchievementTracker>() != null) return;
             if (FindAnyObjectByType<HUDController>(FindObjectsInactive.Include) == null) return;
             new GameObject("AchievementTracker").AddComponent<AchievementTracker>();

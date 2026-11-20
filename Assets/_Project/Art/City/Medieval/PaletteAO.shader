@@ -8,6 +8,8 @@ Shader "BlobSurvivor/PaletteAO"
         _BaseMap ("Base Map", 2D) = "white" {}
         _BaseColor ("Base Color", Color) = (1, 1, 1, 1)
         _AOStrength ("Köşe karartması", Range(0, 1)) = 1
+        [Normal] _BumpMap ("Normal (zemin)", 2D) = "bump" {}
+        _BumpScale ("Normal gücü", Range(0, 2)) = 1
     }
 
     SubShader
@@ -19,11 +21,14 @@ Shader "BlobSurvivor/PaletteAO"
 
         TEXTURE2D(_BaseMap);
         SAMPLER(sampler_BaseMap);
+        TEXTURE2D(_BumpMap);
+        SAMPLER(sampler_BumpMap);
 
         CBUFFER_START(UnityPerMaterial)
             float4 _BaseMap_ST;
             half4 _BaseColor;
             half _AOStrength;
+            half _BumpScale;
         CBUFFER_END
         ENDHLSL
 
@@ -39,6 +44,7 @@ Shader "BlobSurvivor/PaletteAO"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
+            #pragma shader_feature_local _NORMALMAP
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
@@ -46,6 +52,7 @@ Shader "BlobSurvivor/PaletteAO"
             {
                 float4 positionOS : POSITION;
                 float3 normalOS : NORMAL;
+                float4 tangentOS : TANGENT;
                 float2 uv : TEXCOORD0;
                 half4 color : COLOR;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -58,6 +65,7 @@ Shader "BlobSurvivor/PaletteAO"
                 float3 positionWS : TEXCOORD1;
                 half3 normalWS : TEXCOORD2;
                 half fog : TEXCOORD3;
+                half4 tangentWS : TEXCOORD4;
                 half4 color : COLOR;
             };
 
@@ -69,6 +77,7 @@ Shader "BlobSurvivor/PaletteAO"
                 o.positionCS = p.positionCS;
                 o.positionWS = p.positionWS;
                 o.normalWS = TransformObjectToWorldNormal(input.normalOS);
+                o.tangentWS = half4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w * GetOddNegativeScale());
                 o.uv = TRANSFORM_TEX(input.uv, _BaseMap);
                 o.color = input.color;
                 o.fog = ComputeFogFactor(p.positionCS.z);
@@ -80,6 +89,13 @@ Shader "BlobSurvivor/PaletteAO"
                 half3 albedo = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv).rgb * _BaseColor.rgb;
                 half ao = lerp(1.0h, i.color.r, _AOStrength);
                 half3 n = normalize(i.normalWS);
+            #if defined(_NORMALMAP)
+                // Zemin: taş/toprak/çimen kabartması güneşe göre gölgelenir (düz resim hissi kırılır).
+                half3 nTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, i.uv), _BumpScale);
+                half3 t = normalize(i.tangentWS.xyz);
+                half3 b = cross(n, t) * i.tangentWS.w;
+                n = normalize(TransformTangentToWorld(nTS, half3x3(t, b, n)));
+            #endif
                 Light sun = GetMainLight(TransformWorldToShadowCoord(i.positionWS));
                 half ndl = saturate(dot(n, sun.direction));
                 half3 direct = sun.color * (ndl * sun.shadowAttenuation * sun.distanceAttenuation);

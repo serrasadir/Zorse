@@ -28,9 +28,13 @@ namespace BlobSurvivor.Core
         private BlobGrowth _growth;
         private BlobHealth _health;
 
+        private static bool s_sceneHooked;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Create()
         {
+            // Harita değişince (MapSelection.Switch → LoadScene) yeni sahnede de kurulsun: AfterSceneLoad sadece ilk sahnede çalışır.
+            if (!s_sceneHooked) { s_sceneHooked = true; UnityEngine.SceneManagement.SceneManager.sceneLoaded += (_, __) => Create(); }
             GameObject go = new GameObject("DevCheats (Editor)") { hideFlags = HideFlags.DontSave };
             go.AddComponent<DevCheats>();
             Debug.Log("[DevCheats] M: +500 kütle · B: final boss −%25 can · H: canı doldur · N: sıradaki boss · L: kuşatma · Y: çevik kuvvet + motorlu polis · T: dönme dolap dönüşümü · O: yeni görev · P: görevi bitir · V: Vakum +1 · K: Kara Delik · X: Lamba Direği · F: Bayram Gecesi · R: Sabun Sörfü · Q: Hurda Kalkanı · E: Geğirme · Z: Zırh +1 · U: Havai Fişek +1 · C: +500 coin (sadece Editor)");

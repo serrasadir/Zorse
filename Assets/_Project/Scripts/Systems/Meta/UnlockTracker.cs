@@ -17,9 +17,13 @@ namespace BlobSurvivor.Systems.Meta
         private int _carsEaten, _policeEaten, _eaten;
         private int _lastReportedSecond = -1;
 
+        private static bool s_sceneHooked;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Install()
         {
+            // Harita değişince (MapSelection.Switch → LoadScene) yeni sahnede de kurulsun: AfterSceneLoad sadece ilk sahnede çalışır.
+            if (!s_sceneHooked) { s_sceneHooked = true; UnityEngine.SceneManagement.SceneManager.sceneLoaded += (_, __) => Install(); }
             if (FindAnyObjectByType<UnlockTracker>() != null) return;
             if (FindAnyObjectByType<HUDController>(FindObjectsInactive.Include) == null) return;
             new GameObject("UnlockTracker").AddComponent<UnlockTracker>();

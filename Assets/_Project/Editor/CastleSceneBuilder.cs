@@ -319,18 +319,19 @@ namespace BlobSurvivor.EditorTools
         private static void ApplyCastleLighting() => ApplyWarmLighting(CastleProfilePath);
 
         // Şehir de aynı sıcak ışığı kullanır (CitySoftSetup), kendi profil kopyasıyla.
+        // Nötr gün ışığı (Bahar, 2026-11-21: "sarı ışık filtresini kaldır"): güneş ve ortam beyaza yakın, beyaz dengesi 0.
         internal static void ApplyWarmLighting(string profilePath)
         {
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(1.0f, 0.93f, 0.82f);
-            RenderSettings.ambientEquatorColor = new Color(0.80f, 0.74f, 0.68f);
-            RenderSettings.ambientGroundColor = new Color(0.46f, 0.47f, 0.56f);
+            RenderSettings.ambientSkyColor = new Color(0.94f, 0.96f, 1.0f);
+            RenderSettings.ambientEquatorColor = new Color(0.78f, 0.79f, 0.80f);
+            RenderSettings.ambientGroundColor = new Color(0.46f, 0.47f, 0.52f);
             DynamicGI.UpdateEnvironment();
 
             foreach (Light light in UnityEngine.Object.FindObjectsByType<Light>(FindObjectsInactive.Include))
             {
                 if (light.type != LightType.Directional) continue;
-                light.color = new Color(1f, 0.9f, 0.74f);
+                light.color = new Color(1f, 0.98f, 0.95f);
                 light.intensity = 1.15f;
                 light.shadows = LightShadows.Soft;
                 light.shadowStrength = 0.55f; // yumuşak, renkli zeminde kirli durmasın
@@ -354,14 +355,14 @@ namespace BlobSurvivor.EditorTools
             {
                 color.postExposure.Override(0.3f);
                 color.contrast.Override(8f);
-                color.saturation.Override(22f);
+                color.saturation.Override(12f);
             }
             if (!profile.TryGet(out UnityEngine.Rendering.Universal.WhiteBalance white))
             {
                 white = profile.Add<UnityEngine.Rendering.Universal.WhiteBalance>(true);
                 AssetDatabase.AddObjectToAsset(white, profile);
             }
-            white.temperature.Override(10f);
+            white.temperature.Override(0f);
             EditorUtility.SetDirty(profile);
             AssetDatabase.SaveAssets();
         }
@@ -537,7 +538,7 @@ namespace BlobSurvivor.EditorTools
         }
 
         // Dokulu düzlemler (çarpışmasız; yürünen zemin sahnedeki 'Ground' collider'ı). Mesh ve materyaller asset olarak.
-        // Sıra: dikdörtgenler, daireler (meydan), yol şeritleri; her katman bir öncekinin hafif üstünde (z-fighting).
+        // Sıra: dikdörtgenler, yol şeritleri, daireler (meydanlar yolun üstünde); her katman bir öncekinin hafif üstünde (z-fighting).
         private static void BuildGround(Transform root, Meta meta)
         {
             var parent = new GameObject("Ground_Medieval").transform;
@@ -546,12 +547,12 @@ namespace BlobSurvivor.EditorTools
             int layer = 0;
             for (int i = 0; i < rects.Length; i++)
                 AddGroundObject(parent, rects[i].tex, GroundMesh(i, rects[i], ++layer * GroundStep));
-            if (meta.discs != null)
-                for (int i = 0; i < meta.discs.Length; i++)
-                    AddGroundObject(parent, meta.discs[i].tex, DiscMesh(i, meta.discs[i], ++layer * GroundStep));
             if (meta.paths != null)
                 for (int i = 0; i < meta.paths.Length; i++)
                     AddGroundObject(parent, meta.paths[i].tex, PathMesh(i, meta.paths[i], ++layer * GroundStep));
+            if (meta.discs != null)
+                for (int i = 0; i < meta.discs.Length; i++)
+                    AddGroundObject(parent, meta.discs[i].tex, DiscMesh(i, meta.discs[i], ++layer * GroundStep));
         }
 
         private static void AddGroundObject(Transform parent, string tex, Mesh mesh)
@@ -568,13 +569,18 @@ namespace BlobSurvivor.EditorTools
             if (tex == "Water" && go.GetComponent<BlobSurvivor.Core.WaterScroll>() == null) go.AddComponent<BlobSurvivor.Core.WaterScroll>();
         }
 
-        // Yol: eğri boyunca şerit (her noktada yola dik iki köşe). UV dünya koordinatından: doku dikişsiz, gerilmez.
+        // Yol: eğri boyunca şerit, kesitte 4 köşe (dış kenar koyu, iç açık: yol yere oyulmuş görünür).
+        // UV dünya koordinatından: doku dikişsiz, gerilmez.
+        private static readonly float[] PathColumns = { 1f, 0.62f, -0.62f, -1f };   // sol dış → sağ dış (yarı genişlik oranı)
+
         private static Mesh PathMesh(int index, GroundPath p, float y)
         {
             int n = p.pts.Length / 2;
             if (n < 2) return null;
-            var verts = new Vector3[n * 2];
-            var uv = new Vector2[n * 2];
+            int cols = PathColumns.Length;
+            var verts = new Vector3[n * cols];
+            var uv = new Vector2[verts.Length];
+            var col = new Color[verts.Length];
             for (int i = 0; i < n; i++)
             {
                 Vector2 c = new Vector2(p.pts[i * 2], p.pts[i * 2 + 1]);
@@ -582,57 +588,78 @@ namespace BlobSurvivor.EditorTools
                 int b = p.loop ? (i + 1) % n : Mathf.Min(i + 1, n - 1);
                 Vector2 dir = new Vector2(p.pts[b * 2] - p.pts[a * 2], p.pts[b * 2 + 1] - p.pts[a * 2 + 1]).normalized;
                 Vector2 side = new Vector2(-dir.y, dir.x) * p.hw;
-                Vector2 l = c + side, r = c - side;
-                verts[i * 2] = new Vector3(l.x, y, l.y);
-                verts[i * 2 + 1] = new Vector3(r.x, y, r.y);
-                uv[i * 2] = l / GroundTile;
-                uv[i * 2 + 1] = r / GroundTile;
+                for (int k = 0; k < cols; k++)
+                {
+                    Vector2 q = c + side * PathColumns[k];
+                    int v = i * cols + k;
+                    verts[v] = new Vector3(q.x, y, q.y);
+                    uv[v] = q / GroundTile;
+                    float shade = Macro(q.x, q.y) * (Mathf.Abs(PathColumns[k]) > 0.99f ? PathEdgeShade : 1f);
+                    col[v] = new Color(shade, shade, shade, 1f);
+                }
             }
             int segs = p.loop ? n : n - 1;
-            var tris = new int[segs * 6];
+            var tris = new int[segs * (cols - 1) * 6];
+            int t = 0;
             for (int i = 0; i < segs; i++)
             {
-                int j = (i + 1) % n, t = i * 6;
-                // üstten bakınca saat yönü (Unity ön yüz): sol-i, sol-j, sağ-j / sol-i, sağ-j, sağ-i
-                tris[t] = i * 2; tris[t + 1] = j * 2; tris[t + 2] = j * 2 + 1;
-                tris[t + 3] = i * 2; tris[t + 4] = j * 2 + 1; tris[t + 5] = i * 2 + 1;
+                int j = (i + 1) % n;
+                for (int k = 0; k < cols - 1; k++)
+                {
+                    // üstten bakınca saat yönü (Unity ön yüz)
+                    tris[t++] = i * cols + k; tris[t++] = j * cols + k; tris[t++] = j * cols + k + 1;
+                    tris[t++] = i * cols + k; tris[t++] = j * cols + k + 1; tris[t++] = i * cols + k + 1;
+                }
             }
-            return SaveGroundMesh($"PathMesh_{index}", verts, uv, tris);
+            return SaveGroundMesh($"PathMesh_{index}", verts, uv, tris, col);
         }
 
         private static Mesh DiscMesh(int index, GroundDisc d, float y)
         {
             const int n = 48;
-            var verts = new Vector3[n + 1];
-            var uv = new Vector2[n + 1];
-            verts[0] = new Vector3(d.x, y, d.z);
-            uv[0] = new Vector2(d.x, d.z) / GroundTile;
+            var verts = new Vector3[1 + n * 2];
+            var uv = new Vector2[verts.Length];
+            var col = new Color[verts.Length];
+            void Put(int v, float x, float z, float shade)
+            {
+                verts[v] = new Vector3(x, y, z);
+                uv[v] = new Vector2(x, z) / GroundTile;
+                float m = Macro(x, z) * shade;
+                col[v] = new Color(m, m, m, 1f);
+            }
+            Put(0, d.x, d.z, 1f);
             for (int i = 0; i < n; i++)
             {
                 float a = i * Mathf.PI * 2f / n;
-                var v = new Vector2(d.x + Mathf.Cos(a) * d.r, d.z + Mathf.Sin(a) * d.r);
-                verts[i + 1] = new Vector3(v.x, y, v.y);
-                uv[i + 1] = v / GroundTile;
+                Put(1 + i, d.x + Mathf.Cos(a) * d.r * 0.85f, d.z + Mathf.Sin(a) * d.r * 0.85f, 1f);   // iç halka
+                Put(1 + n + i, d.x + Mathf.Cos(a) * d.r, d.z + Mathf.Sin(a) * d.r, PathEdgeShade);  // kenar koyu
             }
-            var tris = new int[n * 3];
+            var tris = new int[n * 9];
+            int t = 0;
             for (int i = 0; i < n; i++)
             {
-                tris[i * 3] = 0; tris[i * 3 + 1] = 1 + (i + 1) % n; tris[i * 3 + 2] = 1 + i; // saat yönü (üstten)
+                int a0 = 1 + i, a1 = 1 + (i + 1) % n, b0 = 1 + n + i, b1 = 1 + n + (i + 1) % n;
+                tris[t++] = 0; tris[t++] = a1; tris[t++] = a0;   // saat yönü (üstten)
+                tris[t++] = a0; tris[t++] = a1; tris[t++] = b1;
+                tris[t++] = a0; tris[t++] = b1; tris[t++] = b0;
             }
-            return SaveGroundMesh($"DiscMesh_{index}", verts, uv, tris);
+            return SaveGroundMesh($"DiscMesh_{index}", verts, uv, tris, col);
         }
 
-        private static Mesh SaveGroundMesh(string name, Vector3[] verts, Vector2[] uv, int[] tris)
+        private static Mesh SaveGroundMesh(string name, Vector3[] verts, Vector2[] uv, int[] tris, Color[] colors)
         {
             string path = $"{CityKitPipeline.MedievalRoot}/{name}.asset";
-            var mesh = new Mesh { name = name, vertices = verts, uv = uv, triangles = tris };
+            var mesh = new Mesh { name = name, vertices = verts, uv = uv, colors = colors, triangles = tris };
             mesh.RecalculateNormals();
+            mesh.RecalculateTangents(); // normal haritası
             mesh.RecalculateBounds();
             AssetDatabase.DeleteAsset(path);
             AssetDatabase.CreateAsset(mesh, path);
             return mesh;
         }
 
+        // Zemin: PaletteAO + normal haritası (Med_<Ad>_N.png, build_ground_normals.py) + köşe rengi (geniş açık-koyu lekeler,
+        // yol kenarı koyu). Bahar 2026-11-21: "zemin çok 2D duruyor".
         private static Material GroundMaterial(string tex)
         {
             if (tex == "Water") return AssetDatabase.LoadAssetAtPath<Material>(TextureFolder + "/Mat_Water.mat"); // hendek: şehir kıyısının suyu
@@ -640,32 +667,69 @@ namespace BlobSurvivor.EditorTools
             Material mat = AssetDatabase.LoadAssetAtPath<Material>(path);
             Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>($"{TextureFolder}/Med_{tex}.png");
             if (texture == null) { Debug.LogError($"[CastleScene] Med_{tex}.png yok (tools/medieval/build_ground_textures.py)."); return null; }
+            Shader shader = Shader.Find("BlobSurvivor/PaletteAO");
             if (mat == null)
             {
-                Material template = AssetDatabase.LoadAssetAtPath<Material>(SidewalkMaterial);
-                mat = template != null ? new Material(template) : new Material(Shader.Find("Universal Render Pipeline/Simple Lit"));
+                mat = new Material(shader);
                 AssetDatabase.CreateAsset(mat, path);
             }
+            else if (shader != null) mat.shader = shader;
             mat.SetTexture("_BaseMap", texture);
             mat.SetTextureScale("_BaseMap", Vector2.one);
             mat.SetColor("_BaseColor", tex == "Dirt" ? DirtTint : Color.white);
+            mat.SetFloat("_AOStrength", 1f);
+            string normalPath = $"{TextureFolder}/Med_{tex}_N.png";
+            if (AssetImporter.GetAtPath(normalPath) is TextureImporter ni && ni.textureType != TextureImporterType.NormalMap)
+            {
+                ni.textureType = TextureImporterType.NormalMap;
+                ni.SaveAndReimport();
+            }
+            Texture2D normal = AssetDatabase.LoadAssetAtPath<Texture2D>(normalPath);
+            mat.SetTexture("_BumpMap", normal);
+            mat.SetFloat("_BumpScale", 1f);
+            if (normal != null) mat.EnableKeyword("_NORMALMAP"); else mat.DisableKeyword("_NORMALMAP");
             EditorUtility.SetDirty(mat);
             return mat;
         }
 
+        private const float GroundCell = 2f;      // zemin ızgarası (lekeler köşe renginde)
+        private const float PathEdgeShade = 0.7f; // yol kenarı koyu: "yere oyulmuş" görünür
+
+        // Geniş, yumuşak açık-koyu lekeler: döşemenin tekrarı kaybolur.
+        private static float Macro(float x, float z)
+        {
+            float n = Mathf.PerlinNoise(x * 0.045f + 31.7f, z * 0.045f + 11.3f) * 0.65f
+                    + Mathf.PerlinNoise(x * 0.13f + 5.1f, z * 0.13f + 77.9f) * 0.35f;
+            return Mathf.Lerp(0.8f, 1f, Mathf.SmoothStep(0.15f, 0.85f, n));
+        }
+
         private static Mesh GroundMesh(int index, GroundRect r, float y)
         {
-            string path = $"{CityKitPipeline.MedievalRoot}/GroundMesh_{index}.asset";
-            var mesh = new Mesh { name = "Ground_" + index };
-            mesh.vertices = new[] { new Vector3(r.x0, y, r.z0), new Vector3(r.x0, y, r.z1), new Vector3(r.x1, y, r.z1), new Vector3(r.x1, y, r.z0) };
-            mesh.uv = new[] { new Vector2(r.x0, r.z0) / GroundTile, new Vector2(r.x0, r.z1) / GroundTile,
-                              new Vector2(r.x1, r.z1) / GroundTile, new Vector2(r.x1, r.z0) / GroundTile };
-            mesh.triangles = new[] { 0, 1, 2, 0, 2, 3 };
-            mesh.RecalculateNormals();
-            mesh.RecalculateBounds();
-            AssetDatabase.DeleteAsset(path);
-            AssetDatabase.CreateAsset(mesh, path);
-            return mesh;
+            int nx = Mathf.Max(1, Mathf.CeilToInt((r.x1 - r.x0) / GroundCell));
+            int nz = Mathf.Max(1, Mathf.CeilToInt((r.z1 - r.z0) / GroundCell));
+            var verts = new Vector3[(nx + 1) * (nz + 1)];
+            var uv = new Vector2[verts.Length];
+            var col = new Color[verts.Length];
+            for (int iz = 0; iz <= nz; iz++)
+                for (int ix = 0; ix <= nx; ix++)
+                {
+                    float x = Mathf.Lerp(r.x0, r.x1, (float)ix / nx), z = Mathf.Lerp(r.z0, r.z1, (float)iz / nz);
+                    int v = iz * (nx + 1) + ix;
+                    verts[v] = new Vector3(x, y, z);
+                    uv[v] = new Vector2(x, z) / GroundTile;
+                    float m = Macro(x, z);
+                    col[v] = new Color(m, m, m, 1f);
+                }
+            var tris = new int[nx * nz * 6];
+            int t = 0;
+            for (int iz = 0; iz < nz; iz++)
+                for (int ix = 0; ix < nx; ix++)
+                {
+                    int a = iz * (nx + 1) + ix, b = a + nx + 1; // b: kuzeydeki
+                    tris[t++] = a; tris[t++] = b; tris[t++] = b + 1;
+                    tris[t++] = a; tris[t++] = b + 1; tris[t++] = a + 1;
+                }
+            return SaveGroundMesh($"GroundMesh_{index}", verts, uv, tris, col);
         }
 
         private static bool OpenCastleScene()

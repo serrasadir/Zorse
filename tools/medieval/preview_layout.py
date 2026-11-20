@@ -71,11 +71,6 @@ k = 0
 for r in meta.get("ground", []):
     k += 1
     gobj("Ground_" + r["tex"], [(r["x0"], r["z0"]), (r["x1"], r["z0"]), (r["x1"], r["z1"]), (r["x0"], r["z1"])], [(0, 1, 2, 3)], r["tex"], k * 0.003)
-for d in meta.get("discs", []):
-    k += 1
-    n = 40
-    vs = [(d["x"], d["z"])] + [(d["x"] + d["r"] * math.cos(i * 2 * math.pi / n), d["z"] + d["r"] * math.sin(i * 2 * math.pi / n)) for i in range(n)]
-    gobj("Disc_" + d["tex"], vs, [(0, 1 + i, 1 + (i + 1) % n) for i in range(n)], d["tex"], k * 0.003)
 for p in meta.get("paths", []):
     k += 1
     f = p["pts"]
@@ -91,4 +86,9 @@ for p in meta.get("paths", []):
     segs = n if p["loop"] else n - 1
     faces = [(2 * i, 2 * ((i + 1) % n), 2 * ((i + 1) % n) + 1, 2 * i + 1) for i in range(segs)]
     gobj("Path_" + p["tex"], vs, faces, p["tex"], k * 0.003)
+for d in meta.get("discs", []):
+    k += 1
+    n = 40
+    vs = [(d["x"], d["z"])] + [(d["x"] + d["r"] * math.cos(i * 2 * math.pi / n), d["z"] + d["r"] * math.sin(i * 2 * math.pi / n)) for i in range(n)]
+    gobj("Disc_" + d["tex"], vs, [(0, 1 + i, 1 + (i + 1) % n) for i in range(n)], d["tex"], k * 0.003)
 print(len(sc.objects), "obje, eksik:", missing)

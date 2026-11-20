@@ -62,9 +62,13 @@ namespace BlobSurvivor.Systems
         private ChestPickup _chest; // Sandığı kap görevinin sandığı
         private readonly List<MissionType> _candidates = new List<MissionType>(6);
 
+        private static bool s_sceneHooked;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Install()
         {
+            // Harita değişince (MapSelection.Switch → LoadScene) yeni sahnede de kurulsun: AfterSceneLoad sadece ilk sahnede çalışır.
+            if (!s_sceneHooked) { s_sceneHooked = true; UnityEngine.SceneManagement.SceneManager.sceneLoaded += (_, __) => Install(); }
             if (Instance != null) return;
             if (FindAnyObjectByType<HUDController>(FindObjectsInactive.Include) == null) return;
             new GameObject("MissionSystem").AddComponent<MissionSystem>();

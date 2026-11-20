@@ -26,6 +26,8 @@ namespace BlobSurvivor.Core
 
         private void Update()
         {
+            if (_block == null || _renderer == null) Awake(); // Awake atlanmışsa (editörde sonradan eklenince) her karede hata vermesin
+            if (_renderer == null) return;
             float t = Time.time;
             Vector4 st = _st;
             st.z = Mathf.Repeat(_st.z + _speed.x * t + Mathf.Sin(t * 0.7f) * _wobble, 1f);

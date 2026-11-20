@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
   _displayName: Catapult
   _hudName: "POL\u0130S TANKI"
-  _prefab: {fileID: 2072016075202350378, guid: dc5548f45cf48454386cb15753e78162, type: 3}
+  _prefab: {fileID: 2072016075202350378, guid: cb26f2177d3a269449013439cf1eba4e, type: 3}
   _maxHealth: 600
   _damage: 25
   _moveSpeed: 2.9
