@@ -140,8 +140,8 @@ namespace BlobSurvivor.UI
                 SetShape(_kindShapes[i], rare ? _diamond : active ? _circle : _rounded);
                 _kindShapes[i].color = kindColor;
 
-                // Rozet: kazanılan seviye görünür (K4). Sopa herkeste baştan var: Sv.0'da "Sv. 0 → 1".
-                bool isNew = rare || (current == 0 && !data.IsBaseWeapon);
+                // Rozet: kazanılan seviye görünür (K4).
+                bool isNew = rare || current == 0;
                 int next = current + 1;
                 bool toMax = !isNew && next >= data.MaxLevel;
                 TMP_Text badge = _badgeTexts[i];
@@ -184,7 +184,7 @@ namespace BlobSurvivor.UI
                 return string.Format(active ? "<sprite name=\"uyari\" tint=1> Son aktif slot ({0}/{0})"
                     : "<sprite name=\"uyari\" tint=1> Son pasif slot ({0}/{0})", slots);
             }
-            return data.IsBaseWeapon ? "Aktif slot kullanır" : null;
+            return null;
         }
 
         private void OnUpgradeApplied(UpgradeData _, int __) => UpdateCounters();

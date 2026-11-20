@@ -54,8 +54,18 @@ namespace BlobSurvivor.EditorTools
                 "İzdekiler %50 yavaşlar.", "ASİT İZ: yutamadıklarına saniyede 5 hasar." }),
             // 3. Saldırı
             S("Upgrade_Weapon", "FX_WeaponUpgrade", typeof(WeaponUpgradeEffect), "weapon", "Sopa", SkillKind.Active, new[] {
-                "Vuruş hasarı +5, menzil +0.5.", "Vuruş yayı 180°.", "Arkaya da vurur, hasar +5.",
-                "Vuruş hızı %30 artar.", "SON FORM: tam tur vuruş (360°), hasar ×1.5." }, perLevel: 5f),
+                "Ağaç dalı: yüzünün baktığı yöne saniyede bir savurur, yaydaki herkese 10 hasar.", "Vuruş yayı 180°, hasar +5, menzil +0.5.",
+                "Arkaya da vurur, hasar +5, menzil +0.5.", "Vuruş hızı %30 artar.", "SON FORM: tam tur vuruş (360°), hasar ×1.5." }, perLevel: 5f),
+            S("Upgrade_Nal", "FX_Nal", typeof(HorseshoeEffect), "nal", "Nal Bumerangı", SkillKind.Active, new[] {
+                "Nalı en yakın düşmana fırlatır, nal mıknatısla geri döner: gidişte ve dönüşte yolundaki herkese 10 hasar.",
+                "Nal hasarı +4, menzil +1.", "İki nal: ikincisi ayrı düşmana.",
+                "Dönen nal yolundaki coin ve kalpleri getirir, atış hızı %30 artar.",
+                "SON FORM: nal geri gelince çevrende bir tur döner, hasar ×1.5." }),
+            S("Upgrade_CopFirlatma", "FX_CopFirlatma", typeof(TrashThrowEffect), "cop_firlatma", "Çöp Fırlatma", SkillKind.Active, new[] {
+                "Yediğin her eşya çöp cephanesi olur: en yakın düşmana çöp atar, düştüğü yere 12 hasar. Boşken de yavaş atar.",
+                "Çöp hasarı +4, depo 15.", "Her atışta 2 çöp, ayrı düşmanlara.",
+                "Büyük lokma 3 çöp sayılır. Çöp düştüğü yerde 2 sn leke bırakır: içindekiler %40 yavaşlar.",
+                "SON FORM: atış hızı 2 kat, çöp çarpınca 3 parçaya bölünüp saçılır." }),
             S("Upgrade_Firework", "FX_Firework", typeof(FireworkEffect), "firework", "Havai Fişek", SkillKind.Active, new[] {
                 "Uzaktaki hedefe ağır roket: 2 sn'de bir, 25 hasar. Önce boss ve elit.", "Roket hasarı +8.", "Atış hızı %30 artar.",
                 "Boss ve elite ×1.5 hasar, roket hasarı +8.", "SON FORM: her atışta 2 roket, ayrı düşmanlara." }, perLevel: 8f),
@@ -91,12 +101,17 @@ namespace BlobSurvivor.EditorTools
         private static readonly Dictionary<string, string> Abbr = new Dictionary<string, string>
         {
             { "vacuum", "VK" }, { "kaygan_zemin", "KZ" }, { "weapon", "SP" }, { "firework", "HF" },
+            { "nal", "NB" }, { "cop_firlatma", "ÇF" },
             { "yer_sarsintisi", "YS" }, { "sindirim_gazi", "SG" }, { "damage_reduction", "ZR" },
             { "Sindirim", "SN" }, { "geri_donusum", "GD" }, { "hizli_metabolizma", "HM" }, { "speed_boost", "HZ" },
             { "tetikci", "TT" }, { "health_boost", "CA" }, { "regen_boost", "RJ" }, { "yara_ofkesi", "YÖ" },
             { "bolunme", "BÖ" },
         };
-        private const string BaseWeaponId = "weapon"; // Sopa
+        private const string HorseshoeModel = "Assets/_Project/Art/City/X_Horseshoe.fbx"; // Blender build_horseshoe.py
+        private const string CityMaterial = "Assets/_Project/Art/City/Mat_CityPalette.mat";
+        private const string LitterFolder = "Assets/_Project/Art/City/Litter";
+        private const string LitterMaterial = "Assets/_Project/Art/City/Litter/Mat_LitterPalette.mat";
+        private const string CharacterFolder = "Assets/_Project/Data/Characters/";
         private const string KaraDelikAsset = "Upgrade_KaraDelik";
 
         [MenuItem("Tools/Blob.io/Skill Setini Kur")]
@@ -109,13 +124,15 @@ namespace BlobSurvivor.EditorTools
                 var data = LoadOrCreate(Folder + s.Asset + ".asset", typeof(UpgradeData)) as UpgradeData;
                 if (fx == null || data == null) { Debug.LogError($"[SkillSetSetup] {s.Name} kurulamadı."); continue; }
                 if (!Abbr.TryGetValue(s.Id, out string abbr)) Debug.LogWarning($"[SkillSetSetup] {s.Name} için kısaltma yok.");
-                data.EditorSetup(s.Id, s.Name, s.Kind, s.Weight, fx, s.MaxLevel, s.PerLevel, s.Levels, abbr, s.Id == BaseWeaponId);
+                data.EditorSetup(s.Id, s.Name, s.Kind, s.Weight, fx, s.MaxLevel, s.PerLevel, s.Levels, abbr);
+                BindModels(fx);
                 EditorUtility.SetDirty(data);
                 pool.Add(data);
             }
             var karaDelik = AssetDatabase.LoadAssetAtPath<UpgradeData>(Folder + KaraDelikAsset + ".asset");
             if (karaDelik == null) Debug.LogWarning("[SkillSetSetup] " + KaraDelikAsset + " bulunamadı.");
             List<SkillEvolutionData> evolutions = SetupEvolutions(pool, karaDelik);
+            SetupCharacterWeapons(pool);
             AssetDatabase.SaveAssets();
 
             UpgradeSystem system = UnityEngine.Object.FindAnyObjectByType<UpgradeSystem>(FindObjectsInactive.Include);
@@ -143,6 +160,58 @@ namespace BlobSurvivor.EditorTools
             EditorSceneManager.MarkSceneDirty(system.gameObject.scene);
             EditorSceneManager.SaveScene(system.gameObject.scene);
             Debug.Log($"[SkillSetSetup] {pool.Count} skill kart havuzunda (3 aktif + 3 pasif slot). Sahne kaydedildi.");
+        }
+
+        // Silah modelleri: nal (Blender) ve yerdeki yiyeceklerin mesh'leri (çöp).
+        private static void BindModels(UpgradeEffect fx)
+        {
+            if (fx is HorseshoeEffect nal)
+            {
+                Mesh mesh = LoadMesh(HorseshoeModel);
+                if (mesh == null) Debug.LogWarning("[SkillSetSetup] " + HorseshoeModel + " yok: Nal Bumerangı görünmez (build_horseshoe.py --export).");
+                nal.EditorSetModel(mesh, AssetDatabase.LoadAssetAtPath<Material>(CityMaterial));
+                EditorUtility.SetDirty(nal);
+            }
+            else if (fx is TrashThrowEffect trash)
+            {
+                var meshes = new List<Mesh>();
+                foreach (string guid in AssetDatabase.FindAssets("J_ t:Model", new[] { LitterFolder }))
+                {
+                    Mesh m = LoadMesh(AssetDatabase.GUIDToAssetPath(guid));
+                    if (m != null) meshes.Add(m);
+                }
+                trash.EditorSetModels(meshes.ToArray(), AssetDatabase.LoadAssetAtPath<Material>(LitterMaterial));
+                EditorUtility.SetDirty(trash);
+            }
+        }
+
+        private static Mesh LoadMesh(string path)
+        {
+            foreach (UnityEngine.Object o in AssetDatabase.LoadAllAssetsAtPath(path))
+                if (o is Mesh m) return m;
+            return null;
+        }
+
+        // Her karakterin kendi silahı (SKILLS.md §4) + avantajı. Silah = karakterin run'a başladığı saldırı skill'i.
+        private static void SetupCharacterWeapons(List<UpgradeData> pool)
+        {
+            SetCharacter(pool, "Char_Topik", "weapon", 1, "speed_boost", 2);
+            SetCharacter(pool, "Char_Miknato", "nal", 1, "vacuum", 2);
+            SetCharacter(pool, "Char_Fisek", "firework", 1, null, 0);
+            SetCharacter(pool, "Char_Dalcik", "weapon", 2, null, 0);
+            SetCharacter(pool, "Char_Cano", "cop_firlatma", 1, "geri_donusum", 2);
+        }
+
+        private static void SetCharacter(List<UpgradeData> pool, string asset, string weapon, int weaponLevel, string upgrade, int upgradeLevel)
+        {
+            var c = AssetDatabase.LoadAssetAtPath<CharacterData>(CharacterFolder + asset + ".asset");
+            if (c == null) { Debug.LogWarning("[SkillSetSetup] " + asset + " bulunamadı."); return; }
+            var so = new SerializedObject(c);
+            so.FindProperty("_startingWeapon").objectReferenceValue = pool.Find(u => u.Id == weapon);
+            so.FindProperty("_startingWeaponLevel").intValue = weaponLevel;
+            so.FindProperty("_startingUpgrade").objectReferenceValue = upgrade != null ? pool.Find(u => u.Id == upgrade) : null;
+            so.FindProperty("_startingUpgradeLevel").intValue = upgradeLevel;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // Evrimler (SKILLS.md §3): A max + B en az EvoPartnerLevel. Kara Delik'in efekt asset'i elle kuruldu, metni ve koşulu burada yazılır.

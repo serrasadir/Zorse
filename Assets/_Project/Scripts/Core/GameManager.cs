@@ -30,8 +30,9 @@ namespace BlobSurvivor.Core
         public static GameManager Instance { get; private set; }
 
         [SerializeField] private CharacterData _defaultCharacter;
-        [Tooltip("Ana silah, bütün karakterlerde aynı (Prefabs/Weapons/StickWeapon).")]
+        [Tooltip("Sopa skill'inin silahı (Prefabs/Weapons/StickWeapon): WeaponUpgradeEffect Sv.1'de kurar.")]
         [SerializeField] private GameObject _stickWeaponPrefab;
+        public GameObject StickWeaponPrefab => _stickWeaponPrefab;
 
         private CharacterData _lastCharacter;
         // 2026-09-06 (Serra): RaiseSurvivalTimeUpdated her frame ateşleniyordu — HUD (her frame string
@@ -130,18 +131,11 @@ namespace BlobSurvivor.Core
                 blob.AddComponent<SpeedTrail>(); // Topik: rüzgar izi (eskisi ClearPreviousRunState'te kare sonunda silinir)
             WeaponVisual weaponVisual = blob.GetComponent<WeaponVisual>();
             if (weaponVisual == null) weaponVisual = blob.AddComponent<WeaponVisual>();
-            // Herkes ağaç dalı sopa tutar (G_Stick_*), sadece vururken görünür.
+            // Ağaç dalı (G_Stick_*) görünümü: sadece Sopa varken ve vururken görünür.
             weaponVisual.Setup(visual.ModelRenderer, StickModel, true);
             weaponVisual.HideWhenIdle = true;
 
-            // Karakter avantajı başlangıç skill'i: UpgradeSystem OnCharacterSelected'da verir.
-
-            if (_stickWeaponPrefab != null)
-            {
-                GameObject weapon = Instantiate(_stickWeaponPrefab, blob.transform);
-                weapon.transform.localPosition = Vector3.zero;
-                weapon.transform.localRotation = Quaternion.identity;
-            }
+            // Karakterin silahı (Sopa = dal) ve avantajı: UpgradeSystem OnCharacterSelected'da verir.
 
             GameEvents.RaiseCharacterSelected(character);
         }
@@ -167,6 +161,10 @@ namespace BlobSurvivor.Core
                 DetachAndDestroy(oldStick.gameObject, blob);
             foreach (WeaponBase oldWeapon in blob.GetComponentsInChildren<WeaponBase>())
                 DetachAndDestroy(oldWeapon.gameObject, blob);
+            foreach (HorseshoeWeapon oldNal in blob.GetComponentsInChildren<HorseshoeWeapon>())
+                DetachAndDestroy(oldNal.gameObject, blob);
+            foreach (TrashWeapon oldTrash in blob.GetComponentsInChildren<TrashWeapon>())
+                DetachAndDestroy(oldTrash.gameObject, blob);
 
             // Skill bileşenleri hemen silinir: başlangıç skill'i (BlobSkills'e yazan Hız vb.) aynı karede yenisini kurar;
             // kare sonuna kalan eski bileşen (Kara Delik'in evrim anı zaman ölçeğini) yeni run'da bir kare daha yazabilir.

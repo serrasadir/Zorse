@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
   _id: weapon
   _displayName: Sopa
-  _description: "Vuru\u015F hasar\u0131 +5, menzil +0.5."
+  _description: "A\u011Fa\xE7 dal\u0131: y\xFCz\xFCn\xFCn bakt\u0131\u011F\u0131
+    y\xF6ne saniyede bir savurur, yaydaki herkese 10 hasar."
   _icon: {fileID: 0}
   _kind: 0
   _weight: 10
@@ -22,11 +23,11 @@ MonoBehaviour:
   _maxLevel: 5
   _perLevelValue: 5
   _levelDescriptions:
-  - "Vuru\u015F hasar\u0131 +5, menzil +0.5."
-  - "Vuru\u015F yay\u0131 180\xB0."
-  - Arkaya da vurur, hasar +5.
+  - "A\u011Fa\xE7 dal\u0131: y\xFCz\xFCn\xFCn bakt\u0131\u011F\u0131 y\xF6ne saniyede
+    bir savurur, yaydaki herkese 10 hasar."
+  - "Vuru\u015F yay\u0131 180\xB0, hasar +5, menzil +0.5."
+  - Arkaya da vurur, hasar +5, menzil +0.5.
   - "Vuru\u015F h\u0131z\u0131 %30 artar."
   - "SON FORM: tam tur vuru\u015F (360\xB0), hasar \xD71.5."
   _isEvolution: 0
   _abbr: SP
-  _isBaseWeapon: 1

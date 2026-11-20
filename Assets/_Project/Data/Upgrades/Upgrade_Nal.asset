@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a39f692a12e49499b3cddabf07df41, type: 3}
+  m_Name: Upgrade_Nal
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.UpgradeData
+  _id: nal
+  _displayName: "Nal Bumerang\u0131"
+  _description: "Nal\u0131 en yak\u0131n d\xFC\u015Fmana f\u0131rlat\u0131r, nal
+    m\u0131knat\u0131sla geri d\xF6ner: gidi\u015Fte ve d\xF6n\xFC\u015Fte yolundaki
+    herkese 10 hasar."
+  _icon: {fileID: 0}
+  _kind: 0
+  _weight: 10
+  _effect: {fileID: 11400000, guid: 5715bd58d777fcc4aa5126610122fbce, type: 2}
+  _maxLevel: 5
+  _perLevelValue: 0
+  _levelDescriptions:
+  - "Nal\u0131 en yak\u0131n d\xFC\u015Fmana f\u0131rlat\u0131r, nal m\u0131knat\u0131sla
+    geri d\xF6ner: gidi\u015Fte ve d\xF6n\xFC\u015Fte yolundaki herkese 10 hasar."
+  - "Nal hasar\u0131 +4, menzil +1."
+  - "\u0130ki nal: ikincisi ayr\u0131 d\xFC\u015Fmana."
+  - "D\xF6nen nal yolundaki coin ve kalpleri getirir, at\u0131\u015F h\u0131z\u0131
+    %30 artar."
+  - "SON FORM: nal geri gelince \xE7evrende bir tur d\xF6ner, hasar \xD71.5."
+  _isEvolution: 0
+  _abbr: NB

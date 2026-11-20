@@ -122,13 +122,19 @@ namespace BlobSurvivor.Systems
             GrantStartingUpgrade(character);
         }
 
-        // Karakterin başlangıç skill'i (Dalcık: Sopa Sv.2): kart seçimiyle aynı yoldan, seviye seviye uygulanır.
+        // Karakterin silahı (Topik: Sopa Sv.1, Dalcık: Sopa Sv.2 ...) ve avantajı (Topik: Hız Sv.2): kart seçimiyle aynı yoldan.
         private void GrantStartingUpgrade(CharacterData character)
         {
-            if (character == null || character.StartingUpgrade == null || _blobRoot == null) return;
-            UpgradeData data = character.StartingUpgrade;
-            int target = Mathf.Min(character.StartingUpgradeLevel, data.MaxLevel);
-            for (int level = 1; level <= target; level++)
+            if (character == null || _blobRoot == null) return;
+            Grant(character.StartingWeapon, character.StartingWeaponLevel);
+            Grant(character.StartingUpgrade, character.StartingUpgradeLevel);
+        }
+
+        private void Grant(UpgradeData data, int startLevel)
+        {
+            if (data == null) return;
+            int target = Mathf.Min(startLevel, data.MaxLevel);
+            for (int level = GetLevel(data) + 1; level <= target; level++)
             {
                 SetLevel(data, level);
                 if (data.Effect != null) data.Effect.Apply(_blobRoot, data);
@@ -232,7 +238,7 @@ namespace BlobSurvivor.Systems
         {
             var meta = Meta.MetaProgression.Instance;
             if (meta == null || meta.IsSkillUnlocked(u.Id)) return true;
-            return _character != null && (u == _character.StartingUpgrade || u == _character.FavoredUpgrade);
+            return _character != null && (u == _character.StartingWeapon || u == _character.StartingUpgrade || u == _character.FavoredUpgrade);
         }
 
         // Market'in skill sekmesi (kart havuzundaki skiller, sahnedeki sırayla).

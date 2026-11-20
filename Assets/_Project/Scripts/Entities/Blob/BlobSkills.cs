@@ -132,9 +132,13 @@ namespace BlobSurvivor.Entities.Blob
             return m;
         }
 
+        // Yeme olayı (Çöp Fırlatma cephanesi). Bileşen run başında yeniden kurulur, dinleyiciler onunla gider.
+        public event System.Action<EatKind, BlobTier> Ate;
+
         // Yeme anında, kütle eklendikten sonra.
         public void OnAte(EatKind kind, BlobTier foodTier)
         {
+            Ate?.Invoke(kind, foodTier);
             if (_health != null && (kind == EatKind.Object || kind == EatKind.Vehicle))
             {
                 float heal = RecycleHeal + (kind == EatKind.Vehicle ? CarHeal : 0f);

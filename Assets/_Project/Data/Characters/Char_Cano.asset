@@ -14,12 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.CharacterData
   _displayName: Cano
   _icon: {fileID: 21300000, guid: 00cc6d376d8014ea281e733c6f769de9, type: 3}
-  _description: "Geri Dönüşüm skiliyle başlar (Sv.2)."
+  _description: "Geri D\xF6n\xFC\u015F\xFCm skiliyle ba\u015Flar (Sv.2)."
   _blobVisualPrefab: {fileID: 4952618270965215112, guid: dcf0633eda93f4de9abb79f3ac98452f, type: 3}
   _armorOnHead: 0
   _speedTrail: 0
   _favoredUpgrade: {fileID: 11400000, guid: 46f8f3a75f472a74ab515431f7b1fd41, type: 2}
   _favoredWeightMultiplier: 3
+  _startingWeapon: {fileID: 11400000, guid: ab442c695c4add6429c665a8bd73a647, type: 2}
+  _startingWeaponLevel: 1
   _startingUpgrade: {fileID: 11400000, guid: 46f8f3a75f472a74ab515431f7b1fd41, type: 2}
   _startingUpgradeLevel: 2
   _saveId: Cano

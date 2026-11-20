@@ -131,6 +131,8 @@ namespace BlobSurvivor.UI
                 bool unlocked = meta == null || meta.IsCharacterUnlocked(c);
                 sb.Clear();
                 sb.Append(c.Description);
+                if (c.StartingWeapon != null)
+                    sb.Append($"\n<color={GoldHex}>Silah:</color> {c.StartingWeapon.DisplayName} Sv.{c.StartingWeaponLevel}");
                 if (c.StartingUpgrade != null)
                     sb.Append($"\n<color={GoldHex}>Başlangıç:</color> {c.StartingUpgrade.DisplayName} Sv.{c.StartingUpgradeLevel}");
                 if (c.FavoredUpgrade != null)
@@ -182,7 +184,6 @@ namespace BlobSurvivor.UI
                             if (level > 1) sb.Append('\n');
                             sb.Append($"<color={GoldHex}>Sv.{level}</color>  {u.GetDescriptionForLevel(level)}");
                         }
-                    if (u.IsBaseWeapon) sb.Append($"\n<color={FaintHex}>Herkeste baştan var (Sv.0).</color>");
 
                     SkillEvolutionData evo = EvolutionOf(u);
                     if (evo != null)

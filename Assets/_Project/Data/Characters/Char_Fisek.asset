@@ -20,8 +20,10 @@ MonoBehaviour:
   _speedTrail: 0
   _favoredUpgrade: {fileID: 11400000, guid: 9231d870b0224dadb1833c18cac33f88, type: 2}
   _favoredWeightMultiplier: 3
-  _startingUpgrade: {fileID: 11400000, guid: 9231d870b0224dadb1833c18cac33f88, type: 2}
-  _startingUpgradeLevel: 1
+  _startingWeapon: {fileID: 11400000, guid: 9231d870b0224dadb1833c18cac33f88, type: 2}
+  _startingWeaponLevel: 1
+  _startingUpgrade: {fileID: 0}
+  _startingUpgradeLevel: 0
   _saveId: Fisek
   _marketPrice: 1000
   _requiredCompletedRuns: 0

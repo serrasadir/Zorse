@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f8002edfdc11fb42ab30bb7d260fe68, type: 3}
+  m_Name: FX_Nal
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Systems.HorseshoeEffect
+  _mesh: {fileID: 246426461613173438, guid: d17560800f6d76f4384dc1db8345e94e, type: 3}
+  _material: {fileID: 2100000, guid: b2093694704d845c0a498e932a1b79a3, type: 2}
+  _damage: 10
+  _range: 6
+  _interval: 1.6
+  _damagePerLevel2: 4
+  _rangePerLevel2: 1
+  _collectFireRate: 1.3
+  _orbitDamageScale: 1.5

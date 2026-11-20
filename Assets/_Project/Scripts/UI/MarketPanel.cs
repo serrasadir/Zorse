@@ -417,7 +417,7 @@ namespace BlobSurvivor.UI
             UpgradeData[] all = UpgradeSystem.Instance != null ? UpgradeSystem.Instance.AllUpgrades : null;
             if (all == null) return list;
             foreach (UpgradeData u in all)
-                if (u != null && !u.IsEvolution && !u.IsBaseWeapon) list.Add(u);
+                if (u != null && !u.IsEvolution) list.Add(u);
             list.Sort((a, b) => LockOrder(a.Id).CompareTo(LockOrder(b.Id)));
             return list;
         }

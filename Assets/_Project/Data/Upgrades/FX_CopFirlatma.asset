@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7fbd0f86a1b1aa4f90c0ad3c4eef9c3, type: 3}
+  m_Name: FX_CopFirlatma
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Systems.TrashThrowEffect
+  _meshes:
+  - {fileID: -3719711891554917169, guid: ea6fa4aa517284025ba02046ca54a82d, type: 3}
+  - {fileID: -2977173980257820587, guid: 1ae362fdaae704d768874192b9e5cbef, type: 3}
+  - {fileID: 141191621451233034, guid: 30843a1affdd34fba829955fb88e40ca, type: 3}
+  - {fileID: -5982847478562722936, guid: 92a1548e2d3334a8dbe15a16eb7f4932, type: 3}
+  - {fileID: -4627865890126150332, guid: 924ec0dfcf934498aa951fd653630f30, type: 3}
+  - {fileID: 7599483665769336544, guid: 406df402261f14440a4f47ac852ebe70, type: 3}
+  - {fileID: -972238863197411882, guid: ce914e1626f5346e0a34053926aa602a, type: 3}
+  - {fileID: 210772014151411435, guid: a6e4dee300b634a57ba1b3fd34b624b5, type: 3}
+  - {fileID: 5653845472429528611, guid: c5f7752e2213a4465b487374cfe2c983, type: 3}
+  - {fileID: -4738165871960691773, guid: 24f65f2e7e2a249d2a40cb795d966284, type: 3}
+  - {fileID: -4029357260178500055, guid: 341f5154cedc749588b12a55e97db35c, type: 3}
+  - {fileID: 2444750170112409726, guid: 630c349fe099147ada3c3bcd1a299077, type: 3}
+  _material: {fileID: 2100000, guid: b38941ee63aa94647bb490e0720f0849, type: 2}
+  _damage: 12
+  _radius: 1.2
+  _range: 7
+  _ammoCap: 10
+  _damagePerLevel2: 4
+  _ammoCapLevel2: 15
+  _bigBiteAmmo: 3
+  _puddleSlow: 0.6
+  _puddleTime: 2
+  _finalFireRate: 2

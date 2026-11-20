@@ -14,7 +14,7 @@
 - Kartlar ağırlıklı rastgele çekilir: her skill ağırlık **10**, nadir Bölünme **3**.
 - **Karakterin favori skill'i ×3 ağırlıkla** çekilir (ağırlığı 10 olan skill kart ekranlarının ~%41'i yerine ~%75'inde çıkar). `CharacterData._favoredUpgrade` / `_favoredWeightMultiplier`.
 - **Teklif edilecek kart kalmazsa** (her şey max ya da slotlar dolu ve elindekiler max) level atlamak kart açmaz, **canın %30'u dolar** (`UpgradeSystem._allMaxHealFraction`).
-- Kartın sağ üstünde **YENİ** (yeşil, ilk kez alıyorsun) ya da **mavi Sv. 2/5** (sahip olduğun skill'in şu anki seviyesi) yazar; altında tür etiketi (**AKTİF** turuncu / **PASİF** mavi / **NADİR** mor); açıklama bu seçimle gelecek seviyeyi anlatır. Sopa herkeste baştan olduğu için Sv.0'dayken de YENİ değil "Sv. 0/5" yazar.
+- Kartın sağ üstünde **YENİ** (yeşil, ilk kez alıyorsun) ya da **mavi Sv. 2/5** (sahip olduğun skill'in şu anki seviyesi) yazar; altında tür etiketi (**AKTİF** turuncu / **PASİF** mavi / **NADİR** mor); açıklama bu seçimle gelecek seviyeyi anlatır.
 - Tek lokmada birden fazla level atlarsan kart ekranları arka arkaya gelir, seviye kaybolmaz.
 - Elit sandığı da bir kart ekranı açar.
 - **Garanti kart yok.**
@@ -38,9 +38,9 @@
 
 ---
 
-## 2. Skiller (16 adet)
+## 2. Skiller (18 adet)
 
-**Havuz:** 6 aktif (Vakum, Kaygan Zemin, Sopa, Havai Fişek, Yer Sarsıntısı, Sindirim Gazı) · 9 pasif (Zırh, Sindirim, Geri Dönüşüm, Hızlı Metabolizma, Hız, Tetikçi, Can Artışı, Rejenerasyon, Yara Öfkesi) · 1 nadir (Bölünme). Kategoriler: Sindirim ve Büyüme · Hareket · Saldırı · Savunma · Nadir.
+**Havuz:** 8 aktif (Vakum, Kaygan Zemin, Sopa, Havai Fişek, Nal Bumerangı, Çöp Fırlatma, Yer Sarsıntısı, Sindirim Gazı) · 9 pasif (Zırh, Sindirim, Geri Dönüşüm, Hızlı Metabolizma, Hız, Tetikçi, Can Artışı, Rejenerasyon, Yara Öfkesi) · 1 nadir (Bölünme). Kategoriler: Sindirim ve Büyüme · Hareket · Saldırı · Savunma · Nadir.
 
 Tablolarda her satır Sv.1 → Sv.5; ⭐ yeni yetenek açan seviye.
 
@@ -103,15 +103,14 @@ Tablolarda her satır Sv.1 → Sv.5; ⭐ yeni yetenek açan seviye.
 ### Saldırı
 
 #### 🪵 Sopa (aktif)
-- **Ne yapar:** Ana silah, bütün karakterlerde baştan var (Sv.0): saniyede **1 vuruş × 10 hasar**, yüzün baktığı yöne **120°'lik yay**, menzildeki yaydaki **herkese** vurur (hafif geri itme, bina arkasındakine vurmaz). Menzil **gövde yüzeyinden 2**. Kimse yoksa sallamaz. Kartı alınca 1 aktif slot kaplar.
+- **Ne yapar:** Ağaç dalı = Sopa skill'i. Topik (Sv.1) ve Dalcık (Sv.2) dalla başlar; diğerlerinde dal yoktur, Sopa kartı onlara YENİ silah olarak gelir. Sv.1: saniyede **1 vuruş × 10 hasar**, yüzün baktığı yöne **120°'lik yay**, menzildeki yaydaki **herkese** vurur (hafif geri itme, bina arkasındakine vurmaz). Menzil **gövde yüzeyinden 2**. Kimse yoksa sallamaz. 1 aktif slot kaplar. Dal (`StickWeapon`) Sv.1'de `WeaponUpgradeEffect` tarafından kurulur.
 - **Kod:** `WeaponUpgradeEffect` (kilometre taşı seviyeleri; +hasar `Upgrade_Weapon.asset` → Per Level Value 5) → `StickWeapon` (`Prefabs/Weapons/StickWeapon.prefab`, `GameManager._stickWeaponPrefab`).
 - **Görsel:** ağaç dalı (`G_Stick_1..4` ← `zorse-blender/build_stick.py`), sadece vururken görünür, yay boyunca savrulur, arkasında beyaz hilal izi (`SwingArcFx`). Form: **Sv.0-1** yapraklı dal → **Sv.2-3** çift uçlu topuzlu sopa → **Sv.4** çivili → **Sv.5** altın bantlı, çiçekli.
 
 | Sv. | Kazanılan | Vuruş hasarı | Sn. başı (hedef başına) |
 |---|---|---|---|
-| 0 | – | 10 | 10 |
-| 1 | +5 hasar, +0.5 menzil | 15 | 15 |
-| 2 | ⭐ **Yay 180°** | 15 | 15 |
+| 1 | Dal: 120° yay, menzil 2 | 10 | 10 |
+| 2 | ⭐ **Yay 180°**, +5 hasar, +0.5 menzil | 15 | 15 |
 | 3 | ⭐ **Arkaya da vurur**, +5 hasar, +0.5 menzil | 20 | 20 |
 | 4 | ⭐ **Vuruş hızı ×1.3** | 20 | 26 |
 | 5 | ⭐ **Son form: tam tur (360°)**, hasar ×1.5 | 30 | 39 |
@@ -125,6 +124,22 @@ Tablolarda her satır Sv.1 → Sv.5; ⭐ yeni yetenek açan seviye.
 | Sv.1 | Sv.2 | Sv.3 | Sv.4 | Sv.5 |
 |---|---|---|---|---|
 | 2 sn'de 1 roket, 25 hasar | +8 hasar | ⭐ Atış hızı ×1.3 | ⭐ Boss ve elite ×1.5, +8 hasar | ⭐ **Son form:** her atışta 2 roket, her biri ayrı düşmana (tek hedef varsa ikisi de ona) |
+
+#### 🧲 Nal Bumerangı (aktif) — Mıknato'nun silahı
+- **Ne yapar:** Nalı en yakın düşmana fırlatır (havadaki hedef hariç, arada bina varsa atmaz). Nal menzilin sonuna kadar yavaşlayarak düz gider, sonra mıknatısla blob'a geri döner; **gidişte ve dönüşte** yolundaki herkese vurur (delip geçer, aynı düşmana yön başına bir kez), hafif geri iter. Nal dönmeden yenisi atılmaz.
+- **Kod:** `HorseshoeEffect` (`FX_Nal.asset`) → `HorseshoeWeapon` (nallar dünyada, run başına bir kez kurulur). Model `Art/City/X_Horseshoe.fbx` ← `tools/zorse-blender-pending/build_horseshoe.py` (kırmızı gövde, gümüş uçlar; `CityPalette`), Skill Setini Kur bağlar. Blob'la büyür (Tiny 1× → ~3×). Mıknato'nun tepesindeki nal model parçası olduğu için atınca kaybolmuyor.
+
+| Sv.1 | Sv.2 | Sv.3 | Sv.4 | Sv.5 |
+|---|---|---|---|---|
+| 1.6 sn'de 1 nal, geçiş başına 10 hasar, menzil yüzeyden 6 | +4 hasar, +1 menzil | ⭐ 2 nal (ikincisi ayrı hedefe) | ⭐ Dönüşte yoldaki coin ve kalpleri getirir, atış hızı ×1.3 | ⭐ **Son form:** nal dönünce blob'un çevresinde bir tur döner (etrafına vurur), hasar ×1.5 |
+
+#### ♻️ Çöp Fırlatma (aktif) — Cano'nun silahı
+- **Ne yapar:** Yenen her cansız nesne (eşya, araba; yaya ve düşman değil) **+1 çöp** cephanesi (depo 10). Depoda çöp varsa **1 sn'de bir**, boşken **3 sn'de bir** en yakın düşmana (havadaki hariç) yay çizerek çöp atar; çöp hedefin gideceği yere düşer, düştüğü yerde **alan hasarı** (yarıçap 1.2, blob'la büyür) + hafif itme + toz. Çok yiyen çok atar.
+- **Kod:** `TrashThrowEffect` (`FX_CopFirlatma.asset`) → `TrashWeapon` (cephane `BlobSkills.Ate` olayından; çöp ve leke havuzu run başına bir kez). Çöp modelleri yerdeki yiyeceklerden (`Art/City/Litter/J_*`), leke Kaygan Zemin'in balçık mesh'i.
+
+| Sv.1 | Sv.2 | Sv.3 | Sv.4 | Sv.5 |
+|---|---|---|---|---|
+| 12 hasar, alan 1.2, menzil yüzeyden 7, depo 10 | +4 hasar, depo 15 | ⭐ Her atışta 2 çöp (ayrı hedeflere) | ⭐ Medium+ lokma 3 çöp sayılır; çöp düştüğü yerde 2 sn leke (içindekiler %40 yavaş) | ⭐ **Son form:** atış hızı ×2, çöp çarpınca 3 parçaya bölünür (parça: %40 hasar, %60 alan) |
 
 #### 🌋 Yer Sarsıntısı (aktif) ⚠️ deneme
 - **Ne yapar:** **Darbe aldıkça dolar:** her X hasarda (kalkanın yuttuğu dahil) yere vurur; çevredeki düşmanlara alan hasarı + geri itme. Alan gövde yüzeyinden ölçülür, blob büyüdükçe büyür. Duvar arkasındakine vurmaz. İki sarsıntı arası en az 1.5 sn. Tetikçi gereken hasarı azaltır. Boss'lar sersemlemez.
@@ -284,35 +299,36 @@ Henüz yiyemediğin (senden büyük) yayaya çarparsan yaya seni tekmeler: geriy
 
 **Neden Dalcık run sayısıyla:** coin'le alınan üç karakter "biriktir ve seç" hedefi; Dalcık "oynamaya devam et" hedefi. Başarılı run şartı yeni oyuncu için uzak ve en çok yardıma ihtiyacı olanı (kazanamayanı) cezalandırır; 5 run her oyuncuya sayılabilir, görünür bir hedef verir ve Mıknato ile Fişek'in arasına düşer.
 
-Beş karakter de aynı blob'dur; farkları **görünüm** ve **başlangıç avantajı** (kendi skill'iyle başlar; o skill favori skili, kart ekranında ×3 ağırlık). Başlangıç skill'i slot kaplar. Ana silah hepsinde aynı: sopa.
+Beş karakter de aynı blob'dur; farkları **görünüm**, **kendi silahı** ve **avantajı**. Herkes kendi silahıyla başlar (`CharacterData._startingWeapon`, aktif slot kaplar); Topik, Mıknato ve Cano ayrıca bir avantaj skill'iyle başlar (`_startingUpgrade`). Favori skill kart ekranında ×3 ağırlık. Kurulum `Skill Setini Kur` (`SkillSetSetup.SetupCharacterWeapons`).
 
 | | 🟠 Topik | 🧲 Mıknato | 🎆 Fişek | 🌿 Dalcık | ♻️ Cano |
 |---|---|---|---|---|---|
 | **Kilit** | Baştan açık | Market **500** | Market **1.000** | **5 run bitirince** | Market **1.500** |
-| **Başlangıç avantajı** | **Hız Sv.2** (pasif) | **Vakum Sv.2** (aktif) | **Havai Fişek Sv.1** (aktif) | **Sopa Sv.2** (aktif) | **Geri Dönüşüm Sv.2** (pasif) |
+| **Silah** | **Sopa Sv.1** (dal) | **Nal Bumerangı Sv.1** | **Havai Fişek Sv.1** | **Sopa Sv.2** (dal, 180°) | **Çöp Fırlatma Sv.1** |
+| **Avantaj** | **Hız Sv.2** (pasif) | **Vakum Sv.2** (aktif) | – | – | **Geri Dönüşüm Sv.2** (pasif) |
 | **Favori skill (×3)** | Hız | Vakum | Havai Fişek | Sopa | Geri Dönüşüm |
 | **Görünüm** | Turuncu → kırmızı | Mavi, tepede mıknatıs | Korsan bomba: siyah, göz bandı, tepede fitil | Fıstık yeşili, tepede minik dal | Ahududu kırmızısı, tepede kalp |
 | **Oyun tarzı** | Baştan hızlı; kaçarak büyür | Toplayıcı; yemi kendine çeker | Uzaktan vurur, boss'u erken indirir | Yakın dövüşçü; sürünün içine dalar | Dayanıklı; yedikçe iyileşir |
 
 ### 🟠 Topik
-- **Pasif:** Run'a **Hız Sv.2** ile başlar (+%30, kaykay baştan görünür). Hız favori skili (×3). `Char_Topik.asset` → `Starting Upgrade` / `Starting Upgrade Level`. Rüzgar izi (`SpeedTrail`) sadece görsel.
+- **Silah:** dal (**Sopa Sv.1**). **Avantaj:** run'a **Hız Sv.2** ile başlar (+%30, kaykay baştan görünür). Hız favori skili (×3). `Char_Topik.asset` → `Starting Upgrade` / `Starting Upgrade Level`. Rüzgar izi (`SpeedTrail`) sadece görsel.
 - **Görünüm:** turuncu → kırmızı; hızlı giderken arkasında rüzgar izi.
 
 ### 🧲 Mıknato
-- **Pasif:** Run'a **Vakum Sv.2** ile başlar (menzil gövde yüzeyinden 2). Vakum favori skili (×3). `Char_Miknato.asset`.
+- **Silah:** **Nal Bumerangı Sv.1** (dal yok). **Avantaj:** run'a **Vakum Sv.2** ile başlar (menzil gövde yüzeyinden 2). Vakum favori skili (×3). `Char_Miknato.asset`.
 - **Görünüm:** mavi, tepede kırmızı at nalı mıknatıs.
 - **Örnek:** Diğerleri Vakum'u kart olarak beklerken Mıknato ilk saniyeden çevresini toplar: erken büyüme, erken level. Kara Delik evrimine (Vakum 5 + Sindirim) en doğal giden karakter.
 
 ### 🎆 Fişek
-- **Pasif:** Run'a **Havai Fişek Sv.1** ile başlar: atar baştan sol omzunda, 2 sn'de bir 25 hasarlık roket. Havai Fişek favori skili (×3). `Char_Fisek.asset`.
+- **Silah:** **Havai Fişek Sv.1** (dal yok): atar baştan sol omzunda, 2 sn'de bir 25 hasarlık roket. Havai Fişek favori skili (×3). `Char_Fisek.asset`.
 - **Görünüm:** korsan bomba: siyah gövde, sol gözde kırmızı göz bandı, tepede metal ağızlık ve yanan fitil (`build_blobs.py`; model adları hâlâ `CH_Mermo_*`). Kalkanı diğerleri gibi sağ yanda.
 
 ### 🌿 Dalcık
-- **Pasif:** Run'a **Sopa Sv.2** ile başlar: sopa ilk saniyeden 15 hasar, menzil 2.5 ve **180° yayla** vurur. Sopa favori skili (×3); kilometre taşlarına (Sv.3 çift yön, Sv.5 tam tur) ve **Lamba Direği** evrimine en hızlı giden karakter. `Char_Dalcik.asset`.
+- **Silah:** **Sopa Sv.2**: dal ilk saniyeden 15 hasar, menzil 2.5 ve **180° yayla** vurur. Sopa favori skili (×3); kilometre taşlarına (Sv.3 çift yön, Sv.5 tam tur) ve **Lamba Direği** evrimine en hızlı giden karakter. `Char_Dalcik.asset`.
 - **Görünüm:** fıstık yeşili, tepede minicik kısa dal (`build_blobs.py` → `CH_Dalcik_T1..T5`, portre `Icon_Dalcik.png`).
 
 ### ♻️ Cano
-- **Pasif:** Run'a **Geri Dönüşüm Sv.2** ile başlar: yediği her cansız nesne +2 can. Geri Dönüşüm favori skili (×3); Hurdacı (Sv.3, araba +25 can) ve taşan canın kalkana dönmesi (Sv.5) en hızlı ona gelir. `Char_Cano.asset`.
+- **Silah:** **Çöp Fırlatma Sv.1** (dal yok): yediği eşyaları düşmana atar. **Avantaj:** run'a **Geri Dönüşüm Sv.2** ile başlar: yediği her cansız nesne +2 can. Geri Dönüşüm favori skili (×3); Hurdacı (Sv.3, araba +25 can) ve taşan canın kalkana dönmesi (Sv.5) en hızlı ona gelir. `Char_Cano.asset`.
 - **Görünüm:** ahududu kırmızısı, tepede kısa sap ucunda pembe kalp; T1-T3'te ağız köşesinde minik vampir dişi. `build_blobs.py` → `CH_Cano_T1..T5`, portre `Icon_Cano.png`.
 
 ---

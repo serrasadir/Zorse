@@ -24,7 +24,10 @@ namespace BlobSurvivor.Data
         [SerializeField] private UpgradeData _favoredUpgrade;
         [Tooltip("Favori skill'in ağırlık çarpanı. 3 ≈ kart ekranlarının %41'i yerine %75'inde çıkar.")]
         [SerializeField] private float _favoredWeightMultiplier = 3f;
-        [Tooltip("Run'a bu skill bu seviyede başlar (karakter pasifi). 0 = yok.")]
+        [Tooltip("Karakterin kendi silahı (her karakterde farklı): run'a bu seviyede başlar. Sopa = dal.")]
+        [SerializeField] private UpgradeData _startingWeapon;
+        [SerializeField] private int _startingWeaponLevel = 1;
+        [Tooltip("Run'a bu skill bu seviyede başlar (karakter avantajı, silahın yanında). 0 = yok.")]
         [SerializeField] private UpgradeData _startingUpgrade;
         [SerializeField] private int _startingUpgradeLevel;
 
@@ -44,6 +47,8 @@ namespace BlobSurvivor.Data
         public bool SpeedTrail => _speedTrail;
         public UpgradeData FavoredUpgrade => _favoredUpgrade;
         public float FavoredWeightMultiplier => _favoredWeightMultiplier;
+        public UpgradeData StartingWeapon => _startingWeapon;
+        public int StartingWeaponLevel => _startingWeaponLevel;
         public UpgradeData StartingUpgrade => _startingUpgrade;
         public int StartingUpgradeLevel => _startingUpgradeLevel;
         public string SaveId => string.IsNullOrEmpty(_saveId) ? name : _saveId;

@@ -20,6 +20,8 @@ MonoBehaviour:
   _speedTrail: 0
   _favoredUpgrade: {fileID: 11400000, guid: 9a1a53f3539f54aa9a01b50dfc7fccc9, type: 2}
   _favoredWeightMultiplier: 3
+  _startingWeapon: {fileID: 11400000, guid: f79b28ffd0f0c7f40b16db846f64acfe, type: 2}
+  _startingWeaponLevel: 1
   _startingUpgrade: {fileID: 11400000, guid: 9a1a53f3539f54aa9a01b50dfc7fccc9, type: 2}
   _startingUpgradeLevel: 2
   _saveId: Miknato
