@@ -37,7 +37,7 @@ namespace BlobSurvivor.UI
         }
 
         private Card[] _cards;
-        private TMP_Text _credit, _profileName;
+        private TMP_Text _credit, _profileName, _mapLabel;
         private Sprite _rounded;
         private AvatarView _profileAvatar;
         private bool _built;
@@ -104,6 +104,7 @@ namespace BlobSurvivor.UI
             if (_panel != null) _panel.SetActive(true);
             RefreshCharacterButtons();
             RefreshProfile();
+            RefreshMapButton(); // kale run içinde açılmış olabilir
         }
 
         // Giriş ekranı açıkken lobi ve HUD gizli.
@@ -196,13 +197,23 @@ namespace BlobSurvivor.UI
 
             if (_marketButton != null)
             {
-                Place((RectTransform)_marketButton.transform, panel, new Vector2(0f, -800f), new Vector2(640f, 120f));
+                Place((RectTransform)_marketButton.transform, panel, new Vector2(-160f, -800f), new Vector2(480f, 120f));
                 StyleImage(_marketButton.targetGraphic as Image, Gold, rounded);
                 foreach (Transform c in _marketButton.transform) c.gameObject.SetActive(false);
                 _marketButton.interactable = true;
-                Text("Label", (RectTransform)_marketButton.transform, Vector2.zero, new Vector2(640f, 70f), 50f,
+                Text("Label", (RectTransform)_marketButton.transform, Vector2.zero, new Vector2(480f, 70f), 50f,
                     TextAlignmentOptions.Center, new Color(0.12f, 0.08f, 0.02f, 1f)).text = "MARKET";
             }
+
+            // Market'in sağında: HARİTA (şehir / kale). Kale kilitliyse soluk, koşulu yazar.
+            RectTransform map = Box("MapButton", panel, new Vector2(260f, -800f), new Vector2(320f, 120f), rounded, CardColor);
+            var mapImage = map.GetComponent<Image>();
+            mapImage.raycastTarget = true;
+            var mapButton = map.gameObject.AddComponent<Button>();
+            mapButton.targetGraphic = mapImage;
+            _mapLabel = Text("Label", map, Vector2.zero, new Vector2(300f, 110f), 34f, TextAlignmentOptions.Center, Color.white);
+            mapButton.onClick.AddListener(OnMapButton);
+            RefreshMapButton();
 
             // Geri: giriş ekranına (run zaten sıfır, sadece ekran değişir).
             RectTransform back = Box("BackButton", panel, new Vector2(-420f, 885f), new Vector2(120f, 100f), rounded, CardColor);
@@ -234,7 +245,28 @@ namespace BlobSurvivor.UI
 
             PinToEdge(panel, 1f, "Title", "TitleShadow", "CreditChip", "BackButton", "ProfileChip", "LeaderboardButton", "AchievementsButton", "SettingsButton");
             if (_marketButton != null) PinToEdge((RectTransform)_marketButton.transform, 0f);
+            PinToEdge(panel, 0f, "MapButton");
             LayoutCards();
+        }
+
+        // HARİTA düğmesi: diğer haritanın sahnesini yükler (kilitliyse sadece koşulu söyler).
+        private void OnMapButton()
+        {
+            if (!MapSelection.IsCastle && !MapSelection.CastleUnlocked)
+            {
+                Haptics.LightTap();
+                return;
+            }
+            MapSelection.Switch();
+        }
+
+        private void RefreshMapButton()
+        {
+            if (_mapLabel == null) return;
+            // Düğme şu anki haritayı gösterir; basınca diğerine geçer.
+            if (MapSelection.IsCastle) _mapLabel.text = "<size=26>HARİTA</size>\nKALE ▸";
+            else if (MapSelection.CastleUnlocked) _mapLabel.text = "<size=26>HARİTA</size>\nŞEHİR ▸";
+            else _mapLabel.text = "<size=24>KALE KİLİTLİ</size>\n<size=22>Helikopteri yut</size>";
         }
 
         // Ekran dönünce (panel boyu değişince) kartlar yeniden dizilir.

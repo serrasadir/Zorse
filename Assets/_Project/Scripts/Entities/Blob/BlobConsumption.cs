@@ -213,6 +213,7 @@ namespace BlobSurvivor.Entities.Blob
             SlurpFx.Play(obj, transform, consumable.RequiredTier < BlobTier.Medium);
             consumable.OnConsumed();
             if (obj.name.StartsWith(FerrisWheelForm.SourceName)) FerrisWheelForm.Begin(gameObject); // özel dönüşüm
+            else if (obj.name.StartsWith(FerrisWheelForm.WindmillSource)) FerrisWheelForm.Begin(gameObject, windmill: true);
 
             // B14: pool'a gerçek dönüş — önceden sadece SetActive(false) yapılıyordu, pool Queue'su
             // hiç dolmuyordu.

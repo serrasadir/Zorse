@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e5db3e842d74b5b9fcae602562d0b9f, type: 3}
+  m_Name: PedestrianData_MedFemale
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.PedestrianData
+  _displayName: "K\xF6yl\xFC Female"
+  _prefab: {fileID: 209580712890757938, guid: 762d2ab2c84460541a6b443483f58f74, type: 3}
+  _scoreValue: 5
+  _massValue: 1
+  _requiredTier: 2
+  _isHazard: 0
+  _hazardAmount: 0
+  _spawnYOffset: 0.1
+  _crumbColorA: {r: 0.8, g: 0.75, b: 0.68, a: 1}
+  _crumbColorB: {r: 0.6, g: 0.55, b: 0.5, a: 1}
+  _moveSpeed: 1
+  _fleeSpeed: 3
+  _wanderRadius: 8
+  _fleeTriggerDistance: 6
+  _bobHeight: 0.08
+  _bobSpeed: 6
+  _variantMeshes:
+  - {fileID: 6204932459047166900, guid: b35e2045c877b8946b3307b7ec5a0af1, type: 3}
+  _rigs:
+  - Source: {fileID: 6204932459047166900, guid: b35e2045c877b8946b3307b7ec5a0af1, type: 3}
+    Body: {fileID: 4300000, guid: 2b3461d6a1d97224eada3814654ae4c6, type: 2}
+    LegL: {fileID: 4300000, guid: 126e61a43bf160e41aa35f6716d5a163, type: 2}
+    LegR: {fileID: 4300000, guid: 6dd2e69f4cc8b094794ce95ee0d76b6a, type: 2}
+    ArmL: {fileID: 4300000, guid: f1d19b139045e504eaaf200307a9b1c5, type: 2}
+    ArmR: {fileID: 4300000, guid: e1dc99f7b84e7d94094edfa0a7def95d, type: 2}
+    HipL: {x: -0.07466664, y: -0.046666555, z: 0.36399952}
+    HipR: {x: 0.06719998, y: -0.041999903, z: 0.36399952}
+    ShoulderL: {x: -0.21606645, y: 0.0014000532, z: 0.7300007}
+    ShoulderR: {x: 0.21606661, y: 0.0014000532, z: 0.7300007}
+    SwingAxis: {x: 1, y: -0, z: 0}
+  _stepRate: 5
+  _legSwing: 32
+  _armSwing: 26

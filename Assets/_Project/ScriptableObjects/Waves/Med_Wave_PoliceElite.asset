@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5268452ec2e7486f89a94ad975c9098, type: 3}
+  m_Name: Med_Wave_PoliceElite
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.WaveData
+  _timeThreshold: 240
+  _enemyTypes:
+  - EnemyData: {fileID: 11400000, guid: df409e14e8e646042bb4daf2316c6cbb, type: 2}
+    SpawnWeight: 0.85
+  - EnemyData: {fileID: 11400000, guid: 47249903cab174c408f7f2cadda6c5f5, type: 2}
+    SpawnWeight: 0.15
+  - EnemyData: {fileID: 11400000, guid: f33d673705dc63a4ea6a433d3fee71e6, type: 2}
+    SpawnWeight: 0.25
+  _spawnRate: 2.3
+  _waveName: PoliceElite
+  _unlockByBlobTier: 1
+  _unlockTier: 4

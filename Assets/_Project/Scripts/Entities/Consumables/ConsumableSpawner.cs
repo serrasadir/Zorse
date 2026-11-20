@@ -145,6 +145,7 @@ namespace BlobSurvivor.Entities
                 Vector3 candidate = new Vector3(
                     Mathf.Clamp(center.x + randomCircle.x, -_mapHalfExtent, _mapHalfExtent), yOffset,
                     Mathf.Clamp(center.z + randomCircle.y, -_mapHalfExtent, _mapHalfExtent));
+                candidate = BlobSurvivor.Core.MapRegions.ClampToZone(candidate); // kale: blob'un bölgesine
                 if (SpawnPositionUtility.TryFindNavMeshPosition(candidate, yOffset, 5f, out spawnPos))
                     return true;
             }

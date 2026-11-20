@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e5db3e842d74b5b9fcae602562d0b9f, type: 3}
+  m_Name: PedestrianData_MedMale
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.PedestrianData
+  _displayName: "K\xF6yl\xFC Male"
+  _prefab: {fileID: 209580712890757938, guid: 79597172ef973034e8471f7fbdda00af, type: 3}
+  _scoreValue: 5
+  _massValue: 1
+  _requiredTier: 2
+  _isHazard: 0
+  _hazardAmount: 0
+  _spawnYOffset: 0.1
+  _crumbColorA: {r: 0.8, g: 0.75, b: 0.68, a: 1}
+  _crumbColorB: {r: 0.6, g: 0.55, b: 0.5, a: 1}
+  _moveSpeed: 1
+  _fleeSpeed: 3
+  _wanderRadius: 8
+  _fleeTriggerDistance: 6
+  _bobHeight: 0.08
+  _bobSpeed: 6
+  _variantMeshes:
+  - {fileID: -3932407801903365953, guid: 0ac0891d66c1b1b4dbd592481eb05014, type: 3}
+  - {fileID: 1795162417984978658, guid: 9458cc1a682554148bf852a61e03e2f7, type: 3}
+  _rigs:
+  - Source: {fileID: -3932407801903365953, guid: 0ac0891d66c1b1b4dbd592481eb05014, type: 3}
+    Body: {fileID: 4300000, guid: 7506b006ee20493449e69d1528fb9bfa, type: 2}
+    LegL: {fileID: 4300000, guid: 81a3352e7cb01bb498976ac6cb66e8e3, type: 2}
+    LegR: {fileID: 4300000, guid: 668c1fca0143e174aa4ac398bd9bd7cb, type: 2}
+    ArmL: {fileID: 4300000, guid: b4b7d79eb565a1f49b13a56567c2fb49, type: 2}
+    ArmR: {fileID: 4300000, guid: e5b46e63394e2e243b12e91b25b82389, type: 2}
+    HipL: {x: -0.07430757, y: -0.012923283, z: 0.36400065}
+    HipR: {x: 0.08049956, y: -0.014000214, z: 0.36400065}
+    ShoulderL: {x: -0.22913322, y: -0.00000012001405, z: 0.68800074}
+    ShoulderR: {x: 0.22913304, y: -0.00000011968292, z: 0.68800074}
+    SwingAxis: {x: 1, y: -0, z: 0}
+  - Source: {fileID: 1795162417984978658, guid: 9458cc1a682554148bf852a61e03e2f7, type: 3}
+    Body: {fileID: 4300000, guid: 6c8fca60790101645ae43dc8c4105bcb, type: 2}
+    LegL: {fileID: 4300000, guid: d4d2ea23ed17354418aef5c1de961739, type: 2}
+    LegR: {fileID: 4300000, guid: 8feac084747d9e144ade5abed1fa5803, type: 2}
+    ArmL: {fileID: 4300000, guid: d6f9f6d0c2b8c8e45933705b8b98808d, type: 2}
+    ArmR: {fileID: 4300000, guid: 8cdc8636dc681cb42a2e5e55eb26959d, type: 2}
+    HipL: {x: -0.0805004, y: -0.014000098, z: 0.36399993}
+    HipR: {x: 0.06899995, y: -0.012000057, z: 0.36399993}
+    ShoulderL: {x: -0.23249991, y: -0.00000019625824, z: 0.68799984}
+    ShoulderR: {x: 0.23250034, y: -0.00000019590345, z: 0.68799984}
+    SwingAxis: {x: 1, y: -0, z: 0}
+  _stepRate: 5
+  _legSwing: 32
+  _armSwing: 26

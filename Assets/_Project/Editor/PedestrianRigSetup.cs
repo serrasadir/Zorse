@@ -25,7 +25,10 @@ namespace BlobSurvivor.EditorTools
         private const int MinArmTriangles = 8;    // daha azı: kol ayrılamadı (sadece bacak)
 
         [MenuItem("Tools/Blob.io/Yaya Yürüyüş Parçalarını Kur")]
-        private static void Setup()
+        private static void SetupAll() => Setup(null);
+
+        // onlyName: sadece adında bu geçen PedestrianData'lar (kale kurulumu "Med": şehir rig'leri yeniden üretilmesin).
+        internal static void Setup(string onlyName)
         {
             if (!AssetDatabase.IsValidFolder(RigFolder)) AssetDatabase.CreateFolder(PeopleFolder, "Rigs");
 
@@ -35,7 +38,7 @@ namespace BlobSurvivor.EditorTools
             foreach (string guid in AssetDatabase.FindAssets("t:PedestrianData", new[] { DataFolder }))
             {
                 var data = AssetDatabase.LoadAssetAtPath<PedestrianData>(AssetDatabase.GUIDToAssetPath(guid));
-                if (data == null || data.VariantMeshes == null) continue;
+                if (data == null || data.VariantMeshes == null || (onlyName != null && !data.name.Contains(onlyName))) continue;
                 foreach (Mesh variant in data.VariantMeshes)
                 {
                     if (variant == null || !done.Add(variant)) continue;
@@ -48,7 +51,7 @@ namespace BlobSurvivor.EditorTools
             foreach (string guid in AssetDatabase.FindAssets("t:PedestrianData", new[] { DataFolder }))
             {
                 var data = AssetDatabase.LoadAssetAtPath<PedestrianData>(AssetDatabase.GUIDToAssetPath(guid));
-                if (data == null) continue;
+                if (data == null || (onlyName != null && !data.name.Contains(onlyName))) continue;
                 var mine = new List<PedestrianRig>();
                 foreach (PedestrianRig rig in rigs)
                     if (System.Array.IndexOf(data.VariantMeshes ?? new Mesh[0], rig.Source) >= 0) mine.Add(rig);

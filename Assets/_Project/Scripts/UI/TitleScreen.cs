@@ -61,6 +61,11 @@ namespace BlobSurvivor.UI
         {
             yield return null;
             Show();
+            if (MapSelection.OpenLobbyOnLoad) // lobide harita değiştirildi: giriş ekranını atla
+            {
+                MapSelection.OpenLobbyOnLoad = false;
+                OnPlay();
+            }
         }
 
         private void Show()

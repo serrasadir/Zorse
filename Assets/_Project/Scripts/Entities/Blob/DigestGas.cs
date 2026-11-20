@@ -23,7 +23,10 @@ namespace BlobSurvivor.Entities.Blob
         public float BurpStun = 0.8f;
         private const float BurpPulseTime = 0.45f;
         private const int WallMask = 1 << 16;
-        private static readonly Color BurpA = new Color(0.55f, 0.85f, 0.35f), BurpB = new Color(0.85f, 1f, 0.6f);
+        private static readonly Color BurpA = new Color(0.62f, 0.32f, 0.85f), BurpB = new Color(0.86f, 0.62f, 1f);
+        // Gaz mor: yeşil çimenli zeminde (kale köyü) kayboluyordu. Bulut modelinin köşe renkleri bu tona çevrilir.
+        private const float GasHue = 0.78f;
+        private static Mesh s_purpleClouds;
         private float _burpTimer, _burpPulse = -1f;
         private Weapons.SwingArcFx _burpFx;
         private BlobVisual _visual;
@@ -71,7 +74,7 @@ namespace BlobSurvivor.Entities.Blob
         private void CreateVisual()
         {
             Material material = Resources.Load<Material>(MaterialPath);
-            Mesh clouds = Resources.Load<Mesh>(CloudMeshPath);
+            Mesh clouds = PurpleClouds(Resources.Load<Mesh>(CloudMeshPath));
             if (material == null || clouds == null) return;
             var go = new GameObject("DigestGasClouds");
             go.AddComponent<MeshFilter>().sharedMesh = clouds;
@@ -80,6 +83,25 @@ namespace BlobSurvivor.Entities.Blob
             r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             r.receiveShadows = false;
             _clouds = go.transform;
+        }
+
+        // Modelin (FX_Gas) yeşil köşe renklerini mora çevrilmiş kopyası; uygulama boyunca bir kez.
+        private static Mesh PurpleClouds(Mesh source)
+        {
+            if (source == null) return null;
+            if (s_purpleClouds != null) return s_purpleClouds;
+            Color[] colors = source.colors;
+            if (colors == null || colors.Length == 0) return source;
+            for (int i = 0; i < colors.Length; i++)
+            {
+                Color.RGBToHSV(colors[i], out float h, out float sat, out float v);
+                Color c = Color.HSVToRGB(GasHue, Mathf.Min(1f, sat * 1.05f), v);
+                c.a = colors[i].a;
+                colors[i] = c;
+            }
+            s_purpleClouds = Object.Instantiate(source);
+            s_purpleClouds.colors = colors;
+            return s_purpleClouds;
         }
 
         private void LateUpdate()

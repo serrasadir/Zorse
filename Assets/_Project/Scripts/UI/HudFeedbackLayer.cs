@@ -35,6 +35,7 @@ namespace BlobSurvivor.UI
             go.AddComponent<EventBanner>().Init(hud.gameObject, rect);
             go.AddComponent<MissionTracker>().Init(hud.gameObject, rect);
             go.AddComponent<ComboPopup>().Init(hud.gameObject, rect);
+            go.AddComponent<GateGuide>().Init(hud.gameObject, rect); // kale: kapı oku + küçük harita
         }
 
         // HUD'un kendi referansı (bar taşınsa da aynı nesne); yoksa sahnedeki adıyla.

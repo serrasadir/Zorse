@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e5d2fd3fea44742bb673b7ccf0e379, type: 3}
+  m_Name: LitterMed_Turnip
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
+  _displayName: "\u015Ealgam"
+  _prefab: {fileID: 374879728591541651, guid: 1c642691fb039c246abe749af51ea68a, type: 3}
+  _scoreValue: 1
+  _massValue: 2
+  _requiredTier: 1
+  _isHazard: 0
+  _hazardAmount: 0
+  _spawnYOffset: 0
+  _crumbColorA: {r: 0.8, g: 0.75, b: 0.68, a: 1}
+  _crumbColorB: {r: 0.6, g: 0.55, b: 0.5, a: 1}

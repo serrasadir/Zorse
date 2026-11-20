@@ -17,6 +17,7 @@ namespace BlobSurvivor.Entities.Blob
         private Transform _weapon;
         private MeshFilter _filter;
         private MeshRenderer _renderer;
+        private Material _hostMaterial;
         private string _model;
         private int _form = -1;
         private float _popTime = -1f;
@@ -98,6 +99,7 @@ namespace BlobSurvivor.Entities.Blob
             _filter = go.AddComponent<MeshFilter>();
             _renderer = go.AddComponent<MeshRenderer>();
             _renderer.sharedMaterial = host.sharedMaterial;
+            _hostMaterial = host.sharedMaterial;
             _renderer.shadowCastingMode = host.shadowCastingMode;
             _renderer.receiveShadows = host.receiveShadows;
             SetForm(visibleFromStart ? 1 : 0, pop: false);
@@ -117,8 +119,16 @@ namespace BlobSurvivor.Entities.Blob
             if (_weapon == null || form == _form) return;
             bool wasHidden = _form <= 0;
             _form = form;
-            Mesh mesh = form > 0 ? LoadMesh(_model, form) : null;
+            bool themed = false;
+            Mesh mesh = null;
+            if (form > 0 && BlobSurvivor.Core.MapTheme.WeaponMaterial != null) // haritaya özel (kale: kılıç, arbalet)
+            {
+                mesh = LoadMesh(BlobSurvivor.Core.MapTheme.WeaponPrefix + _model, form, warn: false);
+                themed = mesh != null;
+            }
+            if (mesh == null && form > 0) mesh = LoadMesh(_model, form);
             _filter.sharedMesh = mesh;
+            _renderer.sharedMaterial = themed ? BlobSurvivor.Core.MapTheme.WeaponMaterial : _hostMaterial;
             RefreshVisible();
             if (mesh == null || !pop)
             {
@@ -132,15 +142,15 @@ namespace BlobSurvivor.Entities.Blob
         }
 
         // Eksik form bir öncekine düşer (yeni form modeli gelmeden test edilebilsin).
-        private static Mesh LoadMesh(string model, int form)
+        private static Mesh LoadMesh(string model, int form, bool warn = true)
         {
             string path = $"{Folder}{model}_{form}";
             if (s_meshes.TryGetValue(path, out Mesh mesh)) return mesh;
             mesh = Resources.Load<Mesh>(path);
             if (mesh == null)
             {
-                Debug.LogWarning($"[WeaponVisual] Resources/{path} bulunamadı.");
-                if (form > 1) mesh = LoadMesh(model, form - 1);
+                if (warn) Debug.LogWarning($"[WeaponVisual] Resources/{path} bulunamadı.");
+                if (form > 1) mesh = LoadMesh(model, form - 1, warn);
             }
             s_meshes[path] = mesh;
             return mesh;

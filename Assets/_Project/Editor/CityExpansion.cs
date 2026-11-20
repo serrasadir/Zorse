@@ -230,11 +230,12 @@ namespace BlobSurvivor.EditorTools
 
         // Harita sınırı (Karar 15): dış çevre yolunun kenarında görünmez duvar. Environment layer'ı
         // Blob ve Enemy ile çarpışır (DynamicsManager), polis/yaya engel raycast'leri de görür.
-        internal static void BuildBounds(Transform parent)
+        internal static void BuildBounds(Transform parent) => BuildBounds(parent, HalfExtent);
+
+        internal static void BuildBounds(Transform parent, float e)
         {
             const float thickness = 2f;
             const float height = 30f;
-            float e = HalfExtent;
             float length = 2f * (e + thickness);
 
             GameObject bounds = new GameObject("CityBounds") { layer = LayerMask.NameToLayer("Environment") };

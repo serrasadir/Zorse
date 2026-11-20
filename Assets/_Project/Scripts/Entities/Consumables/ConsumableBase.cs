@@ -7,7 +7,7 @@ namespace BlobSurvivor.Entities
     public class ConsumableBase : MonoBehaviour, IConsumable
     {
         [SerializeField] private ConsumableData _data;
-        private Collider _collider;
+        private Collider[] _colliders; // kökte birden çok olabilir (kale duvarının fare delikli parçası: iki kutu)
 
         public ConsumableData Data => _data;
         public BlobTier RequiredTier => _data != null ? _data.RequiredTier : BlobTier.Tiny;
@@ -18,7 +18,7 @@ namespace BlobSurvivor.Entities
 
         private void Awake()
         {
-            _collider = GetComponent<Collider>();
+            _colliders = GetComponents<Collider>();
         }
 
         // M25: SetData spawner tarafından OnEnable'dan SONRA çağrılıyor (bkz. OnEnable'daki not) —
@@ -64,13 +64,14 @@ namespace BlobSurvivor.Entities
         // (koşu başına birkaç kez) ateşlendiğinde çalışıyor — per-frame maliyeti yok.
         private void UpdateTriggerState(BlobTier blobTier)
         {
-            if (_collider == null) return;
+            if (_colliders == null || _colliders.Length == 0) return;
 
             // Hazard'lar (ör. dikenli obje) tier'a bakılmaksızın hep trigger kalır — BlobConsumption'daki
             // "yeterince büyük değilsen hasar al" dalı (else if IsHazard) trigger'a bağlı, solid yapılırsa
             // Blob sadece fiziksel olarak çarpar, hasar hiç tetiklenmez. Bu M25'in kapsamı dışında.
             bool isHazard = _data != null && _data.IsHazard;
-            _collider.isTrigger = isHazard || RequiredTier <= blobTier;
+            bool trigger = isHazard || RequiredTier <= blobTier;
+            foreach (Collider c in _colliders) c.isTrigger = trigger;
         }
     }
 }

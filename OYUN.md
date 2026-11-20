@@ -210,6 +210,21 @@ Sayılar **`SKILLS.md` Bölüm 5**'te.
 
 ---
 
+### Harita 2: Kuşatılmış Kale (CastleScene)
+
+Lobide Market'in sağındaki **HARİTA** düğmesi diğer haritanın sahnesini yükler (giriş ekranı atlanır). Kale, helikopter bir kez yutulunca açılır (Bölünme ile aynı koşul; DEV "tüm karakterleri aç" da açar). Kilitliyken düğme "KALE KİLİTLİ · Helikopteri yut" der.
+
+- **Yapı: tek yol, güneyden kuzeye bölgeler** (oyuncu haritanın tamamını görmediği için yön hep "ileri"): **Köy** (başlangıç, tarlalar, yel değirmeni, şapel) → **çit kapısı** (UFAK boy) → **Kasaba** (dar sokaklar, kapıdan kapıya Z çizen cadde, ortada çeşmeli pazar) → **taş kapı** (ORTA boy) → **Kale avlusu** (ahır, kışla, talim alanı) → **kale kapısı** (BÜYÜK boy) → **Burç** (ejderha). Kapılar zikzak: sağ, sol, orta. Oyun alanı 48 birim geniş, yanlar ağaç sırası + görünmez duvar.
+- **Kapılar:** her bölge geçişinde iki direkli/kuleli, sancaklı büyük kapı; üstünde gereken boy yazar ("ORTA BOY"), boy yetince yeşil **YE VE GEÇ!** olur ve nabız atar. Kapıyı ya da yanındaki duvarı yiyince geçit açılır; yenen duvardan elit ve boss'lar da geçer (NavMeshObstacle).
+- **Yön:** sıradaki kapı ekran dışındaysa kenarda altın ok (`GateGuide`); sol altta küçük harita (kurulumda çekilen üstten görüntü `Resources/UI/CastleMinimap` + blob, kapılar, burç; sıradaki kapı nabız atar).
+- **Fare delikleri:** her kapının yanında bir delikli duvar parçası; sadece Tiny blob sığar (boşluk 0.62), düşmanlar geçemez. Erken kestirme.
+- **Doğma:** düşman, yaya, yerdeki yiyecek ve görev sandığı sadece blob'un bölgesinde ve oyun alanında doğar (`MapRegions`, `CastleMap`).
+- **Düşmanlar** (davranış ve denge şehirle aynı, `MedievalSkinSetup` kopyaları): bekçi → milis, polis → muhafız, elit → okçu, çevik kuvvet → kalkanlı şövalye, motorlu → atlı şövalye, robot köpek → av köpeği, tanklar → kuşatma mancınığı / kuşatma kulesi, helikopter → **ejderha** (helikopterle aynı: uçar, alçalır, boyun yetince yutulur).
+- **Köylüler** (yaya): köylü erkek, çiftçi, başörtülü kadın, tüccar (iri). **Yerdeki yiyecek:** ekmek kabuğu, elma koçanı, kemik, mum, şalgam, peynir, kupa, tavuk budu.
+- **Görünür silah:** dal → tahta kılıç (5. form meşale), Havai Fişek atarı → omuz arbaleti (`MapTheme`).
+- **Özel dönüşüm:** yel değirmeni yenince dönme dolap gibi 20 sn kanatları giyersin (**YEL DEĞİRMENİ!**).
+- Henüz yok: kapan odalar (parmaklık), tehlikeler (kaynar yağ, ok mazgalı, köprü), ejderhanın ateşi, Nal/Çöp için ortaçağ görünümü farkı yok (aynı).
+
 ## 9. Ekonomi ve Market
 
 - **Coin** run içinde toplanır; run sonunda **kasaya** girer (kazanınca %100, ölünce %50). Oyuncu tek para görür: coin (kodda kasa `MetaProgression.Credit`).

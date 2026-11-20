@@ -46,8 +46,9 @@ namespace BlobSurvivor.Entities
                 s_blobColliders = blob.GetComponentsInChildren<Collider>(true);
             }
 
-            foreach (Collider blobCollider in s_blobColliders)
-                Physics.IgnoreCollision(_obstacle, blobCollider, true);
+            foreach (Collider part in _obstacle.GetComponents<Collider>()) // fare delikli duvarda iki kutu
+                foreach (Collider blobCollider in s_blobColliders)
+                    Physics.IgnoreCollision(part, blobCollider, true);
         }
     }
 }

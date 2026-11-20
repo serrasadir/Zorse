@@ -18,6 +18,11 @@ namespace BlobSurvivor.Entities.Blob
         public const string SourceName = "P_FerrisWheel";
         public const string BannerTitle = "DÖNME DOLAP!"; // rozet takibi bununla tanır
         private const string FormResource = "Transformations/FerrisWheelForm";
+        // Kale haritası: yel değirmeni yenince aynı dönüşüm, kanatlar çark yerine (FerrisWheelFormSetup.SetupWindmill).
+        public const string WindmillSource = "P_MedWindmill";
+        public const string WindmillTitle = "YEL DEĞİRMENİ!";
+        private const string WindmillResource = "Transformations/WindmillForm";
+        private bool _windmill, _loadedWindmill;
 
         private const float Duration = 20f;
         private const float SpeedFactor = 1.6f;
@@ -64,10 +69,11 @@ namespace BlobSurvivor.Entities.Blob
         private static readonly int CrushMask = TierLayers.ConsumableMask | (1 << 14); // + Enemy
 
         // BlobConsumption: dönme dolap yenince.
-        public static void Begin(GameObject blob)
+        public static void Begin(GameObject blob, bool windmill = false)
         {
             FerrisWheelForm form = blob.GetComponent<FerrisWheelForm>();
             if (form == null) form = blob.AddComponent<FerrisWheelForm>(); // run başına bir kez
+            form._windmill = windmill;
             form.StartForm();
         }
 
@@ -79,13 +85,24 @@ namespace BlobSurvivor.Entities.Blob
             _consumption = GetComponent<BlobConsumption>();
             _rigidbody = GetComponent<Rigidbody>();
             _camera = FindAnyObjectByType<CameraController>();
-            GameObject prefab = Resources.Load<GameObject>(FormResource);
+        }
+
+        // Görsel (dönme dolap çarkı ya da yel değirmeni kanatları): türü değişince bir kez kurulur.
+        private void EnsureForm()
+        {
+            if (_form != null && _loadedWindmill == _windmill) return;
+            if (_form != null) Destroy(_form.gameObject);
+            _form = null;
+            _loadedWindmill = _windmill;
+            string resource = _windmill ? WindmillResource : FormResource;
+            GameObject prefab = Resources.Load<GameObject>(resource);
             if (prefab == null)
             {
-                Debug.LogWarning("[FerrisWheelForm] Resources/" + FormResource + " yok (Tools → Blob.io → Dönme Dolap Formunu Kur).");
+                Debug.LogWarning("[FerrisWheelForm] Resources/" + resource + " yok (Tools → Blob.io → Dönme Dolap Formunu Kur / Kale Sahnesini Kur).");
                 return;
             }
-            GameObject instance = Instantiate(prefab); // run başına bir kez
+            _nativeDiameter = 1f;
+            GameObject instance = Instantiate(prefab); // tür başına bir kez
             instance.name = "FerrisWheelForm";
             _form = instance.transform;
             _formRenderers = instance.GetComponentsInChildren<Renderer>(true);
@@ -126,7 +143,9 @@ namespace BlobSurvivor.Entities.Blob
 
         private void StartForm()
         {
-            if (_form == null || _phase != Phase.None) return;
+            if (_phase != Phase.None) return;
+            EnsureForm();
+            if (_form == null) return;
             _phase = Phase.Morph;
             IsActive = true;
             _timer = 0f;
@@ -198,7 +217,7 @@ namespace BlobSurvivor.Entities.Blob
             if (_controller != null) _controller.FormSpeedFactor = SpeedFactor;
             if (_camera != null) _camera.CinematicZoom = CameraZoom;
             DeathFx.Play(FormBounds(), SparkA, SparkB, true);
-            GameEvents.RaiseTransformation(BannerTitle, "Ez geç! · 20 sn");
+            GameEvents.RaiseTransformation(_windmill ? WindmillTitle : BannerTitle, "Ez geç! · 20 sn");
             Haptics.Impact(2);
         }
 

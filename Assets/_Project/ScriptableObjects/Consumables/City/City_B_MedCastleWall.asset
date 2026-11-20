@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e5d2fd3fea44742bb673b7ccf0e379, type: 3}
+  m_Name: City_B_MedCastleWall
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
+  _displayName: B_MedCastleWall
+  _prefab: {fileID: 3549863132427786272, guid: 1bd14290aafa06643ba246cbc53f06bd, type: 3}
+  _scoreValue: 25
+  _massValue: 25
+  _requiredTier: 5
+  _isHazard: 0
+  _hazardAmount: 0
+  _spawnYOffset: 0.15
+  _crumbColorA: {r: 0.61960787, g: 0.6, b: 0.5686275, a: 1}
+  _crumbColorB: {r: 0.78039217, g: 0.7607843, b: 0.72156864, a: 1}

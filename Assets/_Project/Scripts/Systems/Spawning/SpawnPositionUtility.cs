@@ -28,7 +28,8 @@ namespace BlobSurvivor.Systems
         {
             if (NavMesh.SamplePosition(candidate, out NavMeshHit hit, sampleRadius, HumanoidFilter)
                 && hit.position.y <= MaxGroundY
-                && IsClear(hit.position))
+                && IsClear(hit.position)
+                && BlobSurvivor.Core.MapRegions.AllowsSpawn(hit.position)) // halkalı haritada: blob'un halkası
             {
                 result = new Vector3(hit.position.x, yOverride, hit.position.z);
                 return true;
@@ -49,10 +50,10 @@ namespace BlobSurvivor.Systems
         {
             float cx = Mathf.Clamp(blobPos.x, -mapHalfExtent, mapHalfExtent);
             float cz = Mathf.Clamp(blobPos.z, -mapHalfExtent, mapHalfExtent);
-            return new Vector3(
+            return BlobSurvivor.Core.MapRegions.ClampToZone(new Vector3( // kale: blob'un bölgesine
                 Random.Range(Mathf.Max(-mapHalfExtent, cx - range), Mathf.Min(mapHalfExtent, cx + range)),
                 y,
-                Random.Range(Mathf.Max(-mapHalfExtent, cz - range), Mathf.Min(mapHalfExtent, cz + range)));
+                Random.Range(Mathf.Max(-mapHalfExtent, cz - range), Mathf.Min(mapHalfExtent, cz + range))));
         }
     }
 }

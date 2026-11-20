@@ -152,7 +152,7 @@ Tablolarda her satır Sv.1 → Sv.5; ⭐ yeni yetenek açan seviye.
 
 #### ☁️ Sindirim Gazı (aktif)
 - **Ne yapar:** Blob çevresinde hep açık zehirli alan; alandaki **tüm** düşmanlara vurur (yiyebildiklerin ve boss'lar dahil). Alan gövde yüzeyinden ölçülür.
-- **Kod:** `DigestGasEffect` → `DigestGas` (0.25 sn'de bir). Görsel: alanın kenarında dönen yeşil kenar halkalı gaz bulutları (`Resources/FX/Gas`); içi açık kalır.
+- **Kod:** `DigestGasEffect` → `DigestGas` (0.25 sn'de bir). Görsel: alanın kenarında dönen mor kenar halkalı gaz bulutları (`Resources/FX/Gas`; modelin yeşil köşe renkleri oyunda mora çevrilir, çimende seçilsin diye); içi açık kalır.
 
 | Sv.1 | Sv.2 | Sv.3 | Sv.4 | Sv.5 |
 |---|---|---|---|---|
@@ -281,7 +281,7 @@ Henüz yiyemediğin (senden büyük) yayaya çarparsan yaya seni tekmeler: geriy
 ### ★ Geğirme
 - **Gereken:** Sindirim Gazı 5 + Hızlı Metabolizma en az 1
 - **Ne yapar:** **6 sn'de bir** koca geğirme: gaz alanı bir anlığına **2 katına** çıkar; içindekilere **30 hasar**, geri itme 2, **0.8 sn sersemletme** (boss sersemlemez). Bina arkasındakine vurmaz. Evrim seçilince hemen bir tane.
-- **Görsel:** beyaz şok dalgası, gaz bulutu halkası dışa fırlayıp döner, blob şişip yutkunur, ağızdan yeşil bulut.
+- **Görsel:** beyaz şok dalgası, gaz bulutu halkası dışa fırlayıp döner, blob şişip yutkunur, ağızdan mor bulut.
 - **Kod:** `BurpEffect` (`_interval`) → `DigestGas.EnableBurp` (`BurpDamage`, `BurpRadiusScale`, `BurpKnockback`, `BurpStun`).
 
 ---

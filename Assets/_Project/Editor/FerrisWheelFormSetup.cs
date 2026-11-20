@@ -28,8 +28,21 @@ namespace BlobSurvivor.EditorTools
             var cityPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(CityPrefab);
             Renderer cityRenderer = cityPrefab != null ? cityPrefab.GetComponentInChildren<MeshRenderer>(true) : null;
             Material material = cityRenderer != null ? cityRenderer.sharedMaterial : CityKitPipeline.GetPaletteMaterial();
+            BuildForm(source, material, OutPath, "FerrisWheelForm");
+        }
 
-            var root = new GameObject("FerrisWheelForm");
+        // Kale haritası: yel değirmeni kanatları (X_MedWindmillSails) aynı dönüşümün görseli (FerrisWheelForm, windmill).
+        internal static void SetupWindmill(Material medieval)
+        {
+            MeshFilter source = CityKitPipeline.LoadSourceMesh("X_MedWindmillSails");
+            if (source == null) return;
+            BuildForm(source, medieval, OutFolder + "/WindmillForm.prefab", "WindmillForm");
+        }
+
+        private static void BuildForm(MeshFilter source, Material material, string outPath, string name)
+        {
+            string modelPath = AssetDatabase.GetAssetPath(source);
+            var root = new GameObject(name);
             try
             {
                 var wheel = new GameObject("Wheel");
@@ -55,8 +68,8 @@ namespace BlobSurvivor.EditorTools
 
                 if (!AssetDatabase.IsValidFolder("Assets/_Project/Resources")) AssetDatabase.CreateFolder("Assets/_Project", "Resources");
                 if (!AssetDatabase.IsValidFolder(OutFolder)) AssetDatabase.CreateFolder("Assets/_Project/Resources", "Transformations");
-                PrefabUtility.SaveAsPrefabAsset(root, OutPath);
-                Debug.Log($"[FerrisWheelFormSetup] {OutPath} kuruldu ({Path.GetFileName(modelPath)}, çap {Mathf.Max(b.size.y, b.size.z):0.00}).");
+                PrefabUtility.SaveAsPrefabAsset(root, outPath);
+                Debug.Log($"[FerrisWheelFormSetup] {outPath} kuruldu ({Path.GetFileName(modelPath)}, çap {Mathf.Max(b.size.y, b.size.z):0.00}).");
             }
             finally
             {

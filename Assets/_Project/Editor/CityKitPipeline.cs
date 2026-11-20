@@ -46,7 +46,8 @@ namespace BlobSurvivor.EditorTools
                 importer.filterMode = FilterMode.Bilinear;
                 importer.mipmapEnabled = true;
                 importer.anisoLevel = 2;
-                importer.maxTextureSize = 256;
+                // Kale zemini (Med_*, ChatGPT'den, 512): daha ayrıntılı, 256'ya inince taş kenarları bulanıklaşır.
+                importer.maxTextureSize = System.IO.Path.GetFileName(assetPath).StartsWith("Med_") ? 512 : 256;
                 return;
             }
 
@@ -135,7 +136,15 @@ namespace BlobSurvivor.EditorTools
         [MenuItem("Tools/Blob.io/Şehir Kur (v2)")]
         private static void BuildV2() => BuildCity(true, v2: true);
 
-        internal static bool IsKit2(string mesh) => AssetDatabase.LoadAssetAtPath<GameObject>($"{Kit2Root}/{mesh}.fbx") != null;
+        // Ortaçağ kiti (tools/medieval, 2. harita): Kit2 gibi oyun boyunda modellendi, aynı yön kuralı; kendi paleti.
+        internal const string MedievalRoot = ArtRoot + "/Medieval";
+        private const string MedievalPalettePath = MedievalRoot + "/MedievalPalette.png";
+        internal const string MedievalMaterialPath = MedievalRoot + "/Mat_MedievalPalette.mat";
+
+        internal static bool IsMedieval(string mesh) => AssetDatabase.LoadAssetAtPath<GameObject>($"{MedievalRoot}/{mesh}.fbx") != null;
+
+        internal static bool IsKit2(string mesh) =>
+            AssetDatabase.LoadAssetAtPath<GameObject>($"{Kit2Root}/{mesh}.fbx") != null || IsMedieval(mesh);
 
         private const string V2LayoutPath = Kit2Root + "/city_v2.json";
 
@@ -916,6 +925,19 @@ namespace BlobSurvivor.EditorTools
             return material;
         }
 
+        internal static Material GetMedievalMaterial()
+        {
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(MedievalMaterialPath);
+            if (material != null) return material;
+            Material city = GetPaletteMaterial();
+            Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(MedievalPalettePath);
+            if (city == null || texture == null) return null;
+            material = new Material(city) { name = "Mat_MedievalPalette" };
+            material.SetTexture("_BaseMap", texture);
+            AssetDatabase.CreateAsset(material, MedievalMaterialPath);
+            return material;
+        }
+
         internal static Material GetPaletteMaterial()
         {
             Material material = AssetDatabase.LoadAssetAtPath<Material>(PaletteMaterialPath);
@@ -934,7 +956,8 @@ namespace BlobSurvivor.EditorTools
 
         internal static MeshFilter LoadSourceMesh(string mesh)
         {
-            string modelPath = IsKit2(mesh) ? $"{Kit2Root}/{mesh}.fbx" : $"{ArtRoot}/{mesh}.fbx";
+            string modelPath = IsMedieval(mesh) ? $"{MedievalRoot}/{mesh}.fbx"
+                : IsKit2(mesh) ? $"{Kit2Root}/{mesh}.fbx" : $"{ArtRoot}/{mesh}.fbx";
             GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
             MeshFilter source = model != null ? model.GetComponentInChildren<MeshFilter>(true) : null;
             if (source == null)
@@ -1030,15 +1053,19 @@ namespace BlobSurvivor.EditorTools
         {
             // Kit2 (B_/P_/L_ hepsi): 180° ile Blender (x, y) = Unity (x, z) olur; city_v2.json yerleşimi buna göre.
             bool facesBackward = mesh.StartsWith("H_") || mesh.StartsWith("V_") || mesh.StartsWith("B_") || IsKit2(mesh);
+            // Ortaçağ kiti ön yüzü Blender −Y'de: hareket eden (karakter, kuşatma aracı) +Z'ye baksın diye çevrilmez;
+            // yerleşim objeleri (B_/P_) kale yerleşiminin yaw kuralıyla 180° çevrilir. Ejderha helikopterin yön düzeltmesine uyar.
+            if (mesh.StartsWith("H_Med") || mesh.StartsWith("X_MedSiege")) facesBackward = false;
             model.localRotation = facesBackward ? FacingFix * source.transform.rotation : source.transform.rotation;
 
             Vector3 scale = source.transform.lossyScale;
             float height = source.sharedMesh.bounds.size.y * scale.y;
             if (mesh.StartsWith("B_") && !IsKit2(mesh)) // v2 binaları oyun boyunda modellendi, ezilmez
                 scale.y *= TallBuildingYScale(height);
-            if (mesh == "H_Police" || mesh == "H_RiotPolice" || mesh == "H_MotorPolice" || mesh == "H_Guard")
+            if (mesh == "H_Police" || mesh == "H_RiotPolice" || mesh == "H_MotorPolice" || mesh == "H_Guard"
+                || mesh == "H_MedTownGuard" || mesh == "H_MedMilitia" || mesh == "H_MedShieldKnight" || mesh == "H_MedMountedKnight")
                 scale *= PoliceModelScale;
-            else if (mesh == "H_Elite")
+            else if (mesh == "H_Elite" || mesh == "H_MedArcher")
                 scale *= EliteModelScale;
             model.localScale = scale;
         }
@@ -1060,7 +1087,7 @@ namespace BlobSurvivor.EditorTools
 
         // Geçici kök sahnede oluşur; hata olursa sahnede kalıp kaydedilmesin (2026-11-04: GetConsumableData patlayınca
         // haritanın ortasında çarpışmasız bir B_ApartmentRed kalmıştı).
-        private static GameObject BuildPrefab(CityItem item, Material material)
+        internal static GameObject BuildPrefab(CityItem item, Material material)
         {
             GameObject root = new GameObject(item.mesh);
             try
@@ -1332,7 +1359,7 @@ namespace BlobSurvivor.EditorTools
             }
         }
 
-        private static void AssignEnemyMapExtent(float mapHalfExtent)
+        internal static void AssignEnemyMapExtent(float mapHalfExtent)
         {
             BlobSurvivor.Entities.Enemies.EnemySpawner spawner =
                 UnityEngine.Object.FindAnyObjectByType<BlobSurvivor.Entities.Enemies.EnemySpawner>();

@@ -33,14 +33,23 @@ namespace BlobSurvivor.EditorTools
             // FBX'te x aynalı: Blender'daki sol (kalkan) kolu Unity'de ArmR tarafı; o kol kalkanla ayrı parça, coplu kol sallanır
             new Entry { Prefab = "Enemy_RiotPolice", Mesh = "H_RiotPolice", ArmL = true, ArmR = false, Shield = "H_RiotShield" },
             new Entry { Prefab = "Enemy_Guard", Mesh = "H_Guard", ArmL = true, ArmR = true },
+            // Kale haritası (MedievalSkinSetup kopyaları)
+            new Entry { Prefab = "Enemy_MedTownGuard", Mesh = "H_MedTownGuard", ArmL = true, ArmR = true },
+            new Entry { Prefab = "Enemy_MedArcher", Mesh = "H_MedArcher", ArmL = true, ArmR = true },
+            new Entry { Prefab = "Enemy_MedShieldKnight", Mesh = "H_MedShieldKnight", ArmL = true, ArmR = true },
+            new Entry { Prefab = "Enemy_MedMilitia", Mesh = "H_MedMilitia", ArmL = true, ArmR = true },
         };
 
         [MenuItem("Tools/Blob.io/Polis Yürüyüş Parçalarını Kur")]
-        private static void Setup()
+        private static void SetupAll() => Setup(null);
+
+        // onlyPrefix: sadece bu önekli prefab'lar (kale kurulumu "Enemy_Med": şehir rig'leri yeniden üretilmesin).
+        internal static void Setup(string onlyPrefix)
         {
             if (!AssetDatabase.IsValidFolder(RigFolder)) AssetDatabase.CreateFolder("Assets/_Project/Art/City", "EnemyRigs");
             var log = new System.Text.StringBuilder();
-            foreach (Entry e in Entries) log.AppendLine(Apply(e, log));
+            foreach (Entry e in Entries)
+                if (onlyPrefix == null || e.Prefab.StartsWith(onlyPrefix)) log.AppendLine(Apply(e, log));
             AssetDatabase.SaveAssets();
             Debug.Log($"[EnemyWalkSetup]\n{log}");
         }

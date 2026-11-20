@@ -33,10 +33,25 @@ namespace BlobSurvivor.EditorTools
             };
 
         // name: mesh adı ("P_Lamp2") ya da ConsumableData adı ("City_P_Lamp2").
+        // Tasarımdan gelen sabit tier (boydan değil): kale haritasının halka duvarları hangi boyda yenileceğini belirler.
+        private static readonly (string prefix, BlobTier tier)[] FixedTier =
+        {
+            ("B_MedFence", BlobTier.Little),
+            ("B_MedStoneWall", BlobTier.Medium),
+            ("B_MedCastleWall", BlobTier.Large),
+            ("B_MedMainGate", BlobTier.Large),
+            ("B_MedGateClosed", BlobTier.Medium),
+            ("B_MedCornerTower", BlobTier.Giant),
+            ("B_MedCastleKeep", BlobTier.Colossal),
+        };
+
         public static BlobTier TierFor(string name, float size)
         {
-            BlobTier tier = TierForSize(size);
             if (name != null && name.StartsWith("City_")) name = name.Substring(5);
+            if (name != null)
+                foreach (var f in FixedTier)
+                    if (name.StartsWith(f.prefix)) return f.tier;
+            BlobTier tier = TierForSize(size);
             if (name == null || !TierShift.TryGetValue(name, out int shift)) return tier;
             return (BlobTier)Mathf.Clamp((int)tier + shift, (int)BlobTier.Tiny, (int)TierLayers.MaxTier);
         }
