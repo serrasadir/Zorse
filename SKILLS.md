@@ -124,7 +124,7 @@ Tablolarda her satır Sv.1 → Sv.5; ⭐ yeni yetenek açan seviye.
 
 | Sv.1 | Sv.2 | Sv.3 | Sv.4 | Sv.5 |
 |---|---|---|---|---|
-| 2 sn'de 1 roket, 25 hasar | +8 hasar | ⭐ Atış hızı ×1.3 | ⭐ Boss ve elite ×1.5, +8 hasar | ⭐ **Son form:** her atışta 2 roket |
+| 2 sn'de 1 roket, 25 hasar | +8 hasar | ⭐ Atış hızı ×1.3 | ⭐ Boss ve elite ×1.5, +8 hasar | ⭐ **Son form:** her atışta 2 roket, her biri ayrı düşmana (tek hedef varsa ikisi de ona) |
 
 #### 🌋 Yer Sarsıntısı (aktif) ⚠️ deneme
 - **Ne yapar:** **Darbe aldıkça dolar:** her X hasarda (kalkanın yuttuğu dahil) yere vurur; çevredeki düşmanlara alan hasarı + geri itme. Alan gövde yüzeyinden ölçülür, blob büyüdükçe büyür. Duvar arkasındakine vurmaz. İki sarsıntı arası en az 1.5 sn. Tetikçi gereken hasarı azaltır. Boss'lar sersemlemez.

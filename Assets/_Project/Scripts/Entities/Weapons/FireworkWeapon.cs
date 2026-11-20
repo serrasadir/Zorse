@@ -23,8 +23,10 @@ namespace BlobSurvivor.Entities.Weapons
         private float _misketDamageFactor;
         private int _burst = 1;
         private int _burstLeft;
+        private int _burstIndex;
         private float _burstTimer;
-        private Transform _burstTarget;
+        private readonly Transform[] _burstTargets = new Transform[6];
+        private int _burstTargetCount;
         private WeaponVisual _launcher;
 
         protected override float RecoilStrength => 2.6f;
@@ -38,7 +40,10 @@ namespace BlobSurvivor.Entities.Weapons
 
         public void SetForm(int form) => _launcher?.SetForm(form);
         public void SetPriorityDamageScale(float scale) => _priorityDamageScale = Mathf.Max(1f, scale);
-        public void SetBurst(int count) => _burst = Mathf.Max(1, count);
+        public void SetBurst(int count) => _burst = Mathf.Clamp(count, 1, _burstTargets.Length);
+
+        // Son form: her roket ayrı düşmana. Hedef roketten azsa (ör. tek boss) sırayla tekrar eder.
+        protected override int TargetsWanted => _burst;
         public void EnableCluster(int count, float damageFactor) { _misketCount = count; _misketDamageFactor = damageFactor; }
         public bool HasCluster => _misketCount > 0;
 
@@ -56,18 +61,35 @@ namespace BlobSurvivor.Entities.Weapons
             if (_burstLeft <= 0) return;
             _burstTimer -= Time.deltaTime;
             if (_burstTimer > 0f) return;
-            if (_burstTarget == null || !_burstTarget.gameObject.activeInHierarchy) { _burstLeft = 0; return; }
-            Shoot(_burstTarget);
+            Transform target = NextBurstTarget();
+            if (target == null) { _burstLeft = 0; return; }
+            Shoot(target);
             _burstLeft--;
             _burstTimer = BurstGap;
         }
 
-        protected override void Fire(Transform target)
+        protected override void Fire(Transform target) => Shoot(target);
+
+        protected override void FireVolley(Transform[] targets, int count)
         {
-            Shoot(target);
+            _burstTargetCount = Mathf.Min(count, _burstTargets.Length);
+            for (int i = 0; i < _burstTargetCount; i++) _burstTargets[i] = targets[i];
+            _burstIndex = 0;
+            Shoot(targets[0]);
             _burstLeft = _burst - 1;
             _burstTimer = BurstGap;
-            _burstTarget = target;
+        }
+
+        // Sıradaki hedef; o ölmüşse listedeki sonraki canlıya geçer.
+        private Transform NextBurstTarget()
+        {
+            for (int tries = 0; tries < _burstTargetCount; tries++)
+            {
+                _burstIndex = (_burstIndex + 1) % _burstTargetCount;
+                Transform t = _burstTargets[_burstIndex];
+                if (t != null && t.gameObject.activeInHierarchy) return t;
+            }
+            return null;
         }
 
         private void Shoot(Transform target)

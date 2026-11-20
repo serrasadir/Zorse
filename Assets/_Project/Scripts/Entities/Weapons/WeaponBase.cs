@@ -18,7 +18,7 @@ namespace BlobSurvivor.Entities.Weapons
         private const int EnemyLayerMask = 1 << 14;
         // 2026-11-03: arada bina varsa hedef alınmaz (elit polisin RangedAttackState'iyle aynı kural).
         private const int WallMask = 1 << 16; // Environment: bina engel kutuları + harita duvarı
-        private const int MaxTargets = 1;
+        private const int MaxTargets = 6; // dizi boyu; kaç hedef alınacağı TargetsWanted
         private const int InitialPoolSize = 40;
         // Mermi blob boyundan bağımsız, polisin göğüs hizasından çıkar (büyük blob'da kafaların üstünden geçmesin).
         private const float MuzzleHeight = 0.7f;
@@ -82,11 +82,10 @@ namespace BlobSurvivor.Entities.Weapons
             _cooldown -= Time.deltaTime;
             if (_cooldown > 0f) return;
 
-            int count = FindNearestEnemies(MaxTargets);
+            int count = FindNearestEnemies(Mathf.Clamp(TargetsWanted, 1, MaxTargets));
             if (count == 0) { _cooldown = NoTargetRetry; return; }
 
-            for (int i = 0; i < count; i++)
-                Fire(_targets[i]);
+            FireVolley(_targets, count);
             _cooldown = BlobSkills.NextCooldown(ref _shotCount, 1f / _fireRate);
             if (_blobVisual != null) _blobVisual.Recoil(_targets[0].position - transform.position, RecoilStrength);
         }
@@ -106,6 +105,16 @@ namespace BlobSurvivor.Entities.Weapons
         public void MultiplyFireRate(float factor) => _fireRate *= factor;
 
         protected abstract void Fire(Transform target);
+
+        // Bir atışta kaç farklı hedef aranır (Havai Fişek son formu: roket sayısı kadar).
+        protected virtual int TargetsWanted => 1;
+
+        // targets[0..count) maliyete göre sıralı (en iyi önce).
+        protected virtual void FireVolley(Transform[] targets, int count)
+        {
+            for (int i = 0; i < count; i++)
+                Fire(targets[i]);
+        }
 
         // Yay < 360: hedef yalnızca yüzün baktığı koni içinde. Yüz = BlobVisual.Forward (gidiş yönü; dururken son yön).
         // Görünümsüz küre ve tam tepedeki hedef (helikopter) serbest.

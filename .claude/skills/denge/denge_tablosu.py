@@ -80,7 +80,8 @@ def main():
     m_min = re.search(r"CoinPerMinute = ([0-9.]+)f", ms)
     if m_base and m_min:
         p(f"| Anlık görev | {float(m_base.group(1)):.0f} + dakika × {float(m_min.group(1)):.0f} (× MissionSystem.CoinScale) |")
-    p(f"| Elit | {elite_lo}–{elite_hi} + sandık {chest} |")
+    elite_chest = yaml_num(read("Assets/_Project/ScriptableObjects/Enemies/EnemyData_ElitePolis.asset"), "_chestDropChance", 1)
+    p(f"| Elit | {elite_lo}–{elite_hi} + %{elite_chest * 100:.0f} × sandık {chest} = ort. {(elite_lo + elite_hi) / 2 + elite_chest * chest:.1f} |")
     for i, (lo, hi) in enumerate(zip(bmin, bmax)):
         p(f"| Boss aşaması {i + 1} | {elite_lo}–{elite_hi} + sandık {chest} + bonus {lo}–{hi} |")
 

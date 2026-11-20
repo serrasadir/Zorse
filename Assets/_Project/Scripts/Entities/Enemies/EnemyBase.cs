@@ -1109,7 +1109,7 @@ namespace BlobSurvivor.Entities.Enemies
             }
             GameEvents.RaiseEnemyKilled(_data);
             GameEvents.RaiseEnemyDefeated(_data, eaten && !countAsKill);
-            if (_data.IsElite)
+            if (_data.IsElite && (IsBoss || Random.value < _data.ChestDropChance))
                 ChestSpawner.Instance?.SpawnChest(transform.position);
             if (_data.HeartPrefab != null && Random.value < _data.HeartDropChance)
                 HeartPickup.Spawn(_data.HeartPrefab, transform.position);

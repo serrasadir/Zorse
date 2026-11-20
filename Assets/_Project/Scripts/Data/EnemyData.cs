@@ -71,6 +71,8 @@ namespace BlobSurvivor.Data
         [SerializeField] private int _coinOverride;
         [Tooltip("Coin düşme olasılığı. Sıradan düşman VS gibi ara sıra ama daha değerli coin düşürür (ortalama aynı).")]
         [Range(0f, 1f)] [SerializeField] private float _coinDropChance = 1f;
+        [Tooltip("Elit ölünce sandık düşürme olasılığı. Boss'lar her zaman düşürür.")]
+        [Range(0f, 1f)] [SerializeField] private float _chestDropChance = 1f;
         [Tooltip("Zamanla yerini bu türe bırakır (bekçi → polis): spawn anında _replaceStart..End sn arasında "
                  + "doğrusal artan olasılıkla bu tür doğar. Boş = yok.")]
         [SerializeField] private EnemyData _replacedBy;
@@ -149,6 +151,7 @@ namespace BlobSurvivor.Data
         public bool IsSwarm => _packSize > 1;
         public int CoinOverride => _coinOverride;
         public float CoinDropChance => _coinDropChance;
+        public float ChestDropChance => _chestDropChance;
         public EnemyData ReplacedBy => _replacedBy;
 
         /// <summary>Bu saniyede bir spawn'ın ReplacedBy olma olasılığı (0..1).</summary>

@@ -37,4 +37,5 @@ MonoBehaviour:
   _consumeDamage: 0
   _heartPrefab: {fileID: 7633646316503275560, guid: 0bd1dfcaa907047789043c4bbd111054, type: 3}
   _heartDropChance: 1
+  _chestDropChance: 0.35
   _requiresConsumptionToDie: 0

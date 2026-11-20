@@ -58,7 +58,7 @@ namespace BlobSurvivor.EditorTools
                 "Vuruş hızı %30 artar.", "SON FORM: tam tur vuruş (360°), hasar ×1.5." }, perLevel: 5f),
             S("Upgrade_Firework", "FX_Firework", typeof(FireworkEffect), "firework", "Havai Fişek", SkillKind.Active, new[] {
                 "Uzaktaki hedefe ağır roket: 2 sn'de bir, 25 hasar. Önce boss ve elit.", "Roket hasarı +8.", "Atış hızı %30 artar.",
-                "Boss ve elite ×1.5 hasar, roket hasarı +8.", "SON FORM: her atışta 2 roket." }, perLevel: 8f),
+                "Boss ve elite ×1.5 hasar, roket hasarı +8.", "SON FORM: her atışta 2 roket, ayrı düşmanlara." }, perLevel: 8f),
             S("Upgrade_YerSarsintisi", "FX_YerSarsintisi", typeof(GroundQuakeEffect), "yer_sarsintisi", "Yer Sarsıntısı", SkillKind.Active, new[] {
                 "Darbe aldıkça dolar: her 15 hasarda yere vurur, çevreye 15 hasar.", "Sarsıntı hasarı 22.", "Sarsıntı 0.5 sn sersemletir.",
                 "Her 12 hasarda bir, alan genişler.", "DEPREM: her 3. sarsıntı 3 kat hasar, 2 kat alan." }),
