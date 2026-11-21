@@ -41,6 +41,22 @@ namespace BlobSurvivor.EditorTools
             Debug.Log("[CitySoft] Işık iki haritaya uygulandı.");
         }
 
+        private static void RemoveContactShadow(string path)
+        {
+            GameObject root = PrefabUtility.LoadPrefabContents(path);
+            try
+            {
+                Transform t = root.transform.Find("ContactShadow");
+                if (t == null) return;
+                Object.DestroyImmediate(t.gameObject);
+                PrefabUtility.SaveAsPrefabAsset(root, path);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
         [MenuItem("Tools/Blob.io/Şehri Soft Görünüme Geçir")]
         public static void Run()
         {
@@ -72,11 +88,17 @@ namespace BlobSurvivor.EditorTools
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 string name = System.IO.Path.GetFileNameWithoutExtension(path);
                 if (name.Contains("Med")) continue; // kale prefab'ları kale kurulumunda
-                bool building = name.StartsWith("B_") || name.StartsWith("P_");
+                // Temas gölgesi sadece bina ve arabada (eşyalardaki yüzlerce saydam kare mobilde pahalıydı); eşyalardan kaldırılır.
+                bool building = name.StartsWith("B_");
                 bool car = path.Contains("/Cars/");
-                if (!building && !car) continue;
                 var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-                if (prefab == null || prefab.GetComponent<BoxCollider>() == null) continue;
+                if (prefab == null) continue;
+                if (!building && !car)
+                {
+                    if (prefab.transform.Find("ContactShadow") != null) RemoveContactShadow(path);
+                    continue;
+                }
+                if (prefab.GetComponent<BoxCollider>() == null) continue;
                 CastleSceneBuilder.AddContactShadow(prefab);
                 shadows++;
             }

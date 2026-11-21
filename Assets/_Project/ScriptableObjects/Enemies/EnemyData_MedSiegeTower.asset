@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
   _displayName: SiegeTower
   _hudName: "G\xDC\xC7L\xDC TANK"
-  _prefab: {fileID: 2072016075202350378, guid: 90a224635146ba3488dcfa095b6132ed, type: 3}
+  _prefab: {fileID: 2072016075202350378, guid: c4dcaba927592db4680c79fd3efefe2a, type: 3}
   _maxHealth: 1200
   _damage: 20
   _moveSpeed: 3.2

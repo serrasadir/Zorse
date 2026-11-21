@@ -1130,7 +1130,7 @@ namespace BlobSurvivor.EditorTools
             GameObjectUtility.SetStaticEditorFlags(renderer.gameObject, staticFlags);
 
             string prefabPath = $"{PrefabRoot}/{item.mesh}.prefab";
-            // L_ zemin, D_ kale haritasının zemin süsü (çimen, çakıl): yenmez, çarpışmasız, gölgesiz. Çiçekler yenir.
+            // L_ zemin, D_ kale haritasının zemin süsü (ot tutamı, yol taşı): yenmez, çarpışmasız, gölgesiz. Çiçekler yenir.
             bool isGround = item.mesh.StartsWith("L_") || (item.mesh.StartsWith("D_") && !item.mesh.StartsWith("D_MedFlowers"));
             if (item.mesh.StartsWith("D_")) renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             ConsumableData data = isGround ? null : GetConsumableData(item.mesh, root.transform);
@@ -1154,7 +1154,13 @@ namespace BlobSurvivor.EditorTools
                     ApplyNavBlocker(root, colliderBounds);
                 }
                 else if (walker)
+                {
                     root.AddComponent<ChickenWander>();
+                    // Hareket eden çarpışma kutusu: kinematik gövde (statik kutu her karede yeniden yerleştirilirdi)
+                    var walkBody = root.AddComponent<Rigidbody>();
+                    walkBody.isKinematic = true;
+                    walkBody.useGravity = false;
+                }
                 else if (item.mesh.StartsWith("P_"))
                 {
                     ApplyNavBlocker(root, colliderBounds, humanoidOnly: true);

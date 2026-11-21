@@ -53,7 +53,6 @@ namespace BlobSurvivor.Core
         [SerializeField] private Vector2 _maxBounds;
 
         // Gölge mesafesi (URP asset) bu kamera uzaklığına göre ayarlanmıştı (yükseklik 12, eğim 65°).
-        private const float ShadowReferenceDistance = 13.24f;
         private const float ReferenceFov = 80f; // boss çerçeveleme formülü bu FOV'a göre
 
         private Camera _camera;
@@ -113,13 +112,19 @@ namespace BlobSurvivor.Core
 
         // Gölge mesafesi kameradan ölçülür: kamera referanstan ne kadar uzaksa o kadar artır ki blob'un çevresinde gölge kalsın.
         private const float MaxShadowDistance = 45f;
+        private const float ShadowReach = 1.2f;      // kamera uzaklığının katı
+        private const float ShadowReachLow = 1.0f;
 
         private void UpdateShadowDistance()
         {
             if (_urpAsset == null || _baseShadowDistance < 0f) return;
             float distance = _heightMultiplier * _baseHeight / Mathf.Sin(_baseTilt * Mathf.Deg2Rad);
+            // Gölge kameranın baktığı noktanın biraz ötesine kadar (ekranın en üst şeridi gölgesiz kalabilir).
+            // 2026-11-21: eski formül sabit 13 birimlik referansa göreydi; 45° kamera (32 birim) açılışta 44'e çıkarıyordu.
+            // Zayıf telefonda (AdaptiveFrameRate.LowQuality) daha kısa.
+            float reach = BlobSurvivor.Core.AdaptiveFrameRate.LowQuality ? ShadowReachLow : ShadowReach;
             // Üst sınır: büyük blob'da kamera uzaklaşınca bütün şehir gölge çizmesin (mobil).
-            _urpAsset.shadowDistance = Mathf.Min(MaxShadowDistance, _baseShadowDistance + Mathf.Max(0f, distance - ShadowReferenceDistance));
+            _urpAsset.shadowDistance = Mathf.Min(MaxShadowDistance, Mathf.Max(_baseShadowDistance * 0.8f, distance * reach));
         }
 
         private void OnDestroy()

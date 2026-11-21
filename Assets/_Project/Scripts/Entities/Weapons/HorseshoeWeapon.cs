@@ -34,7 +34,8 @@ namespace BlobSurvivor.Entities.Weapons
         private const float OrbitTime = 0.5f;
         private const float OrbitGap = 1f;          // tur yarıçapı = gövde + bu
         private const float HitRadius = 0.45f;      // mermi boyuyla çarpılır
-        private const float CheckInterval = 0.04f;  // süpürme kontrolü (kapsül: kaçırmaz)
+        private const float CheckInterval = 0.1f;   // süpürme kontrolü (kapsül son konumdan şimdikine: kaçırmaz)
+        private const float CollectInterval = 0.1f; // Sv.4 coin/kalp toplama
         private const float SpinSpeed = 900f;
         private const float MuzzleHeight = 0.7f;
         private const float Knockback = 0.25f;
@@ -53,7 +54,8 @@ namespace BlobSurvivor.Entities.Weapons
         private readonly Transform[] _targets = new Transform[MaxNals];
         private Transform _blobRoot;
         private float _bodyLocalRadius = 0.5f;
-        private float _cooldown, _checkTimer;
+        private float _cooldown, _checkTimer, _collectTimer;
+        private bool _collectNow;
         private int _shotCount;
 
         private float BodyRadius => _blobRoot != null ? _blobRoot.localScale.x * _bodyLocalRadius : 0.25f;
@@ -102,6 +104,10 @@ namespace BlobSurvivor.Entities.Weapons
             if (_blobRoot == null) return;
             float dt = Time.deltaTime;
             bool anyFlying = false;
+            // Toplama kendi zamanlayıcısıyla (süpürme zamanlayıcısına bağlıyken hiç çalışmıyordu)
+            _collectTimer -= dt;
+            _collectNow = _collectTimer <= 0f;
+            if (_collectNow) _collectTimer = CollectInterval;
             for (int i = 0; i < MaxNals; i++)
                 if (_nals[i] != null && _nals[i].Phase != Phase.Idle) { Move(_nals[i], dt); anyFlying = true; }
 
@@ -231,7 +237,7 @@ namespace BlobSurvivor.Entities.Weapons
             if (!_collect) { return; }
             for (int i = 0; i < n.CarriedCount; i++)
                 if (n.Carried[i] != null && n.Carried[i].gameObject.activeInHierarchy) n.Carried[i].position = n.View.position;
-            if (_checkTimer > 0f || n.CarriedCount >= n.Carried.Length) return;
+            if (!_collectNow || n.CarriedCount >= n.Carried.Length) return;
             int count = Physics.OverlapSphereNonAlloc(n.View.position, HitRadius * VisualScale * 2f, _hits, TierLayers.ConsumableMask);
             for (int i = 0; i < count && n.CarriedCount < n.Carried.Length; i++)
             {

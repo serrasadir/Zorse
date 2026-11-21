@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
   _displayName: MountedKnight
   _hudName: 
-  _prefab: {fileID: 5896680904072327028, guid: 1c0349cd3a3fe2e4d86a9a29dc42de8c, type: 3}
+  _prefab: {fileID: 5896680904072327028, guid: 531a6bf4fc092fc44907e3c77c0a7a66, type: 3}
   _maxHealth: 70
   _damage: 14
   _moveSpeed: 2.6

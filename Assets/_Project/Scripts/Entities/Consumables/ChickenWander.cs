@@ -19,6 +19,7 @@ namespace BlobSurvivor.Entities
         private bool _moving;
         private Transform _model;
         private Vector3 _modelPos;
+        private Renderer _renderer;
 
         private void Awake()
         {
@@ -28,6 +29,7 @@ namespace BlobSurvivor.Entities
             {
                 _model = transform.GetChild(0);
                 _modelPos = _model.localPosition;
+                _renderer = _model.GetComponentInChildren<Renderer>();
             }
         }
 
@@ -42,6 +44,7 @@ namespace BlobSurvivor.Entities
         {
             float dt = Time.deltaTime;
             if (dt <= 0f) return;
+            if (_renderer != null && !_renderer.isVisible) return; // ekran dışında durur
             if (!_moving)
             {
                 _wait -= dt;

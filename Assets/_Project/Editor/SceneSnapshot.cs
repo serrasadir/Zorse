@@ -25,7 +25,14 @@ namespace BlobSurvivor.EditorTools
             string[] p = File.ReadAllText(RequestPath).Split((char[])null, System.StringSplitOptions.RemoveEmptyEntries);
             File.Delete(RequestPath);
             if (p.Length > 0 && p[0] == "ui") { CaptureUI(p.Length > 1 ? p[1] : null); return; }
-            float F(int i, float d) => p.Length > i ? float.Parse(p[i], CultureInfo.InvariantCulture) : d;
+            // isteğe bağlı "pitch <derece>" / "fov <derece>" (kamera açısı denemesi); yoksa oyun açısı 60 / 45
+            s_pitch = 60f; s_fov = 45f;
+            for (int k = 0; k + 1 < p.Length; k++)
+            {
+                if (p[k] == "pitch") s_pitch = float.Parse(p[k + 1], CultureInfo.InvariantCulture);
+                if (p[k] == "fov") s_fov = float.Parse(p[k + 1], CultureInfo.InvariantCulture);
+            }
+            float F(int i, float d) => p.Length > i && float.TryParse(p[i], NumberStyles.Float, CultureInfo.InvariantCulture, out float v) ? v : d;
             var target = new Vector3(F(0, 0f), 0f, F(1, 0f));
             if (p.Length > 4 && p[4] == "eat") CaptureEat(target, F(2, 14f), F(3, 0f), F(5, 0.15f));
             else Capture(target, F(2, 14f), F(3, 0f));
@@ -130,6 +137,8 @@ namespace BlobSurvivor.EditorTools
             }
         }
 
+        private static float s_pitch = 60f, s_fov = 45f;
+
         private static void Capture(Vector3 target, float distance, float yaw)
         {
             var go = new GameObject("SnapshotCam") { hideFlags = HideFlags.HideAndDontSave };
@@ -137,10 +146,10 @@ namespace BlobSurvivor.EditorTools
             try
             {
                 var cam = go.AddComponent<Camera>();
-                cam.fieldOfView = 45f;
+                cam.fieldOfView = s_fov;
                 cam.clearFlags = CameraClearFlags.SolidColor;
                 cam.backgroundColor = new Color(0.75f, 0.78f, 0.84f);
-                Quaternion rot = Quaternion.Euler(60f, yaw, 0f);
+                Quaternion rot = Quaternion.Euler(s_pitch, yaw, 0f);
                 go.transform.SetPositionAndRotation(target - rot * Vector3.forward * distance, rot);
                 cam.targetTexture = rt;
                 cam.Render();

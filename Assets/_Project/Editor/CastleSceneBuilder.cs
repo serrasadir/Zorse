@@ -37,22 +37,6 @@ namespace BlobSurvivor.EditorTools
         }
 
         [Serializable]
-        private class GroundPath
-        {
-            public string tex;
-            public float hw;
-            public bool loop;
-            public float[] pts;   // x0, z0, x1, z1, ... (yumuşatılmış eğri, build_castle_layout.py)
-        }
-
-        [Serializable]
-        private class GroundDisc
-        {
-            public string tex;
-            public float x, z, r;
-        }
-
-        [Serializable]
         private class GroundSplat
         {
             public string path;            // karışım haritası (tools/medieval/ground_splat.py)
@@ -63,8 +47,6 @@ namespace BlobSurvivor.EditorTools
         private class Meta
         {
             public GroundSplat splat = null;
-            public GroundPath[] paths = null;
-            public GroundDisc[] discs = null;
             public float half = 60f;
             public float[] start = null;
             public GroundRect[] ground = null;
@@ -74,7 +56,6 @@ namespace BlobSurvivor.EditorTools
         }
 
         private const string TextureFolder = "Assets/_Project/Art/City/Textures";
-        private const string SidewalkMaterial = TextureFolder + "/Mat_Sidewalk.mat";
         // Toprak dokusu turuncu blob'la karışıyordu (Bahar): koyu, kahverengiye çekilir.
         private static readonly Color DirtTint = new Color(0.96f, 0.94f, 0.9f); // krem toprak doku (Bahar): kendi rengiyle
         private const float GroundTile = 4f;     // bir doku tekrarı = 4×4 birim
@@ -98,6 +79,7 @@ namespace BlobSurvivor.EditorTools
             Layout layout = JsonUtility.FromJson<Layout>(json.text);
             Material palette = CityKitPipeline.GetMedievalMaterial();
             if (palette == null) { Debug.LogError("[CastleScene] Ortaçağ paleti yok (Art/City/Medieval/MedievalPalette.png)."); return; }
+            EnsureGhostMaterial(palette);
 
             foreach (string name in CityRoots)
             {
@@ -117,7 +99,9 @@ namespace BlobSurvivor.EditorTools
                 if (prefab == null) { Debug.LogError($"[CastleScene] {item.mesh} prefab'ı kurulamadı."); return; }
                 if (IsRingWall(item.mesh)) prefab = SetupRingWall(prefab);
                 if (item.mesh.StartsWith("B_MedFence") && item.mesh != "B_MedFenceGate") prefab = MakeInedible(prefab); // çitler yenmez: bölgeden kapıdan geçilir
-                if ((item.mesh.StartsWith("B_") || item.mesh.StartsWith("P_")) && item.mesh != "P_MedChicken") AddContactShadow(prefab); // tavuk gezinir
+                // Temas gölgesi sadece binalarda: yüzlerce üst üste saydam kare mobilde pahalıydı (kod incelemesi, 2026-11-21);
+                // küçük eşyalar zaten kendi gölgesini düşürür.
+                if (item.mesh.StartsWith("B_")) AddContactShadow(prefab);
                 prefabs.Add(item.mesh, prefab);
             }
             AssetDatabase.SaveAssets();
@@ -383,11 +367,9 @@ namespace BlobSurvivor.EditorTools
         // nesnenin child'ı olduğu için yenince o da kaybolur. Tek doku + tek saydam materyal, statik birleşir.
         private const string ShadowTexPath = "Assets/_Project/Art/FX/ContactShadow.png"; // Art/City dışında: oradaki ön işlemci alfayı siler
         private const string ShadowMatPath = CityKitPipeline.MedievalRoot + "/Mat_ContactShadow.mat";
-        private const string ShadowMeshPath = CityKitPipeline.MedievalRoot + "/ContactShadowQuad.asset";
         private const float ShadowY = 0.08f;         // zemin düzlemlerinin (en fazla ~0.06) üstünde
         private const float ShadowGrow = 1.12f; // koyu çekirdek ayak izi kadar, dışa doğru yumuşak sönüm (pay boyla orantılı)
         private static Material s_shadowMat;
-        private static Mesh s_shadowMesh;
 
         internal static void AddContactShadow(GameObject prefab)
         {
@@ -427,7 +409,7 @@ namespace BlobSurvivor.EditorTools
 
         private static void EnsureShadowAssets()
         {
-            if (s_shadowMat != null && s_shadowMesh != null) return;
+            if (s_shadowMat != null) return;
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(ShadowTexPath) == null)
             {
                 const int n = 64;
@@ -484,17 +466,6 @@ namespace BlobSurvivor.EditorTools
             s_shadowMat.SetColor("_BaseColor", new Color(0.1f, 0.08f, 0.14f, 0.6f)); // mor-siyah: sıcak sahnede yumuşak
             EditorUtility.SetDirty(s_shadowMat);
 
-            s_shadowMesh = AssetDatabase.LoadAssetAtPath<Mesh>(ShadowMeshPath);
-            if (s_shadowMesh == null)
-            {
-                s_shadowMesh = new Mesh { name = "ContactShadowQuad" };
-                s_shadowMesh.vertices = new[] { new Vector3(-0.5f, 0f, -0.5f), new Vector3(-0.5f, 0f, 0.5f), new Vector3(0.5f, 0f, 0.5f), new Vector3(0.5f, 0f, -0.5f) };
-                s_shadowMesh.uv = new[] { new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(1f, 0f) };
-                s_shadowMesh.triangles = new[] { 0, 1, 2, 0, 2, 3 };
-                s_shadowMesh.RecalculateNormals();
-                s_shadowMesh.RecalculateBounds();
-                AssetDatabase.CreateAsset(s_shadowMesh, ShadowMeshPath);
-            }
         }
 
         // Küçük harita: oyun alanının üstten ortografik görüntüsü (UI hariç) → Resources/UI/CastleMinimap.png (GateGuide).
@@ -564,17 +535,26 @@ namespace BlobSurvivor.EditorTools
                     AddGroundObject(parent, rects[i].tex, GroundMesh(i, rects[i], ++layer * GroundStep));
                 return;
             }
-            for (int i = 0; i < rects.Length; i++)
-                AddGroundObject(parent, rects[i].tex, GroundMesh(i, rects[i], ++layer * GroundStep));
-            if (meta.paths != null)
-                for (int i = 0; i < meta.paths.Length; i++)
-                    AddGroundObject(parent, meta.paths[i].tex, PathMesh(i, meta.paths[i], ++layer * GroundStep));
-            if (meta.discs != null)
-                for (int i = 0; i < meta.discs.Length; i++)
-                    AddGroundObject(parent, meta.discs[i].tex, DiscMesh(i, meta.discs[i], ++layer * GroundStep));
+            Debug.LogError("[CastleScene] castle_layout.json'da zemin karışım haritası (meta.splat) yok: build_castle_layout.py'ı çalıştır.");
         }
 
         private const string SplatMaterialPath = "Assets/_Project/Art/Ground/Mat_GroundSplat.mat";
+
+        // Blob bina/duvar arkasına geçince saydamlaştırma (CameraOcclusionFader) Resources/OcclusionGhost/<materyal>_Ghost arar.
+        // Kale paleti için yoktu: duvarlar blob'u gizliyordu. Şehir ghost'unun (Simple Lit, saydam) kopyası + ortaçağ paleti.
+        private static void EnsureGhostMaterial(Material palette)
+        {
+            const string cityGhost = "Assets/_Project/Resources/OcclusionGhost/Mat_CityPalette_Ghost.mat";
+            string path = $"Assets/_Project/Resources/OcclusionGhost/{palette.name}_Ghost.mat";
+            if (AssetDatabase.LoadAssetAtPath<Material>(path) == null && !AssetDatabase.CopyAsset(cityGhost, path))
+            {
+                Debug.LogError("[CastleScene] Saydamlaştırma materyali kopyalanamadı.");
+                return;
+            }
+            Material ghost = AssetDatabase.LoadAssetAtPath<Material>(path);
+            ghost.SetTexture("_BaseMap", palette.GetTexture("_BaseMap"));
+            EditorUtility.SetDirty(ghost);
+        }
 
         // ---------- 3D yol taşları (Bahar, 2026-11-21: "taşlar tek boyutlu duruyor") ----------
         // Binlerce küçük taş ayrı obje olmasın: 16×16'lık bölgelerde tek mesh (çarpışmasız, yenmez, gölge düşürmez).
@@ -600,6 +580,7 @@ namespace BlobSurvivor.EditorTools
                     if (mf == null) continue;
                     src = (mf.sharedMesh, prefab.transform.worldToLocalMatrix * mf.transform.localToWorldMatrix);
                     sources[item.mesh] = src;
+                    AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(prefab)); // mesh FBX'ten; prefab'a gerek yok
                 }
                 var key = new Vector2Int(Mathf.FloorToInt(item.x / PathStoneChunk), Mathf.FloorToInt(item.z / PathStoneChunk));
                 if (!chunks.TryGetValue(key, out var list)) chunks[key] = list = new List<CombineInstance>();
@@ -666,7 +647,8 @@ namespace BlobSurvivor.EditorTools
             mat.SetTexture("_FlagN", Tex("Flagstone_N"));
             mat.SetColor("_DirtTint", DirtTint);
             mat.SetFloat("_Tile", GroundTile);
-            mat.SetFloat("_Stone3D", 1f); // taşlar 3D (yol taşı mesh'leri); zeminde taş bölgesi gölgeli çimen
+            mat.SetFloat("_StoneTexture", 0f);           // taşlar 3D (yol taşı mesh'leri): düz taş dokusu okunmaz
+            mat.DisableKeyword("_STONE_TEXTURE");
             mat.SetFloat("_BlendDepth", 0.32f); // geçişte iki doku biraz karışır (çimen tutamları toprağa taşar)
             EditorUtility.SetDirty(mat);
 
@@ -697,83 +679,6 @@ namespace BlobSurvivor.EditorTools
             if (tex == "Water" && go.GetComponent<BlobSurvivor.Core.WaterScroll>() == null) go.AddComponent<BlobSurvivor.Core.WaterScroll>();
         }
 
-        // Yol: eğri boyunca şerit, kesitte 4 köşe (dış kenar koyu, iç açık: yol yere oyulmuş görünür).
-        // UV dünya koordinatından: doku dikişsiz, gerilmez.
-        private static readonly float[] PathColumns = { 1f, 0.62f, -0.62f, -1f };   // sol dış → sağ dış (yarı genişlik oranı)
-
-        private static Mesh PathMesh(int index, GroundPath p, float y)
-        {
-            int n = p.pts.Length / 2;
-            if (n < 2) return null;
-            int cols = PathColumns.Length;
-            var verts = new Vector3[n * cols];
-            var uv = new Vector2[verts.Length];
-            var col = new Color[verts.Length];
-            for (int i = 0; i < n; i++)
-            {
-                Vector2 c = new Vector2(p.pts[i * 2], p.pts[i * 2 + 1]);
-                int a = p.loop ? (i - 1 + n) % n : Mathf.Max(i - 1, 0);
-                int b = p.loop ? (i + 1) % n : Mathf.Min(i + 1, n - 1);
-                Vector2 dir = new Vector2(p.pts[b * 2] - p.pts[a * 2], p.pts[b * 2 + 1] - p.pts[a * 2 + 1]).normalized;
-                Vector2 side = new Vector2(-dir.y, dir.x) * p.hw;
-                for (int k = 0; k < cols; k++)
-                {
-                    Vector2 q = c + side * PathColumns[k];
-                    int v = i * cols + k;
-                    verts[v] = new Vector3(q.x, y, q.y);
-                    uv[v] = q / GroundTile;
-                    float shade = Macro(q.x, q.y) * (Mathf.Abs(PathColumns[k]) > 0.99f ? PathEdgeShade : 1f);
-                    col[v] = new Color(shade, shade, shade, 1f);
-                }
-            }
-            int segs = p.loop ? n : n - 1;
-            var tris = new int[segs * (cols - 1) * 6];
-            int t = 0;
-            for (int i = 0; i < segs; i++)
-            {
-                int j = (i + 1) % n;
-                for (int k = 0; k < cols - 1; k++)
-                {
-                    // üstten bakınca saat yönü (Unity ön yüz)
-                    tris[t++] = i * cols + k; tris[t++] = j * cols + k; tris[t++] = j * cols + k + 1;
-                    tris[t++] = i * cols + k; tris[t++] = j * cols + k + 1; tris[t++] = i * cols + k + 1;
-                }
-            }
-            return SaveGroundMesh($"PathMesh_{index}", verts, uv, tris, col);
-        }
-
-        private static Mesh DiscMesh(int index, GroundDisc d, float y)
-        {
-            const int n = 48;
-            var verts = new Vector3[1 + n * 2];
-            var uv = new Vector2[verts.Length];
-            var col = new Color[verts.Length];
-            void Put(int v, float x, float z, float shade)
-            {
-                verts[v] = new Vector3(x, y, z);
-                uv[v] = new Vector2(x, z) / GroundTile;
-                float m = Macro(x, z) * shade;
-                col[v] = new Color(m, m, m, 1f);
-            }
-            Put(0, d.x, d.z, 1f);
-            for (int i = 0; i < n; i++)
-            {
-                float a = i * Mathf.PI * 2f / n;
-                Put(1 + i, d.x + Mathf.Cos(a) * d.r * 0.85f, d.z + Mathf.Sin(a) * d.r * 0.85f, 1f);   // iç halka
-                Put(1 + n + i, d.x + Mathf.Cos(a) * d.r, d.z + Mathf.Sin(a) * d.r, PathEdgeShade);  // kenar koyu
-            }
-            var tris = new int[n * 9];
-            int t = 0;
-            for (int i = 0; i < n; i++)
-            {
-                int a0 = 1 + i, a1 = 1 + (i + 1) % n, b0 = 1 + n + i, b1 = 1 + n + (i + 1) % n;
-                tris[t++] = 0; tris[t++] = a1; tris[t++] = a0;   // saat yönü (üstten)
-                tris[t++] = a0; tris[t++] = a1; tris[t++] = b1;
-                tris[t++] = a0; tris[t++] = b1; tris[t++] = b0;
-            }
-            return SaveGroundMesh($"DiscMesh_{index}", verts, uv, tris, col);
-        }
-
         private static Mesh SaveGroundMesh(string name, Vector3[] verts, Vector2[] uv, int[] tris, Color[] colors)
         {
             string path = $"{CityKitPipeline.MedievalRoot}/{name}.asset";
@@ -790,38 +695,11 @@ namespace BlobSurvivor.EditorTools
         // yol kenarı koyu). Bahar 2026-11-21: "zemin çok 2D duruyor".
         private static Material GroundMaterial(string tex)
         {
-            if (tex == "Water") return AssetDatabase.LoadAssetAtPath<Material>(TextureFolder + "/Mat_Water.mat"); // hendek: şehir kıyısının suyu
-            string path = $"{CityKitPipeline.MedievalRoot}/Mat_Ground{tex}.mat";
-            Material mat = AssetDatabase.LoadAssetAtPath<Material>(path);
-            Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>($"{TextureFolder}/Med_{tex}.png");
-            if (texture == null) { Debug.LogError($"[CastleScene] Med_{tex}.png yok (tools/medieval/build_ground_textures.py)."); return null; }
-            Shader shader = Shader.Find("BlobSurvivor/PaletteAO");
-            if (mat == null)
-            {
-                mat = new Material(shader);
-                AssetDatabase.CreateAsset(mat, path);
-            }
-            else if (shader != null) mat.shader = shader;
-            mat.SetTexture("_BaseMap", texture);
-            mat.SetTextureScale("_BaseMap", Vector2.one);
-            mat.SetColor("_BaseColor", tex == "Dirt" ? DirtTint : Color.white);
-            mat.SetFloat("_AOStrength", 1f);
-            string normalPath = $"{TextureFolder}/Med_{tex}_N.png";
-            if (AssetImporter.GetAtPath(normalPath) is TextureImporter ni && ni.textureType != TextureImporterType.NormalMap)
-            {
-                ni.textureType = TextureImporterType.NormalMap;
-                ni.SaveAndReimport();
-            }
-            Texture2D normal = AssetDatabase.LoadAssetAtPath<Texture2D>(normalPath);
-            mat.SetTexture("_BumpMap", normal);
-            mat.SetFloat("_BumpScale", 1f);
-            if (normal != null) mat.EnableKeyword("_NORMALMAP"); else mat.DisableKeyword("_NORMALMAP");
-            EditorUtility.SetDirty(mat);
-            return mat;
+            // Zemin karışan tek yüzeyde (GroundSplat); ayrı dikdörtgen sadece hendek suyu.
+            return tex == "Water" ? AssetDatabase.LoadAssetAtPath<Material>(TextureFolder + "/Mat_Water.mat") : null;
         }
 
         private const float GroundCell = 2f;      // zemin ızgarası (lekeler köşe renginde)
-        private const float PathEdgeShade = 0.7f; // yol kenarı koyu: "yere oyulmuş" görünür
 
         // Geniş, yumuşak açık-koyu lekeler: döşemenin tekrarı kaybolur.
         private static float Macro(float x, float z)

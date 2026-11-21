@@ -15,8 +15,9 @@ namespace BlobSurvivor.EditorTools
         private static readonly string[] RpAssets = { "Assets/Settings/Mobile_RPAsset.asset", "Assets/Settings/PC_RPAsset.asset" };
         private static readonly string[] Scenes = { "Assets/_Project/Scenes/GameScene.unity", "Assets/_Project/Scenes/CastleScene.unity" };
         private const string GroundTextures = "Assets/_Project/Art/City/Textures";
-        private const int Msaa = 4;
-        private const float RenderScale = 0.9f;
+        // Varsayılan hafif (zayıf telefon takılmadan başlasın); güçlü telefon AdaptiveFrameRate ile 4x / %90'a çıkar.
+        private const int Msaa = 2;
+        private const float RenderScale = 0.85f;
 
         [MenuItem("Tools/Blob.io/Görüntü Kalitesini Uygula")]
         public static void Run()

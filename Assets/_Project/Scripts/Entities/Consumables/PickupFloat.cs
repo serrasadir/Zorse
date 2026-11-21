@@ -7,12 +7,11 @@ namespace BlobSurvivor.Entities
     // ConsumableSpawner ilk çıkarışta ekler (örnek başına tek seferlik). Ekran dışındayken çalışmaz.
     public class PickupFloat : MonoBehaviour
     {
-        private const float Hover = 0.3f;       // yerden yükseklik
+        private const float Hover = 0.22f;      // yerden yükseklik
         private const float Bounce = 0.12f;     // zıplama yüksekliği
         private const float BounceRate = 3.2f;  // rad/sn
         private const float Pulse = 0.08f;      // büyüme-küçülme oranı
         private const float SpinSpeed = 70f;    // derece/sn
-        private const float Grow = 1.9f;        // görünür boy (Bahar: "aşırı küçük, toplanabilir olduğu anlaşılmıyor"); collider aynı
 
         private Transform _model;
         private Renderer _renderer;
@@ -27,7 +26,7 @@ namespace BlobSurvivor.Entities
             _model = transform.GetChild(0);
             _renderer = _model.GetComponentInChildren<Renderer>();
             _basePos = _model.localPosition;
-            _baseScale = _model.localScale * Grow;
+            _baseScale = _model.localScale;
             _baseRot = _model.localRotation;
         }
 
@@ -41,7 +40,7 @@ namespace BlobSurvivor.Entities
         {
             if (_model == null) return;
             _model.localPosition = _basePos;
-            _model.localScale = _baseScale / Grow;
+            _model.localScale = _baseScale;
             _model.localRotation = _baseRot;
         }
 

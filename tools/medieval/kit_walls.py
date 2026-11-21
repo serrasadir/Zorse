@@ -519,81 +519,6 @@ def moat_edge():
 
 # ---------- zemin karoları 4 x 4 m, 0.1 m ----------
 
-def _tile_base(p, color):
-    p.box((4.0, 4.0, 0.05), (0, 0, 0), color)
-
-
-def tile_cobble():
-    p = Part("M_TileCobble")
-    rnd = random.Random(61)
-    _tile_base(p, "stone_dark")
-    n, c = 6, 4.0 / 6
-    for i in range(n):
-        for j in range(n):
-            x = -2 + c * (i + 0.5) + (0.08 if j % 2 else -0.08) * (0 < i < n - 1)
-            y = -2 + c * (j + 0.5) + rnd.uniform(-0.04, 0.04)
-            s = rnd.uniform(0.54, 0.6)
-            p.box((s, s * rnd.uniform(0.82, 1.0), 0.05), (x, y, 0.05),
-                  rnd.choice(("stone", "stone", "stone_light")), rot_z=rnd.uniform(-0.12, 0.12))
-    return p.finish()
-
-
-def tile_dirt():
-    p = Part("M_TileDirt")
-    rnd = random.Random(62)
-    p.box((4.0, 4.0, 0.06), (0, 0, 0), "dirt")
-    for _ in range(7):
-        p.box((rnd.uniform(0.5, 1.1), rnd.uniform(0.35, 0.7), 0.02), (rnd.uniform(-1.4, 1.4), rnd.uniform(-1.4, 1.4), 0.06),
-              rnd.choice(("wood", "wood_light")), rot_z=rnd.uniform(0, math.pi))
-    for _ in range(8):
-        s = rnd.uniform(0.1, 0.18)
-        p.box((s, s * 0.8, 0.04), (rnd.uniform(-1.8, 1.8), rnd.uniform(-1.8, 1.8), 0.06), "stone",
-              rot_z=rnd.uniform(0, math.pi))
-    return p.finish()
-
-
-def tile_grass():
-    p = Part("M_TileGrass")
-    rnd = random.Random(63)
-    p.box((4.0, 4.0, 0.06), (0, 0, 0), "grass")
-    for _ in range(6):
-        p.box((rnd.uniform(0.5, 1.0), rnd.uniform(0.4, 0.8), 0.02), (rnd.uniform(-1.4, 1.4), rnd.uniform(-1.4, 1.4), 0.06),
-              "leaf", rot_z=rnd.uniform(0, math.pi))
-    for _ in range(8):
-        p.box((0.18, 0.1, 0.04), (rnd.uniform(-1.8, 1.8), rnd.uniform(-1.8, 1.8), 0.06), "leaf_dark",
-              rot_z=rnd.uniform(0, math.pi))
-    for _ in range(5):
-        x, y = rnd.uniform(-1.6, 1.6), rnd.uniform(-1.6, 1.6)
-        p.box((0.32, 0.32, 0.025), (x, y, 0.06), "white", rot_z=math.pi / 4)
-        p.box((0.32, 0.32, 0.025), (x, y, 0.06), "white")
-        p.box((0.13, 0.13, 0.04), (x, y, 0.06), "gold")
-    return p.finish()
-
-
-def tile_flagstone():
-    p = Part("M_TileFlagstone")
-    rnd = random.Random(64)
-    _tile_base(p, "stone_dark")
-    y = -2.0
-    for row, h in enumerate((1.05, 0.95, 1.0, 1.0)):
-        x = -2.0
-        first = True
-        while x < 1.95:
-            w = rnd.uniform(0.8, 1.4) if not (first and row % 2) else rnd.uniform(0.4, 0.7)
-            first = False
-            w = min(w, 2.0 - x)
-            if 2.0 - x - w < 0.35:
-                w = 2.0 - x
-            p.box((w - 0.07, h - 0.07, 0.05), (x + w / 2, y + h / 2, 0.05), rnd.choice(("stone_light", "stone_light", "stone")))
-            x += w
-        y += h
-    for _ in range(4):
-        p.box((0.2, 0.08, 0.055), (rnd.uniform(-1.7, 1.7), rnd.uniform(-1.7, 1.7), 0.05), "moss")
-    return p.finish()
-
-
-# ---------- yel değirmeni ----------
-
 def _sails(p, hub):
     """Dört kanat XZ düzleminde, eksen Y (ön −Y); hub = göbek merkezi."""
     hx, hy, hz = hub
@@ -677,6 +602,5 @@ BUILDERS = {
     "corner_tower": corner_tower, "main_gate": main_gate,
     "murder_hole": murder_hole, "oil_warning": oil_warning, "arrow_slit": arrow_slit,
     "rope_bridge": rope_bridge, "moat_edge": moat_edge,
-    "tile_cobble": tile_cobble, "tile_dirt": tile_dirt, "tile_grass": tile_grass, "tile_flagstone": tile_flagstone,
     "windmill": windmill, "windmill_sails": windmill_sails,
 }

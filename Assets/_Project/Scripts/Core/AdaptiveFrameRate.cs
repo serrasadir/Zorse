@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace BlobSurvivor.Core
 {
@@ -19,6 +21,16 @@ namespace BlobSurvivor.Core
         private int _lowStreak;
 
         public static int Cap { get; private set; } = 60;
+        // Görüntü kademesi (RP asset varsayılanı hafif: MSAA 2x, %85). Zayıf telefon (30 FPS): MSAA 2x, %80, kısa gölge.
+        // 60'ı rahat tutan telefon (HighWindows sn boyunca ≥ HighFps) kalıcı olarak MSAA 4x, %90'a yükselir.
+        public static bool LowQuality => Cap == 30;
+        private const string HighKey = "quality_high";
+        private const float HighFps = 57f;
+        private const int HighWindows = 15;
+        private const float LowRenderScale = 0.8f;
+        private const int HighMsaa = 4;
+        private const float HighRenderScale = 0.9f;
+        private int _highStreak;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Install()
@@ -50,6 +62,20 @@ namespace BlobSurvivor.Core
             PlayerPrefs.SetInt(RunsKey, runs);
         }
 
+        private static int s_msaa = -1;
+        private static float s_scale = -1f;
+
+        // RP asset'i çalışma anında değiştirir. Editörde dokunmaz: Play'de asset'e yazılan değer kalıcı olurdu.
+        private static void ApplyQuality(bool low)
+        {
+            if (Application.isEditor) return;
+            if (!(GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset urp)) return;
+            if (s_msaa < 0) { s_msaa = urp.msaaSampleCount; s_scale = urp.renderScale; }   // asset varsayılanı (hafif)
+            bool high = !low && PlayerPrefs.GetInt(HighKey, 0) == 1;
+            urp.msaaSampleCount = high ? HighMsaa : s_msaa;
+            urp.renderScale = low ? Mathf.Min(LowRenderScale, s_scale) : high ? HighRenderScale : s_scale;
+        }
+
         private void Update()
         {
             if (Cap != 60) return;
@@ -68,8 +94,18 @@ namespace BlobSurvivor.Core
             if (_lowStreak >= LowWindows)
             {
                 _lowStreak = 0;
+                PlayerPrefs.SetInt(HighKey, 0);               // yükseltilmiş kalite de geri alınır
                 Apply(30, save: true);
                 PlayerPrefs.SetInt(RunsKey, 0);
+                return;
+            }
+            // Rahat 60: görüntüyü bir kez yükselt (sonraki açılışlarda da). Yükselttikten sonra düşerse yukarıdaki iner.
+            _highStreak = fps >= HighFps ? _highStreak + 1 : 0;
+            if (_highStreak >= HighWindows && PlayerPrefs.GetInt(HighKey, 0) == 0)
+            {
+                PlayerPrefs.SetInt(HighKey, 1);
+                PlayerPrefs.Save();
+                ApplyQuality(false);
             }
         }
 
@@ -77,6 +113,7 @@ namespace BlobSurvivor.Core
         {
             Cap = cap;
             Application.targetFrameRate = cap;
+            ApplyQuality(cap == 30);
             if (!save) return;
             PlayerPrefs.SetInt(CapKey, cap);
             PlayerPrefs.Save();

@@ -50,27 +50,5 @@ def flowers_red():
     return _flowers("M_FlowersRed", "red", 4)
 
 
-def pebbles():
-    p = Part("M_Pebbles")
-    rnd = random.Random(5)
-    for i in range(4):
-        s = rnd.uniform(0.07, 0.15)
-        p.cyl(s, s * 0.45, (rnd.uniform(-0.2, 0.2), rnd.uniform(-0.2, 0.2), 0), rnd.choice(("stone", "stone_light", "stone_dark")),
-              segments=5, radius_top=s * 0.7, rot=rz(rnd.uniform(0, 1)))
-    return p.finish()
-
-
-def bush_low():
-    p = Part("M_BushLow")
-    rnd = random.Random(6)
-    for i in range(3):
-        a = i / 3 * math.tau
-        r = rnd.uniform(0.22, 0.3)
-        x, y = math.cos(a) * 0.18, math.sin(a) * 0.18
-        p.cyl(r * 0.8, r * 0.5, (x, y, 0), "leaf_dark", segments=7, radius_top=r)
-        p.cyl(r, r * 0.45, (x, y, r * 0.5), "leaf", segments=7, radius_top=r * 0.45)
-    return p.finish()
-
-
 BUILDERS = {"grass_tuft": grass_tuft, "flowers_white": flowers_white, "flowers_yellow": flowers_yellow,
-            "flowers_red": flowers_red, "pebbles": pebbles, "bush_low": bush_low}
+            "flowers_red": flowers_red}

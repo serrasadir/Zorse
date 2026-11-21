@@ -16,7 +16,6 @@ namespace BlobSurvivor.UI
         private static readonly Color GateReady = new Color(0.45f, 1f, 0.4f);
         private static readonly Color KeepColor = new Color(0.95f, 0.3f, 0.25f);
 
-        private GameObject _hud;
         private RectTransform _layer, _map, _blobMarker, _keepMarker;
         private Image[] _gateMarkers;
         private Canvas _canvas;
@@ -25,7 +24,6 @@ namespace BlobSurvivor.UI
 
         internal void Init(GameObject hud, RectTransform layer)
         {
-            _hud = hud;
             _layer = layer;
             _canvas = layer.GetComponentInParent<Canvas>().rootCanvas;
         }

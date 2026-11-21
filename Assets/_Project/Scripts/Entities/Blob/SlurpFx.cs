@@ -72,6 +72,8 @@ namespace BlobSurvivor.Entities.Blob
             foreach (MeshRenderer r in s_renderers)
             {
                 if (!r.enabled) continue;
+                // Temas gölgesi (yassı saydam kare) nesneden geniş: "en büyük parça" o seçilip efekt görünmez oluyordu.
+                if (r.gameObject.name == "ContactShadow") continue;
                 float size = r.bounds.size.sqrMagnitude;
                 if (size > bestSize) { best = r; bestSize = size; }
             }

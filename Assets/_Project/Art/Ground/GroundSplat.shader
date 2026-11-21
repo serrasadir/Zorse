@@ -18,7 +18,7 @@ Shader "BlobSurvivor/GroundSplat"
         _Tile ("Doku tekrarı (birim)", Float) = 4
         _BlendDepth ("Geçiş yumuşaklığı", Range(0.02, 1)) = 0.1
         _BumpScale ("Normal gücü", Range(0, 2)) = 1
-        _Stone3D ("Taşlar 3D (zeminde taş yerine gölgeli çimen)", Range(0, 1)) = 0
+        [Toggle(_STONE_TEXTURE)] _StoneTexture ("Düz taş dokusu (kapalı: taşlar 3D)", Float) = 0
     }
 
     SubShader
@@ -49,7 +49,6 @@ Shader "BlobSurvivor/GroundSplat"
             float _Tile;
             half _BlendDepth;
             half _BumpScale;
-            half _Stone3D;
         CBUFFER_END
         ENDHLSL
 
@@ -65,6 +64,8 @@ Shader "BlobSurvivor/GroundSplat"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
+            // Taşlar 3D (yol taşı mesh'leri) iken düz taş dokusu ve normali hiç okunmaz (mobil doku bant genişliği).
+            #pragma shader_feature_local _STONE_TEXTURE
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
@@ -103,11 +104,16 @@ Shader "BlobSurvivor/GroundSplat"
 
                 half3 g = SAMPLE_TEXTURE2D(_GrassTex, sampler_GrassTex, uv).rgb;
                 half3 d = SAMPLE_TEXTURE2D(_DirtTex, sampler_GrassTex, uv).rgb * _DirtTint.rgb;
-                // Taşlı zemin: dokunun alfası = taş (Bahar: taş dokusunun kendi çimeni haritanın çimeniyle uyuşmuyordu).
-                // Taşların arası haritanın çimeni; taşlar tek tek çimenin üstüne konmuş gibi.
+            #if defined(_STONE_TEXTURE)
+                // Düz taş dokusu: alfa = taş; taşların arası haritanın çimeni.
                 half4 c4 = SAMPLE_TEXTURE2D(_CobbleTex, sampler_GrassTex, uv);
-                half stoneA = c4.a * (1.0h - _Stone3D);
-                half3 c = lerp(g * lerp(1.0h, 0.82h, _Stone3D), c4.rgb, stoneA);   // 3D taşların altı: hafif gölgeli çimen
+                half stoneA = c4.a;
+                half3 c = lerp(g, c4.rgb, stoneA);
+            #else
+                // 3D taşlar (CastleSceneBuilder.CombinePathStones): altları hafif gölgeli çimen.
+                half stoneA = 0.0h;
+                half3 c = g * 0.82h;
+            #endif
                 half3 f = SAMPLE_TEXTURE2D(_FlagTex, sampler_GrassTex, uv).rgb;
 
                 // Yükseklikle karışım: ağırlık + doku yüksekliği; en yüksekten _BlendDepth aşağısı görünür.
@@ -127,8 +133,12 @@ Shader "BlobSurvivor/GroundSplat"
                 half3 n = half3(0, 1, 0);
                 if (bc + bf > 0.01h)
                 {
-                    half3 nc = UnpackNormalScale(SAMPLE_TEXTURE2D(_CobbleN, sampler_CobbleN, uv), _BumpScale * stoneA);
                     half3 nf = UnpackNormalScale(SAMPLE_TEXTURE2D(_FlagN, sampler_CobbleN, uv), _BumpScale);
+                #if defined(_STONE_TEXTURE)
+                    half3 nc = UnpackNormalScale(SAMPLE_TEXTURE2D(_CobbleN, sampler_CobbleN, uv), _BumpScale * stoneA);
+                #else
+                    half3 nc = half3(0, 0, 1);
+                #endif
                     half3 nts = half3(SafeNormalize(float3(half3(0, 0, 1) * (bg + bd) + nc * bc + nf * bf)));
                     // Düz zemin: teğet = +X, bitangent = +Z, normal = +Y
                     n = half3(SafeNormalize(float3(nts.x, nts.z, nts.y)));

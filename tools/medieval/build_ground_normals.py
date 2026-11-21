@@ -8,7 +8,8 @@ from PIL import Image, ImageFilter
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEX = os.path.normpath(os.path.join(HERE, "..", "..", "Assets", "_Project", "Art", "City", "Textures"))
 # doku → (kabartma gücü, yükseklik yumuşatma yarıçapı px)
-SOURCES = {"Grass": (2.0, 3), "Dirt": (3.0, 2), "Cobble": (4.5, 2), "Flagstone": (4.0, 2)}
+# Sadece GroundSplat'ın okuduğu normaller (çimen ve toprak normalsiz)
+SOURCES = {"Cobble": (4.5, 2), "Flagstone": (4.0, 2)}
 
 for name, (strength, blur) in SOURCES.items():
     src = os.path.join(TEX, f"Med_{name}.png")
