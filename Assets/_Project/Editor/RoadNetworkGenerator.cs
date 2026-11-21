@@ -29,6 +29,24 @@ namespace BlobSurvivor.EditorTools
 
         internal static void Generate() => Generate(Level01StreetLines, Level01RoadHalf);
 
+        // Sadece yol mesh'ini ve doku ayarını yeniler (sahnedeki obje aynı mesh asset'ini kullanır). Büyük şehir düzeni.
+        [MenuItem("Tools/Blob.io/Yol Dokusunu Yenile")]
+        private static void RefreshTexturing()
+        {
+            RoadHalf = CityExpansion.RoadHalf;
+            if (AssetImporter.GetAtPath(AtlasPath) is TextureImporter ti)
+            {
+                ti.wrapModeU = TextureWrapMode.Clamp;     // atlas hücreleri yan yana
+                ti.wrapModeV = TextureWrapMode.Repeat;    // düz yol boyunca tekrar
+                ti.anisoLevel = 8;                        // 45° kamerada yatık bakan yol keskin kalsın
+                ti.mipmapEnabled = true;
+                ti.SaveAndReimport();
+            }
+            BuildMesh(CityExpansion.StreetLines());
+            AssetDatabase.SaveAssets();
+            Debug.Log("[RoadNetworkGenerator] Yol dokusu yenilendi.");
+        }
+
         private static float RoadHalf = Level01RoadHalf;
 
         // streetLines: küçükten büyüğe sıralı sokak eksenleri (X ve Z için aynı). İlk/son çizgi dış çevre yolu.
@@ -82,8 +100,10 @@ namespace BlobSurvivor.EditorTools
                 {
                     float start = streetLines[i] + RoadHalf;
                     float end = streetLines[i + 1] - RoadHalf;
-                    AddQuad(vertices, uvs, triangles, line - RoadHalf, line + RoadHalf, start, end, StraightU0, StraightU1, false);
-                    AddQuad(vertices, uvs, triangles, start, end, line - RoadHalf, line + RoadHalf, StraightU0, StraightU1, true);
+                    // Düz hücre yol genişliğinde bir kare: uzunluk boyunca tekrar eder (tek seferde gerilince 5 kat bulanıklaşıyordu)
+                    float repeats = (end - start) / (RoadHalf * 2f);
+                    AddQuad(vertices, uvs, triangles, line - RoadHalf, line + RoadHalf, start, end, StraightU0, StraightU1, false, repeats);
+                    AddQuad(vertices, uvs, triangles, start, end, line - RoadHalf, line + RoadHalf, StraightU0, StraightU1, true, repeats);
                 }
             }
 
@@ -105,7 +125,7 @@ namespace BlobSurvivor.EditorTools
         }
 
         private static void AddQuad(List<Vector3> vertices, List<Vector2> uvs, List<int> triangles,
-            float x0, float x1, float z0, float z1, float u0, float u1, bool alongX)
+            float x0, float x1, float z0, float z1, float u0, float u1, bool alongX, float v1 = 1f)
         {
             int start = vertices.Count;
             vertices.Add(new Vector3(x0, RoadY, z0));
@@ -117,14 +137,14 @@ namespace BlobSurvivor.EditorTools
             {
                 uvs.Add(new Vector2(u0, 0f));
                 uvs.Add(new Vector2(u1, 0f));
-                uvs.Add(new Vector2(u1, 1f));
-                uvs.Add(new Vector2(u0, 1f));
+                uvs.Add(new Vector2(u1, v1));
+                uvs.Add(new Vector2(u0, v1));
             }
             else
             {
                 uvs.Add(new Vector2(u0, 0f));
-                uvs.Add(new Vector2(u0, 1f));
-                uvs.Add(new Vector2(u1, 1f));
+                uvs.Add(new Vector2(u0, v1));
+                uvs.Add(new Vector2(u1, v1));
                 uvs.Add(new Vector2(u1, 0f));
             }
 
