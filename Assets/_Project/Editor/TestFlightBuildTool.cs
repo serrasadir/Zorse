@@ -43,13 +43,28 @@ namespace BlobSurvivor.EditorTools
         private static string Build()
         {
             EditorSceneManager.SaveOpenScenes();
-            ApplyPlayerSettings();
+            int.TryParse(PlayerSettings.iOS.buildNumber, out int build);
+            ApplyPlayerSettings(build + 1);
             AssetDatabase.SaveAssets();
+            return BuildPlayer(OutputPath);
+        }
 
+        // GitHub Actions (.github/workflows/testflight.yml): build no'yu workflow verir (CI_BUILD_NUMBER), artırmaz.
+        public static void BuildForCI()
+        {
+            int build = int.Parse(System.Environment.GetEnvironmentVariable("CI_BUILD_NUMBER"));
+            ApplyPlayerSettings(build);
+            string result = BuildPlayer("build/iOS");
+            Debug.Log("[TestFlightBuildTool] " + result);
+            EditorApplication.Exit(result.StartsWith("Succeeded") ? 0 : 1);
+        }
+
+        private static string BuildPlayer(string outputPath)
+        {
             BuildReport report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
             {
                 scenes = EditorBuildSettingsScene.GetActiveSceneList(EditorBuildSettings.scenes),
-                locationPathName = OutputPath,
+                locationPathName = outputPath,
                 target = BuildTarget.iOS,
                 options = BuildOptions.None
             });
@@ -57,7 +72,7 @@ namespace BlobSurvivor.EditorTools
             return $"{report.summary.result} errors={report.summary.totalErrors} version={PlayerSettings.bundleVersion} build={PlayerSettings.iOS.buildNumber}";
         }
 
-        private static void ApplyPlayerSettings()
+        private static void ApplyPlayerSettings(int build)
         {
             PlayerSettings.companyName = "Zorse Studio";
             PlayerSettings.productName = "Left No Crumbs"; // 2026-11-02 (Serra): oyunun adı
@@ -65,9 +80,8 @@ namespace BlobSurvivor.EditorTools
             PlayerSettings.iOS.appleDeveloperTeamID = TeamId;
             PlayerSettings.iOS.appleEnableAutomaticSigning = true;
 
-            int.TryParse(PlayerSettings.iOS.buildNumber, out int build);
-            PlayerSettings.iOS.buildNumber = (build + 1).ToString();
-            PlayerSettings.bundleVersion = VersionPrefix + (build + 1); // 2026-11-05: elle güncellemek unutuluyordu
+            PlayerSettings.iOS.buildNumber = build.ToString();
+            PlayerSettings.bundleVersion = VersionPrefix + build;
 
             ApplyIcon();
         }
