@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
   _displayName: Hound
   _hudName: 
-  _prefab: {fileID: 5896680904072327028, guid: f6509e8bd78e863479f48f9d40cfa8f0, type: 3}
+  _prefab: {fileID: 5896680904072327028, guid: 74237f8dc50bb254a97c57ea09c73eda, type: 3}
   _maxHealth: 10
   _damage: 4
   _moveSpeed: 3.4

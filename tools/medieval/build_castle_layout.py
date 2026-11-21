@@ -12,8 +12,11 @@ import math
 import os
 import random
 
+import ground_splat
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.normpath(os.path.join(HERE, "..", "..", "Assets", "_Project", "Art", "City", "Medieval", "castle_layout.json"))
+SPLAT = "Assets/_Project/Art/Ground/Castle_Splat.png"   # zemin karışım haritası (ground_splat.py)
 
 SCALE = 0.7                 # build_medieval.GAME_SCALE
 SEG = 3.0 * SCALE           # duvar parçası boyu
@@ -31,7 +34,7 @@ LINES = [
 KEEP = (0.0, 51.5)
 # Öneri B (Bahar seçti, 2026-11-21): her bölgenin ortasında yuvarlak meydan, binalar çevresinde halka halinde meydana bakar.
 # (x, z, yarıçap, zemin dokusu)
-PLAZAS = [(0.0, -40.0, 5.0, "Cobble"), (0.0, -9.0, 6.0, "Dirt"), (0.0, 19.0, 6.0, "Flagstone"), (0.0, 43.0, 5.5, "Cobble")]
+PLAZAS = [(0.0, -50.5, 3.0, "Cobble"), (0.0, -9.0, 6.0, "Dirt"), (0.0, 19.0, 6.0, "Flagstone"), (0.0, 43.0, 5.5, "Cobble")]
 ARENA = PLAZAS[3][:3]       # ejderha meydanı
 
 rnd = random.Random(20261121)
@@ -78,8 +81,12 @@ def catmull(points, step=0.5, loop=False):
 
 
 # (doku, yarı genişlik, kontrol noktaları, halka mı)
-PATH_DEFS = [  # tek kesintisiz şerit: kapı → meydan → kapı (meydanlar şeridin üstünde çizilir)
-    ("Dirt", 2.4, [(0.0, -57.0), (0.0, -46.0), (0.0, -40.0), (5.0, -33.0), (9.0, -27.5),
+# Köy (Bahar'ın referans köy haritası, 2026-11-21): ortada büyük yapıyı dolanan oval taş yol, ondan ayrılan toprak
+# patikalar; patikaların iki yanında avlulu ev kümeleri. Ana yol köyde iki parça: başlangıç → oval, oval → S kapısı.
+VILLAGE_LOOP = (0.0, -40.5, 6.8, 4.8)        # oval yol: merkez x, z, yarıçap x, z
+PATH_DEFS = [  # kapı → meydan → kapı (meydanlar şeridin üstünde çizilir)
+    ("Cobble", 2.0, [(0.0, -57.0), (0.0, -51.0), (0.0, VILLAGE_LOOP[1] - VILLAGE_LOOP[3])], False),   # başlangıç → oval
+    ("Dirt", 2.4, [(0.0, VILLAGE_LOOP[1] + VILLAGE_LOOP[3]), (4.5, -31.0), (8.6, -27.5),
                    (9.0, -24.0), (8.5, -18.5),                      # S kapısı (sağ)
                    (0.0, -9.0), (-6.5, -1.5),
                    (-9.0, 6.0), (-7.5, 11.5),                       # M kapısı (sol)
@@ -87,6 +94,20 @@ PATH_DEFS = [  # tek kesintisiz şerit: kapı → meydan → kapı (meydanlar ş
                    (0.0, 32.0), (0.0, ARENA[1] - ARENA[2] + 0.5)], False),   # L kapısı (orta) → ejderha meydanı
 ]
 PATHS = [{"tex": tex, "hw": hw, "pts": catmull(pts, loop=loop), "loop": loop} for tex, hw, pts, loop in PATH_DEFS]
+_lx, _lz, _rx, _rz = VILLAGE_LOOP
+PATHS.append({"tex": "Cobble", "hw": 1.5, "loop": True,
+              "pts": [(round(_lx + _rx * math.cos(a), 3), round(_lz + _rz * math.sin(a), 3))
+                      for a in [k * 2 * math.pi / 48 for k in range(48)]]})
+VILLAGE_LANES = [  # toprak patikalar (ovaldan ve ana yoldan ayrılır)
+    [(-6.6, -40.8), (-14.0, -41.5), (-22.8, -40.5)],
+    [(6.6, -41.2), (15.0, -42.5), (22.8, -44.0)],
+    [(0.0, -51.0), (-7.5, -52.8), (-15.5, -51.5), (-22.8, -48.5)],
+    [(0.0, -51.0), (8.0, -53.2), (16.0, -53.6), (22.8, -51.0)],
+    [(-4.2, -36.6), (-10.5, -31.0), (-17.5, -28.6), (-22.8, -27.5)],
+    [(5.8, -38.0), (14.5, -36.0), (22.8, -35.5)],
+]
+for lane in VILLAGE_LANES:
+    PATHS.append({"tex": "Dirt", "hw": 1.0, "loop": False, "pts": catmull(lane)})
 SEGS = []
 for p in PATHS:
     pts = p["pts"] + ([p["pts"][0]] if p["loop"] else [])
@@ -240,24 +261,85 @@ def grove(cx, cz, n, spread, r=1.3):
         n -= 1
 
 
-# ---------- 1. köy (güney, başlangıç): kuyulu meydan, çevresinde evler ----------
-vx, vz = PLAZAS[0][:2]
-place("P_MedWaterWell", vx - 2.2, vz + 2.0, 0, r=1.0)
-ring(vx, vz, 9.0, 11, ["B_MedCottage", "B_MedCottage", "B_MedBarn"], 2.2, start=math.pi / 11, rz=8.5)
-ring(vx, vz, 16.5, 16, ["B_MedCottage", "B_MedBarn", "B_MedCottage"], 2.5, start=0.0, rz=11.5)        # dış halka
-fence_pen(-22.0, -55.0, -15.0, -49.0, gap_side="E")          # tavuk ağılı
-for _ in range(6):
-    put("P_MedChicken", rnd.uniform(-21, -16), rnd.uniform(-54, -50), rnd.uniform(0, 360))
-fence_pen(14.0, -55.0, 21.5, -49.0, gap_side="W")            # sebze bahçesi
-for i in range(3):
-    for j in range(3):
-        put("P_MedTurnip", 15.8 + i * 2.0, -53.4 + j * 2.0, rnd.uniform(0, 360))
-grove(-19.0, -29.5, 4, 3.0)
-grove(19.0, -30.5, 3, 3.0)
-for x, z in ((-6.0, -47.5), (6.0, -47.5), (-8.0, -32.0)):
-    place("P_MedHaystack", x, z, rnd.uniform(0, 360), r=1.1)
-scatter(["P_MedHayBale", "P_MedBarrel", "P_MedWagon", "P_MedScarecrow"], 10, -55, -26, 0.9)
-scatter(["P_MedChicken", "P_MedChicken", "P_MedWoodenBucket", "P_MedHayBundle", "P_MedSmallCrate", "P_MedStool", "P_MedFlowerPot"], 40, -55, -26, 0.45, road_margin=0.2)
+# ---------- 1. köy (güney, başlangıç): oval yolun ortasında taverna, patikalarda avlulu ev kümeleri ----------
+VILLAGE_HOUSES = ["B_MedCottage", "B_MedCottageRed", "B_MedHouseL", "B_MedCottageSlate", "B_MedLongHouse",
+                  "B_MedCottage", "B_MedBarn", "B_MedCottageRed"]
+YARD_FRONT = ["P_MedBarrel", "P_MedCrateStack", "P_MedFlowerBed", "P_MedBench", "P_MedWoodenBucket", "P_MedHayBale"]
+YARD_BACK = ["P_MedWoodpile", "P_MedLaundryLine", "P_MedFlowerBed", "P_MedCrateStack", "P_MedOakTree", "P_MedHedge"]
+
+
+def yaw_to(x, z, tx, tz):
+    return math.degrees(math.atan2(-(tx - x), -(tz - z)))   # ön yüz (−Z) hedefe
+
+
+def yard(x, z, yaw):
+    """Evin yanına ön eşya, arkasına avlu eşyası (sandık, odun, çamaşır, çiçek tarhı)."""
+    a = math.radians(yaw)
+    fx, fz = -math.sin(a), -math.cos(a)                       # ön
+    sx, sz = -fz, fx                                          # yan
+    side = rnd.choice((-1, 1))
+    for mesh, ox, oz, r in ((rnd.choice(YARD_FRONT), side * 3.3 * sx + 0.9 * fx, side * 3.3 * sz + 0.9 * fz, 0.7),
+                            (rnd.choice(YARD_BACK), -3.5 * fx + rnd.uniform(-1.2, 1.2) * sx, -3.5 * fz + rnd.uniform(-1.2, 1.2) * sz, 0.8)):
+        px, pz = x + ox, z + oz
+        if abs(px) < SIDE - 1.0 and -55.2 < pz < -25.2 and dist_to_roads(px, pz) > ROAD_HW + 0.2 and free(px, pz, r):
+            place(mesh, px, pz, yaw + rnd.choice((0, 90, 180, 270)) if mesh != "P_MedOakTree" else rnd.uniform(0, 360), r=r)
+
+
+def lane_houses(pts, hw, spacing=4.5, depth=2.6, r=2.0):
+    """Patika boyunca iki yanda yola bakan evler + avluları."""
+    pts = catmull(pts)
+    acc = spacing * 0.6
+    for (ax, az), (bx, bz) in zip(pts, pts[1:]):
+        acc += math.hypot(bx - ax, bz - az)
+        if acc < spacing:
+            continue
+        acc = 0.0
+        L = math.hypot(bx - ax, bz - az) or 1.0
+        nx, nz = -(bz - az) / L, (bx - ax) / L
+        for side in (1, -1):
+            x, z = bx + nx * (hw + depth) * side, bz + nz * (hw + depth) * side
+            if abs(x) > SIDE - r - 0.2 or not (-55.5 + r < z < -24.5 - r):
+                continue
+            if dist_to_roads(x, z) < ROAD_HW + r - 0.2 or not free(x, z, r):
+                continue
+            yaw = yaw_to(x, z, bx, bz)
+            place(rnd.choice(VILLAGE_HOUSES), x, z, yaw, r=r)
+            yard(x, z, yaw)
+
+
+lx, lz, lrx, lrz = VILLAGE_LOOP
+place("B_MedTavern", lx, lz + 0.4, 0, r=2.6)                    # ovalin ortasında büyük yapı
+for tx, tz in ((-3.9, -39.6), (3.9, -41.4)):
+    place("P_MedOakTree", tx, tz, rnd.uniform(0, 360), r=1.1)
+place("P_MedFlowerBed", 2.6, -43.4, 0, r=0.8)
+place("P_MedBench", -2.8, -43.4, 0, r=0.8)
+sx_, sz_ = PLAZAS[0][:2]
+place("P_MedWaterWell", sx_ + 3.9, sz_ + 0.4, 0, r=1.0)          # güney meydanında kuyu ve tezgâh
+place("P_MedMarketTent", sx_ - 4.1, sz_ + 0.6, 90, r=1.2)
+for lane in VILLAGE_LANES:
+    lane_houses(lane, 1.0)
+# oval yolun dışına da ev halkası
+for k in range(18):
+    a = k * 2 * math.pi / 18 + 0.12
+    x, z = lx + (lrx + 4.4) * math.cos(a), lz + (lrz + 4.0) * math.sin(a)
+    if abs(x) > SIDE - 2.5 or not (-53.0 < z < -27.0) or dist_to_roads(x, z) < ROAD_HW + 1.8 or not free(x, z, 2.0):
+        continue
+    yaw = yaw_to(x, z, lx, lz)
+    place(rnd.choice(VILLAGE_HOUSES), x, z, yaw, r=2.0)
+    yard(x, z, yaw)
+for lane in VILLAGE_LANES:                                     # patika başlarında tabela
+    x, z = lane[0]
+    ox, oz = (lane[1][0] - x), (lane[1][1] - z)
+    L = math.hypot(ox, oz) or 1.0
+    tx, tz = x + ox / L * 2.6 + oz / L * 1.9, z + oz / L * 2.6 - ox / L * 1.9
+    if free(tx, tz, 0.5) and dist_to_roads(tx, tz) > ROAD_HW - 0.4:
+        place("P_MedSignpost", tx, tz, rnd.uniform(0, 360), r=0.5)
+grove(-20.5, -54.0, 3, 2.5)
+grove(20.5, -54.5, 3, 2.5)
+grove(-21.0, -33.5, 3, 3.0)
+grove(20.5, -26.8, 2, 2.0)
+scatter(["P_MedChicken", "P_MedChicken", "P_MedWoodenBucket", "P_MedHayBundle", "P_MedSmallCrate", "P_MedStool",
+         "P_MedFlowerPot"], 36, -55, -26, 0.45, road_margin=-0.6)
 
 # ---------- 2. tarla + pazar: tezgâhlı meydan, köşelerde tarlalar ----------
 fx, fz = PLAZAS[1][:2]
@@ -354,31 +436,72 @@ def decor(meshes, count, z0, z1, x_lim=SIDE - 0.6, road_min=None, road_max=None,
 
 GRASS = ["D_MedGrassTuft"]
 FLOWERS = ["D_MedFlowersWhite", "D_MedFlowersWhite", "D_MedFlowersYellow", "D_MedFlowersRed"]
-decor(GRASS, 200, -HALF + 1, -25.5, road_min=ROAD_HW + 0.3)                       # köy çimeni
+decor(GRASS, 90, -HALF + 1, -25.5, road_min=ROAD_HW + 0.3)                       # köy çimeni
 decor(FLOWERS, 55, -HALF + 1, -25.5, road_min=ROAD_HW + 0.8)
-decor(GRASS, 160, -23.0, 5.0, road_min=ROAD_HW + 0.3)                             # tarla çimeni
+decor(GRASS, 70, -23.0, 5.0, road_min=ROAD_HW + 0.3)                             # tarla çimeni
 decor(FLOWERS, 35, -23.0, 5.0, road_min=ROAD_HW + 0.8)
-decor(["D_MedGrassTuft", "D_MedGrassTuft", "D_MedPebbles"], 170, -HALF + 1, 5.0, road_min=ROAD_HW - 0.3, road_max=ROAD_HW + 0.6)  # yol kenarı: kabarık ot sırası
-decor(["D_MedGrassTuft", "D_MedPebbles"], 70, 5.0, HALF - 1, road_min=ROAD_HW - 0.3, road_max=ROAD_HW + 0.5)  # toprak yol kenarı
-decor(["D_MedGrassTuft", "D_MedPebbles"], 50, 7.5, 31.0, road_min=ROAD_HW + 0.5)    # kasaba: duvar ve ev dipleri
-decor(["D_MedGrassTuft", "D_MedPebbles"], 30, 33.5, HALF - 1, road_min=ROAD_HW + 0.4)
+# Çakıl yok (Bahar: yerde yiyecek gibi duruyordu, zemin kalabalıktı); yol kenarında seyrek ot.
+decor(GRASS, 70, -HALF + 1, 5.0, road_min=ROAD_HW + 0.1, road_max=ROAD_HW + 0.7)  # yol kenarı
+decor(GRASS, 25, 5.0, HALF - 1, road_min=ROAD_HW + 0.1, road_max=ROAD_HW + 0.6)
+decor(GRASS, 25, 7.5, 31.0, road_min=ROAD_HW + 0.5)    # kasaba: duvar ve ev dipleri
+decor(GRASS, 15, 33.5, HALF - 1, road_min=ROAD_HW + 0.4)
 
-# ---------- zemin: dokulu düzlemler (üst üste, sonraki üstte) + yol şeritleri ----------
-GROUND = [
-    {"tex": "Grass", "x0": -HALF - 10, "z0": -HALF - 6, "x1": HALF + 10, "z1": HALF + 6},
-    {"tex": "Dirt", "x0": -22.8, "z0": -23.2, "x1": -12.6, "z1": -14.6},             # ekin tarlasının toprağı
-    {"tex": "Cobble", "x0": -SIDE, "z0": 6.0, "x1": SIDE, "z1": 32.0},               # kasaba
-    {"tex": "Flagstone", "x0": -SIDE, "z0": 32.0, "x1": SIDE, "z1": HALF},           # burç avlusu
-]
+# ---------- meydan kenarı: yarı gömülü taşlar + kenarı aşan ot (geçiş yumuşak görünsün) ----------
+for px, pz, pr, _ in PLAZAS:
+    steps = int(2 * math.pi * pr / 0.8)
+    for k in range(steps):
+        if rnd.random() < 0.35:
+            continue
+        a = k * 2 * math.pi / steps + rnd.uniform(-0.1, 0.1)
+        rr = pr + rnd.uniform(-0.5, 0.7)
+        x, z = px + math.cos(a) * rr, pz + math.sin(a) * rr
+        if not free(x, z, 0.3):
+            continue
+        if rnd.random() < 0.6:
+            continue
+        put("D_MedGrassTuft", x, z, rnd.uniform(0, 360), s=round(rnd.uniform(1.0, 1.4), 2))
+
+# ---------- zemin: tek karışan yüzey (karışım haritası) + hendek suyu ----------
+GROUND_RECT = (-HALF - 10, -HALF - 6, HALF + 10, HALF + 6)
+cobble_at = ground_splat.build(
+    os.path.normpath(os.path.join(HERE, "..", "..", SPLAT)), GROUND_RECT,
+    base_rects=[("Cobble", -SIDE, 6.0, SIDE, 32.0, False),            # kasaba (kenarları surda)
+                ("Flagstone", -SIDE, 32.0, SIDE, HALF, False),        # burç avlusu
+                ("Dirt", -22.8, -23.2, -12.6, -14.6, True)],          # ekin tarlası
+    # toprak önce, taş sonra: taş yolun üstüne toprak patika binmesin
+    paths=[(p["tex"], p["hw"], p["pts"] + (p["pts"][:1] if p["loop"] else [])) for p in sorted(PATHS, key=lambda q: q["tex"] != "Dirt")],
+    discs=[(tex, x, z, r) for x, z, r, tex in PLAZAS] + [("Grass", x, z, r) for x, z, r in GARDENS])
+# 3D yol taşları (Bahar: "taşlar tek boyutlu"): karışım haritasının taş bölgesine tek tek, geçişte seyrekleşerek.
+# Unity'de bölge bölge tek mesh'te birleşir (D_MedPathStone*, CastleSceneBuilder.CombinePathStones).
+STONE_STEP = 0.82
+stone_rng = random.Random(4242)
+stones = 0
+zs = -HALF + 0.5
+while zs < HALF - 0.5:
+    xs = -SIDE + 0.4 + (STONE_STEP * 0.5 if int((zs + HALF) / STONE_STEP) % 2 else 0.0)
+    while xs < SIDE - 0.4:
+        x, z = xs + stone_rng.uniform(-0.22, 0.22), zs + stone_rng.uniform(-0.22, 0.22)
+        w = cobble_at(x, z)
+        if w > 0.12 and stone_rng.random() < min(1.0, w * 1.6 - 0.1) and free(x, z, 0.3):
+            # üst üste binen taşlar aynı yükseklikte kesişip çizgi yapmasın: her biri biraz farklı yükseklikte
+            put("D_MedPathStone%d" % stone_rng.randint(1, 5), x, z, stone_rng.uniform(0, 360),
+                s=round(stone_rng.uniform(0.85, 1.05) if w > 0.6 else stone_rng.uniform(0.6, 0.9), 2),
+                y=round(stone_rng.uniform(0.0, 0.03), 3))
+            stones += 1
+        xs += STONE_STEP
+    zs += STONE_STEP * 0.87
+print("yol taşı:", stones)
+
+GROUND = []
 for sx in (-1, 1):                                                                  # hendek
     GROUND.append({"tex": "Water", "x0": min(sx * MOAT[0], sx * MOAT[1]), "z0": -HALF - 4,
                    "x1": max(sx * MOAT[0], sx * MOAT[1]), "z1": HALF + 4})
-DISCS = [{"tex": tex, "x": x, "z": z, "r": r} for x, z, r, tex in PLAZAS]              # meydanlar (yolun üstünde)
-DISCS += [{"tex": "Grass", "x": x, "z": z, "r": r} for x, z, r in GARDENS]          # ev bahçeleri
+DISCS = []
 
 meta = {"ground": GROUND, "paths": [{"tex": p["tex"], "hw": p["hw"], "loop": p["loop"],
                                      "pts": [c for xz in p["pts"] for c in xz]} for p in PATHS],
-        "discs": DISCS, "zLines": [l[0] for l in LINES], "side": SIDE, "half": HALF,
+        "discs": DISCS, "splat": {"path": SPLAT, "x0": GROUND_RECT[0], "z0": GROUND_RECT[1], "x1": GROUND_RECT[2], "z1": GROUND_RECT[3]},
+        "zLines": [l[0] for l in LINES], "side": SIDE, "half": HALF,
         "start": list(START), "keep": list(KEEP)}
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 with open(OUT, "w", encoding="utf-8") as f:

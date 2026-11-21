@@ -117,6 +117,7 @@ namespace BlobSurvivor.Entities
 
             ConsumableBase instance = _pools[data].Get(spawnPos, RandomYaw());
             instance.SetData(data);
+            if (!instance.TryGetComponent(out PickupFloat _)) instance.gameObject.AddComponent<PickupFloat>(); // süzülme (örnek başına bir kez)
             _activeConsumables.Add(instance.gameObject);
         }
 

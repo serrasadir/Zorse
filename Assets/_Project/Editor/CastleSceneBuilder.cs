@@ -53,8 +53,16 @@ namespace BlobSurvivor.EditorTools
         }
 
         [Serializable]
+        private class GroundSplat
+        {
+            public string path;            // karışım haritası (tools/medieval/ground_splat.py)
+            public float x0, z0, x1, z1;    // kapladığı alan
+        }
+
+        [Serializable]
         private class Meta
         {
+            public GroundSplat splat = null;
             public GroundPath[] paths = null;
             public GroundDisc[] discs = null;
             public float half = 60f;
@@ -68,9 +76,9 @@ namespace BlobSurvivor.EditorTools
         private const string TextureFolder = "Assets/_Project/Art/City/Textures";
         private const string SidewalkMaterial = TextureFolder + "/Mat_Sidewalk.mat";
         // Toprak dokusu turuncu blob'la karışıyordu (Bahar): koyu, kahverengiye çekilir.
-        private static readonly Color DirtTint = new Color(0.5f, 0.44f, 0.4f);
+        private static readonly Color DirtTint = new Color(0.96f, 0.94f, 0.9f); // krem toprak doku (Bahar): kendi rengiyle
         private const float GroundTile = 4f;     // bir doku tekrarı = 4×4 birim
-        private const float GroundStep = 0.003f; // üst üste binen zeminler arası (z-fighting); temas gölgesi hepsinin üstünde
+        private const float GroundStep = 0.02f; // üst üste binen zeminler arası (z-fighting); temas gölgesi hepsinin üstünde
 
         [Serializable]
         private class Layout
@@ -104,6 +112,7 @@ namespace BlobSurvivor.EditorTools
             foreach (Item item in layout.items)
             {
                 if (prefabs.ContainsKey(item.mesh)) continue;
+                if (IsPathStone(item.mesh)) { prefabs.Add(item.mesh, null); continue; } // birleşik mesh, prefab yok
                 GameObject prefab = CityKitPipeline.BuildPrefab(new CityKitPipeline.CityItem { mesh = item.mesh, sx = 1f, sy = 1f, sz = 1f }, palette);
                 if (prefab == null) { Debug.LogError($"[CastleScene] {item.mesh} prefab'ı kurulamadı."); return; }
                 if (IsRingWall(item.mesh)) prefab = SetupRingWall(prefab);
@@ -120,8 +129,10 @@ namespace BlobSurvivor.EditorTools
             var castleMap = root.AddComponent<BlobSurvivor.Core.CastleMap>(); // bölgeye göre doğma, küçük harita
             castleMap.EditorSetup(zLines, meta.side, meta.half,
                 meta.keep != null && meta.keep.Length == 2 ? new Vector2(meta.keep[0], meta.keep[1]) : Vector2.zero);
+            CombinePathStones(root.transform, layout.items, palette);
             foreach (Item item in layout.items)
             {
+                if (IsPathStone(item.mesh)) continue;
                 GameObject go = (GameObject)PrefabUtility.InstantiatePrefab(prefabs[item.mesh], root.transform);
                 go.transform.localPosition = new Vector3(item.x, item.y, item.z);
                 go.transform.localRotation = Quaternion.Euler(0f, item.yaw, 0f);
@@ -545,6 +556,14 @@ namespace BlobSurvivor.EditorTools
             parent.SetParent(root, false);
             GroundRect[] rects = meta.ground;
             int layer = 0;
+            if (meta.splat != null && !string.IsNullOrEmpty(meta.splat.path))
+            {
+                // Tek karışan zemin: yol/meydan/bahçe karışım haritasında; sadece su ayrı çizilir.
+                BuildSplatGround(parent, meta.splat, ++layer * GroundStep);
+                for (int i = 0; i < rects.Length; i++)
+                    AddGroundObject(parent, rects[i].tex, GroundMesh(i, rects[i], ++layer * GroundStep));
+                return;
+            }
             for (int i = 0; i < rects.Length; i++)
                 AddGroundObject(parent, rects[i].tex, GroundMesh(i, rects[i], ++layer * GroundStep));
             if (meta.paths != null)
@@ -553,6 +572,115 @@ namespace BlobSurvivor.EditorTools
             if (meta.discs != null)
                 for (int i = 0; i < meta.discs.Length; i++)
                     AddGroundObject(parent, meta.discs[i].tex, DiscMesh(i, meta.discs[i], ++layer * GroundStep));
+        }
+
+        private const string SplatMaterialPath = "Assets/_Project/Art/Ground/Mat_GroundSplat.mat";
+
+        // ---------- 3D yol taşları (Bahar, 2026-11-21: "taşlar tek boyutlu duruyor") ----------
+        // Binlerce küçük taş ayrı obje olmasın: 16×16'lık bölgelerde tek mesh (çarpışmasız, yenmez, gölge düşürmez).
+        private const string PathStoneFolder = CityKitPipeline.MedievalRoot + "/PathStones";
+        private const float PathStoneChunk = 16f;
+
+        private static bool IsPathStone(string mesh) => mesh.StartsWith("D_MedPathStone");
+
+        private static void CombinePathStones(Transform root, Item[] items, Material palette)
+        {
+            if (AssetDatabase.IsValidFolder(PathStoneFolder)) AssetDatabase.DeleteAsset(PathStoneFolder);
+            AssetDatabase.CreateFolder(CityKitPipeline.MedievalRoot, "PathStones");
+            var sources = new Dictionary<string, (Mesh mesh, Matrix4x4 local)>();
+            var chunks = new Dictionary<Vector2Int, List<CombineInstance>>();
+            foreach (Item item in items)
+            {
+                if (!IsPathStone(item.mesh)) continue;
+                if (!sources.TryGetValue(item.mesh, out var src))
+                {
+                    // Model dönüşümü (FBX ekseni, ölçek) prefab kurulumundaki gibi: geçici prefab'tan okunur.
+                    GameObject prefab = CityKitPipeline.BuildPrefab(new CityKitPipeline.CityItem { mesh = item.mesh, sx = 1f, sy = 1f, sz = 1f }, palette);
+                    MeshFilter mf = prefab != null ? prefab.GetComponentInChildren<MeshFilter>() : null;
+                    if (mf == null) continue;
+                    src = (mf.sharedMesh, prefab.transform.worldToLocalMatrix * mf.transform.localToWorldMatrix);
+                    sources[item.mesh] = src;
+                }
+                var key = new Vector2Int(Mathf.FloorToInt(item.x / PathStoneChunk), Mathf.FloorToInt(item.z / PathStoneChunk));
+                if (!chunks.TryGetValue(key, out var list)) chunks[key] = list = new List<CombineInstance>();
+                Matrix4x4 trs = Matrix4x4.TRS(new Vector3(item.x, item.y, item.z), Quaternion.Euler(0f, item.yaw, 0f), Vector3.one * item.s);
+                list.Add(new CombineInstance { mesh = src.mesh, transform = trs * src.local });
+            }
+            var parent = new GameObject("PathStones").transform;
+            parent.SetParent(root, false);
+            foreach (var kv in chunks)
+            {
+                var mesh = new Mesh { name = $"PathStones_{kv.Key.x}_{kv.Key.y}", indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
+                mesh.CombineMeshes(kv.Value.ToArray(), true, true);
+                mesh.RecalculateBounds();
+                AssetDatabase.CreateAsset(mesh, $"{PathStoneFolder}/{mesh.name}.asset");
+                var go = new GameObject(mesh.name);
+                go.transform.SetParent(parent, false);
+                go.AddComponent<MeshFilter>().sharedMesh = mesh;
+                var mr = go.AddComponent<MeshRenderer>();
+                mr.sharedMaterial = palette;
+                mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+            }
+            Debug.Log($"[CastleScene] Yol taşları: {chunks.Count} parça.");
+        }
+
+        private static void BuildSplatGround(Transform parent, GroundSplat sp, float y)
+        {
+            if (AssetImporter.GetAtPath(sp.path) is TextureImporter ti)
+            {
+                // Karışım verisi: doğrusal, kenetli, yumuşak; sıkıştırma kenarları bozmasın.
+                ti.sRGBTexture = false;
+                ti.wrapMode = TextureWrapMode.Clamp;
+                ti.filterMode = FilterMode.Bilinear;
+                ti.mipmapEnabled = false;
+                ti.alphaIsTransparency = false;
+                ti.textureCompression = TextureImporterCompression.Uncompressed;
+                ti.maxTextureSize = 2048;
+                ti.SaveAndReimport();
+            }
+            Texture2D control = AssetDatabase.LoadAssetAtPath<Texture2D>(sp.path);
+            Shader shader = Shader.Find("BlobSurvivor/GroundSplat");
+            if (control == null || shader == null) { Debug.LogError("[CastleScene] Zemin karışım haritası ya da GroundSplat shader'ı yok."); return; }
+            Material mat = AssetDatabase.LoadAssetAtPath<Material>(SplatMaterialPath);
+            if (mat == null)
+            {
+                mat = new Material(shader);
+                AssetDatabase.CreateAsset(mat, SplatMaterialPath);
+            }
+            mat.shader = shader;
+            mat.SetTexture("_Control", control);
+            mat.SetVector("_CtrlRect", new Vector4(sp.x0, sp.z0, 1f / (sp.x1 - sp.x0), 1f / (sp.z1 - sp.z0)));
+            Texture2D Tex(string n) => AssetDatabase.LoadAssetAtPath<Texture2D>($"{TextureFolder}/Med_{n}.png");
+            mat.SetTexture("_GrassTex", Tex("Grass"));
+            mat.SetTexture("_DirtTex", Tex("Dirt"));
+            mat.SetTexture("_CobbleTex", Tex("Cobble"));
+            mat.SetTexture("_FlagTex", Tex("Flagstone"));
+            foreach (string n in new[] { "Cobble", "Flagstone" })
+                if (AssetImporter.GetAtPath($"{TextureFolder}/Med_{n}_N.png") is TextureImporter ni && ni.textureType != TextureImporterType.NormalMap)
+                {
+                    ni.textureType = TextureImporterType.NormalMap;
+                    ni.SaveAndReimport();
+                }
+            mat.SetTexture("_CobbleN", Tex("Cobble_N"));
+            mat.SetTexture("_FlagN", Tex("Flagstone_N"));
+            mat.SetColor("_DirtTint", DirtTint);
+            mat.SetFloat("_Tile", GroundTile);
+            mat.SetFloat("_Stone3D", 1f); // taşlar 3D (yol taşı mesh'leri); zeminde taş bölgesi gölgeli çimen
+            mat.SetFloat("_BlendDepth", 0.32f); // geçişte iki doku biraz karışır (çimen tutamları toprağa taşar)
+            EditorUtility.SetDirty(mat);
+
+            var verts = new[] { new Vector3(sp.x0, y, sp.z0), new Vector3(sp.x0, y, sp.z1), new Vector3(sp.x1, y, sp.z1), new Vector3(sp.x1, y, sp.z0) };
+            var uv = new Vector2[4];
+            var col = new[] { Color.white, Color.white, Color.white, Color.white };
+            Mesh mesh = SaveGroundMesh("GroundSplatQuad", verts, uv, new[] { 0, 1, 2, 0, 2, 3 }, col);
+            var go = new GameObject("Ground_Splat");
+            go.transform.SetParent(parent, false);
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var mr = go.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = mat;
+            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
         }
 
         private static void AddGroundObject(Transform parent, string tex, Mesh mesh)

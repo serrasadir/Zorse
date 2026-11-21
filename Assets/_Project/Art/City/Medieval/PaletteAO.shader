@@ -88,13 +88,13 @@ Shader "BlobSurvivor/PaletteAO"
             {
                 half3 albedo = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv).rgb * _BaseColor.rgb;
                 half ao = lerp(1.0h, i.color.r, _AOStrength);
-                half3 n = normalize(i.normalWS);
+                half3 n = half3(SafeNormalize(float3(i.normalWS))); // sıfır normal (yuvarlatma kenarı) NaN üretip ekrana yayılmasın
             #if defined(_NORMALMAP)
                 // Zemin: taş/toprak/çimen kabartması güneşe göre gölgelenir (düz resim hissi kırılır).
                 half3 nTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, i.uv), _BumpScale);
-                half3 t = normalize(i.tangentWS.xyz);
+                half3 t = half3(SafeNormalize(float3(i.tangentWS.xyz)));
                 half3 b = cross(n, t) * i.tangentWS.w;
-                n = normalize(TransformTangentToWorld(nTS, half3x3(t, b, n)));
+                n = half3(SafeNormalize(float3(TransformTangentToWorld(nTS, half3x3(t, b, n)))));
             #endif
                 Light sun = GetMainLight(TransformWorldToShadowCoord(i.positionWS));
                 half ndl = saturate(dot(n, sun.direction));
@@ -182,6 +182,47 @@ Shader "BlobSurvivor/PaletteAO"
             half DepthFrag() : SV_Target { return 0; }
             ENDHLSL
         }
+        // SSAO vb. için derinlik + normal (PC renderer'da SSAO açık; bu geçiş yoksa ekranda beyaz leke / siyah nokta)
+        Pass
+        {
+            Name "DepthNormals"
+            Tags { "LightMode" = "DepthNormals" }
+            ZWrite On
+
+            HLSLPROGRAM
+            #pragma vertex DNVert
+            #pragma fragment DNFrag
+            #pragma multi_compile_instancing
+
+            struct DNAttributes
+            {
+                float4 positionOS : POSITION;
+                float3 normalOS : NORMAL;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct DNVaryings
+            {
+                float4 positionCS : SV_POSITION;
+                half3 normalWS : TEXCOORD0;
+            };
+
+            DNVaryings DNVert(DNAttributes input)
+            {
+                DNVaryings o;
+                UNITY_SETUP_INSTANCE_ID(input);
+                o.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+                o.normalWS = TransformObjectToWorldNormal(input.normalOS);
+                return o;
+            }
+
+            half4 DNFrag(DNVaryings i) : SV_Target
+            {
+                return half4(half3(SafeNormalize(float3(i.normalWS))), 0.0h);
+            }
+            ENDHLSL
+        }
+
     }
 
     FallBack "Universal Render Pipeline/Simple Lit"

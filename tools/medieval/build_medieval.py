@@ -26,6 +26,7 @@ PALETTE = [
     ("grass", (0.52, 0.74, 0.30)), ("leaf", (0.42, 0.66, 0.24)), ("leaf_dark", (0.30, 0.50, 0.18)), ("window", (0.99, 0.82, 0.38)),
     ("water", (0.25, 0.60, 0.88)), ("red", (0.82, 0.22, 0.20)), ("cream", (0.98, 0.95, 0.86)), ("dark", (0.18, 0.16, 0.16)),
     ("skin", (0.96, 0.78, 0.62)), ("dirt", (0.68, 0.48, 0.30)), ("fire", (1.00, 0.55, 0.15)), ("white", (0.97, 0.97, 0.95)),
+    ("roof_brown", (0.55, 0.34, 0.22)), ("roof_beige", (0.86, 0.72, 0.50)), ("roof_slate", (0.40, 0.45, 0.58)),
 ]
 CELL, COLS = 8, 8
 ROWS = (len(PALETTE) + COLS - 1) // COLS
@@ -179,7 +180,7 @@ def _rz(a):
 
 # ---------- parçalar: kategori modülleri (kit_*.py), her biri BUILDERS = {ad: fonksiyon} ----------
 
-MODULES = ["kit_buildings", "kit_props", "kit_walls", "kit_characters", "kit_bosses", "kit_weapons", "kit_decor"]
+MODULES = ["kit_buildings", "kit_props", "kit_walls", "kit_characters", "kit_bosses", "kit_weapons", "kit_decor", "kit_village"]
 
 
 def rz(a):
@@ -230,9 +231,12 @@ GAME_SCALE = 0.7
 # Unity'deki şehir hattı davranışı ön ekten okur (CityKitPipeline): B_ bina (engel + NavMesh deliği, yenir),
 # P_ sokak eşyası (yenir), L_ zemin (çarpışmasız), H_ karakter, X_ efekt/mermi/boss parçası, G_ silah görünümü.
 MODULE_PREFIX = {"kit_buildings": "B_", "kit_props": "P_", "kit_walls": "B_", "kit_characters": "H_",
-                 "kit_bosses": "X_", "kit_weapons": "G_", "kit_decor": "D_"}
+                 "kit_bosses": "X_", "kit_weapons": "G_", "kit_decor": "D_",
+                 "kit_village": "P_"}
 PREFIX_OVERRIDE = {"M_Tile": "L_", "M_Windmill": "P_", "M_WindmillSails": "X_", "M_OilWarning": "X_",
-                   "M_PortcullisGrid": "X_"}
+                   "M_PortcullisGrid": "X_",
+                   "M_HouseL": "B_", "M_LongHouse": "B_", "M_CottageSlate": "B_", "M_CottageRed": "B_",
+                   **{"M_PathStone%d" % i: "D_" for i in range(1, 6)}}
 
 
 def export_name(module, obj_name):
@@ -291,7 +295,7 @@ def render(objs, path):
 # Köşe karartması (AO) "Col" köşe rengine pişirilir; Unity'de Mat_MedievalPalette (BlobSurvivor/PaletteAO) dokuyla çarpar.
 # Poligon ~2–3.5×. Zemin karosu (L_) ve efekt parçaları dokunulmaz.
 SOFT_WIDTH = {"kit_buildings": 0.05, "kit_walls": 0.045, "kit_props": 0.025, "kit_characters": 0.02,
-              "kit_bosses": 0.035, "kit_weapons": 0.015}
+              "kit_bosses": 0.035, "kit_weapons": 0.015, "kit_village": 0.04}
 AO_FLOOR = 0.6     # en koyu köşe (1 = karartma yok)
 AO_SAMPLES = 32
 

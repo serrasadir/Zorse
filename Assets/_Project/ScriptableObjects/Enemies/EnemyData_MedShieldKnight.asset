@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
   _displayName: ShieldKnight
   _hudName: 
-  _prefab: {fileID: 5896680904072327028, guid: 91f07af5a87008744b86f1defb3dcad8, type: 3}
+  _prefab: {fileID: 5896680904072327028, guid: 2431d4eb8cd2b3941acf68a666712aa9, type: 3}
   _maxHealth: 120
   _damage: 12
   _moveSpeed: 1.8
