@@ -12,6 +12,8 @@ namespace BlobSurvivor.Entities.Blob
     {
         private const string Folder = "FX/Speed/";
         private const float Lift = 0.13f;                                         // build_speed.py LIFT
+        // Blob fizikte y=0'da; kaldırım görseli 0.12-0.14 (collider'ı yok). Tekerlekler en yüksek zeminin üstünde kalsın.
+        private const float GroundClearance = 0.14f;
         private static readonly Vector3 FlameOffset = new Vector3(0f, -0.14f, -0.879f); // build_speed.py FLAME OFFSET (Blender x,y,z → x,z,y)
         private const int FlameBoardLevel = 4;
         private const int RocketLevel = 8;
@@ -48,7 +50,11 @@ namespace BlobSurvivor.Entities.Blob
             _host = null;
             _form = 0;
             _popTime = -1f;
-            if (_visual != null) _visual.Lift = 0f;
+            if (_visual != null)
+            {
+                _visual.Lift = 0f;
+                _visual.GroundLift = 0f;
+            }
         }
 
         public void SetLevel(int level)
@@ -66,6 +72,7 @@ namespace BlobSurvivor.Entities.Blob
             _board.gameObject.SetActive(true);
             _rocket.gameObject.SetActive(form >= 3);
             _visual.Lift = Lift;
+            _visual.GroundLift = GroundClearance;
 
             _popTarget = rocketNew ? _rocket : _board;
             _popTime = 0f;

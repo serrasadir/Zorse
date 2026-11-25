@@ -35,6 +35,8 @@ namespace BlobSurvivor.Entities.Blob
 
         // Görünümü kök-yerel yukarı kaldırır (Hız skili kaykayı: tekerlekler yere bassın). Sadece görsel; collider aynı.
         public float Lift { get; set; }
+        // Dünya biriminde ek yükseklik (blob büyüyünce de aynı kalır). Kaykay kaldırımın altında kalmasın diye.
+        public float GroundLift { get; set; }
 
         // Yüzü olan görünüm takılıysa "önle yeme" kuralı (BlobConsumption.CanEatFrom) bu yönü kullanır.
         public bool HasFacing => _visual != null;
@@ -76,6 +78,7 @@ namespace BlobSurvivor.Entities.Blob
             _recoilOffset = Vector3.zero;
             _tumbleTime = -1f;
             Lift = _lift = 0f;
+            GroundLift = 0f;
 
             ModelRenderer = null;
             if (prefab == null)
@@ -132,7 +135,9 @@ namespace BlobSurvivor.Entities.Blob
             _visual.rotation = _facing;
             UpdateGulp(dt);
             UpdateRecoil(dt);
-            _lift = Mathf.MoveTowards(_lift, Lift, dt * 1.2f);
+            float scale = transform.lossyScale.y;
+            float liftTarget = Lift + (scale > 0.0001f ? GroundLift / scale : 0f);
+            _lift = Mathf.MoveTowards(_lift, liftTarget, dt * 1.2f);
             _visual.localPosition = _recoilOffset + Vector3.up * _lift + UpdateTumble(dt);
         }
 
