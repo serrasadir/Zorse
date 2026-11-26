@@ -33,8 +33,8 @@ Shader "BlobSurvivor/GroundSplat"
         TEXTURE2D(_DirtTex);
         TEXTURE2D(_CobbleTex);
         TEXTURE2D(_FlagTex);
-        TEXTURE2D(_CobbleN); SAMPLER(sampler_CobbleN);
-        TEXTURE2D(_FlagN);
+        TEXTURE2D(_CobbleN);
+        TEXTURE2D(_FlagN); SAMPLER(sampler_FlagN); // örnekleyici her zaman okunan dokuda: _CobbleN 3D taş modunda derleyicide silinir
 
         CBUFFER_START(UnityPerMaterial)
             float4 _Control_ST;
@@ -133,9 +133,9 @@ Shader "BlobSurvivor/GroundSplat"
                 half3 n = half3(0, 1, 0);
                 if (bc + bf > 0.01h)
                 {
-                    half3 nf = UnpackNormalScale(SAMPLE_TEXTURE2D(_FlagN, sampler_CobbleN, uv), _BumpScale);
+                    half3 nf = UnpackNormalScale(SAMPLE_TEXTURE2D(_FlagN, sampler_FlagN, uv), _BumpScale);
                 #if defined(_STONE_TEXTURE)
-                    half3 nc = UnpackNormalScale(SAMPLE_TEXTURE2D(_CobbleN, sampler_CobbleN, uv), _BumpScale * stoneA);
+                    half3 nc = UnpackNormalScale(SAMPLE_TEXTURE2D(_CobbleN, sampler_FlagN, uv), _BumpScale * stoneA);
                 #else
                     half3 nc = half3(0, 0, 1);
                 #endif

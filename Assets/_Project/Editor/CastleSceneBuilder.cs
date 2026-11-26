@@ -471,6 +471,17 @@ namespace BlobSurvivor.EditorTools
         // Küçük harita: oyun alanının üstten ortografik görüntüsü (UI hariç) → Resources/UI/CastleMinimap.png (GateGuide).
         private const string MinimapPath = "Assets/_Project/Resources/UI/CastleMinimap.png";
 
+        // Sadece küçük haritayı yeniden çeker (zemin/görsel değişince); sahneyi kurmaz, değiştirmez.
+        [MenuItem("Tools/Blob.io/Kale Mini Haritasını Yenile")]
+        public static void RefreshMinimap()
+        {
+            if (!OpenCastleScene()) return;
+            var castleMap = UnityEngine.Object.FindAnyObjectByType<BlobSurvivor.Core.CastleMap>(FindObjectsInactive.Include);
+            if (castleMap == null) { Debug.LogError("[CastleScene] Sahnede CastleMap yok: önce Kale Sahnesini Kur."); return; }
+            RenderMinimap(castleMap.MinimapWorld);
+            Debug.Log("[CastleScene] Mini harita yenilendi: " + MinimapPath);
+        }
+
         private static void RenderMinimap(Rect world)
         {
             const int width = 256;
