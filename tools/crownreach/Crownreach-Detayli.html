@@ -114,6 +114,12 @@ function pen(x,z,w,d,animals){at(x,ground(z),z,0,()=>{box(0,.06,0,w-.2,.1,d-.2,'
 function boatyard(x,z,ang=0){at(x,ground(z),z,ang,()=>{for(const t of [-1.4,1.4]){box(0,.45,t,2.2,.12,.2,oak);for(const s of [-1,1])box(s*.85,.22,t,.14,.45,.14,wood)}for(let i=-3;i<=3;i++){const w=1.95-Math.abs(i)**2*.15;box(0,.84,i*.7,w,.62,.74,wood);box(0,1.18,i*.7,.18,.08,.74,'#765043')}})}
 function planks(x,z,ang=0){at(x,ground(z),z,ang,()=>{for(let k=0;k<4;k++)for(let i=0;i<3-k%2;i++)box((i-1+(k%2)*.5)*.42,.08+k*.13,0,.4,.12,3.2,k%2?wood:oak)})}
 function nets(x,z,len=3.4,ang=0){at(x,ground(z),z,ang,()=>{for(const s of [-1,1])post(s*len/2,0,2.2);box(0,2.1,0,len,.08,.08,wood);box(0,1.35,0,len-.3,1.4,.04,'#5f6f68');for(let i=0;i<5;i++)ball((i-2)*len/5.5,2.02,.06,.2,.2,.2,cream)})}
+function barn(x,z,w=5.2,d=4.4,ang=0){at(x,ground(z),z,ang,()=>{const h=2.5,wall='#b5503c',roof='#8b5a3c',prof=[[w/2+.4,h+.15],[w*.34,h+1.1],[0,h+1.6]];
+box(0,.12,0,w+.3,.24,d+.3,shade);box(0,h/2+.2,0,w,h,d,wall);
+for(let k=0;k<10;k++){const y=h+.2+(k+.5)*.14,hw=y<h+1.1?w/2+(w*.34-w/2)*(y-h-.15)/.95:w*.34*(h+1.6-y)/.5;box(0,y,0,2*hw,.15,d,wall)}
+for(const s of [-1,1])for(let i=0;i<2;i++){const [x0,y0]=prof[i],[x1,y1]=prof[i+1];box(s*(x0+x1)/2,(y0+y1)/2,0,Math.hypot(x1-x0,y1-y0)+.1,.18,d+.5,roof,0,0,-s*Math.atan2(y1-y0,x0-x1))}
+const f=d/2;box(0,1.2,f+.03,2,2,.08,cream);box(0,1.2,f+.07,1.62,1.62,.06,'#9c4232');for(const r of [-.79,.79])box(0,1.2,f+.11,2.15,.17,.05,cream,0,0,r);
+box(0,h+.75,f+.03,.82,.82,.08,cream);box(0,h+.75,f+.08,.5,.5,.05,dark)})}
 function crates(x,z){at(x,ground(z),z,0,()=>{crate(0,0,.88);crate(1,0,.88);crate(0,1,.88);barrel(1,1,.8)})}
 // Farmland: two worked fields round the well junction. The gate farms sell at their door; the north farms keep
 // their stock in closed pens with hay beside them.
@@ -128,7 +134,7 @@ for(let [x,z] of [[-24,34],[-25,30],[-25,38],[25,46],[22,50]])tree(x,z,.87,true)
 house(P(-18.6),51.5,3.6,3.2,2,'#b45e3e');house(P(18.6),51.5,3.5,3.1,1.9,'#916345');
 pen(-12.2,51.3,7,5,[[-2,-1,'sheep'],[.5,1,'sheep'],[2,-.8,'sheep']]);hay(-6.2,51.3,3,Math.PI/2);
 pen(11.9,51.3,7.5,5,[[-2.4,-1,'pig'],[.3,.9,'cow'],[2.6,-.9,'cow'],[-2.6,1.4,'chicken'],[-1.6,1.7,'chicken']]);hay(6,51.3,3,Math.PI/2);
-hay(-23,40,3,Math.PI/2);cart(P(-5.2),41);laundry(22.4,51.5,3,Math.PI/2);
+barn(-12.2,57,5.4,4.2,Math.PI);barn(11.9,57,5.4,4.2,Math.PI);hay(-23,40,3,Math.PI/2);cart(P(-5.2),41);laundry(22.4,51.5,3,Math.PI/2);
 function flag(x,y,z,c){box(x,y+1.45,z,.12,3,.12,wood);moving(x,y+2.85,z,'flag',()=>{for(let i=0;i<4;i++)box(.21+i*.4,-.53-i*.06,Math.sin(i)*.13,.42,1.02-i*.14,.11,c);box(.59,-.57,.15,.17,.56,.05,gold)})}
 function tower(x,z,y,w,h,cap=false,c=blue){at(x,y,z,0,()=>{box(0,.5,0,w+.65,1,w+.65,shade);box(0,h*.49,0,w,h,w,stone);for(let k=1;k<4;k++)box(0,k*h/4,0,w+.13,.15,w+.13,'#b7b8a1');for(let a of [-1,1]){box(a*w*.51,h*.68,0,.06,1.12,.26,dark);box(0,h*.68,a*w*.51,.28,1.12,.06,dark)}box(0,h-.2,0,w+.68,.55,w+.68,shade);box(0,h+.13,0,w+.76,.37,w+.76,stone);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)if(a||b)box(a*w*.49,h+.63,b*w*.49,.63,.78,.63,stone);for(let s of [-1,1])for(let side of [-1,1])for(let k=0;k<Math.floor(h/.68);k++){
  const tone=k%2?'#aeb3a1':'#bec1ad';

@@ -186,6 +186,92 @@ def farmer():
     return p.finish()
 
 
+# Ek köylüler (Serra): sadece kutu, yumuşatmasız dışa aktarılır (--hard; az yüzey).
+def minstrel():
+    """Ozan: bordo tüylü şapka, sarı tunik, yeşil yaka/kol ağzı, yeşil tayt, çizme, önünde ud."""
+    p = Part("M_Minstrel")
+    for sx in (-1, 1):
+        p.box((0.17, 0.2, HIP - 0.1), (sx * 0.115, 0, 0.1), "leaf_dark")
+        p.box((0.19, 0.24, 0.28), (sx * 0.115, 0, 0.0), "wood_dark")          # çizme
+        p.box((0.19, 0.08, 0.1), (sx * 0.115, -0.15, 0.0), "wood_dark")       # çizme burnu
+        p.box((0.21, 0.24, 0.14), (sx * 0.12, 0, HIP - 0.14), "gold")         # tunik eteği
+    torso(p, "gold", buckle="wood_dark")
+    p.box((0.32, 0.03, 0.08), (0, -0.18, NECK - 0.08), "leaf_dark")           # yaka
+    p.box((0.05, 0.03, 0.2), (0, -0.18, NECK - 0.27), "leaf_dark")            # yaka yırtmacı
+    x, _ = arms(p, "gold")
+    for sx in (-1, 1):
+        p.box((0.16, 0.19, 0.09), (sx * x, 0, NECK - 0.11), "leaf_dark")       # omuz
+        p.box((0.16, 0.19, 0.07), (sx * x, 0, NECK - 0.34), "leaf_dark")       # kol ağzı
+    # ud: gövde önünde, sapı sağ üste basamaklı
+    p.box((0.26, 0.08, 0.26), (-0.07, -0.21, HIP - 0.02), "wood_dark")
+    p.box((0.08, 0.03, 0.08), (-0.07, -0.255, HIP + 0.08), "dark")
+    for i in range(3):
+        p.box((0.07, 0.05, 0.11), (0.06 + i * 0.06, -0.22, HIP + 0.2 + i * 0.1), "wood_light")
+    p.box((0.09, 0.06, 0.08), (0.23, -0.22, HIP + 0.5), "wood_dark")
+    top = head(p)
+    hair(p, "wood_dark")
+    p.box((0.54, 0.5, 0.1), (0, 0, top - 0.1), "maroon")                       # şapka siperi
+    p.box((0.42, 0.38, 0.2), (0, 0.01, top), "maroon")
+    p.box((0.32, 0.28, 0.05), (0, 0.01, top + 0.2), "maroon")
+    for i, (y, w) in enumerate(((0.06, 0.14), (0.12, 0.12), (0.18, 0.1))):    # tüy: arkaya kalkan basamaklar
+        p.box((0.05, w, 0.15), (0.2, y, top + 0.08 + i * 0.13), "roof_dark")
+    return p.finish()
+
+
+def _dress(p, dress, apron):
+    """Uzun etek bacak kutularında (yürürken bacakla sallanır) + önlük şeridi + ayakkabı."""
+    for sx in (-1, 1):
+        p.box((0.23, 0.3, HIP - 0.1), (sx * 0.125, 0, 0.1), dress)
+        if apron:
+            p.box((0.12, 0.03, HIP - 0.24), (sx * 0.075, -0.16, 0.24), apron)
+        p.box((0.17, 0.24, 0.1), (sx * 0.12, -0.04, 0), "wood_dark")
+
+
+def peasant_hat():
+    """Hasır şapkalı köylü kadın: kırmızı elbise, krem bluz, önlük, örgü saç, kurdeleli geniş hasır şapka."""
+    p = Part("M_PeasantHat")
+    _dress(p, "roof", "cream")
+    torso(p, "cream", w=0.46, d=0.32, belt=None)
+    p.box((0.48, 0.34, 0.28), (0, 0, HIP), "roof")                            # korse
+    for i in range(3):
+        p.box((0.1, 0.02, 0.025), (0, -0.18, HIP + 0.06 + i * 0.08), "dark")   # bağcık
+    arms(p, "cream", tw=0.46)
+    top = head(p)
+    hair(p, "wood_light", cap=False)
+    p.box((0.12, 0.1, 0.46), (0, HEAD[1] / 2 + 0.03, HEAD_Z - 0.34), "wood_light")   # örgü
+    p.box((0.14, 0.11, 0.06), (0, HEAD[1] / 2 + 0.03, HEAD_Z - 0.3), "red")
+    p.box((0.8, 0.76, 0.05), (0, 0, top - 0.1), "straw")                       # geniş siper
+    p.box((0.38, 0.36, 0.17), (0, 0, top - 0.05), "straw")
+    p.box((0.39, 0.37, 0.05), (0, 0, top - 0.04), "red")                        # kurdele
+    return p.finish()
+
+
+def peasant_basket():
+    """Sepetli köylü kadın: yeşil elbise, beyaz önlük, bordo korse ve başlık, önünde elma sepeti."""
+    p = Part("M_PeasantBasket")
+    _dress(p, "leaf_dark", None)
+    for sx in (-1, 1):
+        p.box((0.2, 0.03, HIP - 0.16), (sx * 0.1, -0.16, 0.16), "white")       # önlük
+    torso(p, "white", w=0.46, d=0.32, belt=None)
+    p.box((0.48, 0.34, 0.3), (0, 0, HIP), "maroon")                           # korse
+    arms(p, "white", tw=0.46)
+    top = head(p)
+    w, d, h = HEAD
+    hair(p, "dark", cap=False)
+    p.box((w + 0.06, d + 0.06, 0.12), (0, 0.01, top - 0.06), "white")          # beyaz başlık
+    p.box((w + 0.06, 0.08, 0.26), (0, d / 2 + 0.02, HEAD_Z + 0.12), "white")
+    p.box((0.36, 0.32, 0.08), (0, 0.03, top + 0.04), "maroon")                 # üstünde bordo kep
+    # sepet: gövde önünde, iki elle tutuluyor gibi
+    p.box((0.32, 0.22, 0.16), (0, -0.3, HIP - 0.04), "straw_dark")
+    p.box((0.34, 0.24, 0.04), (0, -0.3, HIP + 0.1), "straw")
+    for sx in (-1, 0, 1):
+        p.box((0.08, 0.08, 0.07), (sx * 0.09, -0.3, HIP + 0.12), "red")         # elmalar
+    for sx in (-1, 1):
+        p.box((0.03, 0.03, 0.2), (sx * 0.14, -0.3, HIP + 0.12), "wood")          # sap
+    p.box((0.31, 0.03, 0.03), (0, -0.3, HIP + 0.31), "wood")
+    return p.finish()
+
+
 # ---------- düşmanlar ----------
 
 def militia():
@@ -385,6 +471,9 @@ BUILDERS = {
     "peasant_female": female_peasant,
     "merchant": merchant,
     "farmer": farmer,
+    "minstrel": minstrel,
+    "peasant_hat": peasant_hat,
+    "peasant_basket": peasant_basket,
     "militia": militia,
     "town_guard": town_guard,
     "shield_knight": shield_knight,

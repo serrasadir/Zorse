@@ -51,7 +51,7 @@ namespace BlobSurvivor.EditorTools
         private const float GroundSlice = 0.4f;     // çarpışma ayak izi zemine yakın geometriden
         private const float Elevated = 0.3f;        // altı bu kadar havada olan obje altındakine bağlanır
         private const float LineReach = 2.2f;       // sınır çizgisine bu kadar yakın duvar/kule sınırın tier'ını alır
-        private static readonly string[] Buildings = { "house", "tower", "wall", "gate", "mill", "fountain", "stall", "siege", "cart" };
+        private static readonly string[] Buildings = { "house", "barn", "tower", "wall", "gate", "mill", "fountain", "stall", "siege", "cart" };
         private static readonly string[] MultiBox = { "wall", "gate", "fence", "garden" };
         // Atlas oyunun boy kuralına göre büyük (ev ~5 m: blob en son tier'da yerdi). Kale haritasının oranına yakın ölçek.
         internal const float WorldScale = 0.6f;

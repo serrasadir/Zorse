@@ -51,8 +51,8 @@ namespace BlobSurvivor.EditorTools
         // Yayalar: şehir verisinin kopyası, varyantları ortaçağ köylüleri.
         private static readonly (string city, string med, string[] meshes)[] Pedestrians =
         {
-            ("PedestrianData_Man", "PedestrianData_MedMale", new[] { "H_MedPeasantMale", "H_MedFarmer" }),
-            ("PedestrianData_Woman", "PedestrianData_MedFemale", new[] { "H_MedPeasantFemale" }),
+            ("PedestrianData_Man", "PedestrianData_MedMale", new[] { "H_MedPeasantMale", "H_MedFarmer", "H_MedMinstrel" }),
+            ("PedestrianData_Woman", "PedestrianData_MedFemale", new[] { "H_MedPeasantFemale", "H_MedPeasantHat", "H_MedPeasantBasket" }),
             ("PedestrianData_Big", "PedestrianData_MedMerchant", new[] { "H_MedMerchant" }),
         };
 
