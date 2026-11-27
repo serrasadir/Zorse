@@ -1408,7 +1408,7 @@ namespace BlobSurvivor.EditorTools
         // girene bakar. Avlu dar: %80 boy.
         private const string KingStatuePrefab = "Assets/_Project/Prefabs/City/B_MedKingStatue.prefab";
         private static readonly Vector3 KingStatuePosition = new Vector3(0f, 0f, 39.2f);
-        private const float KingStatueYaw = 180f;
+        private const float KingStatueYaw = 0f; // prefab'ın yüzü -z'de: kapıya (güneye) bakar
         private const float KingStatueScale = 0.8f;
 
         private static void PlaceKingStatue(Transform parent)
