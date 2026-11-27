@@ -249,24 +249,14 @@ namespace BlobSurvivor.UI
             LayoutCards();
         }
 
-        // HARİTA düğmesi: diğer haritanın sahnesini yükler (kilitliyse sadece koşulu söyler).
-        private void OnMapButton()
-        {
-            if (MapSelection.IsCity && !MapSelection.CrownreachUnlocked)
-            {
-                Haptics.LightTap();
-                return;
-            }
-            MapSelection.Switch();
-        }
+        // HARİTA düğmesi: diğer haritanın sahnesini yükler.
+        private void OnMapButton() => MapSelection.Switch();
 
         private void RefreshMapButton()
         {
             if (_mapLabel == null) return;
-            // Düğme şu anki haritayı gösterir; basınca diğerine geçer.
-            if (MapSelection.IsCrownreach) _mapLabel.text = "<size=26>HARİTA</size>\n<size=30>CROWNREACH</size> ▸";
-            else if (MapSelection.CrownreachUnlocked) _mapLabel.text = "<size=26>HARİTA</size>\nŞEHİR ▸";
-            else _mapLabel.text = "<size=22>CROWNREACH KİLİTLİ</size>\n<size=22>Helikopteri yut</size>";
+            // Düğme gideceği haritayı gösterir: şehirden Crownreach prototipine, oradan şehre.
+            _mapLabel.text = MapSelection.IsCrownreach ? "<size=26>HARİTA</size>\nŞEHİR ▸" : "<size=26>HARİTA</size>\nPROTOTİP ▸";
         }
 
         // Ekran dönünce (panel boyu değişince) kartlar yeniden dizilir.

@@ -1,12 +1,10 @@
-using BlobSurvivor.Systems.Meta;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace BlobSurvivor.UI
 {
-    // Haritalar = sahneler: 1. şehir (GameScene), 2. Crownreach (CrownreachScene). Lobideki HARİTA düğmesi diğerini yükler,
-    // yeni sahne giriş ekranını atlayıp lobiyi açar. Crownreach, helikopter bir kez yutulunca açılır (Bölünme skill'iyle aynı
-    // koşul, DEV "tüm karakterleri aç" da açar).
+    // Haritalar = sahneler: 1. şehir (GameScene, ana harita), 2. Crownreach (CrownreachScene, prototip, kilitsiz). Lobideki
+    // HARİTA düğmesi diğerini yükler, yeni sahne giriş ekranını atlayıp lobiyi açar.
     public static class MapSelection
     {
         public const string CityScene = "GameScene";
@@ -18,9 +16,6 @@ namespace BlobSurvivor.UI
         private static string Active => SceneManager.GetActiveScene().name;
         public static bool IsCity => Active == CityScene;
         public static bool IsCrownreach => Active == CrownreachScene;
-
-        public static bool CrownreachUnlocked =>
-            MetaProgression.Instance == null || MetaProgression.Instance.IsSkillUnlocked("bolunme");
 
         public static void Switch()
         {

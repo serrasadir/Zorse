@@ -80,3 +80,6 @@ graphify-out.meta
 
 # Unity build Burst debug çıktısı (her build yeniden üretilir)
 *_BurstDebugInformation_DoNotShip/
+
+# build_atlas.py ara çıktısı (FBX'ler git'te)
+blender/Crownreach.blend

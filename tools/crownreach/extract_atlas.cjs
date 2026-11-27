@@ -20,7 +20,7 @@ context.capture = (type, matrix, color) => {
 };
 context.enter = kind => {names.push(kind + '_' + String(++sequence).padStart(4, '0'))};
 context.leave = () => names.pop();
-build = build.replace('dummy.updateMatrix();', `dummy.updateMatrix();target.updateWorldMatrix(true,false);
+build = build.replace('dummy.updateMatrix();m&&dummy.matrix.copy(m);', `dummy.updateMatrix();m&&dummy.matrix.copy(m);target.updateWorldMatrix(true,false);
 capture(type,target.matrixWorld.clone().multiply(origin).multiply(dummy.matrix).toArray(),new T.Color(c).getHexString());return;`);
 const functions = 'house tree pine mill fountain stall garden person animal cart tower wall gate siege crate barrel bench basket fence food flag fishingBoat hay laundry boatyard planks nets barn fishstall rope crane lighthouse fishrack traps haybarn coop trough woodpile smithy oven breadtable innsign tables planters lamppost witchhut cauldron forge anvil grindstone tavern tavernset spit clocktower beehive honeystall scarecrow wellside lanternline lanternspan fishgrill kegs kiln potterwheel dryingrack potstack jar dyerack dyevats archerygear watchtower tiltbarrier grandstand pennant pillory alchemist chapel graveyard'.split(' ');
 const wrappers = functions.filter(n => build.includes(`function ${n}(`)).map(n => `{const original=${n};${n}=function(...args){enter('${n}');try{return original(...args)}finally{leave()}}}`).join('\n');

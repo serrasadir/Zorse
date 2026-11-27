@@ -17,7 +17,7 @@ Shader "BlobSurvivor/GroundSplat"
         _StoneTile ("Kaldırım tekrarı (birim)", Float) = 4
         _CobbleTile ("Arnavut tekrarı (birim)", Float) = 2.5
         _DirtTint ("Toprak rengi", Color) = (1, 1, 1, 1)
-        _DirtSaturation ("Toprak doygunluğu", Range(0, 1)) = 0.5
+        _DirtSaturation ("Toprak doygunluğu", Range(0, 1)) = 1
         _BlendDepth ("Geçiş yumuşaklığı", Range(0.02, 1)) = 0.1
     }
 

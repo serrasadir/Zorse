@@ -9,6 +9,7 @@ namespace BlobSurvivor.Core
         [SerializeField] private float[] _zLines = { -24f, 6f, 32f };
         [SerializeField] private float _side = 24f;
         [SerializeField] private float _half = 56f;
+        [SerializeField] private Vector2 _minimapZ;
         [SerializeField] private Vector2 _keep = new Vector2(0f, 45f);
         [SerializeField] private string _minimap = "UI/CastleMinimap"; // Resources yolu (Crownreach kendi görüntüsünü verir)
 
@@ -20,7 +21,10 @@ namespace BlobSurvivor.Core
         public Vector3 Keep => new Vector3(_keep.x, 0f, _keep.y);
 
         // Küçük haritanın kapsadığı dünya dikdörtgeni (x0, z0, x1, z1): oyun alanı + yanlardan biraz pay.
-        public Rect MinimapWorld => Rect.MinMaxRect(-_side - 2f, -_half, _side + 2f, _half);
+        // Küçük harita adanın z aralığını kaplar (sıfırsa ±_half: ada ortada değilse üstte boş deniz kalıyordu).
+        public Rect MinimapWorld => _minimapZ == Vector2.zero
+            ? Rect.MinMaxRect(-_side - 2f, -_half, _side + 2f, _half)
+            : Rect.MinMaxRect(-_side - 2f, _minimapZ.x, _side + 2f, _minimapZ.y);
 
         private void Awake()
         {
@@ -45,7 +49,11 @@ namespace BlobSurvivor.Core
             _keep = keep;
         }
 
-        public void EditorSetMinimap(string resource) => _minimap = resource;
+        public void EditorSetMinimap(string resource, Vector2 z)
+        {
+            _minimap = resource;
+            _minimapZ = z;
+        }
 #endif
     }
 }

@@ -23,9 +23,9 @@ const geo={box:new T.BoxGeometry(1,1,1),round:new T.CylinderGeometry(.5,.5,1,20)
 // Cross-section of a semicircular fired-clay ridge tile.
 geo.ridge=new T.CylinderGeometry(.5,.5,1,10,1,false,0,Math.PI);
 geo.ridge.rotateZ(-Math.PI/2);geo.ridge.rotateY(Math.PI/2);
-geo.spire=new T.ConeGeometry(Math.SQRT1_2,1,4);geo.spire.rotateY(Math.PI/4);
+geo.spire=new T.ConeGeometry(Math.SQRT1_2,1,4);geo.spire.rotateY(Math.PI/4);geo.gem=new T.IcosahedronGeometry(.5,0);geo.prism=new T.BufferGeometry();geo.prism.setAttribute('position',new T.Float32BufferAttribute([0,-.5,0,1,-.5,0,0,-.5,1,0,.5,0,1,.5,0,0,.5,1],3));geo.prism.setIndex([0,1,2,3,5,4,0,3,4,0,4,1,0,2,5,0,5,3,1,4,5,1,5,2]);geo.prism.computeVertexNormals();
 const batches=new Map(),dummy=new T.Object3D(),pivots=[],root=new T.Group();scene.add(root);let target=root,origin=new T.Matrix4();
-function shape(type,x,y,z,w,h,d,c,rx=0,ry=0,rz=0){dummy.position.set(x,y,z);dummy.rotation.set(rx,ry,rz);dummy.scale.set(w,h,d);dummy.updateMatrix();if(!batches.has(target))batches.set(target,{});const a=batches.get(target);(a[type]??=[]).push([new T.Matrix4().multiplyMatrices(origin,dummy.matrix),c])}
+function shape(type,x,y,z,w,h,d,c,rx=0,ry=0,rz=0,m=null){dummy.position.set(x,y,z);dummy.rotation.set(rx,ry,rz);dummy.scale.set(w,h,d);dummy.updateMatrix();m&&dummy.matrix.copy(m);if(!batches.has(target))batches.set(target,{});const a=batches.get(target);(a[type]??=[]).push([new T.Matrix4().multiplyMatrices(origin,dummy.matrix),c])}
 const box=(...a)=>shape('box',...a),cyl=(...a)=>shape('oct',...a),ball=(...a)=>shape('sphere',...a);
 function at(x,y,z,angle,fn){const prev=origin;origin=prev.clone().multiply(new T.Matrix4().makeTranslation(x,y,z)).multiply(new T.Matrix4().makeRotationY(angle));fn();origin=prev}
 function moving(x,y,z,type,fn){const old=target,prev=origin,g=new T.Group();g.applyMatrix4(origin.clone().multiply(new T.Matrix4().makeTranslation(x,y,z)));old.add(g);target=g;origin=new T.Matrix4();fn();target=old;origin=prev;pivots.push([g,type,g.rotation.z])}
@@ -38,8 +38,8 @@ function ground(z){return z>19?0:z> -8?1:z> -32?2:3}
 function post(x,z,h=1.2){box(x,h/2,z,.22,h,.22,wood);shape('cone',x,h+.08,z,.3,.22,.3,oak)}
 function fence(x,z,l,ang=0){at(x,0,z,ang,()=>{for(let i=0;i<=Math.ceil(l/2);i++)post(i*l/Math.ceil(l/2)-l/2,0);for(const y of [.38,.86])box(0,y,0,l,.18,.16,oak)})}
 function path(x,z,w,d,c='#dfc389'){box(cityX(x),ground(z)+.055,z,cityX(w),.12,d,c)}
-function tree(x,z,s=1,fruit=false){place(x,ground(z),z,rand(),()=>{box(0,1.2*s,0,.65*s,2.4*s,.62*s,wood);for(const [a,b,k,sz] of [[0,2.6,0,2.8],[-.85,2.5,.25,1.75],[.7,2.9,.35,1.95],[0,3.75,-.2,1.8]])box(a*s,b*s,k*s,sz*s,sz*s*.81,sz*s,pick(['#6a9847','#80a74b','#527f43','#94b650']));for(let i=0;i<8;i++){let t=i*2.4;ball(Math.cos(t)*1.24*s,(2.88+.36*Math.sin(2*t))*s,Math.sin(t)*1.25*s,1.26*s,1.2*s,1.26*s,i%2?'#80a74b':'#719e4b')}
-if(fruit)for(let i=0;i<7;i++)box((rand()*2.5-1.25)*s,(2+rand()*1.5)*s,1.39*s,.32*s,.33*s,.31*s,'#ce5030')})}
+function tree(x,z,s=1,fruit=false){place(x,ground(z),z,rand(),()=>{cyl(0,1.1*s,0,.5*s,2.2*s,.5*s,wood);cyl(0,.12*s,0,.8*s,.24*s,.8*s,wood);for(const [a,b,k,w,h] of [[0,3.05,0,3.1,2.7],[-1.05,2.55,.35,2,1.7],[1,2.75,.45,2.15,1.85],[.15,3.95,-.25,2.1,1.8]])ball(a*s,b*s,k*s,w*s,h*s,w*s,pick(['#5f9345','#6f9f49','#548646','#7fa94e']));
+if(fruit)for(let i=0;i<7;i++){const t=rand()*6.2832,y=2.5+rand()*1.2,r=1.6*Math.sqrt(Math.max(0,1-((y-3.05)/1.4)**2));shape('gem',Math.cos(t)*r*s,y*s,Math.sin(t)*r*s,.36*s,.36*s,.36*s,'#ce5030')}})}
 function pine(x,z,s){place(x,ground(z),z,0,()=>{box(0,1.05*s,0,.42*s,2.1*s,.42*s,wood);box(0,.1*s,0,.66*s,.2*s,.66*s,dark);for(const a of [0,Math.PI/2])box(0,.12*s,0,.95*s,.1*s,.18*s,dark,0,a);for(let i=0;i<4;i++)shape('cone',0,(2.6+i*.68)*s,0,(2.7-i*.5)*s,1.5*s,(2.7-i*.5)*s,i%2?'#45765a':'#50845f',0,.38)})}
 function crate(x,z,s=.85){box(x,s/2,z,s,s,s,oak);for(let a of [-1,1])box(x+a*s*.39,s/2,z+s*.51,s*.14,s,s*.1,wood);box(x,s/2,z+s*.53,s*.95,.11,.09,wood,0,0,.65)}
 function barrel(x,z,s=.88){for(let i=0;i<12;i++){
@@ -78,22 +78,36 @@ const contours=[[-58,17],[-54,21],[-49,22],[-36,22],[-32,23],[-27,24],[-12,25],[
 function widthAt(z){let i=1;while(i<contours.length-1&&z>contours[i][0])i++;let [a,w]=contours[i-1],[b,v]=contours[i];return Math.round(w+(v-w)*(z-a)/(b-a))}
 const northEdge=contours[0][0],southEdge=contours[contours.length-1][0];
 const quayEdge=cityX(12),basinStart=102,basinEnd=124;
+// Kıyı basamaksız: her katman yarım şeritlerde komşu şeridin kenarına doğrusal bağlanır (eğik üçgen prizmalar).
+// Liman havuzunun rıhtım kenarı düz kalır. Rastgele çağrı sırası değişmez.
+function stripEdges(z){const w=cityX(widthAt(z)),off=Math.round(Math.sin(z*.19)*.9),harbor=z>basinStart&&z<basinEnd;return{w,off,harbor,left:off-w,right:off+w,bank:harbor?quayEdge:off+w}}
+function prism(c,y,h,a,b,d){let ux=b[0]-a[0],uz=b[1]-a[1],vx=d[0]-a[0],vz=d[1]-a[1];if(ux*vz-uz*vx<0)[ux,uz,vx,vz]=[vx,vz,ux,uz];
+ shape('prism',0,0,0,1,1,1,c,0,0,0,new T.Matrix4().set(ux,0,vx,a[0],0,h,0,y,uz,0,vz,a[1],0,0,0,1))}
+function coastBand(z,c,y,h,L,R,keepRight=false){
+ const cur=stripEdges(z),prev=z-2>northEdge?stripEdges(z-2):null,next=z+2<southEdge?stripEdges(z+2):null;
+ const mid=(f,o,fixed)=>o&&!fixed?(f(cur)+f(o))/2:f(cur);
+ const fixedR=o=>keepRight&&(cur.harbor||o&&o.harbor);
+ const zs=[z-1,z,z+1],ls=[mid(L,prev),L(cur),mid(L,next)],rs=[mid(R,prev,fixedR(prev)),R(cur),mid(R,next,fixedR(next))];
+ // Şeridin ortası iki ucunun ortalaması: kıyı uçtan uca düz çizgi, komşusundan dar/geniş şeritte çentik olmaz.
+ if(prev&&next){ls[1]=(ls[0]+ls[2])/2;rs[1]=(rs[0]+rs[2])/2}
+ for(let k=0;k<2;k++){const A=[ls[k],zs[k]],B=[rs[k],zs[k]],C=[rs[k+1],zs[k+1]],D=[ls[k+1],zs[k+1]];prism(c,y,h,A,B,C);prism(c,y,h,A,C,D)}
+}
 function terrainStrip(z){
  const w=cityX(widthAt(z)),y=ground(z),off=Math.round(Math.sin(z*.19)*.9);
  const left=off-w,right=off+w,harbor=z>basinStart&&z<basinEnd;
- const bank=harbor?quayEdge:right,center=(left+bank)/2,landWidth=bank-left;
- box(off,-2.04,z,w*2+2.4,1.55,2.04,'#617470');
- box(off,-1.2,z,w*2+1.7,.65,2.05,'#9d966f');
- box(center,(y-.9)/2,z,landWidth+.3,y+.9,2.05,'#98815e');
- box(center,y-.13,z,landWidth,.29,2.05,z< -32?'#90a56a':z< -8?'#a0ab76':z<19?'#9cb67c':'#92b85b');
+ const bank=harbor?quayEdge:right;
+ coastBand(z,'#617470',-2.04,1.55,s=>s.left-1.2,s=>s.right+1.2);
+ coastBand(z,'#9d966f',-1.2,.65,s=>s.left-.85,s=>s.right+.85);
+ coastBand(z,'#98815e',(y-.9)/2,y+.9,s=>s.left-.15,s=>s.bank+.15,true);
+ coastBand(z,z< -32?'#90a56a':z< -8?'#a0ab76':z<19?'#9cb67c':'#92b85b',y-.13,.29,s=>s.left,s=>s.bank,true);
  if(harbor){
-  box((bank+right)/2,-.76,z,right-bank,.32,2.02,water);
+  coastBand(z,water,-.76,.32,()=>quayEdge,s=>s.right); // havuz suyu: doğu kenarı kıyıyla eğik
   for(let x=bank+cityX(2);x<right-cityX(1);x+=cityX(4))
    box(x+Math.sin(z+x),-.59,z+.4*Math.cos(x*z),1.3,.025,.12,'#a6d3c8');
  }
  for(const side of [-1,1]){
   if(harbor&&side===1) continue;
-  box(off+side*(w-.6),y-.16,z,1.4,.4,1.8,pick(['#739d55','#789d59','#a4bd68']));
+  box(off+side*(w-1.6),y-.16,z,1.4,.4,1.8,pick(['#739d55','#789d59','#a4bd68'])); // kenardan içeride: eğik kıyıdan taşmasın
   if(rand()<.65)ball(off+side*(w+.25),-.85,z,1.35,1.45,1.48,pick([shade,'#919484','#a7a088']));
   if(rand()<.55)box(off+side*(w+1.6+rand()*2),-2.7,z,.18,.06,.6+rand()*2,'#a2c0b7');
  }

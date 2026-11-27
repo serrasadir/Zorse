@@ -341,6 +341,8 @@ namespace BlobSurvivor.EditorTools
                 var model = new GameObject("Model");
                 model.transform.SetParent(root.transform, false);
                 CityKitPipeline.ApplyModelTransform(model.transform, src, mesh);
+                // Dik şalgamın sivri kökü 60° kameradan gövdenin arkasında kalıyor, yarısı gömülü gibi okunuyordu: yan yatar.
+                if (mesh == "P_MedTurnip") model.transform.localRotation = Quaternion.Euler(0f, 0f, 75f) * model.transform.localRotation;
                 model.transform.localScale *= litterScale;
                 model.AddComponent<MeshFilter>().sharedMesh = src.sharedMesh;
                 var mr = model.AddComponent<MeshRenderer>();

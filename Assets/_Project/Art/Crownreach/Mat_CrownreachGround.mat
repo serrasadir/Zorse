@@ -32,7 +32,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DirtTex:
-        m_Texture: {fileID: 2800000, guid: 8b26e49bf84b46a47a31e498e740cf4d, type: 3}
+        m_Texture: {fileID: 2800000, guid: 2f2f65e9effb24742bc6a76d2ca52c32, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _FlagTex:
@@ -40,19 +40,19 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _GrassTex:
-        m_Texture: {fileID: 2800000, guid: d28e50f1a80dbe14b84bb0a68fe46ce7, type: 3}
+        m_Texture: {fileID: 2800000, guid: 875d818a6936249d486d83a2c81ff174, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _BlendDepth: 0.1
     - _CobbleTile: 2.5
-    - _DirtSaturation: 0.5
+    - _DirtSaturation: 1
     - _DirtTile: 7
     - _GrassTile: 4
     - _StoneTile: 4
     m_Colors:
-    - _CtrlRect: {r: -40.01692, g: -132.025, b: 0.012158055, a: 0.0052562417}
-    - _DirtTint: {r: 1, g: 0.97, b: 0.92, a: 1}
+    - _CtrlRect: {r: -40.01692, g: -132, b: 0.012158055, a: 0.005263158}
+    - _DirtTint: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
