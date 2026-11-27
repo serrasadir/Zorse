@@ -25,7 +25,7 @@ MonoBehaviour:
   _attackHitCount: 1
   _attackHitInterval: 0.4
   _attackType: 1
-  _projectilePrefab: {fileID: 7310000000000000005, guid: 0f57b239e0464234a4d4299800c4b89e, type: 3}
+  _projectilePrefab: {fileID: 7310000000000000005, guid: 3262f7a91ebd4f27a576b3286ea210d5, type: 3}
   _aimLineMaterial: {fileID: 2100000, guid: 5db4a71ce5b8412fb29916ee1504ee4f, type: 2}
   _projectileSpeed: 9
   _projectileMaxDistance: 14
