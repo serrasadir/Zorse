@@ -47,24 +47,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Blob.BlobTierMeshes
   _target: {fileID: 1660718236721248997}
   _meshesByTier:
-  - {fileID: -584745715620847580, guid: eab4b78fa848b4ff4b51f13209a3e49d, type: 3}
-  - {fileID: 7236933483029791260, guid: 8a2f4c362b319483b8b78f39618d3046, type: 3}
-  - {fileID: -7254834417972501606, guid: e7842d88c88734ddabd301d7c3cd2a74, type: 3}
-  - {fileID: -5058235234990865946, guid: 9d2d158ea07b241aaac5ef5363616023, type: 3}
-  - {fileID: 536354762644778667, guid: d787c9a8efb46423895c3e74c4be7067, type: 3}
+  - {fileID: 4300000, guid: 6ffba030ce638b041a642bcc296e2614, type: 2}
+  - {fileID: 4300000, guid: cdd53949a52726d468836d04ce992e59, type: 2}
+  - {fileID: 4300000, guid: 1af86a0b4cda4dc4bb8ef5efd730f2e7, type: 2}
+  - {fileID: 4300000, guid: 26f8e413a5cfc7b4c8bda81d424bbd25, type: 2}
+  - {fileID: 4300000, guid: c8d6f6b1216dc5a4e89b4d1f63cedcbf, type: 2}
   _eatMeshesByTier:
-  - {fileID: 221350832733631787, guid: f0d81aa1d92a24cb485a124abd4fc4f7, type: 3}
-  - {fileID: 2219490300233484136, guid: 4c0ee7aadae19433f88fc37406c9a852, type: 3}
-  - {fileID: 2847423546231303624, guid: d6bacb38f732d43d5a960fa85b4115b0, type: 3}
-  - {fileID: 1794644659423061528, guid: c6743764580934f89b9c0de74e99392e, type: 3}
-  - {fileID: -1773774194879969502, guid: 9d3a497332ee342ecb983382903a5cb9, type: 3}
+  - {fileID: 4300000, guid: 50e11aa52bb77a0488e3fca417a88670, type: 2}
+  - {fileID: 4300000, guid: c001efb1b5864174780909769e050768, type: 2}
+  - {fileID: 4300000, guid: b8adacd616ef83c4fa1d971b47de9e4f, type: 2}
+  - {fileID: 4300000, guid: 9512d6936a947fa46af57422abc69287, type: 2}
+  - {fileID: 4300000, guid: e2d618e156b9b134185daa77eab9951a, type: 2}
   _eatDuration: 0.15
   _blinkMeshesByTier:
-  - {fileID: -4745884175628289431, guid: 620b29ee4d6944ab9b4de7cc8788e7ad, type: 3}
-  - {fileID: -8835449585962437150, guid: 4a5759a48d35445e9959f335362ca02c, type: 3}
-  - {fileID: -4787442817632719989, guid: bb7fa5adaa1814730a3cced971d9aee2, type: 3}
-  - {fileID: -3855661758134639167, guid: 02c6bfbc68d3d4ed980f22d01a3f7094, type: 3}
-  - {fileID: -199974953025873958, guid: 6de3a349404824df49cb622dd135aa8b, type: 3}
+  - {fileID: 4300000, guid: 2cb65cd2ab0835c4287644fddd8aaf19, type: 2}
+  - {fileID: 4300000, guid: 3e1a74e8c3cde22478730e5de81fb856, type: 2}
+  - {fileID: 4300000, guid: fa2ee5eba5c492940a6de45f04c3e25f, type: 2}
+  - {fileID: 4300000, guid: 8832d0d6c5a212c4d9d37736de894332, type: 2}
+  - {fileID: 4300000, guid: ce4b570803cc86b49a4c7beec12df1ed, type: 2}
   _blinkInterval: {x: 2.2, y: 5}
   _blinkDuration: 0.12
 --- !u!1 &920753616339990069
@@ -107,7 +107,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 920753616339990069}
-  m_Mesh: {fileID: -584745715620847580, guid: eab4b78fa848b4ff4b51f13209a3e49d, type: 3}
+  m_Mesh: {fileID: 4300000, guid: 6ffba030ce638b041a642bcc296e2614, type: 2}
 --- !u!23 &8083216686958605777
 MeshRenderer:
   m_ObjectHideFlags: 0

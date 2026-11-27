@@ -10,8 +10,10 @@ namespace BlobSurvivor.Core
         [SerializeField] private float _side = 24f;
         [SerializeField] private float _half = 56f;
         [SerializeField] private Vector2 _keep = new Vector2(0f, 45f);
+        [SerializeField] private string _minimap = "UI/CastleMinimap"; // Resources yolu (Crownreach kendi görüntüsünü verir)
 
         public static CastleMap Instance { get; private set; }
+        public string MinimapResource => _minimap;
 
         public float Side => _side;
         public float Half => _half;
@@ -42,6 +44,8 @@ namespace BlobSurvivor.Core
             _half = half;
             _keep = keep;
         }
+
+        public void EditorSetMinimap(string resource) => _minimap = resource;
 #endif
     }
 }

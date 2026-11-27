@@ -34,7 +34,7 @@ namespace BlobSurvivor.UI
             _castle = CastleMap.Instance != null;
             if (!_castle) return;
 
-            Texture2D tex = Resources.Load<Texture2D>("UI/CastleMinimap"); // CastleSceneBuilder çeker
+            Texture2D tex = Resources.Load<Texture2D>(CastleMap.Instance.MinimapResource); // sahne kurucusu çeker
             if (tex == null) return;
             Rect world = CastleMap.Instance.MinimapWorld;
             float height = MapWidth * world.height / world.width;

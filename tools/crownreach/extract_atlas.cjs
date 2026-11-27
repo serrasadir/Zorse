@@ -1,0 +1,33 @@
+// Extract the authored mesh transforms from the offline Crownreach prototype.
+const fs = require('node:fs');
+const vm = require('node:vm');
+const [htmlPath, outputPath] = process.argv.slice(2);
+const scripts = [...fs.readFileSync(htmlPath, 'utf8').matchAll(/<script>([\s\S]*?)<\/script>/g)];
+const context = vm.createContext({console});
+vm.runInContext(scripts[0][1], context);
+const atlas = scripts[1][1];
+const start = atlas.indexOf('let seed=');
+const end = atlas.indexOf('\nflush();');
+if (start < 0 || end < start) throw Error('Atlas world builder missing');
+let build = atlas.slice(start, end);
+const shapes = [], names = [];
+let sequence = 0;
+context.capture = (type, matrix, color) => {
+    const z = matrix[14];
+    const region = z > 19 ? 0 : z > -8 ? 1 : z > -32 ? 2 : 3;
+    const name = names.at(-1) || 'GroundAndDetails_' + region + '_' + Math.floor(z / 6);
+    shapes.push({type, matrix, color, name});
+};
+context.enter = kind => {names.push(kind + '_' + String(++sequence).padStart(4, '0'))};
+context.leave = () => names.pop();
+build = build.replace('dummy.updateMatrix();', `dummy.updateMatrix();target.updateWorldMatrix(true,false);
+capture(type,target.matrixWorld.clone().multiply(origin).multiply(dummy.matrix).toArray(),new T.Color(c).getHexString());return;`);
+const functions = 'house tree pine mill fountain stall garden person animal cart tower wall gate siege crate barrel bench basket fence food flag'.split(' ');
+const wrappers = functions.map(n => `{const original=${n};${n}=function(...args){enter('${n}');try{return original(...args)}finally{leave()}}}`).join('\n');
+build = build.replace('// Stepped coastline.', wrappers + '\n// Stepped coastline.');
+build = build.replace("old.add(g);target=g;", "old.add(g);enter(type==='mill'?'MillBlades':'Banner');target=g;").replace('fn();target=old;', 'fn();leave();target=old;');
+build = build.replace('at(0,15.6,-52', "enter('PerchedDragon');at(0,15.6,-52").replace('for(let s of [-1,1]){for(let [x,z]', 'leave();for(let s of [-1,1]){for(let [x,z]');
+vm.runInContext('const T=THREE,scene=new T.Scene();\n' + build, context);
+const geometry = vm.runInContext(`Object.fromEntries(Object.entries(geo).map(([key,g])=>[key,{vertices:[...g.attributes.position.array],indices:g.index?[...g.index.array]:Array.from({length:g.attributes.position.count},(_,i)=>i)}]))`,context);
+fs.writeFileSync(outputPath, JSON.stringify({geometry,shapes}));
+console.log(shapes.length + ' primitive placements exported');

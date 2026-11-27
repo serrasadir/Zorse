@@ -184,7 +184,7 @@ namespace BlobSurvivor.EditorTools
         }
 
         // Kapı üstünde boy işareti (dünya yazısı, kameraya dönük; ZoneGate günceller).
-        private static void AddGateSign(GameObject gate, int zone)
+        internal static void AddGateSign(GameObject gate, int zone)
         {
             var sign = new GameObject("GateSign");
             sign.transform.SetParent(gate.transform, false);
@@ -482,7 +482,9 @@ namespace BlobSurvivor.EditorTools
             Debug.Log("[CastleScene] Mini harita yenilendi: " + MinimapPath);
         }
 
-        private static void RenderMinimap(Rect world)
+        private static void RenderMinimap(Rect world) => RenderMinimap(world, MinimapPath);
+
+        internal static void RenderMinimap(Rect world, string path)
         {
             const int width = 256;
             int height = Mathf.RoundToInt(width * world.height / world.width);
@@ -508,7 +510,7 @@ namespace BlobSurvivor.EditorTools
                 tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
                 tex.Apply();
                 RenderTexture.active = null;
-                System.IO.File.WriteAllBytes(MinimapPath, tex.EncodeToPNG());
+                System.IO.File.WriteAllBytes(path, tex.EncodeToPNG());
                 UnityEngine.Object.DestroyImmediate(tex);
             }
             finally
@@ -518,8 +520,8 @@ namespace BlobSurvivor.EditorTools
                 UnityEngine.Object.DestroyImmediate(rt);
                 UnityEngine.Object.DestroyImmediate(camGo);
             }
-            AssetDatabase.ImportAsset(MinimapPath);
-            var importer = AssetImporter.GetAtPath(MinimapPath) as TextureImporter;
+            AssetDatabase.ImportAsset(path);
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
             if (importer != null)
             {
                 importer.textureType = TextureImporterType.Default;

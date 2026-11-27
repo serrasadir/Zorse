@@ -40,7 +40,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2866074600135145706}
-  m_Mesh: {fileID: 8290543845149958885, guid: bc9a1d8568c3a44fcb0b934edac3878c, type: 3}
+  m_Mesh: {fileID: 4300000, guid: d09c6c5f1a87c8c488dfbf2fc0db9ae5, type: 2}
 --- !u!23 &6663018850383532238
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -137,23 +137,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Entities.Blob.BlobTierMeshes
   _target: {fileID: 2033184663745478057}
   _meshesByTier:
-  - {fileID: 8290543845149958885, guid: bc9a1d8568c3a44fcb0b934edac3878c, type: 3}
-  - {fileID: 4891198071937910405, guid: fcc3677ecdeff4bceac5637c5ebe4fb3, type: 3}
-  - {fileID: 8766925527730078565, guid: e1a8a4ef48f4b4998a48002c15bab311, type: 3}
-  - {fileID: -1709534769199819002, guid: 87cb6df07d5a942c29170c326dfd7d17, type: 3}
-  - {fileID: 7165176690196699413, guid: 0704ce339b6c6475e99db234144c4d6a, type: 3}
+  - {fileID: 4300000, guid: d09c6c5f1a87c8c488dfbf2fc0db9ae5, type: 2}
+  - {fileID: 4300000, guid: e9779769e3ff9414281214377183521d, type: 2}
+  - {fileID: 4300000, guid: ddf3ed3230dca2f4db0de0348d37f402, type: 2}
+  - {fileID: 4300000, guid: c857d81ba737d5443b12d13c94244cb7, type: 2}
+  - {fileID: 4300000, guid: afda5e57629da774ca26f85d16082984, type: 2}
   _eatMeshesByTier:
-  - {fileID: 977918873818176299, guid: 03e3e2609dc0a4ff280321db9d76ceeb, type: 3}
-  - {fileID: 4161245682664903453, guid: bd0e859f5b49e4da7bbe1fad9dfdd84a, type: 3}
-  - {fileID: -1429444527914534399, guid: 981c3a03e03f64f6190a991f4d89e443, type: 3}
-  - {fileID: 2643532930348319977, guid: 08c655a6c6a764ac48ecb0d35f343555, type: 3}
-  - {fileID: -7657630009227025093, guid: 89053541f2cbe4e63b1bc6d0180f941a, type: 3}
+  - {fileID: 4300000, guid: 81872c9a5d5b39947bacdd2cf4ef3e64, type: 2}
+  - {fileID: 4300000, guid: 1e481520d8518f24484f35d828814d30, type: 2}
+  - {fileID: 4300000, guid: 5f912c203ebc2b840907308fcd485696, type: 2}
+  - {fileID: 4300000, guid: a71fdf4c3d829094693ea75e0f1e1f88, type: 2}
+  - {fileID: 4300000, guid: 6cb649ffc78c62c48ba24b6dac311abf, type: 2}
   _eatDuration: 0.15
   _blinkMeshesByTier:
-  - {fileID: -27115533007456445, guid: 3455ed77f78e44ca7bc3148a5a30fd3b, type: 3}
-  - {fileID: -1766307287919106281, guid: 4a9000af44cae41d28ef3011511e8a99, type: 3}
-  - {fileID: 1280558095151439324, guid: b0116f3c470fe4dffa68b97cef9f87c6, type: 3}
-  - {fileID: 7338390634049071249, guid: 86c33d839d7bf4c25bc666ea112a5ca5, type: 3}
-  - {fileID: 2415754252478587351, guid: 41fbac9fd2e9e48199a218a3a45a1f02, type: 3}
+  - {fileID: 4300000, guid: f7327a2666c051046af3977ffae4c5ae, type: 2}
+  - {fileID: 4300000, guid: 6de3763d2e035bf4195cdda1325a4610, type: 2}
+  - {fileID: 4300000, guid: 5f0e6be3b458d6f45bc9a33cda826190, type: 2}
+  - {fileID: 4300000, guid: 7944fd4c298b2a44f83b6f16cf93f6c1, type: 2}
+  - {fileID: 4300000, guid: 9e2d41d0bdd77d048b7f64639114e9f7, type: 2}
   _blinkInterval: {x: 2.2, y: 5}
   _blinkDuration: 0.12
