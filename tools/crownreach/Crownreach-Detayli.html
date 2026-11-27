@@ -40,14 +40,14 @@ function fence(x,z,l,ang=0){at(x,0,z,ang,()=>{for(let i=0;i<=Math.ceil(l/2);i++)
 function path(x,z,w,d,c='#dfc389'){box(cityX(x),ground(z)+.055,z,cityX(w),.12,d,c)}
 function tree(x,z,s=1,fruit=false){place(x,ground(z),z,rand(),()=>{box(0,1.2*s,0,.65*s,2.4*s,.62*s,wood);for(const [a,b,k,sz] of [[0,2.6,0,2.8],[-.85,2.5,.25,1.75],[.7,2.9,.35,1.95],[0,3.75,-.2,1.8]])box(a*s,b*s,k*s,sz*s,sz*s*.81,sz*s,pick(['#6a9847','#80a74b','#527f43','#94b650']));for(let i=0;i<8;i++){let t=i*2.4;ball(Math.cos(t)*1.24*s,(2.88+.36*Math.sin(2*t))*s,Math.sin(t)*1.25*s,1.26*s,1.2*s,1.26*s,i%2?'#80a74b':'#719e4b')}
 if(fruit)for(let i=0;i<7;i++)box((rand()*2.5-1.25)*s,(2+rand()*1.5)*s,1.39*s,.32*s,.33*s,.31*s,'#ce5030')})}
-function pine(x,z,s){place(x,ground(z),z,0,()=>{box(0,s,0,.4*s,2*s,.4*s,wood);for(let i=0;i<4;i++)shape('cone',0,(1.6+i*.73)*s,0,(3.6-i*.7)*s,1.8*s,(3.6-i*.7)*s,i%2?'#45765a':'#50845f',0,.38)})}
+function pine(x,z,s){place(x,ground(z),z,0,()=>{box(0,1.05*s,0,.42*s,2.1*s,.42*s,wood);box(0,.1*s,0,.66*s,.2*s,.66*s,dark);for(const a of [0,Math.PI/2])box(0,.12*s,0,.95*s,.1*s,.18*s,dark,0,a);for(let i=0;i<4;i++)shape('cone',0,(2.6+i*.68)*s,0,(2.7-i*.5)*s,1.5*s,(2.7-i*.5)*s,i%2?'#45765a':'#50845f',0,.38)})}
 function crate(x,z,s=.85){box(x,s/2,z,s,s,s,oak);for(let a of [-1,1])box(x+a*s*.39,s/2,z+s*.51,s*.14,s,s*.1,wood);box(x,s/2,z+s*.53,s*.95,.11,.09,wood,0,0,.65)}
 function barrel(x,z,s=.88){for(let i=0;i<12;i++){
  let a=i*Math.PI/6;box(x+Math.sin(a)*s*.49,s*.56,z+Math.cos(a)*s*.49,s*.24,s*1.06,s*.055,i%3===0?oak:wood,0,a)}
  cyl(x,s*.56,z,s,s*1.12,s,wood);for(let y of [.23,.9])cyl(x,s*y,z,s*1.04,s*.12,s*1.04,shade)}
 function food(x,y,z,c,s=.34){ball(x,y,z,s,s*.86,s,c)}
 function bench(x,z){box(x,.58,z,1.7,.16,.65,oak);for(const a of [-.6,.6])box(x+a,.26,z,.2,.52,.44,wood)}
-function house(x,z,w,d,h,roof,angle=0){place(x,ground(z),z,angle,()=>{box(0,.19,0,w+.35,.38,d+.35,shade);box(0,h/2+.23,0,w,h,d,cream);for(let a of [-1,1]){box(0,.62,a*d*.505,w,.26,.15,wood);box(0,h-.25,a*d*.505,w,.2,.16,wood);for(let i=0;i<=3;i++)box(w*(i/3-.5),h*.53,a*d*.51,.2,h,.18,dark);for(let b of [-1,1]){box(b*w*.32,h*.57,a*d*.52,w*.18,h*.36,.16,wood);box(b*w*.32,h*.58,a*d*.54,w*.13,h*.28,.1,'#506369');box(b*w*.32,h*.57,a*d*.56,.09,h*.28,.1,cream)}box(a*w*.51,h*.55,0,.15,h,.2,wood);box(a*w*.51,h*.58,d*.22,.1,h*.3,.7,'#485f61')}box(0,h*.3,d*.52,w*.2,h*.58,.28,wood);box(.17,h*.29,d*.56,.1,.1,.09,gold);box(0,.2,d*.6,w*.36,.34,.65,stone);
+function houseClassic(x,z,w,d,h,roof,angle=0){place(x,ground(z),z,angle,()=>{box(0,.19,0,w+.35,.38,d+.35,shade);box(0,h/2+.23,0,w,h,d,cream);for(let a of [-1,1]){box(0,.62,a*d*.505,w,.26,.15,wood);box(0,h-.25,a*d*.505,w,.2,.16,wood);for(let i=0;i<=3;i++)box(w*(i/3-.5),h*.53,a*d*.51,.2,h,.18,dark);for(let b of [-1,1]){box(b*w*.32,h*.57,a*d*.52,w*.18,h*.36,.16,wood);box(b*w*.32,h*.58,a*d*.54,w*.13,h*.28,.1,'#506369');box(b*w*.32,h*.57,a*d*.56,.09,h*.28,.1,cream)}box(a*w*.51,h*.55,0,.15,h,.2,wood);box(a*w*.51,h*.58,d*.22,.1,h*.3,.7,'#485f61')}box(0,h*.3,d*.52,w*.2,h*.58,.28,wood);box(.17,h*.29,d*.56,.1,.1,.09,gold);box(0,.2,d*.6,w*.36,.34,.65,stone);
 const hh=w*.52,run=w/2+.49,eave=h+.28,rise=hh+.26;
 const pitch=Math.atan2(rise,run),slope=Math.hypot(run,rise),depth=d+.94;
 // shared stepped plaster infill beneath the two roof planes
@@ -121,6 +121,9 @@ for(const s of [-1,1])for(let i=0;i<2;i++){const [x0,y0]=prof[i],[x1,y1]=prof[i+
 const f=d/2;box(0,1.2,f+.03,2,2,.08,cream);box(0,1.2,f+.07,1.62,1.62,.06,'#9c4232');for(const r of [-.79,.79])box(0,1.2,f+.11,2.15,.17,.05,cream,0,0,r);
 box(0,h+.75,f+.03,.82,.82,.08,cream);box(0,h+.75,f+.08,.5,.5,.05,dark)})}
 const iron='#6d7276',fishC='#9fb4bb',flowerC=['#d8546a','#f2c94c','#e88fb0','#f08a3a'];
+// Yeni köy modellerinin renkleri (demirci, han, saat kulesi, tarla).
+const cSlate='#58777c',cSlateD='#506369',cGlow='#ffd26b',cFire='#f08a3a',cEmber='#ffd86a',cBrick='#b5503c',cBrickD='#9c4232',cSoot='#3d3a40',cThatch='#dab352',cThatchD='#c9a86a',cClay='#a5703f';
+const potC=['#cb8a60','#a76549','#d09b58','#b5774f'],dyeC=['#c44f2d','#4e7c8a','#f2c94c','#7d5ba6','#5d8d74','#e88fb0'];
 // Harbor props
 function fishstall(x,z,ang=0){at(x,ground(z),z,ang,()=>{box(0,.85,0,3,.2,1.4,oak);for(const a of [-1,1])for(const b of [-1,1])box(a*1.35,.42,b*.55,.16,.84,.16,wood);box(0,1,0,2.7,.1,1.15,'#dfeef0');for(let i=0;i<7;i++)box((i-3)*.37,1.12,i%2?.2:-.2,.3,.12,.62,i%3?fishC:'#c2ccc6',0,i%2?.3:-.3);for(const a of [-1,1])box(a*1.35,1.7,-.62,.12,1.7,.12,wood);box(0,2.5,-.62,2.9,.12,.12,wood);for(let i=0;i<4;i++)box((i-1.5)*.62,2.12,-.62,.16,.62,.08,fishC)})}
 function rope(x,z){at(x,ground(z),z,0,()=>{cyl(0,.1,0,.9,.2,.9,'#c9a86a');cyl(0,.27,0,.72,.16,.72,'#b8975a');cyl(0,.36,0,.32,.04,.32,dark)})}
@@ -151,7 +154,7 @@ for(let side of [-1,1]){let cx=side*12;place(cx,0,40,0,()=>{box(0,.14,0,14.3,.28
 mill(-23.5,42);mill(24,39);
 house(P(-24.2),26,4.4,5,2.85,red);house(P(24.2),26,4.7,5.2,2.9,'#be6744');stall(P(-19.8),26,red);stall(P(18.9),26,blue);
 basket(P(-16.6),26.3,'#c55630');basket(P(15.9),26.3,'#d2a250');crates(-25,21.6);crates(23.5,21.6);laundry(-28.6,26,3.4,Math.PI/2);cart(P(28.9),25.5);
-for(let [x,z] of [[-24,34],[-25,30],[-25,38],[25,46],[22,50]])tree(x,z,.87,true);
+for(let [x,z] of [[-24,34],[-25,30],[-25,38],[26.53,44.2],[17.36,58.4]])tree(x,z,.87,true);   // doğudaki ikisi şapele yer açtı
 house(P(-18.6),51.5,3.6,3.2,2,'#b45e3e');house(P(18.6),51.5,3.5,3.1,1.9,'#916345');
 pen(-12.2,51.3,7,5,[[-2,-1,'sheep'],[.5,1,'sheep'],[2,-.8,'sheep']]);hay(-9.45,55.35,3);
 pen(11.9,51.3,7.5,5,[[-2.4,-1,'pig'],[.3,.9,'cow'],[2.6,-.9,'cow'],[-2.6,1.4,'chicken'],[-1.6,1.7,'chicken']]);hay(22.93,54.83,3,Math.PI/2);
@@ -181,20 +184,23 @@ gate(19,25,3.9,true);gate(-8,23,6.2);gate(-32,21,8.4);
 const townStone='#bebaa3',plazaStone='#c4c1aa';
 lane(-3.1,-7.25,3.1,0,townStone);lane(-3.1,8,3.1,19,townStone);
 for(const s of [-1,1]){lane(s*17.4,-4.8,s*20,15.6,townStone);lane(s*6.05,2.8,s*17.4,5.2,townStone);lane(s*3.1,-7.2,s*20,-4.8,townStone);lane(s*3.1,15.6,s*20,18,townStone);lane(s*4.66,.9,s*6.05,7.1,plazaStone)}
-lane(-6.05,0,6.05,.9,plazaStone);lane(-6.05,7.1,6.05,8,plazaStone);lane(-4.66,.9,4.66,7.1,'#89a75f');
+lane(-6.05,0,6.05,.9,plazaStone);lane(-6.05,7.1,6.05,8,plazaStone);lane(-4.66,.9,4.66,7.1,plazaStone);   // saat kulesinin meydanı taş döşeli
+{const hash=(i,k)=>{const v=Math.sin(i*12.9898+k*78.233)*43758.5453;return v-Math.floor(v)};
+ for(let i=0;i<150;i++){const x=-5.9+hash(i,5)*11.8,z=.15+hash(i,6)*7.7,w=.38+hash(i,7)*.38;if(Math.abs(x)<2&&Math.abs(z-4)<2)continue;
+  box(x,1.13,z,w,.028,.3,['#a9aa98','#d0cab4','#bab9a4'][Math.floor(hash(i,8)*3)])}}
 for(let i=0;i<190;i++){let z=-6+rand()*23,x=rand()*4.65-2.33,w=.38+rand()*.38,c=pick(['#a9aa98','#d0cab4','#bab9a4']);if(z>-.4&&z<8.4)continue;box(cityX(x),1.13,z,w,.028,.3,c)}
-fountain(0,4);at(0,1,4,0,()=>{bench(cityX(-3),0);bench(cityX(3),0)});
+clocktower(0,4,0,.85);at(0,1,4,0,()=>{bench(cityX(-3),0);bench(cityX(3),0)});
 for(const s of [-1,1]){
  const a=s<0?Math.PI:0;
- house(P(s*11),13.2,4.5,3.6,2.6,s<0?red:'#a86542');garden(P(s*15.35),13.2,3,3.1,a);
+ if(s<0)alchemist(-11,13.2,0,.85);else tavern(10.6,13.1,0,.92);   // güneybatı simyacı, güneydoğu han: ikisi de sokağa ve kameraya dönük   // güneydoğu evi han: önü sokağa ve kameraya açıkgarden(P(s*15.35),13.2,3,3.1,a);
  house(P(s*11),7.7,4.7,4.1,3.4,s<0?'#ad5038':'#6d8990');garden(P(s*15.35),7.7,3,3.1,a);
  house(P(s*11),-1,4.5,5.5,3.6,s<0?'#bd7449':'#975342');garden(P(s*15.35),-1,3,3.1,a);
  wall(cityX(s*22),5.5,26.7,2.8,Math.PI/2,1);tower(cityX(s*22),17.8,1,2.6,3.8);tree(s*4.4,7.2,.67);
 }
 house(P(-23),12.4,3.7,5.8,2.7,'#956645');fountain(P(-23),7.2,true);house(P(-22.9),-1.5,4,4,3.1,'#668587');
 house(P(23),13.1,4,4.6,3.2,'#bc6144');house(P(23),6.9,3.1,4.2,2.7,blue);
-for(const s of [-1,1]){planters(s*11,13.2,4.5,3.6,2.6);planters(s*11,7.7,4.7,4.1,3.4);planters(s*11,-1,4.5,5.5,3.6)}planters(-23,12.4,3.7,5.8,2.7);planters(-22.9,-1.5,4,4,3.1);planters(23,13.1,4,4.6,3.2);planters(23,6.9,3.1,4.2,2.7);tower(cityX(18.7),-2.6,1,3.1,6.6,true);
-stall(P(-6.6),13.2,'#ad803a',Math.PI/2);crates(-6.6,8.6);crates(21.3,1);smithy(-6,-2.4);oven(6,-2.6);breadtable(6,-.75);innsign(8.2,5.4);tables(7.3,7.4);laundry(11,10.55,3.4);
+for(const s of [-1,1]){planters(s*11,7.7,4.7,4.1,3.4);planters(s*11,-1,4.5,5.5,3.6)}planters(-23,12.4,3.7,5.8,2.7);planters(-22.9,-1.5,4,4,3.1);planters(23,13.1,4,4.6,3.2);planters(23,6.9,3.1,4.2,2.7);tower(cityX(18.7),-2.6,1,3.1,6.6,true);
+stall(P(-6.6),13.2,'#ad803a',Math.PI/2);crates(-6.6,8.6);crates(21.3,1);forge(-6.3,-2.95,0,.68);anvil(-4.5,-.7,0,.68);grindstone(-7.9,-.7,0,.68);oven(6,-2.6);breadtable(6,-.75);laundry(11,10.55,3.4);tavernset(7.1,12.6,.3,0,.68);tavernset(7.1,14.7,0,1,.68);spit(7.3,10.1,0,.7);
 place(P(-22.9),1,1.9,0,()=>{for(let i=0;i<6;i++)cyl(i%3*.47,Math.floor(i/3)*.42+.25,0,.43,1.1,.43,oak,Math.PI/2);for(let i=0;i<3;i++)ball(-1.2+i*.48,.41,0,.65,.86,.65,'#c4ae84')});
 for(const z of [-3.5,10,14.5])for(const s of [-1,1])lamppost(s*3.75,z,s<0?0:Math.PI);
 // Street lamps along the main road (the arm reaches over the road).
@@ -202,7 +208,7 @@ for(const [x,z] of [[-3.6,37],[3.6,43],[-3.6,66],[3.6,66],[3.6,87.5],[3.6,99.5],
 
 // Garrison: lateral service lanes leave the middle open for a siege encounter.
 path(0,-20,36,21,'#b3ac93');for(let z of [-11.5,-25.3])path(0,z,40,2.1,'#cac2a8');for(let s of [-1,1]){wall(cityX(s*21),-20,24,4.2,Math.PI/2,2);tower(cityX(s*21),-9,2,3.35,5.5);tower(cityX(s*21),-30.5,2,3.6,6.45);house(s*15.7,-17,4.9,8.5,3.4,s<0?'#87563d':'#657b80');flag(cityX(s*12),5,-18,red)}
-at(0,2,0,0,()=>{for(let i=0;i<4;i++){let x=cityX(-8.8+i*1.8);box(x,.85,-21,.18,1.7,.2,wood);for(let j=0;j<3;j++)shape('round',x,1.95,-21+j*.06,1.38-j*.44,.11,1.38-j*.44,[cream,red,gold][j],Math.PI/2)}for(let i=0;i<3;i++){let x=cityX(-9+i*2.05);box(x,1,-16,.21,2,.24,wood);box(x,1.48,-16,1.32,.23,.24,wood);box(x,1.56,-16,.67,.89,.56,'#ae8b55');ball(x,2.27,-16,.65,.67,.64,oak)}for(let i=0;i<8;i++)crate(cityX(13.5)+i%4*1.17,-23.1-Math.floor(i/4)*1.2,1.05);for(let i=0;i<3;i++)barrel(cityX(18.7),-22.5-i,.88);for(let x of [cityX(8.5)-1.5,cityX(8.5)+1.5]){box(x,.82,-14,.16,1.6,.23,wood)}box(cityX(8.5),1.2,-14,3.25,.21,.28,wood);for(let i=0;i<5;i++){box(cityX(8.5)-1.2+i*.55,1.26,-13.8,.09,2.53,.09,wood);shape('cone',cityX(8.5)-1.2+i*.55,2.65,-13.8,.27,.46,.27,shade)}
+at(0,2,0,0,()=>{for(let i=0;i<4;i++){let x=cityX(-8.8+i*1.8);box(x,.85,-21,.18,1.7,.2,wood);for(let j=0;j<3;j++)shape('round',x,1.95,-21+j*.06,1.38-j*.44,.11,1.38-j*.44,[cream,red,gold][j],Math.PI/2)}for(let i=0;i<4;i++){let x=cityX(-8.8+i*1.8);for(const [u,v] of [[.18,.14],[-.2,-.08],[.05,-.28]].slice(0,2+i%2)){box(x+u,1.95+v,-20.62,.04,.04,.55,wood);box(x+u,1.95+v,-20.38,.12,.12,.06,i%2?red:cream)}}for(let i=0;i<3;i++){let x=cityX(-9+i*2.05);box(x,1,-16,.21,2,.24,wood);box(x,1.48,-16,1.32,.23,.24,wood);box(x,1.56,-16,.67,.89,.56,'#ae8b55');ball(x,2.27,-16,.65,.67,.64,oak)}for(let i=0;i<8;i++)crate(cityX(13.5)+i%4*1.17,-23.1-Math.floor(i/4)*1.2,1.05);for(let i=0;i<3;i++)barrel(cityX(18.7),-22.5-i,.88);for(let x of [cityX(8.5)-1.5,cityX(8.5)+1.5]){box(x,.82,-14,.16,1.6,.23,wood)}box(cityX(8.5),1.2,-14,3.25,.21,.28,wood);for(let i=0;i<5;i++){box(cityX(8.5)-1.2+i*.55,1.26,-13.8,.09,2.53,.09,wood);shape('cone',cityX(8.5)-1.2+i*.55,2.65,-13.8,.27,.46,.27,shade)}
 for(const x of [cityX(-15),cityX(-8)]){for(let i=0;i<6;i++)box(x,.3+i*.32,-26,(4.1-i*.6),.39,3.9,i%2?'#c3a56f':'#ddc495');box(x,.64,-23.99,.84,1.25,.07,dark)}
 });cart(10,-23);
 function siege(x,z){place(x,ground(z),z,-.36,()=>{box(0,.87,0,2.5,.43,3.9,wood);for(let a of [-1,1])for(let b of [-1,1])shape('round',a*1.32,.62,b*1.23,1.17,.32,1.17,dark,0,0,Math.PI/2);for(let a of [-1,1])box(a*.81,1.92,0,.32,2.2,.36,oak);box(0,2.75,0,2.05,.33,.4,wood);box(0,2.63,0,.36,.4,4.15,oak,-.59);cyl(0,3.7,1.75,1.28,.36,1.28,wood);ball(0,4.02,1.75,.77,.75,.78,shade)})}siege(7,-19);
@@ -222,7 +228,7 @@ for(let s of [-1,1]){for(let [x,z] of [[21,-51],[23,-26],[23,-22],[24,-3],[24,3]
 for(let i=0;i<72;i++){let z=-52+rand()*104,s=rand()<.5?-1:1,x=s*cityX(widthAt(z)-1.5-rand());if(i%3===0)ball(x,ground(z)+.29,z,.98,.85,.82,'#969c88');else{ball(x,ground(z)+.37,z,.98,.84,.86,'#87a354');if(i%2===0)box(x+.35,ground(z)+.47,z+.3,.2,.22,.19,'#edce79')}}
 // The gate approaches climb the terraces on shallow stepped causeways.
 for(const z of [19,-8,-32]) for(let i=0;i<12;i++){const y=ground(z+.1)+.15+(11-i)/12;box(0,y-.12,z+(i-2)*.29,4.68,.27,.31,z===-32?oak:z===19?'#d2b983':'#bdb9a0')}
-function basket(x,z,c){place(x,ground(z),z,0,()=>{cyl(0,.28,0,.85,.49,.85,oak);for(let i=0;i<3;i++)cyl(0,.17+i*.14,0,.89,.045,.89,wood);for(let i=0;i<5;i++)food(Math.sin(i*1.26)*.23,.58,Math.cos(i*1.26)*.23,c,.34)})}
+function basket(x,z,c){place(x,ground(z),z,0,()=>{cyl(0,.28,0,.85,.49,.85,oak);for(let i=0;i<3;i++)cyl(0,.17+i*.14,0,.89,.045,.89,wood);for(let i=0;i<5;i++)ball(Math.sin(i*1.26)*.2,.62,Math.cos(i*1.26)*.2,.34,.29,.34,c);ball(0,.74,0,.3,.26,.3,c)})}
 place(P(-21.6),0,51.5,0,()=>{cyl(0,.4,0,.98,.78,.98,wood);cyl(0,.81,0,.88,.06,.88,oak);box(.1,1.16,0,.13,.94,.15,wood,0,0,-.34);box(-.1,.96,0,.45,.31,.15,shade)});
 for(const [x,z] of [[-4,24]])place(x,ground(z),z,0,()=>{post(0,0,2.4);box(.42,2.31,0,1,.14,.17,wood);box(.68,1.87,0,.76,.64,.13,oak)});
 // The old field road continues south through the guild square to the customs quay.
@@ -233,6 +239,12 @@ const paving='#c8bda0';
 lane(-29.05,59.8,29.05,62.2);lane(-29.05,90.8,29.05,93.2);
 for(const s of [-1,1]){lane(s*26.5,62.2,s*29.05,90.8);lane(s*19.35,75.8,s*26.5,78.2)}
 lane(-19.35,72.4,19.35,83,paving);
+// Pazar meydanı surlu kasabanın caddesi gibi taş döşemeli: aynı plaka boyu ve tonları. rand() yerine sabit hash
+// (rand() çağırmak sonraki bütün rastgele detayları kaydırır). Çeşme ve bankların çevresi boş kalır.
+{const hash=(i,k)=>{const v=Math.sin(i*12.9898+k*78.233)*43758.5453;return v-Math.floor(v)};
+ for(let i=0;i<660;i++){const x=-19.1+hash(i,1)*38.2,z=72.65+hash(i,2)*10.1,w=.38+hash(i,3)*.38;
+  if(Math.hypot(x,z-77.7)<3.2||(Math.abs(z-77.7)<.6&&Math.abs(Math.abs(x)-3.6)<1.1))continue;
+  box(x,.13,z,w,.028,.3,['#a9aa98','#d0cab4','#bab9a4'][Math.floor(hash(i,4)*3)])}}
 
 // The guildhall faces the square. The belfry shares the hall's rear wall.
 house(-10,69,7,6,4.8,'#58777c');
@@ -248,17 +260,13 @@ for(const [x,c] of [[-16.2,'#5d8d74'],[-11.7,gold],[-7.2,red],[6.6,'#bd9041'],[1
 fountain(0,77.7,true);at(0,0,77.7,0,()=>{bench(-3.6,0);bench(3.6,0)});
 basket(P(-18.6),77.7,'#c55630');basket(P(18.6),77.7,'#d2a250');for(const x of [-18.9,18.9])for(const z of [72.9,82.5])flag(x,0,z,x<0?red:blue);
 garden(P(14.3),68,3,3.1);garden(P(-16),85.8,3,3.1,Math.PI);laundry(-9.68,89.4,3.4);laundry(20.57,89.2,3);
-place(-18,0,68,0,()=>{
- cyl(0,1.05,0,3,2.1,3,'#ad7654');
- shape('cone',0,2.52,0,3.1,1.15,3.1,'#a45e45');
- cyl(0,3.22,0,.82,1.05,.82,'#976448');
- box(0,.72,1.46,1.04,1.21,.14,dark);
- for(let i=0;i<5;i++){const x=(i%3-1)*.85,z=2.4+Math.floor(i/3)*.9;
-  ball(x,.42,z,.75,.85,.75,'#cb8a60');cyl(x,.82,z,.46,.19,.46,'#a76549');}
-});
+// Çömlekçiler (batı): fırın, çark, kurutma rafı, küp yığınları. Boyahane (doğu yolu boyunca): askılar ve tekneler.
+kiln(-21.8,66.6);potterwheel(-18.2,70.1,-.2);dryingrack(-24.7,63.4);potstack(-24.6,70.2);potstack(-18.6,63.4,1.2);
+dyerack(24.8,63.6,0,0);dyerack(24.8,66.6,0,2);dyerack(24.8,69.6,0,4);dyevats(24.8,81.8,0,1);dyevats(24.8,85.6,.3,3);dyerack(24.8,89.1,0,1);
 tree(20,96,.86,true);
 // Boatyard between the guild houses and the harbor loop: a hull upturned on trestles, timber, nets drying.
-boatyard(-15,96.4,Math.PI/2);planks(-20,96.4);nets(-9,96.4);crates(-6,95.4);barrel(-12,98.3,.8);
+// Lonca evleri ile liman halkası arasında meyhane bahçesi (eski tersane): fener dizisi arkada, masalar önde.
+lanternline(-14.5,94.4,12);tavernset(-18.3,96,.3);tavernset(-14.5,96);tavernset(-10.7,96,-.3,1);tavernset(-16.4,98.5,.5,1);tavernset(-12.6,98.5,-.2);fishgrill(-20.4,98.4,.2);kegs(-8.8,98.4,-.3);crates(-6,95.4);barrel(-6.9,98.6,.8);
 for(const [x,z] of [[-25,67],[-25,85],[25,71],[25,88]])tree(x,z,.82);
 cart(-4,88);
 
@@ -297,11 +305,427 @@ function fishingBoat(x,z,angle,sail){
 }
 fishingBoat(17,109.5,.06,true);fishingBoat(21.5,116.9,-.14,true);fishingBoat(15.4,118.2,.03,false);
 tower(cityX(8),126.7,0,3.5,6.2,true,'#956348');
+// Yeni köy modelleri (demirci, han, saat kulesi, tarla). Ölçekli olanlar s ile küçülür (kasabadaki yerlere sığsın).
+function _scale(s){if(s!==1)origin=origin.clone().multiply(new T.Matrix4().makeScale(s,s,s))}
+// Mahyası x boyunca beşik çatı; ön eğim (+z) kameraya bakar. y = duvar üstü, d = duvar derinliği.
+function _gable(w,d,y,rise,c,c2,over=.4,end=cream,stripe=false){
+ const k=rise/(d/2),run=d/2+over,pitch=Math.atan(k),yA=y+rise,yE=yA-k*run,slope=run/Math.cos(pitch),W=w+.5;
+ for(let i=0;i<7;i++){const f=(i+.5)/7;box(0,y+f*rise,0,w,rise/7+.015,d*(1-f),end)}
+ for(const s of [-1,1]){
+  box(0,(yA+yE)/2,s*run/2,W,.16,slope,wood,s*pitch);
+  const rows=stripe?6:5,sw=slope/rows,cols=stripe?1:Math.max(3,Math.round(W/.75)),sx=W/cols;
+  for(let i=0;i<rows;i++)for(let j=0;j<cols;j++){const f=(i+.5)/rows;
+   box(-W/2+(j+.5)*sx,yA-(yA-yE)*f+.12*Math.cos(pitch),s*(run*f+.12*Math.sin(pitch)),sx-.03,.12,sw+.05,stripe?(i%2?c:c2):new T.Color((i*7+j*3)%5?c:c2).offsetHSL(0,0,.016*((i*13+j*7)%5-2)),s*pitch)}
+  box(0,yE-.06,s*run,W+.06,.22,.2,wood);
+ }
+ for(let j=0,n=Math.ceil(W/.7);j<n;j++)shape('ridge',-W/2+(j+.5)*W/n,yA+.2,0,.5,.36,W/n+.02,c2,0,Math.PI/2,0);
+ return yA}
+// +z'ye bakan pencere
+function _win(x,y,z,w,h,g=cGlow,f=wood){box(x,y,z,w+.16,h+.16,.1,f);box(x,y,z+.04,w,h,.06,g);box(x,y,z+.08,.07,h,.04,f);box(x,y+h*.1,z+.08,w,.07,.04,f);box(x,y-h/2-.12,z+.06,w+.3,.1,.2,f)}
+
+// Demirci (Serra'nın görselleri ilham): ev + açık atölye, önden görünen ocak, tuğla baca
+function forge(x,z,ang=0,s=1){at(x,ground(z),z,ang,()=>{_scale(s);
+ box(0,.08,0,6.6,.16,4.6,shade);
+ for(const [u,v,s] of [[1.2,1.6,.9],[2.4,1.5,.7],[.5,1.7,.6],[2.9,.4,.8]])box(u,.17,v,s,.04,s*.8,'#b8c4be');
+ // ev (sol): taş taban, krem dolgu, koyu kalas, arduvaz çatı
+ const hx=-1.7,hw=3,hd=3.8;at(hx,0,-.2,0,()=>{
+  box(0,.5,0,hw+.1,1,hd+.1,stone);box(0,1.85,0,hw,1.7,hd,cream);
+  for(const a of [-1,1]){box(a*hw/2,1.85,hd/2+.02,.18,1.7,.14,dark);box(0,1.02,a*(hd/2+.02),hw,.16,.14,dark);box(0,2.68,a*(hd/2+.02),hw+.1,.16,.14,dark)}
+  box(-.6,1.85,hd/2+.03,.95,.12,.1,dark,0,0,.95);box(.85,1.85,hd/2+.03,.14,1.7,.12,dark);
+  _win(-.65,1.95,hd/2+.02,.6,.6);
+  box(.25,1.3,hd/2+.04,.75,1.5,.1,'#765043');box(.25,1.3,hd/2+.1,.08,1.4,.04,dark);box(.48,1.25,hd/2+.12,.08,.08,.06,gold);
+  box(.25,.3,hd/2+.35,1.05,.2,.5,stone);
+  _gable(hw,hd,2.7,1.5,cSlate,cSlateD,.35)});
+ // açık atölye (sağ): arka duvar, ön direkler, arkadan öne inen saman sundurma (ocak önden görünür)
+ box(1.6,1.45,-2.0,3.3,2.9,.22,'#8a6a45');for(let i=0;i<5;i++)box(.2+i*.7,1.45,-1.88,.06,2.8,.04,wood);
+ for(const a of [.05,3.15])box(a,1.25,.45,.24,2.5,.24,wood);box(1.6,2.45,.45,3.4,.18,.22,wood);
+ {const rx=Math.atan2(.75,2.6),L=Math.hypot(.75,2.75);box(1.6,2.95,-.75,3.8,.2,L+.3,cThatch,rx);
+  for(let i=0;i<5;i++){const t=(i+.5)/5-.5;box(1.6,2.95+.12-t*.75,-.75+t*2.75,3.85,.06,.16,cThatchD,rx)}}
+ // ocak: taş kaide, ateş ağzı, kömür, davlumbaz ve tuğla baca (çatıyı deler)
+ at(2.3,0,-1.15,0,()=>{box(0,.55,0,1.6,1.1,1.1,stone);box(0,1.12,0,1.75,.14,1.25,shade);
+  box(0,.62,.53,.95,.72,.1,cSoot);box(0,.56,.56,.7,.5,.06,cFire);box(0,.48,.6,.42,.28,.04,cEmber);
+  for(const [u,v] of [[-.2,.1],[.15,-.05],[0,.15],[.25,.2]])ball(u,1.27,v,.24,.18,.24,u>0?cFire:cSoot);
+  shape('spire',0,1.75,-.05,1.5,1,1.05,cBrick);box(0,3.2,-.15,.62,3,.62,cBrick);
+  for(let i=0;i<6;i++)box(0,2.05+i*.5,-.15,.66,.06,.66,cBrickD);
+  box(0,4.75,-.15,.82,.14,.82,cSoot);box(0,4.92,-.15,.5,.2,.5,cSoot)});
+ // aletler arka duvarda
+ for(let i=0;i<3;i++){box(.45+i*.32,1.75,-1.84,.07,.8,.05,iron);box(.45+i*.32,2.1,-1.84,.24,.14,.08,i===1?iron:dark)}
+ // tabela: duvardan kol, zincir, örs tabelası
+ box(-.15,3.05,1.75,.12,.12,1.2,dark);box(-.15,2.85,2.3,.04,.35,.04,iron);
+ box(-.15,2.5,2.3,.52,.38,.12,gold);box(-.15,2.5,2.37,.3,.12,.05,iron);box(-.15,2.39,2.37,.12,.12,.05,iron);
+ // kömür yığını ve su kovası
+ for(const [u,v] of [[.8,-1.3],[1.05,-1.0],[.6,-.95],[.95,-1.4]])ball(u,.28,v,.42,.34,.42,cSoot);
+ cyl(2.9,.32,.8,.62,.56,.62,wood);cyl(2.9,.62,.8,.5,.04,.5,water);cyl(2.9,.18,.8,.66,.08,.66,iron);cyl(2.9,.5,.8,.66,.08,.66,iron);
+})}
+function anvil(x,z,ang=0,s=1){at(x,ground(z),z,ang,()=>{_scale(s);
+ cyl(0,.3,0,1,.6,1,wood);cyl(0,.6,0,.92,.04,.92,'#d9b98a');cyl(0,.61,0,.5,.02,.5,oak);
+ box(0,.72,0,.45,.24,.35,iron);box(0,.88,0,.28,.16,.24,iron);box(0,1.07,0,.95,.22,.38,iron);
+ shape('cone',.66,1.09,0,.34,.5,.34,iron,0,0,-Math.PI/2);box(-.53,1.07,0,.14,.2,.32,iron);box(-.25,1.19,0,.12,.03,.1,dark);
+ box(.12,1.26,.03,.32,.15,.15,dark);box(.12,1.3,.32,.07,.07,.55,oak,0,.25);
+})}
+function grindstone(x,z,ang=0,s=1){at(x,ground(z),z,ang,()=>{_scale(s);
+ for(const a of [-.38,.38]){box(a,.5,0,.14,1,.14,wood)}box(0,.18,0,.95,.14,.7,wood);box(0,1.0,0,.95,.1,.12,wood);
+ shape('round',0,.9,0,1.05,.24,1.05,'#a7a088',Math.PI/2);cyl(0,.9,0,.3,.3,.3,dark,Math.PI/2);
+ box(.6,.9,0,.4,.07,.07,dark);box(.8,.9,.15,.07,.07,.3,oak);
+ cyl(0,.12,.65,.55,.24,.4,water);
+})}
+
+// ---------------------------------------------------------------- han
+function tavern(x,z,ang=0,s=1){at(x,ground(z),z,ang,()=>{_scale(s);
+ const w=6,d=4.2,g=2.2,u=1.9;
+ box(0,.15,0,w+.4,.3,d+.4,shade);
+ box(0,g/2+.3,0,w,g,d,stone);
+ for(let i=0;i<9;i++)box(-w/2+.4+i*.66,.55+(i%3)*.6,d/2+.02,.5,.26,.06,i%2?'#bdb9a0':'#919484');
+ // cumbalı üst kat
+ box(0,g+.3+.08,0,w+.5,.16,d+.5,wood);
+ box(0,g+.46+u/2,0,w+.3,u,d+.3,cream);
+ const fz=d/2+.17,top=g+.46+u;
+ for(const a of [-1,-.5,0,.5,1])box(a*(w+.3)/2,g+.46+u/2,fz,.18,u,.1,dark);
+ box(0,top-.08,fz,w+.4,.16,.12,dark);
+ for(const a of [-.75,.75]){_win(a*(w/2),g+.46+u*.55,fz,.75,.7)}
+ for(const a of [-1,1])box(a*.38,g+.46+u/2,fz,.12,u*1.08,.08,dark,0,0,a*.82);
+ for(const a of [-1,1])box(a*(w/2+.17),g+.46+u/2,0,.1,u,d,dark);
+ const roofTop=_gable(w+.3,d+.3,top,2.4,red,'#c55630',.45);
+ // yan taş baca (sağ)
+ box(w/2+.45,2.6,-.6,.9,5.2,1.1,stone);box(w/2+.45,top+2.1,-.6,.7,2.2,.8,stone);box(w/2+.45,top+3.25,-.6,.9,.16,1,shade);
+ // giriş: kemerli çift kapı, basamak, fenerler, pencereler
+ box(0,1.32,d/2+.03,1.5,2.05,.1,wood);box(0,2.34,d/2+.03,1.5,.25,.1,wood);
+ box(-.36,1.2,d/2+.09,.66,1.78,.06,'#765043');box(.36,1.2,d/2+.09,.66,1.78,.06,'#765043');
+ for(const a of [-1,1])box(a*.12,1.25,d/2+.14,.08,.08,.06,gold);
+ box(0,.42,d/2+.4,1.9,.24,.6,stone);
+ for(const a of [-1.85,1.85])_win(a,1.45,d/2+.01,.85,.75);
+ for(const a of [-1,1]){box(a*1.05,2.05,d/2+.22,.06,.06,.4,dark);cyl(a*1.05,1.85,d/2+.42,.2,.28,.2,cEmber);shape('cone',a*1.05,2.06,d/2+.42,.32,.16,.32,dark)}
+ // asılı kupa tabelası
+ box(-w/2+.1,top-.35,d/2+.85,.12,.12,1.4,dark);
+ box(-w/2+.1,top-.6,d/2+1.4,.05,.4,.05,iron);
+ box(-w/2+.1,top-1.15,d/2+1.4,.95,.75,.12,'#a5703f');
+ cyl(-w/2+.05,top-1.17,d/2+1.48,.32,.38,.12,gold);box(-w/2+.27,top-1.15,d/2+1.48,.1,.22,.08,gold);box(-w/2+.05,top-.95,d/2+1.48,.36,.08,.12,cream);
+ // yan: fıçı yığını
+ barrel(-w/2-.6,-1.6,.75);barrel(-w/2-.6,-.75,.75);at(-w/2-.6,.82,-1.18,0,()=>barrel(0,0,.7));
+})}
+// teras takımı: yuvarlak masa, 4 sandalye, kupalar (her biri ayrı yenebilir obje)
+function tavernset(x,z,ang=0,food=0,s=1){at(x,ground(z),z,ang,()=>{_scale(s);
+ cyl(0,.38,0,.22,.76,.22,wood);cyl(0,.06,0,.6,.1,.6,wood);cyl(0,.8,0,1.3,.1,1.3,oak);cyl(0,.75,0,1.36,.04,1.36,wood);
+ for(let i=0;i<4;i++){const a=i*Math.PI/2+Math.PI/4,cx=Math.sin(a)*.95,cz=Math.cos(a)*.95;at(cx,0,cz,a,()=>{
+  box(0,.46,0,.48,.08,.48,oak);for(const p of [-1,1])for(const q of [-1,1])box(p*.19,.22,q*.19,.07,.44,.07,wood);
+  box(0,.78,.22,.48,.12,.07,wood);for(const p of [-1,1])box(p*.19,.66,.22,.07,.4,.07,wood)})}
+ for(const [u,v] of [[-.3,.15],[.25,-.2]]){cyl(u,.95,v,.2,.22,.2,cClay);cyl(u,1.07,v,.2,.04,.2,cream);box(u+.13,.95,v,.05,.12,.04,cClay)}
+ if(food){cyl(.1,.87,.3,.46,.04,.46,'#e4d5af');ball(.1,.94,.3,.28,.16,.2,'#d09b58')}
+ else{cyl(-.05,.9,-.32,.12,.16,.12,cream);cyl(-.05,1.01,-.32,.05,.07,.05,cFire)}
+})}
+// mangal: üç ayak, kazan, ateş (hanın yanına)
+function spit(x,z,ang=0,s=1){at(x,ground(z),z,ang,()=>{_scale(s);
+ for(const a of [-1,1]){box(a*.75,.65,0,.12,1.4,.12,wood,0,0,a*.12)}box(0,1.32,0,1.75,.1,.1,wood);
+ box(0,1.1,0,.04,.4,.04,iron);ball(0,.78,0,.6,.48,.6,cSoot);cyl(0,.98,0,.5,.06,.5,'#e4bf69');
+ for(let i=0;i<4;i++)box(Math.sin(i*1.57)*.25,.12,Math.cos(i*1.57)*.25,.6,.12,.12,wood,0,i*1.57);
+ shape('cone',0,.32,0,.42,.45,.42,cFire);shape('cone',.05,.3,.05,.22,.3,.22,cEmber)})}
+
+// Saat kulesi: taş kaide, ahşap gövde, dört yüzde saat, altın dişliler, çan katı, kat kat külah
+function _gear(x,y,z,r,c,n=8){shape('round',x,y,z,r*2,.14,r*2,c,Math.PI/2);cyl(x,y,z+.06,r*.7,.14,r*.7,shade,Math.PI/2);
+ for(let i=0;i<n;i++){const a=i*Math.PI*2/n;box(x+Math.cos(a)*r,y+Math.sin(a)*r,z,.22,.22,.14,c,0,0,a)}}
+function _clock(z,rot=0){at(0,0,0,rot,()=>{const y=6.05;
+ shape('round',0,y,z,2.05,.16,2.05,gold,Math.PI/2);shape('round',0,y,z+.06,1.7,.14,1.7,'#f6e3bf',Math.PI/2);
+ for(let i=0;i<12;i++){const a=i*Math.PI/6;box(Math.sin(a)*.68,y+Math.cos(a)*.68,z+.14,i%3?.06:.1,i%3?.14:.22,.04,dark,0,0,-a)}
+ box(.14,y+.2,z+.17,.08,.5,.04,dark,0,0,-.6);box(-.2,y+.1,z+.17,.07,.68,.04,dark,0,0,1.2);cyl(0,y,z+.19,.14,.06,.14,gold,Math.PI/2)})}
+function clocktower(x,z,ang=0,s=1){at(x,ground(z),z,ang,()=>{_scale(s);
+ const W=3;
+ box(0,.12,0,W+1,.24,W+1,shade);
+ // taş gövde, blok dokulu
+ box(0,1.5,0,W+.3,2.6,W+.3,stone);
+ for(let r=0;r<4;r++)for(let i=0;i<4;i++){const u=-1.2+i*.8+(r%2)*.4;if(Math.abs(u)<1.6)box(u,.55+r*.62,(W+.3)/2+.02,.7,.5,.05,(i+r)%2?'#b7b8a1':'#a4aa99')}
+ box(0,2.85,0,W+.5,.2,W+.5,shade);
+ // kemerli kapı
+ box(0,1.15,(W+.3)/2+.03,1.15,1.8,.1,dark);box(0,1.08,(W+.3)/2+.08,.9,1.62,.06,'#765043');ball(0,1.9,(W+.3)/2+.07,.9,.5,.08,'#765043');box(.28,1.1,(W+.3)/2+.12,.08,.08,.05,gold);
+ box(0,.35,(W+.3)/2+.45,1.5,.22,.6,stone);
+ // ahşap gövde, kalas çerçeve
+ box(0,4.9,0,W,4,W,cSlateD);
+ for(const a of [-1,1])for(const b of [-1,1])box(a*W/2,4.9,b*W/2,.26,4.05,.26,wood);
+ for(const yy of [3.05,4.15,7.0])for(const b of [-1,1]){box(0,yy,b*(W/2+.02),W,.18,.12,wood);box(b*(W/2+.02),yy,0,.12,.18,W,wood)}
+ for(const s of [-1,1]){box(s*.95,3.6,W/2+.08,.42,.5,.06,dark);box(s*.95,3.6,W/2+.11,.28,.36,.04,cGlow)}
+ for(const r of [0,Math.PI/2,Math.PI,-Math.PI/2])_clock(W/2+.1,r);
+ // dişliler (cephe ve yan)
+ _gear(1.05,4.6,W/2+.1,.42,gold,8);_gear(-1.15,7.55,W/2+.05,.3,'#d29b41',6);
+ at(0,0,0,Math.PI/2,()=>_gear(-.9,4.5,W/2+.1,.5,gold,9));
+ // çan katı: dört direk, altın çan
+ box(0,7.25,0,W+.5,.24,W+.5,wood);
+ for(const a of [-1,1])for(const b of [-1,1])box(a*1.25,8.05,b*1.25,.28,1.4,.28,wood);
+ box(0,8.4,0,.12,.12,2.6,dark);shape('cone',0,8.0,0,.9,.85,.9,gold);ball(0,8.36,0,.5,.3,.5,gold);ball(0,7.6,0,.16,.16,.16,'#d29b41');
+ // kat kat kiremit külah
+ box(0,8.8,0,W+.7,.2,W+.7,wood);
+ shape('spire',0,9.55,0,W+.9,1.3,W+.9,red);
+ shape('spire',0,10.35,0,W-.2,1.4,W-.2,'#c55630');
+ shape('spire',0,11.25,0,W-1.05,1.6,W-1.05,red);
+ cyl(0,12.15,0,.12,.4,.12,dark);ball(0,12.42,0,.3,.3,.3,gold);box(.2,12.75,0,.55,.18,.04,gold);box(0,12.7,0,.04,.6,.04,dark);
+})}
+// Tarla: arı kovanları (hasır kovan), bal tezgâhı, korkuluk, kuyu başı yalağı. rand() çağırmaz.
+// Ev çeşitliliği: küçük/orta evler konumlarından (rand() değil) üç tipten birini alır; büyük binalar klasik kalır.
+function house(x,z,w,d,h,roof,angle=0){
+ const k=(w<=5.5&&d<=6.2)?Math.abs(Math.round(x*3.1+z*1.7))%3:0;
+ return (k===1?cottage:k===2?thatchcottage:houseClassic)(x,z,w,d,h,roof,angle)}
+// Çapraz beşikli kulübe: uzun yüz öne bakar, kapının üstünde öne çıkan beşik, kepenkli pencere, taş temel ve baca.
+function cottage(x,z,w,d,h,roof,angle=0){place(x,ground(z),z,angle,()=>{
+ const r2=new T.Color(roof).offsetHSL(0,0,-.07),y0=.5,yt=h+.5,fz=d/2+.03,rise=d*.42;
+ box(0,.25,0,w+.25,.5,d+.25,stone);
+ for(let i=0;i<Math.floor(w/.6);i++)box(-w/2+.35+i*.6,.2+(i%2)*.14,d/2+.14,.46,.15,.04,i%3?'#919484':'#bdb9a0');
+ box(0,(yt+y0)/2,0,w,h,d,cream);
+ for(const u of [-w/2,w/2])for(const v of [-d/2,d/2])box(u,(yt+y0)/2,v,.2,h,.2,wood);
+ for(const v of [-1,1]){box(0,y0+.08,v*fz,w,.16,.12,wood);box(0,yt-.08,v*fz,w+.1,.16,.12,wood)}
+ for(const u of [-1,1]){box(u*(w/2+.02),y0+.08,0,.12,.16,d,wood);box(u*(w/2+.02),yt-.08,0,.12,.16,d,wood)}
+ const wx=-w*.32,wy=y0+h*.5;_win(wx,wy,fz,w*.2,h*.3);
+ for(const a of [-1,1])box(wx+a*(w*.1+.08+w*.05),wy,fz+.05,w*.1,h*.36,.06,'#765043');
+ box(-w*.08,(yt+y0)/2,fz,.14,h,.1,wood);box(-w*.32,yt-.45,fz+.01,w*.26,.12,.08,wood,0,0,.5);
+ for(const s of [-1,1])at(s*(w/2+.02),0,0,s*Math.PI/2,()=>_win(0,wy,.03,Math.min(.8,d*.2),h*.28));
+ _gable(w,d,yt,rise,roof,r2,.35,cream);
+ const ww=w*.42,dd=Math.min(1.15,d*.3),cx=w*.18,fw=d/2+dd,rw=rise*ww/d;
+ box(cx,.25,d/2+dd/2,ww+.25,.5,dd+.25,stone);box(cx,(yt+y0)/2,d/2+dd/2,ww,h,dd,cream);
+ for(const a of [-1,1])box(cx+a*ww/2,(yt+y0)/2,fw,.2,h,.2,wood);
+ box(cx,y0+h*.36,fw+.03,ww*.48,h*.72,.1,wood);box(cx,y0+h*.35,fw+.07,ww*.38,h*.66,.06,'#765043');
+ for(const v of [.2,.5])box(cx-ww*.06,y0+h*v,fw+.11,ww*.22,.06,.04,iron);box(cx+ww*.12,y0+h*.35,fw+.11,.08,.08,.05,gold);
+ box(cx,y0+h*.8,fw+.03,ww,.14,.12,wood);box(cx,.32,fw+.35,ww*.7,.18,.5,stone);
+ at(cx,0,fw/2,Math.PI/2,()=>_gable(fw+.1,ww,yt,rw,roof,r2,.3,cream));
+ box(cx,yt+rw*.45,fw+.05,.13,rw*.85,.1,dark);for(const a of [-1,1])box(cx+a*ww*.16,yt+rw*.32,fw+.05,.1,rw*.6,.08,wood,0,0,-a*.9);
+ box(-w*.3,yt+(rise+.7)/2,-d*.2,.75,rise+.7,.75,stone);box(-w*.3,yt+rise+.72,-d*.2,.9,.16,.9,shade);
+ for(const [u,v] of [[-.15,-.15],[.15,.12]])box(-w*.3+u,yt+rise*.55,-d*.2+.39,.22,.13,.02,'#b7b8a1');
+ barrel(-w*.61,d*.3,.66);
+})}
+// Saman çatılı köy evi: alçak badanalı duvar, kalın saman çatı, ortada yuvarlak kapı.
+function thatchcottage(x,z,w,d,h,roof,angle=0){place(x,ground(z),z,angle,()=>{
+ const y0=.36,hh=h*.82,yt=y0+hh,fz=d/2+.03;
+ box(0,y0/2,0,w+.22,y0,d+.22,'#a7a088');box(0,y0+hh/2,0,w,hh,d,'#f6e3bf');
+ for(const u of [-w/2,0,w/2])box(u,y0+hh/2,fz,u?.2:.01,hh,.14,dark);for(const u of [-w/2,w/2])box(u,y0+hh/2,-fz,.2,hh,.14,dark);
+ box(0,yt-.07,fz,w,.14,.12,dark);
+ box(0,y0+.75,fz+.02,.86,1.5,.1,dark);box(0,y0+.72,fz+.06,.7,1.4,.06,'#a17c48');ball(0,y0+1.42,fz+.05,.7,.48,.08,'#a17c48');box(.2,y0+.75,fz+.1,.07,.07,.05,iron);
+ for(const s of [-1,1]){_win(s*w*.32,y0+hh*.55,fz,w*.17,hh*.3);box(s*w*.32,y0+hh*.3,fz+.12,w*.22,.14,.2,wood);
+  for(let i=0;i<3;i++)ball(s*w*.32+(i-1)*w*.06,y0+hh*.3+.12,fz+.12,.15,.15,.15,flowerC[(i+(s>0?2:0))%4])}
+ for(const s of [-1,1])at(s*(w/2+.02),0,0,s*Math.PI/2,()=>_win(0,y0+hh*.55,.03,Math.min(.7,d*.18),hh*.28));
+ const ov=.45,k=1.2;_gable(w,d,yt,d*.6,'#d2a250','#b8975a',ov,'#f6e3bf',true);
+ for(const s of [-1,1])cyl(0,yt-k*ov+.05,s*(d/2+ov),.42,w+.7,.42,'#a99a62',0,0,Math.PI/2);
+ cyl(0,yt+d*.6+.12,0,.5,w+.7,.5,'#a99a62',0,0,Math.PI/2);
+ box(w*.3,yt+d*.45,-d*.12,.55,d*.6,.55,stone);box(w*.3,yt+d*.76,-d*.12,.68,.12,.68,shade);
+ barrel(w*.62,d*.3,.66);
+})}
+// Liman meyhanesi bahçesi: fener dizisi, balık ızgarası, musluklu fıçı sehpası (masalar tavernset).
+function lanternline(x,z,len=11,ang=0){at(x,ground(z),z,ang,()=>{
+ const n=Math.round(len/3.6);for(let i=0;i<=n;i++)post(-len/2+i*len/n,0,2.8);
+ for(let i=0;i<n;i++){const a=-len/2+i*len/n,L=len/n,m=6;for(let k=0;k<m;k++){const t0=k/m,t1=(k+1)/m,y0=2.62-.42*Math.sin(Math.PI*t0),y1=2.62-.42*Math.sin(Math.PI*t1);
+  box(a+L*(t0+t1)/2,(y0+y1)/2,0,Math.hypot(L/m,y1-y0)+.02,.05,.05,dark,0,0,Math.atan2(y1-y0,L/m))}
+  for(const t of [.25,.5,.75]){const u=a+L*t,y=2.62-.42*Math.sin(Math.PI*t)-.28;box(u,y+.17,0,.03,.14,.03,dark);cyl(u,y,0,.26,.3,.26,cEmber);shape('cone',u,y+.2,0,.36,.14,.36,dark)}}
+})}
+function fishgrill(x,z,ang=0){at(x,ground(z),z,ang,()=>{
+ box(0,.4,0,1.6,.8,.9,stone);box(0,.82,0,1.7,.06,1,shade);
+ for(const [u,v] of [[-.4,.1],[0,-.15],[.35,.15],[.2,-.05]])ball(u,.86,v,.26,.12,.26,cFire);
+ for(let i=0;i<6;i++)box(-.6+i*.24,.95,0,.04,.04,.86,iron);
+ for(const [u,r] of [[-.42,.15],[.05,-.1],[.48,.1]]){at(u,0,0,r,()=>{ball(0,1.04,0,.24,.14,.62,fishC);shape('cone',0,1.04,-.38,.2,.18,.06,'#8d9a91',Math.PI/2);box(0,1.08,.25,.04,.04,.04,dark)})}
+ box(.95,.6,.2,.08,1.2,.08,wood,0,0,-.2);box(1.06,1.2,.2,.3,.05,.2,iron,0,0,-.2);
+})}
+function kegs(x,z,ang=0){at(x,ground(z),z,ang,()=>{
+ for(const a of [-.55,.55])box(a,.3,0,.18,.6,1.5,wood);box(0,.22,0,1.4,.12,.16,wood);
+ for(const [y,v] of [[.92,-.38],[.92,.38]]){cyl(0,y,v,.72,1.3,.72,oak,0,0,Math.PI/2);for(const a of [-.45,.45])cyl(a,y,v,.76,.08,.76,iron,0,0,Math.PI/2);cyl(.68,y,v,.5,.04,.5,'#9c7448',0,0,Math.PI/2);box(.74,y-.15,v,.1,.1,.06,gold)}
+ cyl(0,1.55,0,.72,1.3,.72,oak,0,0,Math.PI/2);for(const a of [-.45,.45])cyl(a,1.55,0,.76,.08,.76,iron,0,0,Math.PI/2);
+ box(1.15,.45,0,.6,.06,.6,oak);box(1.15,.22,0,.08,.44,.08,wood);for(const v of [-.15,.15]){cyl(1.15,.58,v,.18,.2,.18,cClay);cyl(1.15,.69,v,.18,.03,.18,cream)}
+})}
+// Lonca: batıda çömlekçiler (fırın, çark, kurutma rafı, küp yığınları), doğuda boyahane (kumaş askıları, boya tekneleri).
+function _pot(x,y,z,s,c,neck=true){ball(x,y+.42*s,z,.7*s,.8*s,.7*s,c);if(neck){cyl(x,y+.85*s,z,.32*s,.2*s,.32*s,c);cyl(x,y+.96*s,z,.42*s,.06*s,.42*s,'#a76549')}}
+function kiln(x,z,ang=0){at(x,ground(z),z,ang,()=>{
+ cyl(0,.25,0,3.4,.5,3.4,stone);ball(0,1.05,0,3,2.3,3,cBrick);for(let i=0;i<8;i++){const a=i*Math.PI/4;box(Math.sin(a)*1.36,.75,Math.cos(a)*1.36,.5,.12,.08,cBrickD,0,a)}
+ box(0,.85,1.38,1.1,1.05,.3,cSoot);box(0,.78,1.5,.8,.75,.08,cFire);box(0,.7,1.55,.5,.45,.04,cEmber);box(0,1.45,1.42,1.3,.18,.36,stone);
+ cyl(.35,2.45,-.3,.7,1.1,.7,cBrick);cyl(.35,3.05,-.3,.86,.14,.86,cSoot);
+ for(const [u,v] of [[-1.2,1.55],[-1.55,1.15]])cyl(u,.35,v,.5,.7,.5,'#9c7448',0,0,Math.PI/2);
+})}
+function potterwheel(x,z,ang=0){at(x,ground(z),z,ang,()=>{
+ box(0,.3,0,1.3,.12,.9,oak);for(const a of [-1,1])for(const b of [-1,1])box(a*.55,.15,b*.35,.1,.3,.1,wood);
+ box(-.15,.55,0,.1,.5,.1,wood);cyl(-.15,.82,0,.8,.08,.8,stone);cyl(-.15,.25,0,.9,.08,.9,stone);_pot(-.15,.86,0,.55,potC[0]);
+ box(.48,.48,0,.42,.08,.4,oak);for(const a of [-1,1])box(.48+a*.15,.24,0,.06,.48,.3,wood);ball(.48,.6,0,.3,.18,.26,'#b5774f');
+})}
+function dryingrack(x,z,ang=0){at(x,ground(z),z,ang,()=>{
+ for(const a of [-1.3,1.3])box(a,.95,0,.14,1.9,.6,wood);for(const y of [.5,1.15,1.8])box(0,y,0,2.8,.08,.6,oak);
+ for(let r=0;r<3;r++)for(let i=0;i<5;i++){const u=-1.05+i*.52;_pot(u,[.54,1.19,1.84][r],0,.42+((i+r)%2)*.08,potC[(i+r*2)%4],r!==1||i%2===0)}
+})}
+function potstack(x,z,ang=0){at(x,ground(z),z,ang,()=>{
+ for(const [u,v,s,i] of [[0,0,1,0],[.75,.25,.85,1],[-.7,.3,.9,2],[.2,.8,.75,3],[-.25,-.65,.7,1]])_pot(u,0,v,s,potC[i]);
+ for(const [u,v] of [[.85,-.55],[-.9,-.4]])cyl(u,.14,v,.55,.28,.55,'#a76549');cyl(.85,.33,-.55,.5,.1,.5,'#cb8a60');
+})}
+function dyerack(x,z,ang=0,k=0){at(x,ground(z),z,ang,()=>{
+ for(const a of [-1.35,1.35]){box(a,1.35,0,.16,2.7,.16,wood);shape('cone',a,2.78,0,.24,.18,.24,oak)}box(0,2.62,0,2.9,.1,.1,oak);box(0,1.95,-.3,2.9,.08,.08,oak);
+ for(let i=0;i<4;i++){const u=-.95+i*.63,c=dyeC[(i+k)%6],L=1.5+((i+k)%3)*.25;box(u,2.62-L/2,.05,.56,L,.04,c);box(u,2.62-L-.04,.05,.56,.08,.06,new T.Color(c).offsetHSL(0,0,-.08))}
+ for(let i=0;i<3;i++){const u=-.7+i*.7;box(u,1.95-.5,-.3,.5,1,.04,dyeC[(i+k+3)%6])}
+})}
+function dyevats(x,z,ang=0,k=0){at(x,ground(z),z,ang,()=>{
+ for(const [u,v,i] of [[-.75,0,0],[.75,0,1],[0,1.15,2]]){cyl(u,.4,v,1.15,.8,1.15,wood);for(const y of [.18,.62])cyl(u,y,v,1.2,.08,1.2,iron);cyl(u,.78,v,.98,.04,.98,dyeC[(i+k)%6])}
+ box(-.6,1.05,.1,.08,.95,.08,oak,0,0,.5);box(-.35,.58,.1,.22,.06,.18,oak,0,0,.5);
+ for(let i=0;i<3;i++)cyl(1.05,.16+i*.27,1.15,.26,.62,.26,dyeC[(i+k+2)%6],0,0,Math.PI/2);
+})}
+// Garnizon/kale: okçuluk teçhizatı, ahşap gözetleme kulesi, mızrak dövüşü (bariyer, tribün, flama).
+function archerygear(x,z,ang=0){at(x,ground(z),z,ang,()=>{
+ for(const a of [-.8,.8])box(a,.75,0,.12,1.5,.12,wood);box(0,1.42,0,1.8,.1,.12,oak);box(0,.55,0,1.8,.08,.12,oak);
+ for(let i=0;i<3;i++){const u=-.5+i*.5;for(const [y,r] of [[1.25,.5],[.95,0],[.65,-.5]])box(u+Math.sin(r)*.1,y,.1,.06,.34,.06,'#8a6a45',0,0,r*.6);box(u+.12,.95,.1,.02,.62,.02,cream)}
+ cyl(1.35,.4,.2,.6,.8,.6,'#8a6a45');cyl(1.35,.12,.2,.64,.06,.64,iron);cyl(1.35,.7,.2,.64,.06,.64,iron);
+ for(let i=0;i<6;i++){const u=1.35+Math.sin(i)*.15,v=.2+Math.cos(i)*.15;box(u,1.05,v,.03,.7,.03,wood,0,0,(i-2.5)*.05);box(u,1.4,v,.08,.12,.03,i%2?red:cream)}
+})}
+function watchtower(x,z,ang=0){at(x,ground(z),z,ang,()=>{
+ for(const a of [-1,1])for(const b of [-1,1])box(a*.95,2.6,b*.95,.24,5.2,.24,wood,b*.04,0,-a*.04);
+ for(const y of [1.4,3.1])for(const b of [-1,1]){box(0,y,b*.92,1.9,.12,.12,oak,0,0,.5*b);box(b*.92,y,0,.12,.12,1.9,oak,.5*b)}
+ box(0,5.2,0,2.6,.18,2.6,oak);for(const s of [-1,1]){box(0,5.75,s*1.25,2.6,.1,.1,wood);box(s*1.25,5.75,0,.1,.1,2.6,wood)}
+ for(const a of [-1,1])for(const b of [-1,1])box(a*1.2,6.1,b*1.2,.12,1.8,.12,wood);
+ shape('spire',0,7.4,0,3.1,1.3,3.1,cThatch);box(0,6.98,0,3.2,.1,3.2,cThatchD);
+ for(let i=0;i<9;i++)box(.55,.3+i*.55,1.15,.5,.06,.08,oak);for(const a of [.3,.8])box(a,2.6,1.15,.06,5,.06,wood);
+ box(-1.2,8.3,-1.2,.06,1.2,.06,dark);box(-.92,8.6,-1.2,.5,.35,.04,red);ball(0,5.75,1.3,.3,.3,.08,gold);
+})}
+function tiltbarrier(x,y,z,len=12){at(x,y,z,0,()=>{
+ const n=Math.round(len/1.5);for(let i=0;i<=n;i++){const u=-len/2+i*len/n;box(u,.65,0,.16,1.3,.16,wood);if(i%2===0){shape('round',u,1.0,.12,.5,.06,.5,i%4?blue:red,Math.PI/2);shape('round',u,1.0,.14,.2,.06,.2,gold,Math.PI/2)}}
+ for(let i=0;i<n;i++)box(-len/2+(i+.5)*len/n,.75,0,len/n-.04,.55,.08,i%2?red:cream);box(0,1.08,0,len+.1,.1,.14,oak);
+})}
+function grandstand(x,y,z,w=9){at(x,y,z,0,()=>{
+ for(let i=0;i<3;i++){box(0,.3+i*.45,-i*.6,w,.12,.62,oak);box(0,.15+i*.45,-i*.6,w,.3+i*.45*0,.1,wood)}
+ box(0,.7,-1.5,w,1.4,.15,wood);for(const a of [-1,1])box(a*w/2,.7,-.6,.15,1.4,1.8,wood);
+ for(const a of [-w/2,-w/6,w/6,w/2])box(a,2.1,-1.45,.12,2.8,.12,wood);
+ for(let i=0;i<9;i++)box(-w/2+(i+.5)*w/9,3.38,-.75,w/9+.01,.1,1.9,i%2?cream:red,-.25);
+ for(let i=0;i<9;i++)box(-w/2+(i+.5)*w/9,3.0,.2,w/9-.02,.35,.05,i%2?red:cream);
+ for(const a of [-w/2,0,w/2]){box(a,4.2,-1.45,.06,1.3,.06,dark);for(let k=0;k<3;k++)box(a+.18+k*.16,4.6-k*.04,-1.45,.17,.42-k*.12,.04,a<0?red:a>0?blue:gold)}
+})}
+function pennant(x,y,z,c){at(x,y,z,0,()=>{box(0,1.6,0,.1,3.2,.1,wood);ball(0,3.25,0,.18,.18,.18,gold);for(let k=0;k<4;k++)box(.2+k*.22,2.85-k*.03,0,.23,.62-k*.14,.05,c)})}
+// Kasaba: pranga (meydanda), simyacı dükkânı (dönen kule, renkli duman).
+function pillory(x,z,ang=0){at(x,ground(z),z,ang,()=>{
+ box(0,.15,0,1.8,.3,1.4,oak);box(-.5,.42,.85,.8,.12,.4,oak);box(0,1.25,0,.18,1.9,.18,wood);
+ box(0,1.75,0,1.4,.22,.18,oak);box(0,1.97,0,1.4,.22,.18,'#9c7448');for(const u of [-.45,0,.45])cyl(u,1.86,.06,u?.16:.24,.2,u?.16:.24,dark,Math.PI/2);
+ box(0,2.2,0,.12,.1,.2,iron);box(.55,1.1,.12,.5,.36,.04,cream);box(.55,1.1,.15,.36,.04,.02,dark);
+ for(const [u,v] of [[.6,.85],[.9,.6],[-.85,.7]])ball(u,.36,v,.22,.18,.22,'#c44f2d');ball(.2,.06,.95,.3,.06,.3,'#c44f2d');
+})}
+function alchemist(x,z,ang=0,s=1){at(x,ground(z),z,ang,()=>{_scale(s);
+ const w=4.6,d=4,y0=.45,h=3.1,yt=y0+h,fz=d/2+.03,teal='#426f75',teal2='#5d8d74';
+ box(0,y0/2,0,w+.3,y0,d+.3,stone);box(0,y0+.6,0,w,1.2,d,stone);box(0,y0+1.2+(h-1.2)/2,0,w,h-1.2,d,'#e8ddc4');
+ for(const u of [-w/2,-w/6,w/6,w/2])box(u,y0+1.2+(h-1.2)/2,fz,.18,h-1.2,.12,dark);box(0,y0+1.25,fz+.01,w,.14,.12,dark);box(0,yt-.08,fz,w,.16,.12,dark);
+ for(const u of [-w/3,w/3])_win(u,y0+2.2,fz,.6,.6,'#a6d3c8',dark);
+ box(.2,y0+.75,fz+.02,.85,1.5,.1,dark);box(.2,y0+.72,fz+.06,.7,1.4,.06,teal);ball(.2,y0+1.45,fz+.05,.7,.4,.08,teal);box(.42,y0+.72,fz+.1,.07,.07,.05,gold);
+ _win(-1.3,y0+.75,fz,.7,.5,'#a2d4ca',dark);for(const [u,c] of [[-1.5,'#7d5ba6'],[-1.3,'#8fd65a'],[-1.1,'#e05c5c']])cyl(u,y0+.55,fz+.1,.12,.2,.12,c);
+ _gable(w,d,yt,1.8,teal,teal2,.35,'#e8ddc4');
+ // köşe kulesi: yuvarlak, sivri külah, altın ay
+ const tx=w/2-.1,tz=d/2-.1;cyl(tx,(y0+yt+1.3)/2,tz,1.5,yt+1.3-y0,1.5,stone);cyl(tx,yt+1.3,tz,1.7,.16,1.7,dark);
+ shape('cone',tx,yt+2.3,tz,1.8,2,1.8,teal);ball(tx,yt+3.35,tz,.22,.22,.22,gold);box(tx+.12,yt+3.6,tz,.1,.3,.05,gold,0,0,-.5);
+ _win(tx,yt+.3,tz+.72,.36,.5,'#a6d3c8',dark);box(tx-.75,yt+.85,tz,.08,.08,.5,iron);cyl(tx-.95,yt+.95,tz+.2,.14,.7,.14,'#8d9a91',.4,0,.5);
+ // tabela: şişe
+ box(-w/2-.05,yt-.4,fz+.5,.1,.1,1,dark);box(-w/2-.05,yt-.65,fz+.95,.04,.4,.04,iron);ball(-w/2-.05,yt-1.15,fz+.95,.5,.5,.2,'#a2d4ca');cyl(-w/2-.05,yt-.82,fz+.95,.14,.28,.14,'#a2d4ca');ball(-w/2-.05,yt-1.22,fz+1.0,.3,.25,.1,'#8fd65a');
+ // baca + renkli duman
+ box(-w*.3,yt+1.2,-d*.15,.55,1.6,.55,stone);for(const [k,c] of [[0,'#b35bd1'],[1,'#8fd65a'],[2,'#a2d4ca']])ball(-w*.3+k*.15,yt+2.2+k*.42,-d*.15-k*.08,.42-k*.08,.38-k*.08,.42-k*.08,c);
+ // dışarıda imbik masası
+ box(-.9,.75,fz+1.1,1.3,.1,.7,oak);for(const a of [-1,1])box(-.9+a*.55,.38,fz+1.1,.1,.74,.6,wood);
+ ball(-1.25,1.05,fz+1.1,.42,.42,.42,'#a2d4ca');ball(-1.25,1.0,fz+1.1,.32,.25,.32,'#b35bd1');box(-.95,1.25,fz+1.1,.5,.05,.05,'#a2d4ca',0,0,-.35);ball(-.62,.95,fz+1.1,.24,.26,.24,'#a6d3c8');
+ shape('cone',-1.25,.86,fz+1.1,.14,.16,.14,cFire);
+})}
+// Şapel (cadının karşı ucunda) ve mezarlık.
+function chapel(x,z,ang=0){at(x,ground(z),z,ang,()=>{
+ const w=3.6,d=5,h=2.9,y0=.35,yt=y0+h;
+ box(0,y0/2,0,w+.3,y0,d+.3,shade);box(0,y0+h/2,0,w,h,d,'#d0cab4');
+ for(const v of [-d/2,0,d/2])for(const s of [-1,1])box(s*(w/2+.12),y0+h*.45,v*.92,.3,h*.9,.36,'#b7b8a1');
+ for(const s of [-1,1])at(s*(w/2+.02),0,0,s*Math.PI/2,()=>{for(const u of [-1.3,1.3]){box(u,y0+1.75,.03,.55,1.3,.06,'#4e7c8a');ball(u,y0+2.4,.03,.55,.45,.06,'#4e7c8a');box(u,y0+1.75,.07,.05,1.3,.03,dark)}});
+ at(0,0,0,Math.PI/2,()=>_gable(d,w,yt,1.9,cSlate,cSlateD,.3,'#d0cab4'));
+ // ön: kemerli kapı, yuvarlak pencere; kapının üstünde çan kulesi
+ const fz=d/2+.03;box(0,y0+.9,fz,1.1,1.8,.1,'#b7b8a1');box(0,y0+.85,fz+.04,.85,1.7,.06,'#765043');ball(0,y0+1.7,fz+.04,.85,.6,.06,'#765043');box(0,y0+.85,fz+.08,.04,1.6,.03,dark);
+ shape('round',0,yt+.7,fz+.02,.9,.08,.9,'#b7b8a1',Math.PI/2);shape('round',0,yt+.7,fz+.06,.62,.06,.62,'#d8546a',Math.PI/2);box(0,yt+.7,fz+.1,.05,.6,.03,dark);box(0,yt+.7,fz+.1,.6,.05,.03,dark);
+ box(0,.25,fz+.45,1.6,.2,.7,stone);
+ const bz=d/2-.6;box(0,yt+1.95,bz,1.5,1.3,1.3,'#d0cab4');for(const a of [-1,1])for(const b of [-1,1])box(a*.62,yt+3.05,bz+b*.52,.22,.9,.22,'#d0cab4');box(0,yt+2.6,bz,1.6,.14,1.4,'#b7b8a1');
+ shape('cone',0,yt+3.1,bz,.6,.55,.6,gold);box(0,yt+3.52,bz,1.7,.14,1.5,'#b7b8a1');shape('spire',0,yt+4.4,bz,1.6,1.7,1.4,cSlate);
+ box(0,yt+5.55,bz,.08,.7,.08,gold);box(0,yt+5.7,bz,.4,.08,.08,gold);
+ for(const s of [-1,1])for(let i=0;i<2;i++)ball(s*(w/2+.5),.3,fz-.4-i*.6,.4,.36,.4,i?'#9cb67c':'#739d55');
+})}
+function graveyard(x,z,ang=0){at(x,ground(z),z,ang,()=>{
+ const w=3.8,d=2.8;for(const s of [-1,1])box(s*w/2,.25,0,.3,.5,d,'#a7a088');box(0,.25,-d/2,w,.5,.3,'#a7a088');for(const s of [-1,1])box(s*(w/2-.65),.25,d/2,1.3,.5,.3,'#a7a088');
+ for(const s of [-1,1]){box(s*.55,.55,d/2,.2,1.1,.2,'#a7a088');ball(s*.55,1.15,d/2,.24,.24,.24,'#a7a088')}
+ for(const [u,v,k] of [[-1.1,-.6,0],[0,-.7,1],[1.1,-.6,0],[-1.1,.45,1],[1.1,.4,2]]){
+  if(k===0){box(u,.4,v,.55,.8,.16,'#bec1ad');shape('round',u,.8,v,.55,.16,.55,'#bec1ad',Math.PI/2)}
+  else if(k===1){box(u,.5,v,.14,1,.14,'#bec1ad');box(u,.75,v,.55,.14,.14,'#bec1ad')}
+  else{box(u,.3,v,.6,.6,.2,'#aeb3a1',-.15)}
+  box(u,.06,v+.45,.5,.08,.7,'#7a9a52');ball(u+.15,.14,v+.6,.12,.12,.12,flowerC[(k+1)%4])}
+ box(.2,.6,.1,.18,1.2,.18,dark,0,0,.2);box(.45,1.15,.1,.5,.1,.1,dark,0,0,.7);box(-.05,1.05,.1,.4,.08,.08,dark,0,0,-.6);ball(.6,1.5,.1,.22,.2,.28,'#2b2a33');
+ box(-1.6,1.1,1.1,.08,2.2,.08,dark);box(-1.45,2.15,1.1,.4,.06,.06,dark);cyl(-1.28,1.9,1.1,.22,.3,.22,cEmber);shape('cone',-1.28,2.1,1.1,.32,.14,.32,dark);
+})}
+function beehive(x,z,ang=0){at(x,ground(z),z,ang,()=>{
+ for(const a of [-1,1])box(a*.32,.25,0,.14,.5,.5,wood);box(0,.55,0,1,.1,.72,oak);
+ for(let i=0;i<5;i++){const r=.86-i*.15;cyl(0,.69+i*.17,0,r,.18,r,i%2?cThatchD:cThatch)}
+ ball(0,1.55,0,.3,.2,.3,cThatchD);box(0,.7,.37,.22,.13,.06,dark);
+ for(const [u,v,w] of [[.45,1.35,.35],[-.4,1.15,.45],[.15,1.8,.2]]){ball(u,v,w,.1,.09,.1,gold);box(u,v+.02,w,.03,.03,.11,dark)}
+})}
+function honeystall(x,z,ang=0){at(x,ground(z),z,ang,()=>{
+ box(0,.72,0,1.9,.12,.8,oak);for(const a of [-1,1])for(const b of [-1,1])box(a*.82,.36,b*.3,.12,.72,.12,wood);box(0,.28,0,1.7,.08,.62,wood);
+ for(let i=0;i<5;i++){const u=-.7+i*.35,v=-.12+(i%2)*.22;cyl(u,.92,v,.24,.3,.24,'#e9ae40');cyl(u,1.09,v,.27,.06,.27,cream)}
+ for(const u of [-.45,.35])cyl(u,.42,0,.3,.22,.3,'#e9ae40');
+ for(const a of [-1,1])box(a*.9,1.2,-.4,.1,2.4,.1,wood);
+ for(let i=0;i<5;i++)box(-.8+i*.4,2.28,-.02,.41,.08,1.05,i%2?cream:gold,-.28);
+ ball(1.3,.38,.25,.75,.7,.75,'#c9a86a');cyl(1.3,.74,.25,.5,.08,.5,'#d29b41');box(1.4,.95,.25,.06,.55,.06,wood,0,0,-.4);
+})}
+function scarecrow(x,z,ang=0){at(x,ground(z),z,ang,()=>{
+ box(0,1.2,0,.14,2.4,.14,wood);box(0,1.78,0,1.8,.12,.12,wood);
+ box(0,1.42,0,.72,.82,.4,'#5d8d74');box(.14,1.3,.21,.2,.2,.03,red);box(-.2,1.55,.21,.16,.14,.03,cThatch);
+ for(const a of [-1,1]){box(a*.55,1.75,0,.5,.24,.28,'#5d8d74');shape('cone',a*.9,1.75,0,.26,.28,.26,cThatch,0,0,-a*Math.PI/2)}
+ shape('cone',0,.95,0,.62,.3,.4,cThatch,Math.PI);
+ ball(0,2.2,0,.52,.52,.48,'#e4cc98');for(const a of [-1,1])box(a*.11,2.26,.23,.08,.08,.04,dark);box(0,2.08,.23,.2,.03,.04,dark);
+ cyl(0,2.47,0,.95,.06,.95,cThatch);shape('cone',0,2.66,0,.55,.4,.55,cThatchD);
+ ball(-.7,1.98,0,.22,.2,.3,'#2b2a33');shape('cone',-.7,1.98,.18,.07,.12,.07,gold,Math.PI/2);
+})}
+function wellside(x,z,ang=0){at(x,ground(z),z,ang,()=>{
+ box(0,.28,0,1.8,.5,.6,wood);box(0,.5,0,1.6,.06,.44,water);for(const a of [-1,1])box(a*.92,.3,0,.08,.62,.68,dark);
+ for(const [u,v] of [[1.38,.35],[1.3,-.38]]){cyl(u,.22,v,.42,.44,.42,oak);cyl(u,.42,v,.34,.04,.34,water);cyl(u,.12,v,.46,.06,.46,iron);box(u,.62,v,.36,.04,.04,iron)}
+})}
+// Cadı kulübesi renkleri (koyu ahşap, mor vurgu, iksir yeşili).
+const wPlum='#5e4a6b',wPlumD='#46384f',wBrew='#8fd65a',wMoss='#739d55',wStraw='#dab352',wFire='#f08a3a',wEmber='#ffd86a',wSoot='#3d3a40';
+// Cadı şapkası çatı: yukarıdan en tanınır silüet. Koyu ahşap gövde, mor vurgu (bütünüyle mor değil).
+function witchhut(x,z,ang=0){at(x,ground(z),z,ang,()=>{
+ box(0,.1,0,4.2,.2,3.8,'#6b6151');
+ for(const [u,v] of [[-1.5,-1.3],[1.5,-1.3],[-1.5,1.3],[1.5,1.3]])box(u,.45,v,.3,.9,.3,dark);
+ box(0,.95,0,3.6,.18,3.2,wood);
+ box(0,1.9,0,3.2,1.8,2.8,'#6a5446',0,0,.04);
+ for(const a of [-1,1]){box(a*1.6,1.9,1.42,.16,1.85,.14,dark,0,0,.04);box(a*1.6,1.9,-1.42,.16,1.85,.14,dark,0,0,.04)}
+ for(let i=0;i<6;i++)box(-1.35+i*.54,1.25+(i%2)*.04,1.41,.5,.08,.04,'#5a4636');
+ // kapı: mor, yuvarlak üst, yeşil fener
+ box(-.5,1.75,1.43,.8,1.45,.1,dark);box(-.5,1.72,1.48,.62,1.3,.06,wPlum);ball(-.5,2.38,1.47,.62,.42,.1,wPlum);
+ box(-.3,1.7,1.53,.08,.08,.05,gold);box(-.5,.75,1.85,.9,.14,.55,wood);box(-.5,.4,2.1,.9,.12,.4,wood);
+ // yuvarlak pencere + panjurlu pencere
+ cyl(.85,2.15,1.42,.78,.12,.78,dark,Math.PI/2);cyl(.85,2.15,1.46,.58,.08,.58,wBrew,Math.PI/2);
+ box(.85,2.15,1.5,.06,.58,.04,dark);box(.85,2.15,1.5,.58,.06,.04,dark);
+ box(.85,1.66,1.55,.85,.08,.25,wood);for(const [u,c] of [[.6,'#b35bd1'],[.85,wBrew],[1.08,'#e05c5c']])cyl(u,1.79,1.57,.14,.2,.14,c);
+ // şapka: geniş siper, eğik sivri gövde, kıvrık uç, altın tokalı bant
+ // siperin önü yukarı kıvrık: 45° kameradan kapı ve pencere görünür
+ cyl(0,2.95,-.15,4.4,.16,4.0,wPlumD,-.2);cyl(0,3.03,-.15,4.0,.08,3.6,wPlum,-.2);
+ at(0,3.0,0,0,()=>{cyl(0,.2,0,2.75,.4,2.55,wPlumD);box(0,.21,1.2,.5,.42,.14,gold);box(0,.21,1.27,.26,.22,.06,wPlumD);
+  // gövde + iki eğik parça: her parçanın tabanı bir öncekinin içinde (kopuk durmaz)
+  let bx=0,by=.05,ang=0,r=1.45,h=2.7;
+  for(const [k,turn,col] of [[0,0,wPlum],[1,-.55,wPlum],[2,-.7,wPlumD]]){
+   if(k){const t=.62;bx+=-Math.sin(ang)*h*t;by+=Math.cos(ang)*h*t;r=r*(1-t)*1.05;ang+=turn;h=h*.62}
+   shape('cone',bx-Math.sin(ang)*h/2,by+Math.cos(ang)*h/2,0,r/.56,h,r/.56,col,0,0,ang)}
+  const tx=bx-Math.sin(ang)*h,ty=by+Math.cos(ang)*h;ball(tx,ty,0,.26,.26,.26,gold)});
+ // eğik baca, karga
+ box(-1.3,3.2,-.8,.5,1.5,.5,stone,0,0,-.15);box(-1.42,4.0,-.8,.62,.14,.62,shade,0,0,-.15);
+ at(-1.45,4.1,-.8,0,()=>{ball(0,.18,0,.3,.28,.42,'#2b2a33');ball(0,.4,.18,.2,.2,.2,'#2b2a33');shape('cone',0,.4,.33,.1,.16,.1,gold,Math.PI/2);box(0,.15,-.28,.18,.05,.24,'#2b2a33',.4)});
+ // asılı otlar, süpürge, mantarlar, balkabakları
+ for(let i=0;i<4;i++){box(-1.25+i*.3,2.55,1.55,.03,.25,.03,dark);ball(-1.25+i*.3,2.36,1.55,.16,.26,.16,i%2?wMoss:'#9c7448')}
+ box(1.95,1.6,.9,.08,1.9,.08,oak,0,0,.22);shape('cone',1.75,.72,.9,.4,.6,.4,wStraw,0,0,.22);
+ for(const [u,v,s] of [[-1.9,1.9,1],[-1.55,2.2,.7],[1.9,-1.6,.85],[-2,-1.2,.6]]){cyl(u,.16*s,v,.12*s,.32*s,.12*s,cream);shape('cone',u,.4*s,v,.48*s,.24*s,.48*s,'#c44f2d');ball(u+.08*s,.43*s,v+.12*s,.07,.05,.07,cream)}
+ for(const [u,v,s] of [[1.2,2.25,1],[1.75,2.05,.75]]){ball(u,.3*s,v,.68*s,.55*s,.68*s,'#e48a35');box(u,.62*s,v,.07,.16*s,.07,wMoss)}
+})}
+function cauldron(x,z,ang=0){at(x,ground(z),z,ang,()=>{
+ for(let i=0;i<5;i++){const a=i*Math.PI*2/5;box(Math.sin(a)*.55,.12,Math.cos(a)*.55,.75,.16,.16,wood,0,a)}
+ for(let i=0;i<5;i++){const a=i*Math.PI*2/5+.6;shape('cone',Math.sin(a)*.38,.3,Math.cos(a)*.38,.36,.5,.36,i%2?wEmber:wFire)}
+ for(let i=0;i<3;i++){const a=i*Math.PI*2/3;box(Math.sin(a)*.5,.35,Math.cos(a)*.5,.1,.5,.1,wSoot)}
+ ball(0,.95,0,1.45,1.15,1.45,wSoot);cyl(0,1.4,0,1.15,.2,1.15,wSoot);cyl(0,1.55,0,1.25,.12,1.25,'#55525a');
+ for(const a of [-1,1])box(a*.74,1.25,0,.12,.28,.24,'#55525a');
+ cyl(0,1.58,0,1.02,.06,1.02,wBrew);
+ for(const [u,v,s] of [[-.2,.1,.26],[.22,-.15,.2],[.05,.3,.16],[.3,.2,.12]])ball(u,1.62,v,s,s*.8,s,s>.2?'#b2ec80':wBrew);
+ box(-.25,1.95,-.15,.1,1.1,.1,wood,.3,0,.35);
+ box(.28,1.8,.05,.12,.55,.12,'#f6e3bf',0,0,-.4);ball(.38,2.06,.05,.2,.18,.18,'#f6e3bf');
+})}
 // Trees scattered toward the coast in free ground (world units; 0 pine, 1 tree, 2 fruit tree).
-for(const [x,z,k] of [[-17.3,-47.1,0],[-33.0,25.0,1],[35.5,40.8,2],[-31.2,47.0,0],[34.3,47.0,1],[31.0,50.4,2],[-31.4,53.5,0],[-29.3,56.6,1],[-32.6,62.9,2],[32.0,64.5,0],[33.1,68.4,1],[-31.6,71.2,2],[34.2,72.2,0],[-33.0,77.7,1],[31.6,77.6,2],[31.6,82.2,0],[-32.8,88.6,1],[-30.9,95.4,2],[30.9,94.7,0],[-23.7,96.0,1],[29.8,98.5,2],[-31.3,113.7,1],[-34.1,116.5,0],[-31.5,120.6,2],[-24.6,127.5,1],[14.6,126.9,2],[17.1,129.6,0]])k?tree(P(x),z,.72+(Math.abs(x*z)%.2),k===2):pine(P(x),z,.7+(Math.abs(x+z)%.3));
+for(const [x,z,k] of [[-17.3,-47.1,0],[-33.0,25.0,1],[35.5,40.8,2],[-32.6,46.3,0],[34.3,47.0,1],[33.0,43.0,2],[-29.4,46.6,0],[-32.2,58.6,1],[-32.6,62.9,2],[32.0,64.5,0],[33.1,68.4,1],[-31.6,71.2,2],[34.2,72.2,0],[-33.0,77.7,1],[31.6,77.6,2],[31.6,82.2,0],[-32.8,88.6,1],[-30.9,95.4,2],[30.9,94.7,0],[-23.7,96.0,1],[29.8,98.5,2],[-31.3,113.7,1],[-34.1,116.5,0],[-31.5,120.6,2],[-24.6,127.5,1],[14.6,126.9,2],[17.1,129.6,0]])k?tree(P(x),z,.72+(Math.abs(x*z)%.2),k===2):pine(P(x),z,.7+(Math.abs(x+z)%.3));
 // Small groves on the open grass between the lanes.
 for(const [x,z,k] of [[22.3,126.1,0],[21.3,127.7,1],[-12.9,26.4,1],[-12.0,24.7,0],[7.6,57.0,2],[6.5,55.4,0],[10.6,25.6,0],[11.4,23.9,1],[11.8,27.1,2],[15.6,56.5,1],[17.5,56.2,2],[-26.9,116.3,2],[-25.6,117.7,0],[-28.7,116.8,1]])k?tree(P(x),z,.7+(Math.abs(x*z)%.2),k===2):pine(P(x),z,.72+(Math.abs(x+z)%.25));
 for(const [x,z] of [[-25,101],[-25,109],[-22,122],[-16,126],[17,99]])pine(x,z,.95);
+// Cadı kulübesi: tarlanın batı kıyısında, değirmenin güneyinde çamların arasında (rand() çağırmaz).
+// Kazan kulübeye yakın: Unity objeyi 0,6 küçültür, yerleşimi 1,0 tutar.
+witchhut(-30.8,50.2);cauldron(-29.2,52.4,-.4);pine(P(-27.2),49.4,.62);
+// Tarla: kapının doğusunda arı kovanları ve bal tezgâhı, tarlalarda korkuluk, kuyu meydanında yalak ve kovalar.
+// Hikâye köşeleri: doğu kıyısında şapel ve mezarlık (cadının karşısı), meydanda pranga; garnizonda okçuluk ve gözetleme kulesi; kale arenasında mızrak dövüşü.
+chapel(31.3,49.4);graveyard(27.4,46.2);pillory(4.4,1.5,-.3);archerygear(-13.2,-18.4,.2);watchtower(-13.9,-26.4);
+tiltbarrier(0,3.46,-43.2,12);grandstand(0,3.46,-46.6,7.6);for(const [u,c] of [[-6.8,red],[6.8,blue]])pennant(u,3.46,-43.2,c);
+beehive(7.2,21.4,.2);beehive(8.7,22.5,-.15);beehive(7.1,23.3,.1);honeystall(5.3,24.6);scarecrow(-8.6,43.4,.25);scarecrow(9.2,36.4,-.3);wellside(3.4,27.7,.3);wellside(-3.7,27.9,-.2);
 flush();
 
 const districts=[
