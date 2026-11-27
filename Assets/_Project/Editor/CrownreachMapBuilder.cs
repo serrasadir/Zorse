@@ -564,6 +564,7 @@ namespace BlobSurvivor.EditorTools
         // Diğerleri (geniş taş cadde, meydan, tarla, kıyı) palet.
         private const bool TexturedGround = true;
         private const float NarrowPath = 2.6f;      // prototip birimi: patikalar 1.9–2.4, caddeler 4.9+
+        private static readonly Vector2 TownZ = new Vector2(-8f, 19f); // surlu kasaba (prototip z): dar yol kuralı yok
         private const float GroundTile = 4f;
         private const string GrassMaterialPath = Art + "Mat_CrownreachGrass.mat";
         private const string DirtMaterialPath = Art + "Mat_CrownreachDirt.mat";
@@ -585,6 +586,8 @@ namespace BlobSurvivor.EditorTools
             h *= 360f;
             if (h > 65f && h < 160f && sat > 0.25f) return GroundKind.Grass;
             if (h > 25f && h < 55f && sat > 0.25f && sat < 0.6f && v > 0.8f) return GroundKind.Dirt;
+            // Surlu kasabanın yolları taş kalır (palet); liman ve lonca yolları prototipte toprak renginde.
+            if (c.Center.z > TownZ.x && c.Center.z < TownZ.y) return GroundKind.Palette;
             Vector3 size = c.max - c.min;
             bool narrow = Mathf.Min(size.x, size.z) <= NarrowPath && Mathf.Max(size.x, size.z) >= 6f && size.y < 0.3f;
             if (narrow && sat < 0.45f && v > 0.65f) return GroundKind.Dirt;
