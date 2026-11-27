@@ -361,9 +361,9 @@ namespace BlobSurvivor.EditorTools
             SetInt<ConsumableSpawner>("_initialSpawnCount", InitialFood);
             SetInt<ConsumableSpawner>("_maxActive", MaxFood);
 
-            // Başlangıç: tarlanın güney ucunun biraz içi, ortada.
+            // Başlangıç: lonca pazar meydanı, kuzey tezgâh sırası ile kuyu arasındaki açık yol (Serra: kenarda değil, ortada).
             GameObject blob = GameObject.FindWithTag("Blob");
-            float startZ = zFirst + 6f;
+            float startZ = -StartProtoZ * SpreadScale;
             if (blob != null) blob.transform.position = new Vector3(0f, blob.transform.position.y, startZ);
 
             GameObject groundPlane = GameObject.Find("Ground");
@@ -568,6 +568,7 @@ namespace BlobSurvivor.EditorTools
         // Diğerleri (geniş taş cadde, meydan, tarla, kıyı) palet.
         private const bool TexturedGround = true;
         private const float NarrowPath = 2.6f;      // prototip birimi: patikalar 1.9–2.4, caddeler 4.9+
+        private const float StartProtoZ = 74.6f; // prototip z: pazar meydanının ortası (kuyu 76.1'den başlar)
         private static readonly Vector2 TownZ = new Vector2(-8f, 19f); // surlu kasaba (prototip z): dar yol kuralı yok
         private const float GroundTile = 4f;
         private const string GrassMaterialPath = Art + "Mat_CrownreachGrass.mat";
