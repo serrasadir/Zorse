@@ -505,11 +505,13 @@ function thatchcottage(x,z,w,d,h,roof,angle=0){place(x,ground(z),z,angle,()=>{
  barrel(w*.62,d*.3,.66);
 })}
 // Liman meyhanesi bahçesi: fener dizisi, balık ızgarası, musluklu fıçı sehpası (masalar tavernset).
-function lanternline(x,z,len=11,ang=0){at(x,ground(z),z,ang,()=>{
- const n=Math.round(len/3.6);for(let i=0;i<=n;i++)post(-len/2+i*len/n,0,2.8);
- for(let i=0;i<n;i++){const a=-len/2+i*len/n,L=len/n,m=6;for(let k=0;k<m;k++){const t0=k/m,t1=(k+1)/m,y0=2.62-.42*Math.sin(Math.PI*t0),y1=2.62-.42*Math.sin(Math.PI*t1);
-  box(a+L*(t0+t1)/2,(y0+y1)/2,0,Math.hypot(L/m,y1-y0)+.02,.05,.05,dark,0,0,Math.atan2(y1-y0,L/m))}
-  for(const t of [.25,.5,.75]){const u=a+L*t,y=2.62-.42*Math.sin(Math.PI*t)-.28;box(u,y+.17,0,.03,.14,.03,dark);cyl(u,y,0,.26,.3,.26,cEmber);shape('cone',u,y+.2,0,.36,.14,.36,dark)}}
+function lanternline(x,z,len=11,ang=0){at(x,ground(z),z,ang,()=>{const n=Math.round(len/3);for(let i=0;i<n;i++)lanternspan(-len/2+i*len/n,len/n,i===0)})}
+// Fener dizisinin bir aralığı (direk + sarkan ip + 3 fener): her aralık ayrı yenebilir, uzun dizi Giant olmasın.
+function lanternspan(a,L,first){at(a,0,0,0,()=>{
+ if(first)post(0,0,2.8);post(L,0,2.8);const m=6;
+ for(let k=0;k<m;k++){const t0=k/m,t1=(k+1)/m,y0=2.62-.42*Math.sin(Math.PI*t0),y1=2.62-.42*Math.sin(Math.PI*t1);
+  box(L*(t0+t1)/2,(y0+y1)/2,0,Math.hypot(L/m,y1-y0)+.02,.05,.05,dark,0,0,Math.atan2(y1-y0,L/m))}
+ for(const t of [.25,.5,.75]){const u=L*t,y=2.62-.42*Math.sin(Math.PI*t)-.28;box(u,y+.17,0,.03,.14,.03,dark);cyl(u,y,0,.26,.3,.26,cEmber);shape('cone',u,y+.2,0,.36,.14,.36,dark)}
 })}
 function fishgrill(x,z,ang=0){at(x,ground(z),z,ang,()=>{
  box(0,.4,0,1.6,.8,.9,stone);box(0,.82,0,1.7,.06,1,shade);
@@ -541,8 +543,9 @@ function dryingrack(x,z,ang=0){at(x,ground(z),z,ang,()=>{
  for(const a of [-1.3,1.3])box(a,.95,0,.14,1.9,.6,wood);for(const y of [.5,1.15,1.8])box(0,y,0,2.8,.08,.6,oak);
  for(let r=0;r<3;r++)for(let i=0;i<5;i++){const u=-1.05+i*.52;_pot(u,[.54,1.19,1.84][r],0,.42+((i+r)%2)*.08,potC[(i+r*2)%4],r!==1||i%2===0)}
 })}
+function jar(x,z,s,c){at(x,0,z,0,()=>_pot(0,0,0,s,c))}
 function potstack(x,z,ang=0){at(x,ground(z),z,ang,()=>{
- for(const [u,v,s,i] of [[0,0,1,0],[.75,.25,.85,1],[-.7,.3,.9,2],[.2,.8,.75,3],[-.25,-.65,.7,1]])_pot(u,0,v,s,potC[i]);
+ for(const [u,v,s,i] of [[0,0,1,0],[.75,.25,.85,1],[-.7,.3,.9,2],[.2,.8,.75,3],[-.25,-.65,.7,1]])jar(u,v,s,potC[i]);   // her küp ayrı yenebilir (Tiny)
  for(const [u,v] of [[.85,-.55],[-.9,-.4]])cyl(u,.14,v,.55,.28,.55,'#a76549');cyl(.85,.33,-.55,.5,.1,.5,'#cb8a60');
 })}
 function dyerack(x,z,ang=0,k=0){at(x,ground(z),z,ang,()=>{
