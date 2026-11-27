@@ -111,7 +111,7 @@ namespace BlobSurvivor.Core
             Mathf.Tan(ReferenceFov * 0.5f * Mathf.Deg2Rad) / Mathf.Tan(_fieldOfView * 0.5f * Mathf.Deg2Rad);
 
         // Gölge mesafesi kameradan ölçülür: kamera referanstan ne kadar uzaksa o kadar artır ki blob'un çevresinde gölge kalsın.
-        private const float MaxShadowDistance = 45f;
+        private const float MaxShadowDistance = 30f;
         private const float ShadowReach = 1.2f;      // kamera uzaklığının katı
         private const float ShadowReachLow = 1.0f;
 

@@ -1,7 +1,7 @@
-// Kale zemini (Bahar, 2026-11-21: "kusursuz daire, keskin geçiş kötü"): tek yüzeyde çimen / toprak / arnavut / kaldırım.
-// _Control (tools/medieval/ground_splat.py): R toprak, G arnavut, B kaldırım, A gölge; çimen = kalan. Geçişte yükseklikle
-// karışır (doku parlaklığı = yükseklik): taşın tepesi çimenin üstünde kalır, derzlerden çimen/toprak sızar.
-// Mobil: 4 renk + 2 normal + 1 kontrol örneği. Işık PaletteAO ile aynı (güneş + gölge + ortam + sis).
+// Tek yüzeyde çimen / toprak / arnavut / kaldırım (Crownreach zemini). _Control (CrownreachMapBuilder.BuildGroundControl):
+// R toprak, G arnavut, B kaldırım, A gölge; çimen = kalan. Geçişte doku parlaklığıyla karışır: çimen tutamları toprağa
+// taşar, kenar dağınık. Mobil: ağırlığı sıfır olan doku okunmaz (bölge içinde kontrol + 1 doku), normal map yok,
+// ışık Lambert + SH + gölge (URP Lit'ten ucuz).
 Shader "BlobSurvivor/GroundSplat"
 {
     Properties
@@ -10,15 +10,15 @@ Shader "BlobSurvivor/GroundSplat"
         _CtrlRect ("Karışım alanı (x0, z0, 1/genişlik, 1/derinlik)", Vector) = (0, 0, 1, 1)
         _GrassTex ("Çimen", 2D) = "white" {}
         _DirtTex ("Toprak", 2D) = "white" {}
-        _CobbleTex ("Arnavut kaldırımı", 2D) = "white" {}
+        _CobbleTex ("Arnavut kaldırımı (alfa = taş)", 2D) = "white" {}
         _FlagTex ("Kaldırım taşı", 2D) = "white" {}
-        [Normal] _CobbleN ("Arnavut normal", 2D) = "bump" {}
-        [Normal] _FlagN ("Kaldırım normal", 2D) = "bump" {}
+        _GrassTile ("Çimen tekrarı (birim)", Float) = 4
+        _DirtTile ("Toprak tekrarı (birim)", Float) = 7
+        _StoneTile ("Kaldırım tekrarı (birim)", Float) = 4
+        _CobbleTile ("Arnavut tekrarı (birim)", Float) = 2.5
         _DirtTint ("Toprak rengi", Color) = (1, 1, 1, 1)
-        _Tile ("Doku tekrarı (birim)", Float) = 4
+        _DirtSaturation ("Toprak doygunluğu", Range(0, 1)) = 0.5
         _BlendDepth ("Geçiş yumuşaklığı", Range(0.02, 1)) = 0.1
-        _BumpScale ("Normal gücü", Range(0, 2)) = 1
-        [Toggle(_STONE_TEXTURE)] _StoneTexture ("Düz taş dokusu (kapalı: taşlar 3D)", Float) = 0
     }
 
     SubShader
@@ -33,8 +33,6 @@ Shader "BlobSurvivor/GroundSplat"
         TEXTURE2D(_DirtTex);
         TEXTURE2D(_CobbleTex);
         TEXTURE2D(_FlagTex);
-        TEXTURE2D(_CobbleN);
-        TEXTURE2D(_FlagN); SAMPLER(sampler_FlagN); // örnekleyici her zaman okunan dokuda: _CobbleN 3D taş modunda derleyicide silinir
 
         CBUFFER_START(UnityPerMaterial)
             float4 _Control_ST;
@@ -43,12 +41,13 @@ Shader "BlobSurvivor/GroundSplat"
             float4 _DirtTex_ST;
             float4 _CobbleTex_ST;
             float4 _FlagTex_ST;
-            float4 _CobbleN_ST;
-            float4 _FlagN_ST;
+            float _GrassTile;
+            float _DirtTile;
+            float _StoneTile;
+            float _CobbleTile;
             half4 _DirtTint;
-            float _Tile;
+            half _DirtSaturation;
             half _BlendDepth;
-            half _BumpScale;
         CBUFFER_END
         ENDHLSL
 
@@ -62,10 +61,9 @@ Shader "BlobSurvivor/GroundSplat"
             #pragma fragment Frag
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
-            // Taşlar 3D (yol taşı mesh'leri) iken düz taş dokusu ve normali hiç okunmaz (mobil doku bant genişliği).
-            #pragma shader_feature_local _STONE_TEXTURE
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
@@ -98,60 +96,54 @@ Shader "BlobSurvivor/GroundSplat"
             half4 Frag(Varyings i) : SV_Target
             {
                 float2 world = i.positionWS.xz;
-                float2 uvCtrl = (world - _CtrlRect.xy) * _CtrlRect.zw;
-                half4 ctrl = saturate(SAMPLE_TEXTURE2D(_Control, sampler_Control, uvCtrl));
-                float2 uv = world / _Tile;
-
-                half3 g = SAMPLE_TEXTURE2D(_GrassTex, sampler_GrassTex, uv).rgb;
-                half3 d = SAMPLE_TEXTURE2D(_DirtTex, sampler_GrassTex, uv).rgb * _DirtTint.rgb;
-            #if defined(_STONE_TEXTURE)
-                // Düz taş dokusu: alfa = taş; taşların arası haritanın çimeni.
-                half4 c4 = SAMPLE_TEXTURE2D(_CobbleTex, sampler_GrassTex, uv);
-                half stoneA = c4.a;
-                half3 c = lerp(g, c4.rgb, stoneA);
-            #else
-                // 3D taşlar (CastleSceneBuilder.CombinePathStones): altları hafif gölgeli çimen.
-                half stoneA = 0.0h;
-                half3 c = g * 0.82h;
-            #endif
-                half3 f = SAMPLE_TEXTURE2D(_FlagTex, sampler_GrassTex, uv).rgb;
-
-                // Yükseklikle karışım: ağırlık + doku yüksekliği; en yüksekten _BlendDepth aşağısı görünür.
+                half4 ctrl = saturate(SAMPLE_TEXTURE2D(_Control, sampler_Control, (world - _CtrlRect.xy) * _CtrlRect.zw));
                 half wd = ctrl.r, wc = ctrl.g, wf = ctrl.b;
                 half wg = saturate(1.0h - wd - wc - wf);
-                // Çimen tutamları (parlak) toprağın içine taşar, toprak çimen diplerinden görünür: yumuşak, dağınık kenar
-                half hg = wg + 0.05h + Lum(g) * 0.45h;
-                half hd = wd + Lum(d) * 0.15h;
-                half hc = wc + stoneA * 0.6h;
-                half hf = wf + Lum(f) * 0.5h;
+
+                // Dallanma içinde mip için türev dışarıda alınır (tek tekrarın türevi, diğerleri ölçeklenir).
+                float2 uv = world;
+                float2 dx = ddx(uv), dy = ddy(uv);
+                const half off = -10.0h; // okunmayan dokunun yüksekliği: hiç kazanamaz
+                half3 g = 0, d = 0, c = 0, f = 0;
+                half hg = off, hd = off, hc = off, hf = off;
+                if (wg > 0.001h)
+                {
+                    float k = 1.0 / _GrassTile;
+                    g = SAMPLE_TEXTURE2D_GRAD(_GrassTex, sampler_GrassTex, uv * k, dx * k, dy * k).rgb;
+                    hg = wg + 0.05h + Lum(g) * 0.45h;
+                }
+                if (wd > 0.001h || wc > 0.001h)
+                {
+                    float k = 1.0 / _DirtTile;
+                    d = SAMPLE_TEXTURE2D_GRAD(_DirtTex, sampler_GrassTex, uv * k, dx * k, dy * k).rgb;
+                    d = lerp(Lum(d).xxx, d, _DirtSaturation) * _DirtTint.rgb;
+                    hd = wd + Lum(d) * 0.15h;
+                }
+                if (wc > 0.001h)
+                {
+                    // Arnavut: taşların arası grimsi koyu toprak (alfa = taş); düşük kontrast, yenebilirler okunsun
+                    float k = 1.0 / _CobbleTile;
+                    half4 c4 = SAMPLE_TEXTURE2D_GRAD(_CobbleTex, sampler_GrassTex, uv * k, dx * k, dy * k);
+                    c = lerp(lerp(Lum(d).xxx, d, 0.4h) * 0.78h, c4.rgb, c4.a);
+                    hc = wc + c4.a * 0.6h;
+                }
+                if (wf > 0.001h)
+                {
+                    float k = 1.0 / _StoneTile;
+                    f = SAMPLE_TEXTURE2D_GRAD(_FlagTex, sampler_GrassTex, uv * k, dx * k, dy * k).rgb;
+                    hf = wf + Lum(f) * 0.5h;
+                }
+
+                // Yükseklikle karışım: ağırlık + doku parlaklığı; en yüksekten _BlendDepth aşağısı görünür.
                 half top = max(max(hg, hd), max(hc, hf)) - _BlendDepth;
                 half bg = max(hg - top, 0.0h), bd = max(hd - top, 0.0h), bc = max(hc - top, 0.0h), bf = max(hf - top, 0.0h);
-                half inv = 1.0h / max(bg + bd + bc + bf, 1e-4h);
-                bg *= inv; bd *= inv; bc *= inv; bf *= inv;
-                half3 albedo = g * bg + d * bd + c * bc + f * bf;
-
-                half3 n = half3(0, 1, 0);
-                if (bc + bf > 0.01h)
-                {
-                    half3 nf = UnpackNormalScale(SAMPLE_TEXTURE2D(_FlagN, sampler_FlagN, uv), _BumpScale);
-                #if defined(_STONE_TEXTURE)
-                    half3 nc = UnpackNormalScale(SAMPLE_TEXTURE2D(_CobbleN, sampler_FlagN, uv), _BumpScale * stoneA);
-                #else
-                    half3 nc = half3(0, 0, 1);
-                #endif
-                    half3 nts = half3(SafeNormalize(float3(half3(0, 0, 1) * (bg + bd) + nc * bc + nf * bf)));
-                    // Düz zemin: teğet = +X, bitangent = +Z, normal = +Y
-                    n = half3(SafeNormalize(float3(nts.x, nts.z, nts.y)));
-                }
+                half3 albedo = (g * bg + d * bd + c * bc + f * bf) / max(bg + bd + bc + bf, 1e-4h);
 
                 half ao = ctrl.a;
                 Light sun = GetMainLight(TransformWorldToShadowCoord(i.positionWS));
-                half ndl = saturate(dot(n, sun.direction));
-                half3 direct = sun.color * (ndl * sun.shadowAttenuation * sun.distanceAttenuation);
-                half3 ambient = SampleSH(n);
-                half3 col = albedo * (direct + ambient * ao) * lerp(1.0h, ao, 0.5h);
-                col = max(col, 0.0h);
-                return half4(MixFog(col, i.fog), 1.0h);
+                half3 direct = sun.color * (saturate(sun.direction.y) * sun.shadowAttenuation * sun.distanceAttenuation);
+                half3 col = albedo * (direct + SampleSH(half3(0, 1, 0))) * ao;
+                return half4(MixFog(max(col, 0.0h), i.fog), 1.0h);
             }
             ENDHLSL
         }
@@ -183,7 +175,8 @@ Shader "BlobSurvivor/GroundSplat"
             half DepthFrag() : SV_Target { return 0; }
             ENDHLSL
         }
-        // SSAO vb. için derinlik + normal (zemin düz: +Y)
+
+        // PC renderer'ın SSAO'su için derinlik + normal (zemin düz: +Y)
         Pass
         {
             Name "DepthNormals"
@@ -207,13 +200,9 @@ Shader "BlobSurvivor/GroundSplat"
                 return TransformObjectToHClip(input.positionOS.xyz);
             }
 
-            half4 DNFrag() : SV_Target
-            {
-                return half4(0.0h, 1.0h, 0.0h, 0.0h);
-            }
+            half4 DNFrag() : SV_Target { return half4(0.0h, 1.0h, 0.0h, 0.0h); }
             ENDHLSL
         }
-
     }
 
     FallBack "Universal Render Pipeline/Simple Lit"

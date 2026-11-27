@@ -153,6 +153,7 @@ namespace BlobSurvivor.EditorTools
             if (s_paletteRead != null) Object.DestroyImmediate(s_paletteRead);
             s_paletteRead = null;
             if (!OpenScene()) return;
+            s_smallProps = 0;
             Material palette = AssetDatabase.LoadAssetAtPath<Material>(Art + "AtlasPalette.mat");
             if (palette == null) { Debug.LogError("[Crownreach] AtlasPalette.mat yok (Tools/Blob.io/Crownreach Atlas/Open Scene bir kez kurar)."); return; }
             EnsureGhostMaterial(palette);
@@ -220,6 +221,18 @@ namespace BlobSurvivor.EditorTools
             var tall = new List<(GroundSource g, Comp c)>();
             var tallSet = new HashSet<Comp>();
             var groundObjects = new List<GameObject>();
+            Material groundMat = GroundMaterial();
+            var groundArea = new Rect();
+            bool firstPoint = true;
+            foreach (GroundSource g in grounds)
+                foreach (Vector3 v in g.orig)
+                {
+                    Vector3 p = GroundScale.MultiplyPoint3x4(v);
+                    if (firstPoint) { groundArea = new Rect(p.x, p.z, 0f, 0f); firstPoint = false; }
+                    groundArea.xMin = Mathf.Min(groundArea.xMin, p.x); groundArea.xMax = Mathf.Max(groundArea.xMax, p.x);
+                    groundArea.yMin = Mathf.Min(groundArea.yMin, p.z); groundArea.yMax = Mathf.Max(groundArea.yMax, p.z);
+                }
+            var control = new GroundControl(groundArea);
             foreach (GroundSource g in grounds)
             {
                 foreach (Comp c in g.comps)
@@ -229,8 +242,11 @@ namespace BlobSurvivor.EditorTools
                     if (c.max.y - c.offset > FlatHeight && c.Area < 400f) { tall.Add((g, c)); tallSet.Add(c); }
                 }
                 var flat = new HashSet<Comp>(g.comps.Where(c => !tallSet.Contains(c)));
-                groundObjects.AddRange(GroundObjects(g, flat, palette, groundParent));
+                groundObjects.AddRange(GroundObjects(g, flat, palette, groundMat, control, groundParent));
             }
+            groundMat.SetTexture("_Control", control.Bake(GeneratedFolder + "/CrownreachGroundControl.png"));
+            groundMat.SetVector("_CtrlRect", control.CtrlRect);
+            EditorUtility.SetDirty(groundMat);
 
             var objs = new List<Obj>();
             foreach (List<(GroundSource g, Comp c)> cluster in ClusterTall(tall))
@@ -393,7 +409,7 @@ namespace BlobSurvivor.EditorTools
             string summary = $"objeler={built} (bağlı {objs.Count - built}), zemin={groundObjects.Count}, sınırlar=[{string.Join(", ", zLines.Select(z => z.ToString("0.0", CultureInfo.InvariantCulture)))}], " +
                              $"side={side:0.0}, half={half:0}, ada z={zFirst}..{zLast}, başlangıç z={startZ}, burç={(keep != null ? keep.name : "yok")}, Ground={groundInfo}";
             System.IO.File.WriteAllText("Temp/crownreach_build.txt", summary + "\n" + report);
-            Debug.Log("[Crownreach] Kuruldu: " + summary + ". NavMesh bake bitince tekrar kaydet (Ctrl+S).");
+            Debug.Log("[Crownreach] Kuruldu: " + summary + $", küçük obje (gölgesiz, uzakta çizilmez)={s_smallProps}. NavMesh bake bitince tekrar kaydet (Ctrl+S).");
         }
 
         private static string Fmt(Vector3 v) => string.Format(CultureInfo.InvariantCulture, "({0:0.0},{1:0.0},{2:0.0})", v.x, v.y, v.z);
@@ -563,23 +579,26 @@ namespace BlobSurvivor.EditorTools
             return owner;
         }
 
-        // Kale haritasının dokuları (Serra): çimen rengi parçalar Med_Grass; kumlu toprak yollar ve dar patikalar
-        // (en fazla NarrowPath geniş, ince, uzun, açık renk) Med_Dirt; dünya uzayında GroundTile birimde bir tekrar.
-        // Diğerleri (geniş taş cadde, meydan, tarla, kıyı) palet.
-        private const bool TexturedGround = true;
+        // Zemin (Serra + harita kurulu: "patikalar kötü"): çimen, toprak yol, kaldırım taşı ve arnavut tek materyalde
+        // (GroundSplat), kenarlar karışım haritasıyla dağınık geçer. Hiyerarşi: dar yollar toprak, geniş ana cadde ve surlu
+        // kasabanın sokakları kaldırım taşı, meydanlar arnavut. Diğerleri (tarla, kıyı, iskele, kale) palet.
         private const float NarrowPath = 2.6f;      // prototip birimi: patikalar 1.9–2.4, caddeler 4.9+
+        private const float MainRoad = 4f;          // bundan geniş toprak renkli yol (ana cadde, kuyu kavşağı) kaldırım taşı
         private const float StartProtoZ = 74.6f; // prototip z: pazar meydanının ortası (kuyu 76.1'den başlar)
         private static readonly Vector2 TownZ = new Vector2(-8f, 19f); // surlu kasaba (prototip z): dar yol kuralı yok
-        private const float GroundTile = 4f;
-        private const string GrassMaterialPath = Art + "Mat_CrownreachGrass.mat";
-        private const string DirtMaterialPath = Art + "Mat_CrownreachDirt.mat";
-        private enum GroundKind { Palette, Grass, Dirt }
+        private const string GroundMaterialPath = Art + "Mat_CrownreachGround.mat";
+        private const string GroundTextures = "Assets/_Project/Art/City/Textures/";
+        // Prototip renkleri (Crownreach-Detayli.html): townStone, plazaStone, paving
+        private static readonly Color TownStone = new Color32(0xbe, 0xba, 0xa3, 0xff);
+        private static readonly Color PlazaStone = new Color32(0xc4, 0xc1, 0xaa, 0xff);
+        private static readonly Color Paving = new Color32(0xc8, 0xbd, 0xa0, 0xff);
+        private enum GroundKind { Palette, Grass, Dirt, Cobble, Flag, Drop }
 
         private static Texture2D s_paletteRead;
 
         private static GroundKind KindOfGround(GroundSource g, Comp c)
         {
-            if (!TexturedGround || c.tris.Count == 0 || g.uv.Length == 0) return GroundKind.Palette;
+            if (c.tris.Count == 0 || g.uv.Length == 0) return GroundKind.Palette;
             if (s_paletteRead == null)
             {
                 s_paletteRead = new Texture2D(2, 2);
@@ -589,50 +608,63 @@ namespace BlobSurvivor.EditorTools
             Color col = s_paletteRead.GetPixelBilinear(uv.x, uv.y);
             Color.RGBToHSV(col, out float h, out float sat, out float v);
             h *= 360f;
-            if (h > 65f && h < 160f && sat > 0.25f) return GroundKind.Grass;
-            if (h > 25f && h < 55f && sat > 0.25f && sat < 0.6f && v > 0.8f) return GroundKind.Dirt;
-            // Surlu kasabanın yolları taş kalır (palet); liman ve lonca yolları prototipte toprak renginde.
-            if (c.Center.z > TownZ.x && c.Center.z < TownZ.y) return GroundKind.Palette;
             Vector3 size = c.max - c.min;
+            // Meydan ve caddelerdeki benek taşları (gri ince kutular): taş dokusu bunu zaten taşıyor.
+            if (size.y < 0.05f && c.Area < 0.8f && sat < 0.16f) return GroundKind.Drop;
+            if (Near(col, PlazaStone) || Near(col, Paving)) return GroundKind.Cobble;
+            if (Near(col, TownStone)) return GroundKind.Flag;
+            if (h > 65f && h < 160f && sat > 0.25f) return GroundKind.Grass;
+            if (h > 25f && h < 55f && sat > 0.25f && sat < 0.6f && v > 0.8f)
+                return Mathf.Min(size.x, size.z) > MainRoad ? GroundKind.Flag : GroundKind.Dirt;
+            // Surlu kasabanın diğer yüzeyleri palet; liman ve lonca yolları prototipte toprak renginde.
+            if (c.Center.z > TownZ.x && c.Center.z < TownZ.y) return GroundKind.Palette;
             bool narrow = Mathf.Min(size.x, size.z) <= NarrowPath && Mathf.Max(size.x, size.z) >= 6f && size.y < 0.3f;
             if (narrow && sat < 0.45f && v > 0.65f) return GroundKind.Dirt;
             return GroundKind.Palette;
         }
 
-        private static Material GroundTexMaterial(string path, string texture, Material palette)
+        private static bool Near(Color a, Color b) =>
+            Mathf.Abs(a.r - b.r) < 0.012f && Mathf.Abs(a.g - b.g) < 0.012f && Mathf.Abs(a.b - b.b) < 0.012f;
+
+        // Materyal yoksa varsayılanlarla oluşur; ton/tekrar ayarı elle değişirse yeniden kurulumda korunur.
+        private static Material GroundMaterial()
         {
-            var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(GroundMaterialPath);
             if (mat == null)
             {
-                mat = new Material(palette);
-                AssetDatabase.CreateAsset(mat, path);
+                mat = new Material(Shader.Find("BlobSurvivor/GroundSplat"));
+                mat.SetColor("_DirtTint", new Color(1f, 0.97f, 0.92f));
+                AssetDatabase.CreateAsset(mat, GroundMaterialPath);
             }
-            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>($"Assets/_Project/Art/City/Textures/{texture}.png");
-            mat.SetTexture("_BaseMap", tex);
-            mat.SetTexture("_MainTex", tex);
+            mat.SetTexture("_GrassTex", AssetDatabase.LoadAssetAtPath<Texture2D>(GroundTextures + "Med_Grass.png"));
+            mat.SetTexture("_DirtTex", AssetDatabase.LoadAssetAtPath<Texture2D>(GroundTextures + "Med_Dirt.png"));
+            mat.SetTexture("_CobbleTex", AssetDatabase.LoadAssetAtPath<Texture2D>(GroundTextures + "Med_Cobble.png"));
+            mat.SetTexture("_FlagTex", AssetDatabase.LoadAssetAtPath<Texture2D>(GroundTextures + "Med_Flagstone.png"));
             EditorUtility.SetDirty(mat);
             return mat;
         }
 
-        private static IEnumerable<GameObject> GroundObjects(GroundSource g, HashSet<Comp> keep, Material palette, Transform parent)
+        private static List<GameObject> GroundObjects(GroundSource g, HashSet<Comp> keep, Material palette, Material ground,
+            GroundControl control, Transform parent)
         {
-            var byKind = new Dictionary<GroundKind, List<Comp>>();
+            var paletteComps = new List<Comp>();
+            var groundComps = new List<Comp>();
             foreach (Comp c in keep)
             {
                 GroundKind k = KindOfGround(g, c);
-                if (!byKind.TryGetValue(k, out var list)) byKind[k] = list = new List<Comp>();
-                list.Add(c);
+                if (k == GroundKind.Drop) continue;
+                (k == GroundKind.Palette ? paletteComps : groundComps).Add(c);
+                control.Paint(g, c, k);
             }
-            foreach (var kv in byKind)
-            {
-                Material mat = kv.Key == GroundKind.Grass ? GroundTexMaterial(GrassMaterialPath, "Med_Grass", palette)
-                    : kv.Key == GroundKind.Dirt ? GroundTexMaterial(DirtMaterialPath, "Med_Dirt", palette) : palette;
-                GameObject go = GroundObject(g, kv.Value, kv.Key != GroundKind.Palette, mat, parent, kv.Key.ToString());
-                if (go != null) yield return go;
-            }
+            var result = new List<GameObject>();
+            GameObject go = GroundObject(g, paletteComps, false, palette, parent, "Palette");
+            if (go != null) result.Add(go);
+            go = GroundObject(g, groundComps, true, ground, parent, "Ground");
+            if (go != null) result.Add(go);
+            return result;
         }
 
-        private static GameObject GroundObject(GroundSource g, List<Comp> keep, bool worldUv, Material mat, Transform parent, string suffix)
+        private static GameObject GroundObject(GroundSource g, List<Comp> keep, bool splat, Material mat, Transform parent, string suffix)
         {
             var verts = new List<Vector3>();
             var normals = new List<Vector3>();
@@ -652,7 +684,7 @@ namespace BlobSurvivor.EditorTools
                         if (p.y > 0f) p.y = p.y * Flatten + bias;
                         verts.Add(p);
                         normals.Add(i < g.normals.Length ? Turn.MultiplyVector(g.normals[i]) : Vector3.up);
-                        uvs.Add(worldUv ? new Vector2(p.x, p.z) / GroundTile : i < g.uv.Length ? g.uv[i] : Vector2.zero);
+                        if (!splat) uvs.Add(i < g.uv.Length ? g.uv[i] : Vector2.zero); // splat dünya uzayından okur
                     }
                     tris.Add(n);
                 }
@@ -662,7 +694,7 @@ namespace BlobSurvivor.EditorTools
             if (verts.Count > 65000) mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
             mesh.SetVertices(verts);
             mesh.SetNormals(normals);
-            mesh.SetUVs(0, uvs);
+            if (!splat) mesh.SetUVs(0, uvs);
             mesh.SetTriangles(tris, 0);
             mesh.RecalculateBounds();
             AssetDatabase.CreateAsset(mesh, $"{GeneratedFolder}/{mesh.name}.asset");
@@ -674,6 +706,191 @@ namespace BlobSurvivor.EditorTools
             mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
             return go;
+        }
+
+        // Zeminin karışım haritası (GroundSplat._Control): parçalar dünya xz'sinde türlerine göre boyanır (üstteki kazanır),
+        // kenarlar bulanıklaştırılıp gürültüyle dalgalanır. R toprak, G arnavut, B kaldırım, A gölge (geniş lekeler +
+        // döşeli alanın iç kenarı hafif koyu). Çimen ve palet = kalan.
+        private sealed class GroundControl
+        {
+            private const float Px = 0.25f;          // birim / piksel
+            private const float DirtSoft = 0.8f;     // toprak kenarı geniş ve dağınık (birim)
+            private const float StoneSoft = 0.25f;   // taş kenarı daha derli toplu
+            private const float StoneOverDirt = 0.05f;
+            private readonly float x0, z0;
+            private readonly int w, h;
+            private readonly byte[] kind;            // 0 çimen/palet, 1 toprak, 2 arnavut, 3 kaldırım
+            private readonly float[] top;
+
+            public GroundControl(Rect area)
+            {
+                x0 = area.xMin; z0 = area.yMin;
+                w = Mathf.CeilToInt(area.width / Px); h = Mathf.CeilToInt(area.height / Px);
+                kind = new byte[w * h];
+                top = new float[w * h];
+                for (int i = 0; i < top.Length; i++) top[i] = float.NegativeInfinity;
+            }
+
+            public void Paint(GroundSource g, Comp c, GroundKind k)
+            {
+                byte value = k == GroundKind.Dirt ? (byte)1 : k == GroundKind.Cobble ? (byte)2 : k == GroundKind.Flag ? (byte)3 : (byte)0;
+                float priority = c.max.y - c.offset + LayerBias(c);
+                for (int t = 0; t + 2 < c.tris.Count; t += 3)
+                {
+                    Vector3 a = GroundScale.MultiplyPoint3x4(g.orig[c.tris[t]]);
+                    Vector3 b = GroundScale.MultiplyPoint3x4(g.orig[c.tris[t + 1]]);
+                    Vector3 d = GroundScale.MultiplyPoint3x4(g.orig[c.tris[t + 2]]);
+                    Fill(new Vector2(a.x, a.z), new Vector2(b.x, b.z), new Vector2(d.x, d.z), value, priority);
+                }
+            }
+
+            private void Fill(Vector2 a, Vector2 b, Vector2 c, byte value, float priority)
+            {
+                float area = (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y);
+                if (Mathf.Abs(area) < 1e-5f) return; // yan yüz
+                int i0 = Mathf.Max(0, Mathf.FloorToInt((Mathf.Min(a.x, Mathf.Min(b.x, c.x)) - x0) / Px));
+                int i1 = Mathf.Min(w - 1, Mathf.CeilToInt((Mathf.Max(a.x, Mathf.Max(b.x, c.x)) - x0) / Px));
+                int j0 = Mathf.Max(0, Mathf.FloorToInt((Mathf.Min(a.y, Mathf.Min(b.y, c.y)) - z0) / Px));
+                int j1 = Mathf.Min(h - 1, Mathf.CeilToInt((Mathf.Max(a.y, Mathf.Max(b.y, c.y)) - z0) / Px));
+                float s = Mathf.Sign(area);
+                for (int j = j0; j <= j1; j++)
+                for (int i = i0; i <= i1; i++)
+                {
+                    var p = new Vector2(x0 + (i + 0.5f) * Px, z0 + (j + 0.5f) * Px);
+                    if (Edge(a, b, p) * s < 0f || Edge(b, c, p) * s < 0f || Edge(c, a, p) * s < 0f) continue;
+                    int idx = j * w + i;
+                    // Kavşakta toprak yol ile taş aynı yükseklikte: taş kazanır (ana cadde kesintisiz).
+                    bool wins = priority >= top[idx];
+                    if (kind[idx] == 1 && value >= 2 && priority > top[idx] - StoneOverDirt) wins = true;
+                    if (kind[idx] >= 2 && value == 1 && priority < top[idx] + StoneOverDirt) wins = false;
+                    if (!wins) continue;
+                    top[idx] = priority;
+                    kind[idx] = value;
+                }
+            }
+
+            private static float Edge(Vector2 a, Vector2 b, Vector2 p) => (b.x - a.x) * (p.y - a.y) - (p.x - a.x) * (b.y - a.y);
+
+            public Texture2D Bake(string path)
+            {
+                var weights = new float[3][];
+                float[] broad = Noise(4f, 1), small = Noise(1.2f, 2), fine = Noise(0.5f, 3);
+                for (int ch = 0; ch < 3; ch++)
+                {
+                    var mask = new float[w * h];
+                    for (int i = 0; i < mask.Length; i++) mask[i] = kind[i] == ch + 1 ? 1f : 0f;
+                    bool dirt = ch == 0;
+                    if (dirt)
+                    {
+                        // Toprak yol taş caddeye girdiği yerde taşın altında sürer (sonra taş keser): kavşakta çim boşluğu kalmaz.
+                        var near = (float[])mask.Clone();
+                        Blur(near, Mathf.RoundToInt(2f * DirtSoft / Px));
+                        for (int i = 0; i < mask.Length; i++) if (kind[i] >= 2 && near[i] > 0.01f) mask[i] = 1f;
+                    }
+                    Blur(mask, Mathf.Max(1, Mathf.RoundToInt((dirt ? DirtSoft : StoneSoft) / Px)));
+                    float amp = dirt ? 0.22f : 0.07f, lo = dirt ? 0.32f : 0.42f, hi = dirt ? 0.68f : 0.58f;
+                    for (int i = 0; i < mask.Length; i++)
+                    {
+                        float n = broad[i] * 0.55f + small[i] * 0.3f + (dirt ? fine[i] * 0.15f : 0.15f);
+                        mask[i] = Smooth(lo, hi, mask[i] + (n * 2f - 1f) * amp);
+                    }
+                    weights[ch] = mask;
+                }
+                var paved = new float[w * h];
+                for (int i = 0; i < paved.Length; i++)
+                {
+                    float sum = weights[0][i] + weights[1][i] + weights[2][i];
+                    weights[0][i] *= 1f - Mathf.Min(1f, weights[1][i] + weights[2][i]); // taş toprağın üstünde
+                    sum = weights[0][i] + weights[1][i] + weights[2][i];
+                    if (sum > 1f) for (int ch = 0; ch < 3; ch++) weights[ch][i] /= sum;
+                    paved[i] = Mathf.Min(1f, sum);
+                }
+                var pavedBlur = (float[])paved.Clone();
+                Blur(pavedBlur, Mathf.RoundToInt(0.9f / Px));
+                float[] macroA = Noise(18f, 4), macroB = Noise(6f, 5);
+                var pixels = new Color32[w * h];
+                for (int i = 0; i < pixels.Length; i++)
+                {
+                    float shade = 0.86f + 0.14f * Mathf.Clamp01((macroA[i] * 0.65f + macroB[i] * 0.35f - 0.15f) / 0.7f);
+                    shade *= 1f - 0.35f * Mathf.Clamp01(paved[i] - pavedBlur[i]);
+                    pixels[i] = new Color32(Byte(weights[0][i]), Byte(weights[1][i]), Byte(weights[2][i]), Byte(shade));
+                }
+                var tex = new Texture2D(w, h, TextureFormat.RGBA32, false, true);
+                tex.SetPixels32(pixels);
+                System.IO.File.WriteAllBytes(path, tex.EncodeToPNG());
+                Object.DestroyImmediate(tex);
+                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+                var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+                importer.sRGBTexture = false;
+                importer.mipmapEnabled = true;
+                importer.wrapMode = TextureWrapMode.Clamp;
+                importer.filterMode = FilterMode.Bilinear;
+                importer.textureCompression = TextureImporterCompression.Uncompressed;
+                importer.maxTextureSize = 2048;
+                importer.SaveAndReimport();
+                return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            }
+
+            public Vector4 CtrlRect => new Vector4(x0, z0, 1f / (w * Px), 1f / (h * Px));
+
+            private static byte Byte(float v) => (byte)Mathf.RoundToInt(Mathf.Clamp01(v) * 255f);
+            private static float Smooth(float a, float b, float x) { float t = Mathf.Clamp01((x - a) / (b - a)); return t * t * (3f - 2f * t); }
+
+            // Değer gürültüsü (0..1), hücre boyu birim cinsinden
+            private float[] Noise(float cell, int seed)
+            {
+                var r = new float[w * h];
+                for (int j = 0; j < h; j++)
+                for (int i = 0; i < w; i++)
+                {
+                    float x = (x0 + (i + 0.5f) * Px) / cell, z = (z0 + (j + 0.5f) * Px) / cell;
+                    int xi = Mathf.FloorToInt(x), zi = Mathf.FloorToInt(z);
+                    float fx = x - xi, fz = z - zi;
+                    fx = fx * fx * (3f - 2f * fx); fz = fz * fz * (3f - 2f * fz);
+                    float a = Mathf.Lerp(Hash(xi, zi, seed), Hash(xi + 1, zi, seed), fx);
+                    float b = Mathf.Lerp(Hash(xi, zi + 1, seed), Hash(xi + 1, zi + 1, seed), fx);
+                    r[j * w + i] = Mathf.Lerp(a, b, fz);
+                }
+                return r;
+            }
+
+            private static float Hash(int x, int z, int seed)
+            {
+                unchecked
+                {
+                    uint n = (uint)(x * 374761393 + z * 668265263 + seed * 1442695041);
+                    n = (n ^ (n >> 13)) * 1274126177u;
+                    return ((n ^ (n >> 16)) & 0xffffff) / 16777215f;
+                }
+            }
+
+            // İki geçişli kutu bulanıklığı (yaklaşık Gauss), yerinde
+            private void Blur(float[] a, int r)
+            {
+                var tmp = new float[a.Length];
+                for (int pass = 0; pass < 2; pass++)
+                {
+                    BoxLine(a, tmp, r, w, h, w, 1); // satırlar
+                    BoxLine(tmp, a, r, h, w, 1, w); // sütunlar
+                }
+            }
+
+            // lines adet çizgi (başları lineStride aralıklı), her biri len eleman, elemanlar arası step
+            private static void BoxLine(float[] src, float[] dst, int r, int len, int lines, int lineStride, int step)
+            {
+                float inv = 1f / (2 * r + 1);
+                for (int l = 0; l < lines; l++)
+                {
+                    int b = l * lineStride;
+                    float sum = 0f;
+                    for (int k = -r; k <= r; k++) sum += src[b + Mathf.Clamp(k, 0, len - 1) * step];
+                    for (int k = 0; k < len; k++)
+                    {
+                        dst[b + k * step] = sum * inv;
+                        sum += src[b + Mathf.Min(k + r + 1, len - 1) * step] - src[b + Mathf.Max(k - r, 0) * step];
+                    }
+                }
+            }
         }
 
         private static List<List<(GroundSource g, Comp c)>> ClusterTall(List<(GroundSource g, Comp c)> tall)
@@ -740,6 +957,22 @@ namespace BlobSurvivor.EditorTools
 
         // ---------- objeler ----------
 
+        // Küçük objeler (fıçı, sandık, fener, kova...) her biri tek tek yenir, tek mesh'e birleştirilemez. Mobil yükü
+        // için gölge atmazlar ve ekranda çok küçülünce (kamera uzaklaşınca) çizilmezler. Yenince obje pasif olur.
+        private const float SmallProp = 1.5f;        // dünya birimi: en uzun kenar bundan kısa
+        private const float SmallPropCull = 0.015f;  // ekran yüksekliğinin bu oranından küçükse çizilmez
+        private static int s_smallProps;
+
+        private static void MakeSmallProp(GameObject root)
+        {
+            var renderers = root.GetComponentsInChildren<MeshRenderer>();
+            foreach (MeshRenderer r in renderers) r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            var lod = root.AddComponent<LODGroup>();
+            lod.SetLODs(new[] { new LOD(SmallPropCull, renderers) });
+            lod.RecalculateBounds();
+            s_smallProps++;
+        }
+
         private static GameObject BuildObject(Obj o, Material palette, Transform parent, float[] zLines, Dictionary<string, ConsumableData> dataCache)
         {
             var root = new GameObject(o.name);
@@ -769,6 +1002,7 @@ namespace BlobSurvivor.EditorTools
             Bounds full = o.bounds;
             foreach (Obj r in o.riders) full.Encapsulate(r.bounds);
             full.center -= origin;
+            if (Mathf.Max(full.size.x, full.size.y, full.size.z) < SmallProp) MakeSmallProp(root);
 
             List<Bounds> boxes = Boxes(o, origin, full);
             if (o.kind == "gate") // kemerin altı açık: kapıyı yemeden geçilmesin, kutu yere iner
@@ -1066,7 +1300,6 @@ namespace BlobSurvivor.EditorTools
         // böler, URP bölmez: yoğunluklar /π (güneş 0.78, ortam 0.6, doğrusal uzayda). Deniz = sayfanın arka plan rengi.
         // Kale/şehir ışığına dokunmaz: kendi renk profili ve kendi deniz materyali.
         private static readonly Color SeaColor = new Color(0.29f, 0.4f, 0.396f); // #4a6665
-        private const string ProfilePath = Art + "CrownreachVolumeProfile.asset";
         private const string SeaMaterialPath = Art + "Mat_CrownreachSea.mat";
 
         [MenuItem("Tools/Blob.io/Crownreach Işığını Uygula")]
@@ -1111,32 +1344,16 @@ namespace BlobSurvivor.EditorTools
             foreach (Camera cam in Object.FindObjectsByType<Camera>(FindObjectsInactive.Include))
                 if (cam.clearFlags == CameraClearFlags.SolidColor) cam.backgroundColor = SeaColor;
 
-            GameObject go = GameObject.Find("GlobalVolume");
-            var volume = go != null ? go.GetComponent<UnityEngine.Rendering.Volume>() : null;
-            if (volume != null && volume.sharedProfile != null)
+            // Post-process ve HDR yok (mobil bant genişliği): tonemapping kapalı, renk ayarları sıfırdı; tek katkısı hafif
+            // vignette'ti. Kamera post-process çizmez, sahnede volume yok.
+            foreach (Camera cam in Object.FindObjectsByType<Camera>(FindObjectsInactive.Include))
             {
-                string current = AssetDatabase.GetAssetPath(volume.sharedProfile);
-                if (current != ProfilePath)
-                {
-                    AssetDatabase.DeleteAsset(ProfilePath);
-                    AssetDatabase.CopyAsset(current, ProfilePath);
-                    volume.sharedProfile = AssetDatabase.LoadAssetAtPath<UnityEngine.Rendering.VolumeProfile>(ProfilePath);
-                }
-                var profile = volume.sharedProfile;
-                if (profile.TryGet(out UnityEngine.Rendering.Universal.Tonemapping tone))
-                    tone.mode.Override(UnityEngine.Rendering.Universal.TonemappingMode.None);
-                if (profile.TryGet(out UnityEngine.Rendering.Universal.ColorAdjustments color))
-                {
-                    color.postExposure.Override(0f);
-                    color.contrast.Override(0f);
-                    color.saturation.Override(0f);
-                }
-                if (profile.TryGet(out UnityEngine.Rendering.Universal.WhiteBalance white))
-                    white.temperature.Override(0f);
-                if (profile.TryGet(out UnityEngine.Rendering.Universal.Vignette vignette))
-                    vignette.intensity.Override(0.25f); // sayfanın kenara doğru koyulaşan radyal arka planı
-                EditorUtility.SetDirty(profile);
+                cam.allowHDR = false;
+                var data = cam.GetComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
+                if (data != null) data.renderPostProcessing = false;
             }
+            foreach (var volume in Object.FindObjectsByType<UnityEngine.Rendering.Volume>(FindObjectsInactive.Include))
+                Object.DestroyImmediate(volume.gameObject);
 
             // Deniz: düz, soluk camgöbeği (kale/şehrin parlak mavi su dokusu yerine).
             Material sea = AssetDatabase.LoadAssetAtPath<Material>(SeaMaterialPath);
