@@ -148,6 +148,9 @@ namespace BlobSurvivor.EditorTools
         public static void Build()
         {
             AssetDatabase.Refresh();
+            // Palet her atlas çıktısında yeniden dizilir: önceki kurulumun okuduğu kopya zemin türlerini karıştırır.
+            if (s_paletteRead != null) Object.DestroyImmediate(s_paletteRead);
+            s_paletteRead = null;
             if (!OpenScene()) return;
             Material palette = AssetDatabase.LoadAssetAtPath<Material>(Art + "AtlasPalette.mat");
             if (palette == null) { Debug.LogError("[Crownreach] AtlasPalette.mat yok (Tools/Blob.io/Crownreach Atlas/Open Scene bir kez kurar)."); return; }
