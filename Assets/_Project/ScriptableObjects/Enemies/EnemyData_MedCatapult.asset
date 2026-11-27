@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: EnemyData_MedCatapult
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
   _displayName: Catapult
-  _hudName: "POL\u0130S TANKI"
+  _hudName: MANCINIK
   _prefab: {fileID: 2072016075202350378, guid: c2477dfa0afd54d8391287cb5605b604, type: 3}
   _maxHealth: 600
   _damage: 25

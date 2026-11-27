@@ -20,7 +20,6 @@ namespace BlobSurvivor.UI
         private static readonly Color FinalColor = new Color(1f, 0.82f, 0.25f);
         private static readonly Vector2 ShadowOffset = new Vector2(0f, -6f);
 
-        private const string FinalTitle = "HELİKOPTER GELDİ!";
         private const string FinalSub = "Uzan ve yut!";
         private const string BossSub = "Silahla indir";
         private const string EncircleTitle = "KUŞATILDIN!";
@@ -158,9 +157,9 @@ namespace BlobSurvivor.UI
 
         private void OnBossSpawned(string hudName, bool isFinal)
         {
-            if (isFinal) Show(FinalTitle, FinalSub, FinalColor, HoldFinal);
-            else if (!string.IsNullOrEmpty(hudName)) Show(hudName + " GELDİ!", BossSub, BossColor, HoldBoss);
-            else return;
+            if (string.IsNullOrEmpty(hudName)) return;
+            if (isFinal) Show(hudName + " GELDİ!", FinalSub, FinalColor, HoldFinal);
+            else Show(hudName + " GELDİ!", BossSub, BossColor, HoldBoss);
             Haptics.Impact(2);
         }
 

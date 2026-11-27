@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: EnemyData_MedSiegeTower
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
   _displayName: SiegeTower
-  _hudName: "G\xDC\xC7L\xDC TANK"
+  _hudName: KUŞATMA KULESİ
   _prefab: {fileID: 2072016075202350378, guid: 1edaeffc676434411a8d820a47793bcf, type: 3}
   _maxHealth: 1200
   _damage: 20

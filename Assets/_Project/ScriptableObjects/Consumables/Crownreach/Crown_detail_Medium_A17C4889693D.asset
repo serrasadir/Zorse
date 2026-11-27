@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e8e5d2fd3fea44742bb673b7ccf0e379, type: 3}
-  m_Name: Crown_siege_Large_795034493A2A
+  m_Name: Crown_detail_Medium_A17C4889693D
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
-  _displayName: siege
+  _displayName: detail
   _prefab: {fileID: 0}
-  _scoreValue: 25
-  _massValue: 25
-  _requiredTier: 5
+  _scoreValue: 10
+  _massValue: 10
+  _requiredTier: 4
   _isHazard: 0
   _hazardAmount: 0
   _spawnYOffset: 0.15
-  _crumbColorA: {r: 0.4745098, g: 0.3137255, b: 0.20392157, a: 1}
-  _crumbColorB: {r: 0.28627452, g: 0.22745098, b: 0.16470589, a: 1}
+  _crumbColorA: {r: 0.6313726, g: 0.4862745, b: 0.28235295, a: 1}
+  _crumbColorB: {r: 0.5366667, g: 0.41333336, b: 0.24000002, a: 1}

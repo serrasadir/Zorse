@@ -26,7 +26,7 @@ namespace BlobSurvivor.EditorTools
 
         private struct EnemySkin
         {
-            public string Data, Prefab, Med, Mesh, Title, Sub;
+            public string Data, Prefab, Med, Mesh, Title, Sub, Hud; // Hud: boss uyarısındaki ad ("X GELDİ!")
             public float ModelScale;
         }
 
@@ -40,8 +40,8 @@ namespace BlobSurvivor.EditorTools
             new EnemySkin { Data = "EnemyData_MotorPolice", Prefab = "Enemy_MotorPolice", Med = "MountedKnight", Mesh = "H_MedMountedKnight", ModelScale = 1f,
                             Title = "ATLI ŞÖVALYE!", Sub = "Mızrağı indirince yana kaç!" },
             new EnemySkin { Data = "EnemyData_RobotDog", Prefab = "Enemy_RobotDog", Med = "Hound", Mesh = "H_MedHuntingHound", ModelScale = 1.2f },
-            new EnemySkin { Data = "EnemyData_Miniboss_Stage1", Prefab = "Enemy_Miniboss", Med = "Catapult", Mesh = "X_MedSiegeCatapult", ModelScale = 1.9f },
-            new EnemySkin { Data = "EnemyData_Miniboss_Stage2", Prefab = "Enemy_Miniboss", Med = "SiegeTower", Mesh = "X_MedSiegeTower", ModelScale = 1.7f },
+            new EnemySkin { Data = "EnemyData_Miniboss_Stage1", Prefab = "Enemy_Miniboss", Med = "Catapult", Mesh = "X_MedSiegeCatapult", ModelScale = 1.9f, Hud = "MANCINIK" },
+            new EnemySkin { Data = "EnemyData_Miniboss_Stage2", Prefab = "Enemy_Miniboss", Med = "SiegeTower", Mesh = "X_MedSiegeTower", ModelScale = 1.7f, Hud = "KUŞATMA KULESİ" },
         };
 
         private const string FinalData = "EnemyData_FinalBoss";
@@ -173,6 +173,7 @@ namespace BlobSurvivor.EditorTools
 
             var d = new SerializedObject(medData);
             d.FindProperty("_displayName").stringValue = e.Med;
+            if (e.Hud != null) d.FindProperty("_hudName").stringValue = e.Hud;
             d.FindProperty("_prefab").objectReferenceValue = medPrefab;
             if (e.Title != null)
             {
@@ -261,6 +262,7 @@ namespace BlobSurvivor.EditorTools
 
             var d = new SerializedObject(medData);
             d.FindProperty("_displayName").stringValue = "Ejderha";
+            d.FindProperty("_hudName").stringValue = "EJDERHA";
             d.FindProperty("_prefab").objectReferenceValue = medPrefab;
             d.ApplyModifiedPropertiesWithoutUndo();
             map[cityData] = medData;

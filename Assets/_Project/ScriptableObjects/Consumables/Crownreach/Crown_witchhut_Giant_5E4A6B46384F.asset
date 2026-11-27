@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e8e5d2fd3fea44742bb673b7ccf0e379, type: 3}
-  m_Name: Crown_witchhut_Large_5E4A6B46384F
+  m_Name: Crown_witchhut_Giant_5E4A6B46384F
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
   _displayName: witchhut
   _prefab: {fileID: 0}
-  _scoreValue: 25
-  _massValue: 25
-  _requiredTier: 5
+  _scoreValue: 50
+  _massValue: 50
+  _requiredTier: 6
   _isHazard: 0
   _hazardAmount: 0
   _spawnYOffset: 0.15

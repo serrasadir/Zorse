@@ -100,10 +100,13 @@ function terrainStrip(z){
  coastBand(z,'#9d966f',-1.2,.65,s=>s.left-.85,s=>s.right+.85);
  coastBand(z,'#98815e',(y-.9)/2,y+.9,s=>s.left-.15,s=>s.bank+.15,true);
  coastBand(z,z< -32?'#90a56a':z< -8?'#a0ab76':z<19?'#9cb67c':'#92b85b',y-.13,.29,s=>s.left,s=>s.bank,true);
+ // Havuzun kuzey/güney ucu: toprak ve çim aynı düzlemde biter (titrer); toprak 0,15 havuza taşar, ikisini kapatır.
+ const endH=!harbor&&(stripEdges(z+2).harbor?1:stripEdges(z-2).harbor?-1:0);
+ if(endH)box((quayEdge+right+.15)/2,(y-.9)/2,z+endH*1.075,right+.15-quayEdge,y+.9,.15,'#98815e');
  if(harbor){
   coastBand(z,water,-.76,.32,()=>quayEdge,s=>s.right); // havuz suyu: doğu kenarı kıyıyla eğik
   for(let x=bank+cityX(2);x<right-cityX(1);x+=cityX(4))
-   box(x+Math.sin(z+x),-.59,z+.4*Math.cos(x*z),1.3,.025,.12,'#a6d3c8');
+   box(x+Math.sin(z+x),-.57,z+.4*Math.cos(x*z),1.3,.025,.12,'#a6d3c8');
  }
  for(const side of [-1,1]){
   if(harbor&&side===1) continue;
@@ -148,7 +151,7 @@ function traps(x,z){at(x,ground(z),z,0,()=>{for(const [u,v,y] of [[0,0,0],[.95,0
 // Farm props
 function haybarn(x,z,ang=0){at(x,ground(z),z,ang,()=>{for(const a of [-1,1])for(const b of [-1,1])box(a*1.9,1.5,b*1.5,.22,3,.22,wood);for(const s of [-1,1])box(s*1.08,3.32,0,2.4,.16,3.8,'#8b5a3c',0,0,-s*.5);box(0,3.85,0,.2,.2,3.8,wood);for(let i=0;i<3;i++)for(let j=0;j<2;j++)box((i-1)*1.2,.58+j*1.15,0,1.16,1.12,2.6,j?'#e2bf5e':'#dab352')})}
 function coop(x,z,ang=0){at(x,ground(z),z,ang,()=>{for(const a of [-1,1])for(const b of [-1,1])box(a*.85,.25,b*.6,.12,.5,.12,wood);box(0,.95,0,2,.9,1.4,'#c79a5a');for(const s of [-1,1])box(s*.6,1.62,0,1.35,.12,1.7,red,0,0,-s*.55);box(0,1.05,.71,.4,.5,.04,dark);box(1.45,.32,.4,1.2,.08,.5,oak,0,0,.5)})}
-function trough(x,z,ang=0){at(x,ground(z),z,ang,()=>{box(0,.28,0,1.8,.5,.6,wood);box(0,.5,0,1.6,.06,.44,water)})}
+function trough(x,z,ang=0){at(x,ground(z),z,ang,()=>{box(0,.28,0,1.8,.5,.6,wood);box(0,.53,0,1.6,.06,.44,water)})}
 function woodpile(x,z,ang=0){at(x,ground(z),z,ang,()=>{for(let i=0;i<7;i++)cyl((i%4-1.5)*.42+(i>3?.21:0),.22+(i>3?.38:0),0,.4,1.5,.4,i%2?oak:'#9c7448',Math.PI/2);cyl(1.9,.3,0,.75,.6,.75,oak);cyl(1.9,.61,0,.6,.02,.6,'#d9b98a');box(1.95,.95,.05,.08,.8,.08,wood,0,0,.35);box(1.85,.7,.05,.3,.18,.06,iron)})}
 // Town props
 function smithy(x,z,ang=0){at(x,ground(z),z,ang,()=>{box(0,.08,0,4,.16,3.6,shade);box(0,1.4,-1.65,4,2.8,.3,stone);for(const a of [-1,1])box(a*1.85,1.35,1.6,.22,2.7,.22,wood);box(0,2.95,0,4.4,.18,4,'#7a5a42',.12);box(-1.1,.6,-.9,1.4,1.2,1.2,stone);box(-1.1,1.25,-.9,.9,.12,.8,'#f08a3a');box(-1.1,3.2,-1.2,.7,2,.7,stone);box(.6,.35,.2,.5,.7,.4,iron);box(.6,.78,.2,1,.16,.42,iron);box(1.3,.78,.2,.3,.1,.2,iron);barrel(1.4,-.9,.7);for(let i=0;i<3;i++)box(-.2+i*.45,1.8,-1.47,.1,.7,.05,iron)})}
@@ -225,9 +228,9 @@ path(0,-20,36,21,'#b3ac93');for(let z of [-11.5,-25.3])path(0,z,40,2.1,'#cac2a8'
 at(0,2,0,0,()=>{for(let i=0;i<4;i++){let x=cityX(-8.8+i*1.8);box(x,.85,-21,.18,1.7,.2,wood);for(let j=0;j<3;j++)shape('round',x,1.95,-21+j*.06,1.38-j*.44,.11,1.38-j*.44,[cream,red,gold][j],Math.PI/2)}for(let i=0;i<4;i++){let x=cityX(-8.8+i*1.8);for(const [u,v] of [[.18,.14],[-.2,-.08],[.05,-.28]].slice(0,2+i%2)){box(x+u,1.95+v,-20.62,.04,.04,.55,wood);box(x+u,1.95+v,-20.38,.12,.12,.06,i%2?red:cream)}}for(let i=0;i<3;i++){let x=cityX(-9+i*2.05);box(x,1,-16,.21,2,.24,wood);box(x,1.48,-16,1.32,.23,.24,wood);box(x,1.56,-16,.67,.89,.56,'#ae8b55');ball(x,2.27,-16,.65,.67,.64,oak)}for(let i=0;i<8;i++)crate(cityX(13.5)+i%4*1.17,-23.1-Math.floor(i/4)*1.2,1.05);for(let i=0;i<3;i++)barrel(cityX(18.7),-22.5-i,.88);for(let x of [cityX(8.5)-1.5,cityX(8.5)+1.5]){box(x,.82,-14,.16,1.6,.23,wood)}box(cityX(8.5),1.2,-14,3.25,.21,.28,wood);for(let i=0;i<5;i++){box(cityX(8.5)-1.2+i*.55,1.26,-13.8,.09,2.53,.09,wood);shape('cone',cityX(8.5)-1.2+i*.55,2.65,-13.8,.27,.46,.27,shade)}
 for(const x of [cityX(-15),cityX(-8)]){for(let i=0;i<6;i++)box(x,.3+i*.32,-26,(4.1-i*.6),.39,3.9,i%2?'#c3a56f':'#ddc495');box(x,.64,-23.99,.84,1.25,.07,dark)}
 });cart(10,-23);
-function siege(x,z){place(x,ground(z),z,-.36,()=>{box(0,.87,0,2.5,.43,3.9,wood);for(let a of [-1,1])for(let b of [-1,1])shape('round',a*1.32,.62,b*1.23,1.17,.32,1.17,dark,0,0,Math.PI/2);for(let a of [-1,1])box(a*.81,1.92,0,.32,2.2,.36,oak);box(0,2.75,0,2.05,.33,.4,wood);box(0,2.63,0,.36,.4,4.15,oak,-.59);cyl(0,3.7,1.75,1.28,.36,1.28,wood);ball(0,4.02,1.75,.77,.75,.78,shade)})}siege(7,-19);
+function siege(x,z){place(x,ground(z),z,-.36,()=>{_scale(2);box(0,.87,0,2.5,.43,3.9,wood);for(let a of [-1,1])for(let b of [-1,1])shape('round',a*1.32,.62,b*1.23,1.17,.32,1.17,dark,0,0,Math.PI/2);for(let a of [-1,1])box(a*.81,1.92,0,.32,2.2,.36,oak);box(0,2.75,0,2.05,.33,.4,wood);box(0,2.63,0,.36,.4,4.15,oak,-.59);cyl(0,3.7,1.75,1.28,.36,1.28,wood);ball(0,4.02,1.75,.77,.75,.78,shade)})}siege(5.5,-18.2);
 place(15,2,-26,0,()=>{for(let a of [-1,1])for(let b of [-1,1]){box(a*1.06,2.5,b*1.02,.35,5,.35,wood);shape('round',a*1.27,.54,b,1.01,.27,1.01,dark,0,0,1.57)}for(let i=0;i<3;i++){box(0,1+i*1.8,0,2.6,.28,2.55,oak);box(0,1.88+i*1.6,-1.08,2.37,.17,.18,oak,0,0,.53)}box(0,5.34,-1.14,2.67,.83,.22,wood)});
-for(let z=-31;z<=-29;z+=1){box(0,2.18,z,cityX(39),.18,1.04,water);for(let j=0;j<8;j++)box(cityX((rand()-.5)*38),2.281,z+rand()*.6,1.3,.015,.08,'#a2d4ca')}
+for(let z=-31;z<=-29;z+=1){if(z===-30)box(0,2.18,z,cityX(39),.18,3.04,water);for(let j=0;j<8;j++)box(cityX((rand()-.5)*38),2.3,z+rand()*.6,1.3,.015,.08,'#a2d4ca')}
 at(0,2,-30,0,()=>{for(let i=0;i<14;i++)box(0,.47,i*.37-2.4,5.1,.25,.34,oak);for(let s of [-1,1]){box(s*2.5,1.39,0,.14,.19,5.4,wood);for(let i=-1;i<=1;i++)post(s*2.52,i*2.3,1.55)}});
 // Royal bailey: a faceted oval curtain around an inlaid stone arena.
 cyl(0,3.14,-44,cityX(36),.3,21.5,'#b6b6a3');cyl(0,3.32,-42,cityX(23),.16,13.8,'#d5ccaf');cyl(0,3.42,-42,cityX(19),.08,11.7,'#b9b8a6');
@@ -430,7 +433,7 @@ function tavernset(x,z,ang=0,food=0,s=1){at(x,ground(z),z,ang,()=>{_scale(s);
 // mangal: üç ayak, kazan, ateş (hanın yanına)
 function spit(x,z,ang=0,s=1){at(x,ground(z),z,ang,()=>{_scale(s);
  for(const a of [-1,1]){box(a*.75,.65,0,.12,1.4,.12,wood,0,0,a*.12)}box(0,1.32,0,1.75,.1,.1,wood);
- box(0,1.1,0,.04,.4,.04,iron);ball(0,.78,0,.6,.48,.6,cSoot);cyl(0,.98,0,.5,.06,.5,'#e4bf69');
+ box(0,1.1,0,.04,.4,.04,iron);ball(0,.78,0,.6,.48,.6,cSoot);cyl(0,1.0,0,.5,.06,.5,'#e4bf69');
  for(let i=0;i<4;i++)box(Math.sin(i*1.57)*.25,.12,Math.cos(i*1.57)*.25,.6,.12,.12,wood,0,i*1.57);
  shape('cone',0,.32,0,.42,.45,.42,cFire);shape('cone',.05,.3,.05,.22,.3,.22,cEmber)})}
 
@@ -568,7 +571,7 @@ function dyerack(x,z,ang=0,k=0){at(x,ground(z),z,ang,()=>{
  for(let i=0;i<3;i++){const u=-.7+i*.7;box(u,1.95-.5,-.3,.5,1,.04,dyeC[(i+k+3)%6])}
 })}
 function dyevats(x,z,ang=0,k=0){at(x,ground(z),z,ang,()=>{
- for(const [u,v,i] of [[-.75,0,0],[.75,0,1],[0,1.15,2]]){cyl(u,.4,v,1.15,.8,1.15,wood);for(const y of [.18,.62])cyl(u,y,v,1.2,.08,1.2,iron);cyl(u,.78,v,.98,.04,.98,dyeC[(i+k)%6])}
+ for(const [u,v,i] of [[-.75,0,0],[.75,0,1],[0,1.15,2]]){cyl(u,.4,v,1.15,.8,1.15,wood);for(const y of [.18,.62])cyl(u,y,v,1.2,.08,1.2,iron);cyl(u,.81,v,.98,.04,.98,dyeC[(i+k)%6])}
  box(-.6,1.05,.1,.08,.95,.08,oak,0,0,.5);box(-.35,.58,.1,.22,.06,.18,oak,0,0,.5);
  for(let i=0;i<3;i++)cyl(1.05,.16+i*.27,1.15,.26,.62,.26,dyeC[(i+k+2)%6],0,0,Math.PI/2);
 })}
@@ -680,13 +683,13 @@ function scarecrow(x,z,ang=0){at(x,ground(z),z,ang,()=>{
  ball(-.7,1.98,0,.22,.2,.3,'#2b2a33');shape('cone',-.7,1.98,.18,.07,.12,.07,gold,Math.PI/2);
 })}
 function wellside(x,z,ang=0){at(x,ground(z),z,ang,()=>{
- box(0,.28,0,1.8,.5,.6,wood);box(0,.5,0,1.6,.06,.44,water);for(const a of [-1,1])box(a*.92,.3,0,.08,.62,.68,dark);
- for(const [u,v] of [[1.38,.35],[1.3,-.38]]){cyl(u,.22,v,.42,.44,.42,oak);cyl(u,.42,v,.34,.04,.34,water);cyl(u,.12,v,.46,.06,.46,iron);box(u,.62,v,.36,.04,.04,iron)}
+ box(0,.28,0,1.8,.5,.6,wood);box(0,.53,0,1.6,.06,.44,water);for(const a of [-1,1])box(a*.92,.3,0,.08,.62,.68,dark);
+ for(const [u,v] of [[1.38,.35],[1.3,-.38]]){cyl(u,.22,v,.42,.44,.42,oak);cyl(u,.45,v,.34,.04,.34,water);cyl(u,.12,v,.46,.06,.46,iron);box(u,.62,v,.36,.04,.04,iron)}
 })}
 // Cadı kulübesi renkleri (koyu ahşap, mor vurgu, iksir yeşili).
 const wPlum='#5e4a6b',wPlumD='#46384f',wBrew='#8fd65a',wMoss='#739d55',wStraw='#dab352',wFire='#f08a3a',wEmber='#ffd86a',wSoot='#3d3a40';
 // Cadı şapkası çatı: yukarıdan en tanınır silüet. Koyu ahşap gövde, mor vurgu (bütünüyle mor değil).
-function witchhut(x,z,ang=0){at(x,ground(z),z,ang,()=>{
+function witchhut(x,z,ang=0){at(x,ground(z),z,ang,()=>{_scale(1.4);
  box(0,.1,0,4.2,.2,3.8,'#6b6151');
  for(const [u,v] of [[-1.5,-1.3],[1.5,-1.3],[-1.5,1.3],[1.5,1.3]])box(u,.45,v,.3,.9,.3,dark);
  box(0,.95,0,3.6,.18,3.2,wood);
@@ -725,7 +728,7 @@ function cauldron(x,z,ang=0){at(x,ground(z),z,ang,()=>{
  for(let i=0;i<3;i++){const a=i*Math.PI*2/3;box(Math.sin(a)*.5,.35,Math.cos(a)*.5,.1,.5,.1,wSoot)}
  ball(0,.95,0,1.45,1.15,1.45,wSoot);cyl(0,1.4,0,1.15,.2,1.15,wSoot);cyl(0,1.55,0,1.25,.12,1.25,'#55525a');
  for(const a of [-1,1])box(a*.74,1.25,0,.12,.28,.24,'#55525a');
- cyl(0,1.58,0,1.02,.06,1.02,wBrew);
+ cyl(0,1.61,0,1.02,.06,1.02,wBrew);
  for(const [u,v,s] of [[-.2,.1,.26],[.22,-.15,.2],[.05,.3,.16],[.3,.2,.12]])ball(u,1.62,v,s,s*.8,s,s>.2?'#b2ec80':wBrew);
  box(-.25,1.95,-.15,.1,1.1,.1,wood,.3,0,.35);
  box(.28,1.8,.05,.12,.55,.12,'#f6e3bf',0,0,-.4);ball(.38,2.06,.05,.2,.18,.18,'#f6e3bf');
@@ -736,8 +739,8 @@ for(const [x,z,k] of [[-17.3,-47.1,0],[-33.0,25.0,1],[35.5,40.8,2],[-32.6,46.3,0
 for(const [x,z,k] of [[22.3,126.1,0],[21.3,127.7,1],[-12.9,26.4,1],[-12.0,24.7,0],[7.6,57.0,2],[6.5,55.4,0],[10.6,25.6,0],[11.4,23.9,1],[11.8,27.1,2],[15.6,56.5,1],[17.5,56.2,2],[-26.9,116.3,2],[-25.6,117.7,0],[-28.7,116.8,1]])k?tree(P(x),z,.7+(Math.abs(x*z)%.2),k===2):pine(P(x),z,.72+(Math.abs(x+z)%.25));
 for(const [x,z] of [[-25,101],[-25,109],[-22,122],[-16,126],[17,99]])pine(x,z,.95);
 // Cadı kulübesi: tarlanın batı kıyısında, değirmenin güneyinde çamların arasında (rand() çağırmaz).
-// Kazan kulübeye yakın: Unity objeyi 0,6 küçültür, yerleşimi 1,0 tutar.
-witchhut(-30.8,50.2);cauldron(-29.2,52.4,-.4);pine(P(-27.2),49.4,.62);
+// Kulübe 1,4 kat (Unity objeyi 0,6 küçültür, yerleşimi 1,0 tutar); batı kenarı kıyıya taşmasın diye doğuda, kazan sağ önünde.
+witchhut(-30,50.4);cauldron(-25.9,52,-.4);pine(P(-24),51.2,.62);
 // Tarla: kapının doğusunda arı kovanları ve bal tezgâhı, tarlalarda korkuluk, kuyu meydanında yalak ve kovalar.
 // Hikâye köşeleri: doğu kıyısında şapel ve mezarlık (cadının karşısı), meydanda pranga; garnizonda okçuluk ve gözetleme kulesi; kale arenasında mızrak dövüşü.
 chapel(31.7,49.4);graveyard(28.9,45.2);pillory(4.4,1.5,-.3);archerygear(-13.2,-18.4,.2);watchtower(-13.9,-26.4);
