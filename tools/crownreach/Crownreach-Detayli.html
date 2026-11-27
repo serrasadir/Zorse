@@ -155,7 +155,7 @@ for(let [x,z] of [[-24,34],[-25,30],[-25,38],[25,46],[22,50]])tree(x,z,.87,true)
 house(P(-18.6),51.5,3.6,3.2,2,'#b45e3e');house(P(18.6),51.5,3.5,3.1,1.9,'#916345');
 pen(-12.2,51.3,7,5,[[-2,-1,'sheep'],[.5,1,'sheep'],[2,-.8,'sheep']]);hay(-6.2,51.3,3,Math.PI/2);
 pen(11.9,51.3,7.5,5,[[-2.4,-1,'pig'],[.3,.9,'cow'],[2.6,-.9,'cow'],[-2.6,1.4,'chicken'],[-1.6,1.7,'chicken']]);hay(6,51.3,3,Math.PI/2);
-barn(-12.2,57,5.4,4.2,Math.PI);barn(11.9,57,5.4,4.2,Math.PI);haybarn(30.6,34.4);coop(-24.6,54.4);for(const [u,v] of [[-26.4,56.4],[-23,56.8],[-25.4,57.4]])animal(P(u),v,'chicken');trough(-10.2,53.2);trough(14.6,53.3);woodpile(-18.6,57);hay(-23,40,3,Math.PI/2);cart(P(-5.2),41);laundry(22.4,51.5,3,Math.PI/2);
+barn(-12.2,57,5.4,4.2);barn(11.9,57,5.4,4.2);haybarn(30.6,34.4);coop(-24.6,54.4);for(const [u,v] of [[-26.4,56.4],[-23,56.8],[-25.4,57.4]])animal(P(u),v,'chicken');trough(-10.2,53.2);trough(14.6,53.3);woodpile(-18.6,57);hay(-23,40,3,Math.PI/2);cart(P(-5.2),41);laundry(22.4,51.5,3,Math.PI/2);
 function flag(x,y,z,c){box(x,y+1.45,z,.12,3,.12,wood);moving(x,y+2.85,z,'flag',()=>{for(let i=0;i<4;i++)box(.21+i*.4,-.53-i*.06,Math.sin(i)*.13,.42,1.02-i*.14,.11,c);box(.59,-.57,.15,.17,.56,.05,gold)})}
 function tower(x,z,y,w,h,cap=false,c=blue){at(x,y,z,0,()=>{box(0,.5,0,w+.65,1,w+.65,shade);box(0,h*.49,0,w,h,w,stone);for(let k=1;k<4;k++)box(0,k*h/4,0,w+.13,.15,w+.13,'#b7b8a1');for(let a of [-1,1]){box(a*w*.51,h*.68,0,.06,1.12,.26,dark);box(0,h*.68,a*w*.51,.28,1.12,.06,dark)}box(0,h-.2,0,w+.68,.55,w+.68,shade);box(0,h+.13,0,w+.76,.37,w+.76,stone);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)if(a||b)box(a*w*.49,h+.63,b*w*.49,.63,.78,.63,stone);for(let s of [-1,1])for(let side of [-1,1])for(let k=0;k<Math.floor(h/.68);k++){
  const tone=k%2?'#aeb3a1':'#bec1ad';
