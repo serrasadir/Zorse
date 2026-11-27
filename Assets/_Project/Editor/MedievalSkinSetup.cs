@@ -40,8 +40,8 @@ namespace BlobSurvivor.EditorTools
             new EnemySkin { Data = "EnemyData_MotorPolice", Prefab = "Enemy_MotorPolice", Med = "MountedKnight", Mesh = "H_MedMountedKnight", ModelScale = 1f,
                             Title = "ATLI ŞÖVALYE!", Sub = "Mızrağı indirince yana kaç!" },
             new EnemySkin { Data = "EnemyData_RobotDog", Prefab = "Enemy_RobotDog", Med = "Hound", Mesh = "H_MedHuntingHound", ModelScale = 1.2f },
-            new EnemySkin { Data = "EnemyData_Miniboss_Stage1", Prefab = "Enemy_Miniboss", Med = "Catapult", Mesh = "X_MedSiegeCatapult", ModelScale = 1.9f, Hud = "MANCINIK" },
-            new EnemySkin { Data = "EnemyData_Miniboss_Stage2", Prefab = "Enemy_Miniboss", Med = "SiegeTower", Mesh = "X_MedSiegeTower", ModelScale = 1.7f, Hud = "KUŞATMA KULESİ" },
+            new EnemySkin { Data = "EnemyData_Miniboss_Stage1", Prefab = "Enemy_Miniboss", Med = "Catapult", Mesh = "X_MedSiegeCatapult", ModelScale = 2.3f, Hud = "MANCINIK" },
+            new EnemySkin { Data = "EnemyData_Miniboss_Stage2", Prefab = "Enemy_Miniboss", Med = "SiegeTower", Mesh = "X_MedSiegeTower", ModelScale = 2.05f, Hud = "KUŞATMA KULESİ" },
         };
 
         private const string FinalData = "EnemyData_FinalBoss";
