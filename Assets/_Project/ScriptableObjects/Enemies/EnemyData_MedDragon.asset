@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
   _displayName: Ejderha
   _hudName: "POL\u0130S HEL\u0130KOPTER\u0130"
-  _prefab: {fileID: 2072016075202350378, guid: d1b25a982f9d6494881cb97352f201ba, type: 3}
+  _prefab: {fileID: 2072016075202350378, guid: af8a44705cd44489e9b572e682307477, type: 3}
   _maxHealth: 9000
   _damage: 6
   _moveSpeed: 3.5

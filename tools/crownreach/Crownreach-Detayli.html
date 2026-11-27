@@ -120,6 +120,27 @@ for(let k=0;k<10;k++){const y=h+.2+(k+.5)*.14,hw=y<h+1.1?w/2+(w*.34-w/2)*(y-h-.1
 for(const s of [-1,1])for(let i=0;i<2;i++){const [x0,y0]=prof[i],[x1,y1]=prof[i+1];box(s*(x0+x1)/2,(y0+y1)/2,0,Math.hypot(x1-x0,y1-y0)+.1,.18,d+.5,roof,0,0,-s*Math.atan2(y1-y0,x0-x1))}
 const f=d/2;box(0,1.2,f+.03,2,2,.08,cream);box(0,1.2,f+.07,1.62,1.62,.06,'#9c4232');for(const r of [-.79,.79])box(0,1.2,f+.11,2.15,.17,.05,cream,0,0,r);
 box(0,h+.75,f+.03,.82,.82,.08,cream);box(0,h+.75,f+.08,.5,.5,.05,dark)})}
+const iron='#6d7276',fishC='#9fb4bb',flowerC=['#d8546a','#f2c94c','#e88fb0','#f08a3a'];
+// Harbor props
+function fishstall(x,z,ang=0){at(x,ground(z),z,ang,()=>{box(0,.85,0,3,.2,1.4,oak);for(const a of [-1,1])for(const b of [-1,1])box(a*1.35,.42,b*.55,.16,.84,.16,wood);box(0,1,0,2.7,.1,1.15,'#dfeef0');for(let i=0;i<7;i++)box((i-3)*.37,1.12,i%2?.2:-.2,.3,.12,.62,i%3?fishC:'#c2ccc6',0,i%2?.3:-.3);for(const a of [-1,1])box(a*1.35,1.7,-.62,.12,1.7,.12,wood);box(0,2.5,-.62,2.9,.12,.12,wood);for(let i=0;i<4;i++)box((i-1.5)*.62,2.12,-.62,.16,.62,.08,fishC)})}
+function rope(x,z){at(x,ground(z),z,0,()=>{cyl(0,.1,0,.9,.2,.9,'#c9a86a');cyl(0,.27,0,.72,.16,.72,'#b8975a');cyl(0,.36,0,.32,.04,.32,dark)})}
+function crane(x,z,ang=0){at(x,ground(z),z,ang,()=>{box(0,.2,0,2,.4,2,wood);box(0,2.3,0,.42,3.9,.42,wood);for(const s of [-1,1])box(s*.55,1.1,0,.16,2,.16,oak,0,0,-s*.35);box(1.7,4.05,0,3.8,.26,.26,oak,0,0,.12);box(3.4,3.3,0,.05,1.5,.05,dark);box(3.4,2.3,0,.7,.6,.7,oak);box(-.6,3.6,0,.16,1.2,.16,wood,0,0,.6)})}
+function lighthouse(x,z){at(x,ground(z),z,0,()=>{cyl(0,.4,0,3.6,.8,3.6,shade);for(let k=0;k<5;k++){const r=2.7-k*.2;cyl(0,1.5+k*1.4,0,r,1.4,r,k%2?red:cream)}box(0,1.6,1.32,.7,1.4,.12,wood);cyl(0,8.15,0,2.9,.25,2.9,dark);for(let i=0;i<8;i++){const a=i*Math.PI/4;box(Math.sin(a)*.62,8.75,Math.cos(a)*.62,.1,1,.1,dark)}cyl(0,8.75,0,1.1,1,1.1,'#ffe28a');shape('cone',0,9.75,0,1.9,1,1.9,red)})}
+function fishrack(x,z,ang=0){at(x,ground(z),z,ang,()=>{for(const s of [-1,1])post(s*1.4,0,1.9);for(const y of [1.25,1.75])box(0,y,0,2.8,.08,.08,wood);for(let i=0;i<10;i++)box((i%5-2)*.5,i<5?1.55:1.05,0,.14,.38,.06,i%3?fishC:'#b8c4be')})}
+function traps(x,z){at(x,ground(z),z,0,()=>{for(const [u,v,y] of [[0,0,0],[.95,0,0],[.45,0,.62]]){box(u,y+.3,v,.88,.6,.62,'#8a6a45');for(const k of [-.25,0,.25])box(u+k,y+.3,v,.05,.62,.64,dark)}})}
+// Farm props
+function haybarn(x,z,ang=0){at(x,ground(z),z,ang,()=>{for(const a of [-1,1])for(const b of [-1,1])box(a*1.9,1.5,b*1.5,.22,3,.22,wood);for(const s of [-1,1])box(s*1.08,3.32,0,2.4,.16,3.8,'#8b5a3c',0,0,-s*.5);box(0,3.85,0,.2,.2,3.8,wood);for(let i=0;i<3;i++)for(let j=0;j<2;j++)box((i-1)*1.2,.58+j*1.15,0,1.16,1.12,2.6,j?'#e2bf5e':'#dab352')})}
+function coop(x,z,ang=0){at(x,ground(z),z,ang,()=>{for(const a of [-1,1])for(const b of [-1,1])box(a*.85,.25,b*.6,.12,.5,.12,wood);box(0,.95,0,2,.9,1.4,'#c79a5a');for(const s of [-1,1])box(s*.6,1.62,0,1.35,.12,1.7,red,0,0,-s*.55);box(0,1.05,.71,.4,.5,.04,dark);box(1.45,.32,.4,1.2,.08,.5,oak,0,0,.5)})}
+function trough(x,z,ang=0){at(x,ground(z),z,ang,()=>{box(0,.28,0,1.8,.5,.6,wood);box(0,.5,0,1.6,.06,.44,water)})}
+function woodpile(x,z,ang=0){at(x,ground(z),z,ang,()=>{for(let i=0;i<7;i++)cyl((i%4-1.5)*.42+(i>3?.21:0),.22+(i>3?.38:0),0,.4,1.5,.4,i%2?oak:'#9c7448',Math.PI/2);cyl(1.9,.3,0,.75,.6,.75,oak);cyl(1.9,.61,0,.6,.02,.6,'#d9b98a');box(1.95,.95,.05,.08,.8,.08,wood,0,0,.35);box(1.85,.7,.05,.3,.18,.06,iron)})}
+// Town props
+function smithy(x,z,ang=0){at(x,ground(z),z,ang,()=>{box(0,.08,0,4,.16,3.6,shade);box(0,1.4,-1.65,4,2.8,.3,stone);for(const a of [-1,1])box(a*1.85,1.35,1.6,.22,2.7,.22,wood);box(0,2.95,0,4.4,.18,4,'#7a5a42',.12);box(-1.1,.6,-.9,1.4,1.2,1.2,stone);box(-1.1,1.25,-.9,.9,.12,.8,'#f08a3a');box(-1.1,3.2,-1.2,.7,2,.7,stone);box(.6,.35,.2,.5,.7,.4,iron);box(.6,.78,.2,1,.16,.42,iron);box(1.3,.78,.2,.3,.1,.2,iron);barrel(1.4,-.9,.7);for(let i=0;i<3;i++)box(-.2+i*.45,1.8,-1.47,.1,.7,.05,iron)})}
+function oven(x,z){at(x,ground(z),z,0,()=>{cyl(0,.4,0,2.5,.8,2.5,stone);ball(0,1.15,0,2.3,1.7,2.3,'#c9b79a');box(0,.95,1.1,.7,.6,.15,dark);box(.55,2,-.4,.4,.8,.4,stone)})}
+function breadtable(x,z,ang=0){at(x,ground(z),z,ang,()=>{box(0,.72,0,1.8,.12,.75,oak);for(const a of [-1,1])box(a*.75,.35,0,.12,.7,.6,wood);for(let i=0;i<5;i++)ball((i-2)*.32,.88,(i%2)*.18-.09,.34,.22,.24,'#d9a55a')})}
+function innsign(x,z,ang=0){at(x,ground(z),z,ang,()=>{post(0,0,2.8);box(.45,2.6,0,1,.1,.1,wood);box(.75,2.05,0,.9,.7,.08,'#a5703f');box(.75,2.05,.05,.3,.36,.05,gold)})}
+function tables(x,z){at(x,ground(z),z,0,()=>{box(0,.72,0,1.5,.12,.8,oak);for(const a of [-1,1]){box(a*.6,.35,0,.12,.7,.6,wood);box(0,.42,a*.72,1.4,.1,.3,oak)}for(const u of [-.4,.3])cyl(u,.86,.1,.18,.24,.18,'#a5703f');barrel(1.3,.5,.7);barrel(1.3,-.4,.7)})}
+function planters(x,z,w,d,h){at(x,ground(z),z,0,()=>{for(const b of [-1,1]){box(b*w*.32,h*.39+.08,d/2+.16,w*.2,.18,.22,wood);for(let i=0;i<3;i++)ball(b*w*.32+(i-1)*w*.06,h*.39+.24,d/2+.16,.17,.17,.17,flowerC[(i+(b>0?1:0)+Math.abs(Math.round(x)))%4])}})}
+function lamppost(x,z,ang=0){at(x,ground(z),z,ang,()=>{box(0,.15,0,.55,.3,.55,stone);box(0,1.7,0,.28,3.3,.28,wood);box(0,1.15,0,.36,.32,.36,iron);box(.72,3.28,0,1.75,.22,.22,oak);box(.38,2.85,0,.95,.15,.15,oak,0,0,.72);box(1.42,3.02,0,.04,.32,.04,dark);shape('cone',1.42,2.74,0,.56,.3,.56,dark);box(1.42,2.38,0,.42,.52,.42,'#ffd86a');for(const a of [-1,1])for(const b of [-1,1])box(1.42+a*.21,2.38,b*.21,.06,.54,.06,dark);box(1.42,2.08,0,.52,.08,.52,dark)})}
 function crates(x,z){at(x,ground(z),z,0,()=>{crate(0,0,.88);crate(1,0,.88);crate(0,1,.88);barrel(1,1,.8)})}
 // Farmland: two worked fields round the well junction. The gate farms sell at their door; the north farms keep
 // their stock in closed pens with hay beside them.
@@ -134,7 +155,7 @@ for(let [x,z] of [[-24,34],[-25,30],[-25,38],[25,46],[22,50]])tree(x,z,.87,true)
 house(P(-18.6),51.5,3.6,3.2,2,'#b45e3e');house(P(18.6),51.5,3.5,3.1,1.9,'#916345');
 pen(-12.2,51.3,7,5,[[-2,-1,'sheep'],[.5,1,'sheep'],[2,-.8,'sheep']]);hay(-6.2,51.3,3,Math.PI/2);
 pen(11.9,51.3,7.5,5,[[-2.4,-1,'pig'],[.3,.9,'cow'],[2.6,-.9,'cow'],[-2.6,1.4,'chicken'],[-1.6,1.7,'chicken']]);hay(6,51.3,3,Math.PI/2);
-barn(-12.2,57,5.4,4.2,Math.PI);barn(11.9,57,5.4,4.2,Math.PI);hay(-23,40,3,Math.PI/2);cart(P(-5.2),41);laundry(22.4,51.5,3,Math.PI/2);
+barn(-12.2,57,5.4,4.2,Math.PI);barn(11.9,57,5.4,4.2,Math.PI);haybarn(30.6,34.4);coop(-24.6,54.4);for(const [u,v] of [[-26.4,56.4],[-23,56.8],[-25.4,57.4]])animal(P(u),v,'chicken');trough(-10.2,53.2);trough(14.6,53.3);woodpile(-18.6,57);hay(-23,40,3,Math.PI/2);cart(P(-5.2),41);laundry(22.4,51.5,3,Math.PI/2);
 function flag(x,y,z,c){box(x,y+1.45,z,.12,3,.12,wood);moving(x,y+2.85,z,'flag',()=>{for(let i=0;i<4;i++)box(.21+i*.4,-.53-i*.06,Math.sin(i)*.13,.42,1.02-i*.14,.11,c);box(.59,-.57,.15,.17,.56,.05,gold)})}
 function tower(x,z,y,w,h,cap=false,c=blue){at(x,y,z,0,()=>{box(0,.5,0,w+.65,1,w+.65,shade);box(0,h*.49,0,w,h,w,stone);for(let k=1;k<4;k++)box(0,k*h/4,0,w+.13,.15,w+.13,'#b7b8a1');for(let a of [-1,1]){box(a*w*.51,h*.68,0,.06,1.12,.26,dark);box(0,h*.68,a*w*.51,.28,1.12,.06,dark)}box(0,h-.2,0,w+.68,.55,w+.68,shade);box(0,h+.13,0,w+.76,.37,w+.76,stone);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)if(a||b)box(a*w*.49,h+.63,b*w*.49,.63,.78,.63,stone);for(let s of [-1,1])for(let side of [-1,1])for(let k=0;k<Math.floor(h/.68);k++){
  const tone=k%2?'#aeb3a1':'#bec1ad';
@@ -171,10 +192,13 @@ for(const s of [-1,1]){
  wall(cityX(s*22),5.5,26.7,2.8,Math.PI/2,1);tower(cityX(s*22),17.8,1,2.6,3.8);tree(s*4.4,7.2,.67);
 }
 house(P(-23),12.4,3.7,5.8,2.7,'#956645');fountain(P(-23),7.2,true);house(P(-22.9),-1.5,4,4,3.1,'#668587');
-house(P(23),13.1,4,4.6,3.2,'#bc6144');house(P(23),6.9,3.1,4.2,2.7,blue);tower(cityX(18.7),-2.6,1,3.1,6.6,true);
-stall(P(-6.6),13.2,'#ad803a',Math.PI/2);crates(-6.6,8.6);crates(21.3,1);cart(P(6),-2.5);laundry(11,10.55,3.4);
+house(P(23),13.1,4,4.6,3.2,'#bc6144');house(P(23),6.9,3.1,4.2,2.7,blue);
+for(const s of [-1,1]){planters(s*11,13.2,4.5,3.6,2.6);planters(s*11,7.7,4.7,4.1,3.4);planters(s*11,-1,4.5,5.5,3.6)}planters(-23,12.4,3.7,5.8,2.7);planters(-22.9,-1.5,4,4,3.1);planters(23,13.1,4,4.6,3.2);planters(23,6.9,3.1,4.2,2.7);tower(cityX(18.7),-2.6,1,3.1,6.6,true);
+stall(P(-6.6),13.2,'#ad803a',Math.PI/2);crates(-6.6,8.6);crates(21.3,1);smithy(-6,-2.4);oven(6,-2.6);breadtable(6,-.75);innsign(8.2,5.4);tables(7.3,7.4);laundry(11,10.55,3.4);
 place(P(-22.9),1,1.9,0,()=>{for(let i=0;i<6;i++)cyl(i%3*.47,Math.floor(i/3)*.42+.25,0,.43,1.1,.43,oak,Math.PI/2);for(let i=0;i<3;i++)ball(-1.2+i*.48,.41,0,.65,.86,.65,'#c4ae84')});
-at(0,1,0,0,()=>{for(let z of [-3.5,10,14.5])for(let s of [-1,1]){box(cityX(s*3.1),1.1,z,.17,2.2,.18,wood);box(cityX(s*3.1),2.39,z,.44,.64,.44,'#e8ba61');shape('cone',cityX(s*3.1),2.84,z,.73,.44,.73,dark)}});
+for(const z of [-3.5,10,14.5])for(const s of [-1,1])lamppost(s*3.75,z,s<0?0:Math.PI);
+// Street lamps along the main road (the arm reaches over the road).
+for(const [x,z] of [[-3.6,37],[3.6,43],[-3.6,66],[3.6,66],[3.6,87.5],[3.6,99.5],[-3.6,105],[-3.6,121]])lamppost(x,z,x<0?0:Math.PI);
 
 // Garrison: lateral service lanes leave the middle open for a siege encounter.
 path(0,-20,36,21,'#b3ac93');for(let z of [-11.5,-25.3])path(0,z,40,2.1,'#cac2a8');for(let s of [-1,1]){wall(cityX(s*21),-20,24,4.2,Math.PI/2,2);tower(cityX(s*21),-9,2,3.35,5.5);tower(cityX(s*21),-30.5,2,3.6,6.45);house(s*15.7,-17,4.9,8.5,3.4,s<0?'#87563d':'#657b80');flag(cityX(s*12),5,-18,red)}
@@ -235,7 +259,7 @@ place(-18,0,68,0,()=>{
 tree(20,96,.86,true);
 // Boatyard between the guild houses and the harbor loop: a hull upturned on trestles, timber, nets drying.
 boatyard(-15,96.4,Math.PI/2);planks(-20,96.4);nets(-9,96.4);crates(-6,95.4);barrel(-12,98.3,.8);
-for(const [x,z] of [[-25,67],[-25,85],[25,71],[25,88],[-14,58],[14,58]])tree(x,z,.82);
+for(const [x,z] of [[-25,67],[-25,85],[25,71],[25,88]])tree(x,z,.82);
 cart(-4,88);
 
 // South Harbor: one dirt road leaves the main road, meets a quay lane and splits to the three piers. Warehouses
@@ -246,7 +270,7 @@ lane(2.96,125.6,7.6,127.8);   // spur to the customs tower, flush with the end o
 lane(-23.6,99.6,-2.96,102);lane(-23.6,117.2,-2.96,119.6);lane(-23.6,102,-21.2,117.2);
 house(P(-17.4),106,5.1,5.8,3.4,'#7b8582');house(P(-8.5),109.6,5.4,7,3.9,'#ac6046');house(P(-17.4),113.6,4.8,4.8,3,'#a88259');
 house(P(7.5),100.1,4.4,6,3.1,'#687f87');house(P(-10.5),123.5,4.4,4.7,2.8,'#a45842');
-stall(P(4.5),105.2,'#778f77',-Math.PI/2);garden(P(11.8),100.1,3,3.1);
+stall(P(4.5),105.2,'#778f77',-Math.PI/2);fishstall(6.3,110.6);rope(13.4,111.6);rope(13.4,119.3);crane(13.2,103.3);fishrack(6.3,119.3);fishrack(6.3,122.8);lighthouse(21.5,127.4);traps(-15.5,128);nets(-9.5,128.5);rope(-12.4,128.7);garden(P(11.8),100.1,3,3.1);
 garden(P(-8.5),103.9,3,3.1);garden(P(-14.8),123.5,3,3.1,Math.PI);
 crates(12.5,108.4);crates(12.5,117.4);crates(-13.6,104);
 laundry(-13.1,113.6,3,Math.PI/2);laundry(-5.6,123.5,3);cart(P(-4.4),110);
@@ -273,7 +297,7 @@ function fishingBoat(x,z,angle,sail){
 }
 fishingBoat(17,109.5,.06,true);fishingBoat(21.5,116.9,-.14,true);fishingBoat(15.4,118.2,.03,false);
 tower(cityX(8),126.7,0,3.5,6.2,true,'#956348');
-for(const [x,z] of [[-25,101],[-25,109],[-22,122],[-16,126],[17,99],[16,126]])pine(x,z,.95);
+for(const [x,z] of [[-25,101],[-25,109],[-22,122],[-16,126],[17,99]])pine(x,z,.95);
 flush();
 
 const districts=[

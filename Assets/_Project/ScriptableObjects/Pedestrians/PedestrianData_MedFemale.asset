@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PedestrianData_MedFemale
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.PedestrianData
   _displayName: "K\xF6yl\xFC Female"
-  _prefab: {fileID: 209580712890757938, guid: b8522e8c2724448b088302d1bed06861, type: 3}
+  _prefab: {fileID: 209580712890757938, guid: 25d2e129d349245e1a77e5d6b0177c6c, type: 3}
   _scoreValue: 5
   _massValue: 1
   _requiredTier: 2
@@ -32,6 +32,8 @@ MonoBehaviour:
   - {fileID: 6204932459047166900, guid: b35e2045c877b8946b3307b7ec5a0af1, type: 3}
   - {fileID: 1447190608074443561, guid: 768bcfe16f13240f5af02f97e482ecb8, type: 3}
   - {fileID: -2490246992201856087, guid: 1c5ec05d8e88c417d847c21e843a5cc1, type: 3}
+  - {fileID: -2590117135550492499, guid: 1fdf0944858754345b4705618e223b9b, type: 3}
+  - {fileID: 7818998386536380994, guid: 856d1d9a5b3e74146b8639de8a4c643c, type: 3}
   _rigs:
   - Source: {fileID: 6204932459047166900, guid: b35e2045c877b8946b3307b7ec5a0af1, type: 3}
     Body: {fileID: 4300000, guid: 2b3461d6a1d97224eada3814654ae4c6, type: 2}
@@ -65,6 +67,28 @@ MonoBehaviour:
     HipR: {x: 0.082687534, y: -0.034999833, z: 0.33600053}
     ShoulderL: {x: -0.2185004, y: 0.00000014753286, z: 0.6880004}
     ShoulderR: {x: 0.2185, y: 0.00000014788765, z: 0.6880004}
+    SwingAxis: {x: 1, y: -0, z: 0}
+  - Source: {fileID: -2590117135550492499, guid: 1fdf0944858754345b4705618e223b9b, type: 3}
+    Body: {fileID: 4300000, guid: a080ccdf627044e39a0b6027f571bc8d, type: 2}
+    LegL: {fileID: 4300000, guid: 4a7032a75d719434798d2b83c79b4e27, type: 2}
+    LegR: {fileID: 4300000, guid: 0b0df6d3e2a9644988d1277549665b0e, type: 2}
+    ArmL: {fileID: 4300000, guid: 2c26436e9ebdf4e95be5f43045b6373c, type: 2}
+    ArmR: {fileID: 4300000, guid: 33fb321506bab407683666f3934151ba, type: 2}
+    HipL: {x: -0.08574972, y: -0.01400005, z: 0.36400065}
+    HipR: {x: 0.079153575, y: -0.012923122, z: 0.36400065}
+    ShoulderL: {x: -0.2253998, y: -0.010733346, z: 0.6740006}
+    ShoulderR: {x: 0.22399983, y: 0.00053847337, z: 0.6740006}
+    SwingAxis: {x: 1, y: -0, z: 0}
+  - Source: {fileID: 7818998386536380994, guid: 856d1d9a5b3e74146b8639de8a4c643c, type: 3}
+    Body: {fileID: 4300000, guid: 9db8472cd2f1f47f487d0dd89f2a2dd0, type: 2}
+    LegL: {fileID: 4300000, guid: f24ca88daf8cb4dc88af54da51230d8f, type: 2}
+    LegR: {fileID: 4300000, guid: a5e4f77386a664d1db0403b37782f128, type: 2}
+    ArmL: {fileID: 4300000, guid: 2af92c1fc2a1d4750965bfd7f5df47bc, type: 2}
+    ArmR: {fileID: 4300000, guid: dae9c8f905cfb411c89f741d56db54ab, type: 2}
+    HipL: {x: -0.07073697, y: -0.04421048, z: 0.3640003}
+    HipR: {x: 0.07073666, y: -0.044210516, z: 0.3640003}
+    ShoulderL: {x: -0.2314372, y: -0.007874862, z: 0.6879994}
+    ShoulderR: {x: 0.23143709, y: -0.007874862, z: 0.6879994}
     SwingAxis: {x: 1, y: -0, z: 0}
   _stepRate: 5
   _legSwing: 32

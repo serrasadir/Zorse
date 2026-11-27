@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
   _displayName: Archer
   _hudName: 
-  _prefab: {fileID: 2072016075202350378, guid: 69e482dae719a41f7a3d1c0fa13c26fb, type: 3}
+  _prefab: {fileID: 2072016075202350378, guid: f4754f3d040304e11aa61a12f5fb678b, type: 3}
   _maxHealth: 250
   _damage: 10
   _moveSpeed: 2.1

@@ -272,6 +272,97 @@ def peasant_basket():
     return p.finish()
 
 
+
+def monk():
+    """Keşiş: kahverengi cüppe (etek bacak kutularında), kapüşon arkada, ip kuşak, tepesi açık saç (tonsür)."""
+    p = Part("M_Monk")
+    _dress(p, "wood", None)
+    torso(p, "wood", belt="straw", buckle=None)
+    p.box((0.05, 0.03, 0.3), (0.1, -0.18, HIP - 0.24), "straw")               # kuşak ucu
+    p.box((0.46, 0.14, 0.3), (0, 0.2, NECK - 0.24), "wood_dark")              # kapüşon (sırtta)
+    arms(p, "wood")
+    top = head(p)
+    w, d, h = HEAD
+    p.box((w + 0.04, d + 0.04, 0.12), (0, 0, HEAD_Z + 0.2), "wood_light")    # saç halkası
+    p.box((w * 0.55, d * 0.55, 0.03), (0, 0, top), "skin")                    # tonsür
+    p.box((0.12, 0.04, 0.16), (0, -0.2, NECK - 0.3), "gold")                  # haç
+    p.box((0.2, 0.04, 0.05), (0, -0.2, NECK - 0.22), "gold")
+    return p.finish()
+
+
+def fisherman():
+    """Balıkçı: mavi gömlek, sarı yağlı önlük, lacivert kep, sırtında olta, elinde balık."""
+    p = Part("M_Fisherman")
+    legs(p, "wood_dark", "dark")
+    torso(p, "blue", buckle=None)
+    p.box((0.42, 0.03, 0.62), (0, -0.18, HIP - 0.2), "straw_dark")            # önlük
+    x, hz = arms(p, "blue")
+    p.box((0.08, 0.3, 0.12), (x, -0.1, hz - 0.12), "iron_light")      # elde balık
+    top = head(p)
+    hair(p, "dark", cap=False)
+    d = HEAD[1]
+    p.box((0.42, 0.08, 0.14), (0, -d / 2 - 0.03, HEAD_Z - 0.04), "dark")       # sakal
+    p.box((0.5, 0.46, 0.14), (0, 0, top - 0.06), "roof_slate")                 # kep
+    p.box((0.3, 0.12, 0.04), (0, -0.25, top - 0.04), "roof_slate")             # siper
+    p.box((0.04, 0.04, 1.4), (-0.12, 0.22, HIP - 0.1), "wood")                 # olta (sırtta)
+    return p.finish()
+
+
+def blacksmith():
+    """Demirci: deri önlük, kısa kollu, kafa bandı, elinde çekiç."""
+    p = Part("M_Blacksmith")
+    legs(p, "dark", "wood_dark", w=0.19, x=0.12)
+    torso(p, "cream", w=0.56, d=0.38, buckle=None)
+    p.box((0.46, 0.03, 0.78), (0, -0.2, HIP - 0.3), "wood_dark")               # deri önlük
+    for sx in (-1, 1):
+        p.box((0.06, 0.4, 0.05), (sx * 0.16, 0, NECK - 0.06), "wood_dark")    # önlük askısı
+    x, hz = arms(p, "skin", tw=0.56)
+    for sx in (-1, 1):
+        p.box((0.16, 0.19, 0.12), (sx * x, 0, NECK - 0.14), "cream")           # kısa kol
+    p.box((0.04, 0.04, 0.36), (-x, -0.12, hz - 0.24), "wood")                  # çekiç sapı
+    p.box((0.18, 0.1, 0.1), (-x, -0.12, hz - 0.32), "iron")
+    top = head(p)
+    w, d, h = HEAD
+    p.box((w + 0.04, d + 0.04, 0.08), (0, 0, HEAD_Z + h - 0.18), "roof")        # kafa bandı
+    p.box((0.4, 0.08, 0.1), (0, -d / 2 - 0.03, HEAD_Z + 0.06), "wood_dark")     # bıyık
+    return p.finish()
+
+
+def old_woman():
+    """Şallı yaşlı kadın: koyu elbise, kahverengi şal, gri saç topuzu, baston."""
+    p = Part("M_OldWoman")
+    _dress(p, "roof_brown", None)
+    torso(p, "roof_brown", w=0.46, d=0.32, belt=None)
+    p.box((0.52, 0.38, 0.22), (0, 0.01, NECK - 0.24), "roof_dark")             # şal
+    p.box((0.18, 0.03, 0.22), (0, -0.19, NECK - 0.42), "roof_dark")            # şal ucu
+    x, hz = arms(p, "roof_brown", tw=0.46)
+    p.box((0.05, 0.05, hz - 0.05), (x, -0.12, 0), "wood")                      # baston
+    p.box((0.14, 0.05, 0.05), (x - 0.05, -0.12, hz - 0.08), "wood")
+    top = head(p)
+    hair(p, "stone_light", fringe=False)
+    p.box((0.2, 0.18, 0.16), (0, 0.18, top - 0.08), "stone_light")             # topuz
+    return p.finish()
+
+
+def milkmaid():
+    """Sütçü kız: mavi elbise, beyaz önlük, sarı başörtüsü, iki elinde süt kovası."""
+    p = Part("M_Milkmaid")
+    _dress(p, "blue", "white")
+    torso(p, "white", w=0.46, d=0.32, belt=None)
+    p.box((0.48, 0.34, 0.26), (0, 0, HIP), "blue")                             # korse
+    x, hz = arms(p, "white", tw=0.46)
+    for sx in (-1, 1):
+        p.box((0.2, 0.2, 0.22), (sx * (x + 0.02), -0.02, hz - 0.36), "wood")      # kova
+        p.box((0.17, 0.17, 0.02), (sx * (x + 0.02), -0.02, hz - 0.14), "white")   # süt
+        p.box((0.03, 0.03, 0.14), (sx * (x + 0.02), -0.02, hz - 0.14), "iron")    # sap
+    top = head(p)
+    w, d, h = HEAD
+    hair(p, "straw_dark", cap=False)
+    p.box((w + 0.08, d + 0.08, 0.14), (0, 0.01, top - 0.08), "straw")           # başörtüsü
+    p.box((w + 0.08, 0.08, 0.3), (0, d / 2 + 0.02, HEAD_Z + 0.1), "straw")
+    return p.finish()
+
+
 # ---------- düşmanlar ----------
 
 def militia():
@@ -474,6 +565,11 @@ BUILDERS = {
     "minstrel": minstrel,
     "peasant_hat": peasant_hat,
     "peasant_basket": peasant_basket,
+    "monk": monk,
+    "fisherman": fisherman,
+    "blacksmith": blacksmith,
+    "old_woman": old_woman,
+    "milkmaid": milkmaid,
     "militia": militia,
     "town_guard": town_guard,
     "shield_knight": shield_knight,

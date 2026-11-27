@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PedestrianData_MedMerchant
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.PedestrianData
   _displayName: "K\xF6yl\xFC Merchant"
-  _prefab: {fileID: 209580712890757938, guid: c1a153a8ae6ce48f6b2fb4c831cc8a87, type: 3}
+  _prefab: {fileID: 209580712890757938, guid: fe55f16c65cfb4426a0908e1b8aaaa7e, type: 3}
   _scoreValue: 7
   _massValue: 3
   _requiredTier: 3
