@@ -154,7 +154,7 @@ for(let side of [-1,1]){let cx=side*12;place(cx,0,40,0,()=>{box(0,.14,0,14.3,.28
 mill(-23.5,42);mill(24,39);
 house(P(-24.2),26,4.4,5,2.85,red);house(P(24.2),26,4.7,5.2,2.9,'#be6744');stall(P(-19.8),26,red);stall(P(18.9),26,blue);
 basket(P(-16.6),26.3,'#c55630');basket(P(15.9),26.3,'#d2a250');crates(-25,21.6);crates(23.5,21.6);laundry(-28.6,26,3.4,Math.PI/2);cart(P(28.9),25.5);
-for(let [x,z] of [[-24,34],[-25,30],[-25,38],[26.53,44.2],[17.36,58.4]])tree(x,z,.87,true);   // doğudaki ikisi şapele yer açtı
+for(let [x,z] of [[-24,34],[-25,30],[-25,38],[29.1,44.0],[17.36,58.4]])tree(x,z,.87,true);   // doğudaki ikisi şapele yer açtı
 house(P(-18.6),51.5,3.6,3.2,2,'#b45e3e');house(P(18.6),51.5,3.5,3.1,1.9,'#916345');
 pen(-12.2,51.3,7,5,[[-2,-1,'sheep'],[.5,1,'sheep'],[2,-.8,'sheep']]);hay(-9.45,55.35,3);
 pen(11.9,51.3,7.5,5,[[-2.4,-1,'pig'],[.3,.9,'cow'],[2.6,-.9,'cow'],[-2.6,1.4,'chicken'],[-1.6,1.7,'chicken']]);hay(22.93,54.83,3,Math.PI/2);
@@ -723,9 +723,11 @@ for(const [x,z] of [[-25,101],[-25,109],[-22,122],[-16,126],[17,99]])pine(x,z,.9
 witchhut(-30.8,50.2);cauldron(-29.2,52.4,-.4);pine(P(-27.2),49.4,.62);
 // Tarla: kapının doğusunda arı kovanları ve bal tezgâhı, tarlalarda korkuluk, kuyu meydanında yalak ve kovalar.
 // Hikâye köşeleri: doğu kıyısında şapel ve mezarlık (cadının karşısı), meydanda pranga; garnizonda okçuluk ve gözetleme kulesi; kale arenasında mızrak dövüşü.
-chapel(31.3,49.4);graveyard(27.4,46.2);pillory(4.4,1.5,-.3);archerygear(-13.2,-18.4,.2);watchtower(-13.9,-26.4);
+chapel(31.7,49.4);graveyard(28.9,45.2);pillory(4.4,1.5,-.3);archerygear(-13.2,-18.4,.2);watchtower(-13.9,-26.4);
 tiltbarrier(0,3.46,-43.2,12);grandstand(0,3.46,-46.6,7.6);for(const [u,c] of [[-6.8,red],[6.8,blue]])pennant(u,3.46,-43.2,c);
 beehive(7.2,21.4,.2);beehive(8.7,22.5,-.15);beehive(7.1,23.3,.1);honeystall(5.3,24.6);scarecrow(-8.6,43.4,.25);scarecrow(9.2,36.4,-.3);wellside(3.4,27.7,.3);wellside(-3.7,27.9,-.2);
+// Boş çim alanlarına ağaçlar (otomatik boşluk taraması, 35 nokta; dünya birimi). Build'in en sonunda: rand() kaymaz.
+for(const [x,z] of [[-19,22],[16,22],[33,27],[-35,37],[5,39],[5,50],[-5,56],[-14,57],[15,64],[-5,69],[-24,74],[23,74],[36,77],[-24,80],[-34,82],[15,85],[15,89],[-35,93],[13,95],[-35,97],[16,97],[35,97],[-35,101],[-26,101],[34,101],[-26,105],[8,107],[-26,109],[27,125],[-5,126],[-5,130],[-1,130],[3,130],[-19,131],[-9,131]]){const k=Math.abs(Math.round(x*7+z*3))%3,s=.72+Math.abs(x*z)%.18;k?tree(P(x),z,s,k===2):pine(P(x),z,s+.05)}
 flush();
 
 const districts=[
