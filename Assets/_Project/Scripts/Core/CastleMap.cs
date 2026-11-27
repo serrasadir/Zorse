@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace BlobSurvivor.Core
 {
-    // Kale sahnesi (CastleSceneBuilder kurar): bölge sınırlarını MapRegions'a, görünür silah temasını MapTheme'e verir;
+    // Bölgeli harita (Crownreach; CrownreachMapBuilder kurar): bölge sınırlarını MapRegions'a, görünür silah temasını MapTheme'e verir;
     // küçük harita için harita sınırları ve önceden çekilmiş üstten görüntü (Resources/UI/CastleMinimap). Şehirde yok.
     public class CastleMap : MonoBehaviour
     {

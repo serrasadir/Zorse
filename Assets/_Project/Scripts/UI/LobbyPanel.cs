@@ -252,7 +252,7 @@ namespace BlobSurvivor.UI
         // HARİTA düğmesi: diğer haritanın sahnesini yükler (kilitliyse sadece koşulu söyler).
         private void OnMapButton()
         {
-            if (MapSelection.IsCity && !MapSelection.CastleUnlocked)
+            if (MapSelection.IsCity && !MapSelection.CrownreachUnlocked)
             {
                 Haptics.LightTap();
                 return;
@@ -265,9 +265,8 @@ namespace BlobSurvivor.UI
             if (_mapLabel == null) return;
             // Düğme şu anki haritayı gösterir; basınca diğerine geçer.
             if (MapSelection.IsCrownreach) _mapLabel.text = "<size=26>HARİTA</size>\n<size=30>CROWNREACH</size> ▸";
-            else if (MapSelection.IsCastle) _mapLabel.text = "<size=26>HARİTA</size>\nKALE ▸";
-            else if (MapSelection.CastleUnlocked) _mapLabel.text = "<size=26>HARİTA</size>\nŞEHİR ▸";
-            else _mapLabel.text = "<size=24>KALE KİLİTLİ</size>\n<size=22>Helikopteri yut</size>";
+            else if (MapSelection.CrownreachUnlocked) _mapLabel.text = "<size=26>HARİTA</size>\nŞEHİR ▸";
+            else _mapLabel.text = "<size=22>CROWNREACH KİLİTLİ</size>\n<size=22>Helikopteri yut</size>";
         }
 
         // Ekran dönünce (panel boyu değişince) kartlar yeniden dizilir.

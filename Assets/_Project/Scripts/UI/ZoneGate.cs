@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace BlobSurvivor.UI
 {
-    // Kale haritasında bölge kapısı (CastleSceneBuilder kapı örneklerine ekler). Üstünde boy işareti: "ORTA BOY" (yetmiyor)
+    // Crownreach'te bölge kapısı (MapBuildTools.AddGateSign kapılara ekler). Üstünde boy işareti: "ORTA BOY" (yetmiyor)
     // ya da "YE VE GEÇ!" (yetiyor, yeşil ve zıplar). GateGuide oku ve küçük harita sıradaki kapıyı buradan bulur.
     // Kapı yenince obje kapanır; kayıt Awake/OnDestroy'da tutulur ki ok hâlâ geçidi gösterebilsin.
     public class ZoneGate : MonoBehaviour

@@ -22,18 +22,17 @@ namespace BlobSurvivor.EditorTools
             "Assets/_Project/Art/City/Mat_RobotDog.mat",
         };
 
-        // Sadece ışığı iki haritaya yeniden uygular (ApplyWarmLighting değişince), modellere dokunmaz.
-        [MenuItem("Tools/Blob.io/Işığı İki Haritaya Uygula")]
+        // Sadece şehrin ışığını yeniden uygular (ApplyWarmLighting değişince), modellere dokunmaz.
+        [MenuItem("Tools/Blob.io/Şehir Işığını Uygula")]
         public static void ApplyLightingBoth()
         {
             Scene active = SceneManager.GetActiveScene();
             if (active.isDirty) { Debug.LogError($"[CitySoft] {active.name} kaydedilmemiş: önce kaydet."); return; }
             string back = active.path;
-            foreach (var (scenePath, profile) in new[] { (GameScenePath, CityProfilePath),
-                         ("Assets/_Project/Scenes/CastleScene.unity", "Assets/_Project/Art/City/Medieval/CastleVolumeProfile.asset") })
+            foreach (var (scenePath, profile) in new[] { (GameScenePath, CityProfilePath) }) // Crownreach kendi ışığında
             {
                 Scene s = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
-                CastleSceneBuilder.ApplyWarmLighting(profile);
+                MapBuildTools.ApplyWarmLighting(profile);
                 EditorSceneManager.MarkSceneDirty(s);
                 EditorSceneManager.SaveScene(s);
             }
@@ -99,11 +98,11 @@ namespace BlobSurvivor.EditorTools
                     continue;
                 }
                 if (prefab.GetComponent<BoxCollider>() == null) continue;
-                CastleSceneBuilder.AddContactShadow(prefab);
+                MapBuildTools.AddContactShadow(prefab);
                 shadows++;
             }
 
-            CastleSceneBuilder.ApplyWarmLighting(CityProfilePath);
+            MapBuildTools.ApplyWarmLighting(CityProfilePath);
             EnemyWalkSetup.Setup(null);
             PedestrianRigSetup.Setup(null);
 

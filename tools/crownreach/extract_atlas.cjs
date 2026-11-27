@@ -22,8 +22,8 @@ context.enter = kind => {names.push(kind + '_' + String(++sequence).padStart(4, 
 context.leave = () => names.pop();
 build = build.replace('dummy.updateMatrix();', `dummy.updateMatrix();target.updateWorldMatrix(true,false);
 capture(type,target.matrixWorld.clone().multiply(origin).multiply(dummy.matrix).toArray(),new T.Color(c).getHexString());return;`);
-const functions = 'house tree pine mill fountain stall garden person animal cart tower wall gate siege crate barrel bench basket fence food flag'.split(' ');
-const wrappers = functions.map(n => `{const original=${n};${n}=function(...args){enter('${n}');try{return original(...args)}finally{leave()}}}`).join('\n');
+const functions = 'house tree pine mill fountain stall garden person animal cart tower wall gate siege crate barrel bench basket fence food flag fishingBoat'.split(' ');
+const wrappers = functions.filter(n => build.includes(`function ${n}(`)).map(n => `{const original=${n};${n}=function(...args){enter('${n}');try{return original(...args)}finally{leave()}}}`).join('\n');
 build = build.replace('// Stepped coastline.', wrappers + '\n// Stepped coastline.');
 build = build.replace("old.add(g);target=g;", "old.add(g);enter(type==='mill'?'MillBlades':'Banner');target=g;").replace('fn();target=old;', 'fn();leave();target=old;');
 build = build.replace('at(0,15.6,-52', "enter('PerchedDragon');at(0,15.6,-52").replace('for(let s of [-1,1]){for(let [x,z]', 'leave();for(let s of [-1,1]){for(let [x,z]');

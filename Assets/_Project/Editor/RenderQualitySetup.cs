@@ -13,7 +13,7 @@ namespace BlobSurvivor.EditorTools
     public static class RenderQualitySetup
     {
         private static readonly string[] RpAssets = { "Assets/Settings/Mobile_RPAsset.asset", "Assets/Settings/PC_RPAsset.asset" };
-        private static readonly string[] Scenes = { "Assets/_Project/Scenes/GameScene.unity", "Assets/_Project/Scenes/CastleScene.unity" };
+        private static readonly string[] Scenes = { "Assets/_Project/Scenes/GameScene.unity", "Assets/_Project/Scenes/CrownreachScene.unity" };
         private const string GroundTextures = "Assets/_Project/Art/City/Textures";
         // Varsayılan hafif (zayıf telefon takılmadan başlasın); güçlü telefon AdaptiveFrameRate ile 4x / %90'a çıkar.
         private const int Msaa = 2;

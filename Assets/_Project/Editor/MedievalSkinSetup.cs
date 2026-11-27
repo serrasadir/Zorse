@@ -11,9 +11,9 @@ using UnityEngine.SceneManagement;
 
 namespace BlobSurvivor.EditorTools
 {
-    // Tools → Blob.io → Kale Düşmanlarını ve Yayalarını Kur (CastleScene açıkken; Kale Sahnesini Kur da çağırır).
+    // Tools → Blob.io → Ortaçağ Düşmanlarını ve Yayalarını Kur (CrownreachScene açıkken).
     // Şehrin düşman/boss/dalga/yaya/yerdeki yiyecek asset'lerinin ortaçağ kopyaları ("Med"): davranış ve denge aynı,
-    // model ve isim ortaçağ. Kale sahnesindeki bütün referanslar kopyalara çevrilir; GameScene ve şehir asset'leri değişmez.
+    // model ve isim ortaçağ. Sahnedeki bütün referanslar kopyalara çevrilir; GameScene ve şehir asset'leri değişmez.
     public static class MedievalSkinSetup
     {
         private const string EnemyFolder = "Assets/_Project/Prefabs/Enemies";
@@ -63,14 +63,30 @@ namespace BlobSurvivor.EditorTools
             ("P_MedWoodenMug", "Kupa", 2.5f), ("P_MedDrumstick", "Tavuk Budu", 3f),
         };
 
-        [MenuItem("Tools/Blob.io/Kale Düşmanlarını ve Yayalarını Kur")]
+        // Ortaçağ modelleri şehir yiyeceklerinden (J_*, en uzun kenar ~0,55) 2-3 kat küçük çıkıyor; şehirle aynı boy olsun.
+        // Tek ortak çarpan: aralarındaki boy farkı korunur.
+        private const float CityLitterSize = 0.55f;
+
+        // Sadece yerdeki yiyecek prefab'ları (sahneye dokunmaz; data asset'leri ve GUID'ler aynı kalır).
+        [MenuItem("Tools/Blob.io/Ortaçağ Yerdeki Yiyecekleri Yenile")]
+        private static void LitterMenu()
+        {
+            Material med = CityKitPipeline.GetMedievalMaterial();
+            if (med == null) { Debug.LogError("[MedievalSkin] ortaçağ paleti yok."); return; }
+            var log = new System.Text.StringBuilder();
+            BuildLitter(med, log);
+            AssetDatabase.SaveAssets();
+            Debug.Log("[MedievalSkin]\n" + log);
+        }
+
+        [MenuItem("Tools/Blob.io/Ortaçağ Düşmanlarını ve Yayalarını Kur")]
         private static void Menu() => Debug.Log("[MedievalSkin]\n" + Apply());
 
         internal static string Apply()
         {
             var log = new System.Text.StringBuilder();
-            if (SceneManager.GetActiveScene().path != CastleSceneBuilder.CastleScenePath)
-                return "HATA: CastleScene açık değil (önce Kale Sahnesini Kur).";
+            if (SceneManager.GetActiveScene().path != CrownreachMapBuilder.ScenePath)
+                return "HATA: CrownreachScene açık değil.";
             Material med = CityKitPipeline.GetMedievalMaterial();
             if (med == null) return "HATA: ortaçağ paleti yok.";
 
@@ -307,6 +323,7 @@ namespace BlobSurvivor.EditorTools
             EnsureFolder(LitterPrefabFolder);
             EnsureFolder(LitterDataFolder);
             var all = new List<ConsumableData>();
+            float litterScale = LitterScale();
             foreach (var (mesh, display, mass) in Litter)
             {
                 MeshFilter src = CityKitPipeline.LoadSourceMesh(mesh);
@@ -324,10 +341,13 @@ namespace BlobSurvivor.EditorTools
                 var model = new GameObject("Model");
                 model.transform.SetParent(root.transform, false);
                 CityKitPipeline.ApplyModelTransform(model.transform, src, mesh);
+                model.transform.localScale *= litterScale;
                 model.AddComponent<MeshFilter>().sharedMesh = src.sharedMesh;
                 var mr = model.AddComponent<MeshRenderer>();
                 mr.sharedMaterial = med;
                 mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                // Taban köke otursun: model ortadan pivotlu, büyütünce yarısı yerin altında kalıyordu.
+                model.transform.localPosition += Vector3.up * -mr.bounds.min.y;
                 Bounds b = mr.bounds;
                 var box = root.AddComponent<BoxCollider>();
                 box.isTrigger = true;
@@ -353,8 +373,26 @@ namespace BlobSurvivor.EditorTools
                 EditorUtility.SetDirty(data);
                 all.Add(data);
             }
-            log.AppendLine($"OK yerdeki yiyecek: {all.Count}");
+            log.AppendLine($"OK yerdeki yiyecek: {all.Count} (×{litterScale:0.00}, şehir boyu)");
             return all;
+        }
+
+        // Ortaçağ yiyeceklerinin ortalama en uzun kenarını şehirdekine (CityLitterSize) getiren çarpan.
+        private static float LitterScale()
+        {
+            float sum = 0f; int n = 0;
+            foreach (var (mesh, _, _) in Litter)
+            {
+                MeshFilter src = CityKitPipeline.LoadSourceMesh(mesh);
+                if (src == null) continue;
+                var probe = new GameObject("LitterProbe");
+                CityKitPipeline.ApplyModelTransform(probe.transform, src, mesh);
+                Vector3 size = Vector3.Scale(src.sharedMesh.bounds.size, probe.transform.lossyScale);
+                Object.DestroyImmediate(probe);
+                sum += Mathf.Max(Mathf.Abs(size.x), Mathf.Abs(size.y), Mathf.Abs(size.z));
+                n++;
+            }
+            return n > 0 && sum > 0f ? CityLitterSize / (sum / n) : 1f;
         }
 
         // ---------- görünür silahlar ----------

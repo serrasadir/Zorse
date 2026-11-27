@@ -17,8 +17,8 @@ using Object = UnityEngine.Object;
 
 namespace BlobSurvivor.EditorTools
 {
-    // Tools → Blob.io → Crownreach Haritasını Kur: 3. harita. CastleScene'in kopyası CrownreachScene'i açar (yoksa oluşturur;
-    // ortaçağ düşman/yaya/boss kurulumu kaleden gelir), Castle_Level'i çıkarır, Art/Crownreach'teki dört bölge FBX'ini
+    // Tools → Blob.io → Crownreach Haritasını Kur: 2. harita. CrownreachScene'i açar (ortaçağ düşman/yaya/boss kurulumu
+    // sahnede hazır: MedievalSkinSetup), eski kökleri çıkarır, Art/Crownreach'teki dört bölge FBX'ini
     // (tools/crownreach/build_atlas.py) oynanır hale getirir:
     //  - Dünya 180° döner: tarla güneyde (başlangıç), kale kuzeyde (CastleMap kuralı: bölgeler güneyden kuzeye).
     //  - Teraslar (0 / 1 / 2 / 3 / 3.5 m) y=0'a indirilir: oyun düz zemin varsayar.
@@ -32,7 +32,6 @@ namespace BlobSurvivor.EditorTools
         private const string Art = "Assets/_Project/Art/Crownreach/";
         private const string GeneratedFolder = Art + "Generated";
         private const string DataFolder = "Assets/_Project/ScriptableObjects/Consumables/Crownreach";
-        private const string CastleScenePath = CastleSceneBuilder.CastleScenePath;
         internal const string ScenePath = "Assets/_Project/Scenes/CrownreachScene.unity";
         private const string MinimapAsset = "Assets/_Project/Resources/UI/CrownreachMinimap.png";
         private const string MinimapResource = "UI/CrownreachMinimap";
@@ -58,7 +57,15 @@ namespace BlobSurvivor.EditorTools
         internal const float WorldScale = 0.6f;
         // Yerleşim objelerden daha az küçülür: sokaklar/aralar açılır (Bahar: "büyükken geçemiyorum"). Duvar, kapı, çit,
         // bahçe ve zemin yerleşimle birlikte uzar (aralarında boşluk kalmasın); ev, ağaç, burç kendi ortasında küçülür.
-        internal const float SpreadScale = 0.9f;
+        // Detaylı prototip enine genişlemeyi kendisi yapıyor (cityX). 1.0: aralar prototipin 1,67 katı (1.2 dağınıktı,
+        // 0.9 sıkışıktı; Serra).
+        internal const float SpreadScale = 1.0f;
+        private static readonly Vector3 Spread = new Vector3(SpreadScale, 1f, SpreadScale);
+        // Yayalar blob'un bölgesinde doğar; ilk bölge (tarla) kaleninkinden dar, 25'le kalabalıktı (Serra).
+        private const int MaxPedestrians = 15;
+        // Tarla zaten yiyecek dolu: yerdeki yiyecek şehirden (40 / 80) az.
+        private const int InitialFood = 20;
+        private const int MaxFood = 50;
         private static readonly string[] Stretch = { "wall", "gate", "fence", "garden" };
         private static readonly Matrix4x4 Turn = Matrix4x4.Rotate(Quaternion.Euler(0f, 180f, 0f));
         private static readonly Matrix4x4 GroundScale = Turn * Matrix4x4.Scale(new Vector3(SpreadScale, WorldScale, SpreadScale));
@@ -67,7 +74,7 @@ namespace BlobSurvivor.EditorTools
         {
             if (Array.IndexOf(Stretch, o.kind) >= 0) return GroundScale;
             var pivot = new Vector3(o.bounds.center.x, 0f, o.bounds.center.z);
-            return Turn * Matrix4x4.Translate(pivot * SpreadScale) * Matrix4x4.Scale(Vector3.one * WorldScale) * Matrix4x4.Translate(-pivot);
+            return Turn * Matrix4x4.Translate(Vector3.Scale(pivot, Spread)) * Matrix4x4.Scale(Vector3.one * WorldScale) * Matrix4x4.Translate(-pivot);
         }
 
         private class Part
@@ -218,8 +225,7 @@ namespace BlobSurvivor.EditorTools
                     if (c.max.y - c.offset > FlatHeight && c.Area < 400f) { tall.Add((g, c)); tallSet.Add(c); }
                 }
                 var flat = new HashSet<Comp>(g.comps.Where(c => !tallSet.Contains(c)));
-                GameObject go = GroundObject(g, flat, palette, groundParent);
-                if (go != null) groundObjects.Add(go);
+                groundObjects.AddRange(GroundObjects(g, flat, palette, groundParent));
             }
 
             var objs = new List<Obj>();
@@ -234,6 +240,7 @@ namespace BlobSurvivor.EditorTools
             {
                 Bounds ob = TransformBounds(mesh.bounds, m);
                 float offset = Support(new Vector3(ob.center.x, ob.min.y, ob.center.z));
+                if (KindOf(name) == "person") continue; // prototipin duran insan figürleri: yayalar zaten geziyor
                 var o = new Obj { name = name, kind = KindOf(name) };
                 o.Add(new Part { mesh = mesh, world = Lower(offset) * m });
                 objs.Add(o);
@@ -300,7 +307,11 @@ namespace BlobSurvivor.EditorTools
             if (rows.Count == 0) { Debug.LogError("[Crownreach] Zemin taranamadı."); return; }
             float zFirst = rows.Keys.Min(), zLast = rows.Keys.Max();
             System.IO.File.WriteAllLines("Temp/crownreach_rows.txt", rows.Select(r => $"{r.Key} {r.Value.x} {r.Value.y}"));
-            float side = rows.Where(r => r.Key > zFirst + 3f && r.Key < zLast - 3f).Min(r => Mathf.Min(-r.Value.x, r.Value.y)) - 0.5f;
+            // Bölge yan sınırı: satırların ortanca yarı genişliği (en dar satır liman/uç yüzünden bütün haritayı daraltırdı;
+            // dışarı düşen doğma adayı zaten NavMesh kontrolünde elenir).
+            List<float> halfWidths = rows.Where(r => r.Key > zFirst + 3f && r.Key < zLast - 3f)
+                .Select(r => Mathf.Min(-r.Value.x, r.Value.y)).OrderBy(w => w).ToList();
+            float side = halfWidths[halfWidths.Count / 2] - 0.5f;
             float half = Mathf.Ceil(Mathf.Max(-zFirst, zLast) + 1f);
 
             // 7) Objeler.
@@ -323,6 +334,7 @@ namespace BlobSurvivor.EditorTools
             {
                 if (o.supporter != null) continue;
                 GameObject go = BuildObject(o, palette, objectsParent, zLines, dataCache);
+                FlattenBase(go);
                 report.AppendLine($"{o.name}\t{o.kind}\t{o.tier}\t+{string.Join(",", o.riders.Select(r => r.name))}\tc={Fmt(o.bounds.center)} s={Fmt(o.bounds.size)}\tboxes={go.GetComponents<BoxCollider>().Length}");
             }
 
@@ -341,6 +353,9 @@ namespace BlobSurvivor.EditorTools
             CityKitPipeline.AssignEnemyMapExtent(half - 1f);
             SetFloat<ConsumableSpawner>("_mapHalfExtent", half - 2f);
             SetFloat<PedestrianSpawner>("_mapHalfExtent", half - 2f);
+            SetInt<PedestrianSpawner>("_maxActive", MaxPedestrians);
+            SetInt<ConsumableSpawner>("_initialSpawnCount", InitialFood);
+            SetInt<ConsumableSpawner>("_maxActive", MaxFood);
 
             // Başlangıç: tarlanın güney ucunun biraz içi, ortada.
             GameObject blob = GameObject.FindWithTag("Blob");
@@ -348,6 +363,12 @@ namespace BlobSurvivor.EditorTools
             if (blob != null) blob.transform.position = new Vector3(0f, blob.transform.position.y, startZ);
 
             GameObject groundPlane = GameObject.Find("Ground");
+            if (groundPlane != null) // Unity Plane 10 × 10: adanın tamamını taşısın
+            {
+                float s = (half + 20f) / 5f;
+                groundPlane.transform.localScale = new Vector3(s, 1f, s);
+            }
+            Physics.SyncTransforms();
             Collider groundCollider = groundPlane != null ? groundPlane.GetComponent<Collider>() : null;
             string groundInfo = groundCollider != null ? $"{groundCollider.bounds.min}..{groundCollider.bounds.max}" : "YOK";
 
@@ -358,7 +379,7 @@ namespace BlobSurvivor.EditorTools
                 if (dataPath != null && !dataPath.Contains("/CrownreachScene/")) surface.navMeshData = null;
             }
             CityKitPipeline.BakeNavMesh();
-            CastleSceneBuilder.RenderMinimap(castleMap.MinimapWorld, MinimapAsset);
+            MapBuildTools.RenderMinimap(castleMap.MinimapWorld, MinimapAsset);
             AddToBuildSettings();
             ApplyLook();
             AssetDatabase.SaveAssets();
@@ -538,30 +559,98 @@ namespace BlobSurvivor.EditorTools
             return owner;
         }
 
-        private static GameObject GroundObject(GroundSource g, HashSet<Comp> keep, Material palette, Transform parent)
+        // Kale haritasının dokuları (Serra): çimen rengi parçalar Med_Grass; kumlu toprak yollar ve dar patikalar
+        // (en fazla NarrowPath geniş, ince, uzun, açık renk) Med_Dirt; dünya uzayında GroundTile birimde bir tekrar.
+        // Diğerleri (geniş taş cadde, meydan, tarla, kıyı) palet.
+        private const bool TexturedGround = true;
+        private const float NarrowPath = 2.6f;      // prototip birimi: patikalar 1.9–2.4, caddeler 4.9+
+        private const float GroundTile = 4f;
+        private const string GrassMaterialPath = Art + "Mat_CrownreachGrass.mat";
+        private const string DirtMaterialPath = Art + "Mat_CrownreachDirt.mat";
+        private enum GroundKind { Palette, Grass, Dirt }
+
+        private static Texture2D s_paletteRead;
+
+        private static GroundKind KindOfGround(GroundSource g, Comp c)
+        {
+            if (!TexturedGround || c.tris.Count == 0 || g.uv.Length == 0) return GroundKind.Palette;
+            if (s_paletteRead == null)
+            {
+                s_paletteRead = new Texture2D(2, 2);
+                s_paletteRead.LoadImage(System.IO.File.ReadAllBytes(Art + "AtlasPalette.png"));
+            }
+            Vector2 uv = g.uv[c.tris[0]];
+            Color col = s_paletteRead.GetPixelBilinear(uv.x, uv.y);
+            Color.RGBToHSV(col, out float h, out float sat, out float v);
+            h *= 360f;
+            if (h > 65f && h < 160f && sat > 0.25f) return GroundKind.Grass;
+            if (h > 25f && h < 55f && sat > 0.25f && sat < 0.6f && v > 0.8f) return GroundKind.Dirt;
+            Vector3 size = c.max - c.min;
+            bool narrow = Mathf.Min(size.x, size.z) <= NarrowPath && Mathf.Max(size.x, size.z) >= 6f && size.y < 0.3f;
+            if (narrow && sat < 0.45f && v > 0.65f) return GroundKind.Dirt;
+            return GroundKind.Palette;
+        }
+
+        private static Material GroundTexMaterial(string path, string texture, Material palette)
+        {
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (mat == null)
+            {
+                mat = new Material(palette);
+                AssetDatabase.CreateAsset(mat, path);
+            }
+            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>($"Assets/_Project/Art/City/Textures/{texture}.png");
+            mat.SetTexture("_BaseMap", tex);
+            mat.SetTexture("_MainTex", tex);
+            EditorUtility.SetDirty(mat);
+            return mat;
+        }
+
+        private static IEnumerable<GameObject> GroundObjects(GroundSource g, HashSet<Comp> keep, Material palette, Transform parent)
+        {
+            var byKind = new Dictionary<GroundKind, List<Comp>>();
+            foreach (Comp c in keep)
+            {
+                GroundKind k = KindOfGround(g, c);
+                if (!byKind.TryGetValue(k, out var list)) byKind[k] = list = new List<Comp>();
+                list.Add(c);
+            }
+            foreach (var kv in byKind)
+            {
+                Material mat = kv.Key == GroundKind.Grass ? GroundTexMaterial(GrassMaterialPath, "Med_Grass", palette)
+                    : kv.Key == GroundKind.Dirt ? GroundTexMaterial(DirtMaterialPath, "Med_Dirt", palette) : palette;
+                GameObject go = GroundObject(g, kv.Value, kv.Key != GroundKind.Palette, mat, parent, kv.Key.ToString());
+                if (go != null) yield return go;
+            }
+        }
+
+        private static GameObject GroundObject(GroundSource g, List<Comp> keep, bool worldUv, Material mat, Transform parent, string suffix)
         {
             var verts = new List<Vector3>();
             var normals = new List<Vector3>();
             var uvs = new List<Vector2>();
             var tris = new List<int>();
-            var remap = new Dictionary<int, int>();
             foreach (Comp c in keep)
             {
+                var remap = new Dictionary<int, int>();
                 Matrix4x4 f = GroundScale * Matrix4x4.Translate(new Vector3(0f, -c.offset, 0f));
+                float bias = LayerBias(c);
                 foreach (int i in c.tris)
                 {
                     if (!remap.TryGetValue(i, out int n))
                     {
                         remap[i] = n = verts.Count;
-                        verts.Add(f.MultiplyPoint3x4(g.orig[i]));
+                        Vector3 p = f.MultiplyPoint3x4(g.orig[i]);
+                        if (p.y > 0f) p.y = p.y * Flatten + bias;
+                        verts.Add(p);
                         normals.Add(i < g.normals.Length ? Turn.MultiplyVector(g.normals[i]) : Vector3.up);
-                        uvs.Add(i < g.uv.Length ? g.uv[i] : Vector2.zero);
+                        uvs.Add(worldUv ? new Vector2(p.x, p.z) / GroundTile : i < g.uv.Length ? g.uv[i] : Vector2.zero);
                     }
                     tris.Add(n);
                 }
             }
             if (tris.Count == 0) return null;
-            var mesh = new Mesh { name = "Ground_" + g.name };
+            var mesh = new Mesh { name = $"Ground_{g.name}_{suffix}" };
             if (verts.Count > 65000) mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
             mesh.SetVertices(verts);
             mesh.SetNormals(normals);
@@ -573,7 +662,7 @@ namespace BlobSurvivor.EditorTools
             go.transform.SetParent(parent, false);
             go.AddComponent<MeshFilter>().sharedMesh = mesh;
             var mr = go.AddComponent<MeshRenderer>();
-            mr.sharedMaterial = palette;
+            mr.sharedMaterial = mat;
             mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
             return go;
@@ -661,7 +750,8 @@ namespace BlobSurvivor.EditorTools
                     model.AddComponent<MeshFilter>().sharedMesh = p.mesh;
                     var mr = model.AddComponent<MeshRenderer>();
                     mr.sharedMaterial = palette;
-                    GameObjectUtility.SetStaticEditorFlags(model, StaticEditorFlags.BatchingStatic);
+                    if (part.kind == "MillBlades") AddMillSpin(model);
+                    else GameObjectUtility.SetStaticEditorFlags(model, StaticEditorFlags.BatchingStatic);
                     if (slurp == null) slurp = p.mesh;
                     index++;
                 }
@@ -754,7 +844,7 @@ namespace BlobSurvivor.EditorTools
             }
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            if (o.gateZone >= 0) CastleSceneBuilder.AddGateSign(root, o.gateZone);
+            if (o.gateZone >= 0) MapBuildTools.AddGateSign(root, o.gateZone);
             return root;
         }
 
@@ -855,6 +945,8 @@ namespace BlobSurvivor.EditorTools
         // ---------- ada kenarı, su ----------
 
         // z satırı (1 birim) → yürünebilir x aralığı (min, max).
+        private const float WaterBelow = -0.45f;    // liman suyu (~-0.36) bununla -0.15 arasında; adanın deniz eteği daha aşağıda
+
         private static SortedDictionary<float, Vector2> ScanIsland(List<GameObject> groundObjects)
         {
             var temp = new HashSet<Collider>();
@@ -866,28 +958,41 @@ namespace BlobSurvivor.EditorTools
             }
             Physics.SyncTransforms();
             var rows = new SortedDictionary<float, Vector2>();
+            var wetRight = new HashSet<float>();
+            var wetLeft = new HashSet<float>();
             try
             {
-                for (float z = -70f; z <= 70f; z += 1f)
+                Bounds all = new Bounds();
+                foreach (Collider c in temp) all.Encapsulate(c.bounds);
+                for (float z = Mathf.Floor(all.min.z); z <= all.max.z; z += 1f)
                 {
-                    float lo = float.MaxValue, hi = float.MinValue;
-                    for (float x = -45f; x <= 45f; x += 0.5f)
+                    float lo = float.MaxValue, hi = float.MinValue, wetLo = float.MaxValue, wetHi = float.MinValue;
+                    for (float x = Mathf.Floor(all.min.x); x <= all.max.x; x += 0.5f)
                         foreach (RaycastHit hit in Physics.RaycastAll(new Vector3(x, 40f, z), Vector3.down, 80f))
-                            if (temp.Contains(hit.collider) && hit.point.y > -0.15f)
+                        {
+                            if (!temp.Contains(hit.collider)) continue;
+                            if (hit.point.y > -0.15f)
                             {
                                 lo = Mathf.Min(lo, x);
                                 hi = Mathf.Max(hi, x);
                                 break;
                             }
-                    if (lo <= hi) rows[z] = new Vector2(lo, hi);
+                            if (hit.point.y > WaterBelow) { wetLo = Mathf.Min(wetLo, x); wetHi = Mathf.Max(wetHi, x); }
+                        }
+                    if (lo > hi) continue;
+                    rows[z] = new Vector2(lo, hi);
+                    if (wetHi > hi) wetRight.Add(z);
+                    if (wetLo < lo) wetLeft.Add(z);
                 }
                 // Duvar altında zemin yok (satır daralır): komşu satırların en genişi alınır.
                 var raw = new SortedDictionary<float, Vector2>(rows);
                 foreach (float z in raw.Keys)
                 {
+                    // Su kenarında (liman) yumuşatma yok: duvar iskele kenarında kalsın.
                     Vector2 r = raw[z];
-                    for (float dz = -2f; dz <= 2f; dz += 1f)
-                        if (raw.TryGetValue(z + dz, out Vector2 n)) r = new Vector2(Mathf.Min(r.x, n.x), Mathf.Max(r.y, n.y));
+                    for (float dz = -1f; dz <= 1f; dz += 1f) // sur 1.4 m kalın: ±1 yeter
+                        if (raw.TryGetValue(z + dz, out Vector2 n))
+                            r = new Vector2(wetLeft.Contains(z) ? r.x : Mathf.Min(r.x, n.x), wetRight.Contains(z) ? r.y : Mathf.Max(r.y, n.y));
                     rows[z] = r;
                 }
             }
@@ -902,7 +1007,8 @@ namespace BlobSurvivor.EditorTools
         {
             var go = new GameObject("IslandEdges") { layer = LayerMask.NameToLayer("Environment") };
             go.transform.SetParent(parent, false);
-            const float height = 30f, thick = 2f;
+            // Kalın: iskeleden yana inince arkadaki liman suyuna geçilmesin (2 m'lik duvarın arkası açıktı).
+            const float height = 30f, thick = 12f;
             void Add(Vector3 c, Vector3 s) { var b = go.AddComponent<BoxCollider>(); b.center = c; b.size = s; }
             var keys = rows.Keys.ToList();
             int start = 0;
@@ -918,8 +1024,8 @@ namespace BlobSurvivor.EditorTools
                 start = i;
             }
             float zf = keys[0] - 0.5f, zl = keys[keys.Count - 1] + 0.5f;
-            Add(new Vector3(0f, height / 2f, zf - thick / 2f), new Vector3(100f, height, thick));
-            Add(new Vector3(0f, height / 2f, zl + thick / 2f), new Vector3(100f, height, thick));
+            Add(new Vector3(0f, height / 2f, zf - thick / 2f), new Vector3(200f, height, thick));
+            Add(new Vector3(0f, height / 2f, zl + thick / 2f), new Vector3(200f, height, thick));
         }
 
         private static void BuildWater(Transform parent)
@@ -1057,12 +1163,8 @@ namespace BlobSurvivor.EditorTools
             }
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath) == null)
             {
-                if (AssetDatabase.LoadAssetAtPath<SceneAsset>(CastleScenePath) == null)
-                {
-                    Debug.LogError("[Crownreach] CastleScene yok: önce Tools/Blob.io/Kale Sahnesini Kur.");
-                    return false;
-                }
-                if (!AssetDatabase.CopyAsset(CastleScenePath, ScenePath)) { Debug.LogError("[Crownreach] CastleScene kopyalanamadı."); return false; }
+                Debug.LogError("[Crownreach] CrownreachScene yok (sahne yerinde yeniden kurulur; kaynak kale sahnesi kaldırıldı).");
+                return false;
             }
             EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             return true;
@@ -1083,6 +1185,84 @@ namespace BlobSurvivor.EditorTools
             Material ghost = AssetDatabase.LoadAssetAtPath<Material>(path);
             ghost.SetTexture("_BaseMap", palette.GetTexture("_BaseMap"));
             EditorUtility.SetDirty(ghost);
+        }
+
+        // Değirmen kanadı döner: static batching dışı, eksen = mesh'in en ince kenarı (kanat düzleminin normali).
+        private const float MillSpinSpeed = 40f;
+
+        private static void AddMillSpin(GameObject blades)
+        {
+            GameObjectUtility.SetStaticEditorFlags(blades, 0);
+            Vector3 e = blades.GetComponent<MeshFilter>().sharedMesh.bounds.size;
+            Vector3 axis = e.x <= e.y && e.x <= e.z ? Vector3.right : e.y <= e.z ? Vector3.up : Vector3.forward;
+            if (!blades.TryGetComponent(out MillSpin spin)) spin = blades.AddComponent<MillSpin>();
+            spin.Setup(axis, MillSpinSpeed);
+            EditorUtility.SetDirty(spin);
+        }
+
+        // Elle düzenlemeden sonra (bina/eşya taşındı): haritayı yeniden kurmadan NavMesh'i bake eder, mini haritayı çeker.
+        // Yeniden kurulum (Crownreach Haritasını Kur) elle yapılan değişiklikleri siler.
+        [MenuItem("Tools/Blob.io/Crownreach NavMesh ve Mini Haritayı Yenile")]
+        private static void RefreshNavAndMinimap()
+        {
+            if (EditorSceneManager.GetActiveScene().path != ScenePath) { Debug.LogError("[Crownreach] Önce CrownreachScene'i aç."); return; }
+            var castleMap = Object.FindAnyObjectByType<CastleMap>(FindObjectsInactive.Include);
+            if (castleMap == null) { Debug.LogError("[Crownreach] Sahnede CastleMap yok."); return; }
+            CityKitPipeline.BakeNavMesh();
+            MapBuildTools.RenderMinimap(castleMap.MinimapWorld, MinimapAsset);
+            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+            EditorSceneManager.SaveOpenScenes();
+            Debug.Log("[Crownreach] NavMesh ve mini harita yenilendi.");
+        }
+
+        // Kurulmuş sahnede kanatları döndürür (haritayı yeniden kurmadan).
+        [MenuItem("Tools/Blob.io/Crownreach Değirmenlerini Döndür")]
+        private static void MillSpinMenu()
+        {
+            if (EditorSceneManager.GetActiveScene().path != ScenePath)
+            {
+                if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+                EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            }
+            int n = 0;
+            foreach (MeshFilter mf in Object.FindObjectsByType<MeshFilter>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (mf.sharedMesh == null || !mf.sharedMesh.name.StartsWith("MillBlades")) continue;
+                AddMillSpin(mf.gameObject);
+                n++;
+            }
+            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+            EditorSceneManager.SaveOpenScenes();
+            Debug.Log($"[Crownreach] {n} değirmen kanadı döner");
+        }
+
+        // Zemin yüzeyleri (yol, meydan, tarla) prototipte birkaç cm yüksek; blob, yaya ve yiyecek y = 0'da yürür, gömülü
+        // görünüyordu. Sıfırın üstü Flatten ile ezilir (yükseklik sırası korunur: yol çimenin üstünde). Aynı yükseklikteki
+        // yüzeylerde (meydan taşı ve çimen titreşiyordu) küçük olan bir tık üstte; bu pay en küçük yükseklik farkından
+        // (çimen → yol ~0.009) küçük kalır. Zemine yakın objeler de aynı oranda iner.
+        private const float Flatten = 0.15f;
+        private const float LayerStep = 0.0008f;    // alan yarıya indikçe bu kadar yukarı
+        private const float BaseArea = 300f;
+        private const float MaxFlattenBase = 0.6f;
+
+        private static float LayerBias(Comp c) =>
+            LayerStep * Mathf.Clamp(Mathf.Log(BaseArea / Mathf.Max(0.01f, c.Area), 2f), 0f, 10f);
+
+        private static void FlattenBase(GameObject go)
+        {
+            Vector3 p = go.transform.position;
+            if (p.y > 0f && p.y < MaxFlattenBase) go.transform.position = new Vector3(p.x, p.y * Flatten, p.z);
+        }
+
+        private static void SetInt<T>(string field, int value) where T : Object
+        {
+            T target = Object.FindAnyObjectByType<T>(FindObjectsInactive.Include);
+            if (target == null) return;
+            var so = new SerializedObject(target);
+            SerializedProperty prop = so.FindProperty(field);
+            if (prop == null) return;
+            prop.intValue = value;
+            so.ApplyModifiedProperties();
         }
 
         private static void SetFloat<T>(string field, float value) where T : Object

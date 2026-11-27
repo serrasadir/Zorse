@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e5d2fd3fea44742bb673b7ccf0e379, type: 3}
+  m_Name: City_B_MedKingStatue
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.ConsumableData
+  _displayName: B_MedKingStatue
+  _prefab: {fileID: 9138059484136724976, guid: d5c6d0c86ead84d9da1d8b375d038246, type: 3}
+  _scoreValue: 80
+  _massValue: 80
+  _requiredTier: 7
+  _isHazard: 0
+  _hazardAmount: 0
+  _spawnYOffset: 0.15
+  _crumbColorA: {r: 0.7176471, g: 0.6784314, b: 0.5882353, a: 1}
+  _crumbColorB: {r: 0.8352941, g: 0.7764706, b: 0.6509804, a: 1}

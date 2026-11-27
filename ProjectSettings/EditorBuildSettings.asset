@@ -9,9 +9,6 @@ EditorBuildSettings:
     path: Assets/_Project/Scenes/GameScene.unity
     guid: 857b34253371c40248651ea2aab66c11
   - enabled: 1
-    path: Assets/_Project/Scenes/CastleScene.unity
-    guid: b806625b18d23114298ad633585c4ce3
-  - enabled: 1
     path: Assets/_Project/Scenes/CrownreachScene.unity
     guid: e872072ab92db1b40a53d2d85f0e7a94
   m_configObjects:

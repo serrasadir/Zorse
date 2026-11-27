@@ -8,10 +8,10 @@ namespace BlobSurvivor.Entities
     public class PickupFloat : MonoBehaviour
     {
         private const float Hover = 0.22f;      // yerden yükseklik
-        private const float Bounce = 0.12f;     // zıplama yüksekliği
-        private const float BounceRate = 3.2f;  // rad/sn
-        private const float Pulse = 0.08f;      // büyüme-küçülme oranı
-        private const float SpinSpeed = 70f;    // derece/sn
+        private const float Bounce = 0.05f;     // zıplama yüksekliği (Serra: çok zıplıyor/dönüyordu)
+        private const float BounceRate = 2.4f;  // rad/sn
+        private const float Pulse = 0.03f;      // büyüme-küçülme oranı
+        private const float SpinSpeed = 25f;    // derece/sn
 
         private Transform _model;
         private Renderer _renderer;

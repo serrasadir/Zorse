@@ -135,20 +135,23 @@ namespace BlobSurvivor.Entities
             return _validBuffer[Random.Range(0, _validBuffer.Count)];
         }
 
-        // Rastgele nokta bir binanın içine/çatısına denk gelebilir — SpawnPositionUtility reddeder,
-        // birkaç kez denenir; hepsi tutmazsa bir dahaki refill tick'inde yeniden denenir.
+        // Aday harita dışına, binaya ya da yürünmez yere düşerse reddedilir, yeniden denenir. Kırpmak/en yakın
+        // NavMesh noktasına çekmek yiyecekleri harita kenarına ve köşelere yığıyordu (Serra, Crownreach).
+        private const int SpawnAttempts = 6;
+        private const float MaxSnapSq = 1.5f * 1.5f;
+
         private bool TryGetSpawnPosition(float yOffset, out Vector3 spawnPos)
         {
             Vector3 center = _blobTransform != null ? _blobTransform.position : Vector3.zero;
-            for (int attempt = 0; attempt < 3; attempt++)
+            for (int attempt = 0; attempt < SpawnAttempts; attempt++)
             {
                 Vector2 randomCircle = Random.insideUnitCircle.normalized * Random.Range(_minSpawnDistance, _spawnRadius);
-                Vector3 candidate = new Vector3(
-                    Mathf.Clamp(center.x + randomCircle.x, -_mapHalfExtent, _mapHalfExtent), yOffset,
-                    Mathf.Clamp(center.z + randomCircle.y, -_mapHalfExtent, _mapHalfExtent));
+                Vector3 candidate = new Vector3(center.x + randomCircle.x, yOffset, center.z + randomCircle.y);
+                if (Mathf.Abs(candidate.x) > _mapHalfExtent || Mathf.Abs(candidate.z) > _mapHalfExtent) continue;
                 candidate = BlobSurvivor.Core.MapRegions.ClampToZone(candidate); // kale: blob'un bölgesine
-                if (SpawnPositionUtility.TryFindNavMeshPosition(candidate, yOffset, 5f, out spawnPos))
-                    return true;
+                if (!SpawnPositionUtility.TryFindNavMeshPosition(candidate, yOffset, 5f, out spawnPos)) continue;
+                float dx = spawnPos.x - candidate.x, dz = spawnPos.z - candidate.z;
+                if (dx * dx + dz * dz <= MaxSnapSq) return true;
             }
             spawnPos = Vector3.zero;
             return false;
