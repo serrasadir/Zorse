@@ -22,6 +22,8 @@ namespace BlobSurvivor.Entities.Enemies
         [SerializeField] private GameObject _rocketTemplate;   // Rocket > Body (mesh) + Flame (pivot nozulda)
         [SerializeField] private GameObject _markerTemplate;   // Marker > Ring + Fill (yere yatık quad)
         [SerializeField] private GameObject _blastTemplate;    // Blast > Flash + Wave (yere yatık quad)
+        [Tooltip("Boşsa gövde merkezi (helikopter). Ejderha: ağız (MouthFire).")]
+        [SerializeField] private Transform _launchPoint;
 
         [Header("Zamanlama")]
         [SerializeField] private float _firstDelay = 6f;       // boss geldikten sonra ilk roket
@@ -55,6 +57,7 @@ namespace BlobSurvivor.Entities.Enemies
             public GameObject Marker, Rocket, Blast;
             public Renderer Ring, Fill, Flash, Wave;
             public Transform Flame;
+            public TrailRenderer Trail;
             public Vector3 Target, Launch;
             public float Radius, Time, BlastTime;
             public bool Active, Exploded;
@@ -183,8 +186,10 @@ namespace BlobSurvivor.Entities.Enemies
                 {
                     if (!s.Rocket.activeSelf)
                     {
-                        s.Launch = _enemy.AimPoint;
+                        s.Launch = _launchPoint != null ? _launchPoint.position : _enemy.AimPoint;
+                        s.Rocket.transform.position = s.Launch;
                         s.Rocket.SetActive(true);
+                        if (s.Trail != null) s.Trail.Clear();
                     }
                     UpdateRocket(s, Mathf.Clamp01((s.Time - launchAt) / _flightTime));
                 }
@@ -260,6 +265,7 @@ namespace BlobSurvivor.Entities.Enemies
             strike.Flash = strike.Blast.transform.Find("Flash").GetComponent<Renderer>();
             strike.Wave = strike.Blast.transform.Find("Wave").GetComponent<Renderer>();
             strike.Flame = strike.Rocket.transform.Find("Flame");
+            strike.Trail = strike.Rocket.GetComponentInChildren<TrailRenderer>(true);
             _strikes.Add(strike);
             return strike;
         }

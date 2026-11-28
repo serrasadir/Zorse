@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: EnemyData_MedSiegeTower
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
   _displayName: SiegeTower
-  _hudName: KUŞATMA KULESİ
-  _prefab: {fileID: 2072016075202350378, guid: 1edaeffc676434411a8d820a47793bcf, type: 3}
+  _hudName: "KU\u015EATMA KULES\u0130"
+  _prefab: {fileID: 2072016075202350378, guid: a1521099a7fe847f8b5fbcad1ca93c74, type: 3}
   _maxHealth: 1200
   _damage: 20
   _moveSpeed: 3.2

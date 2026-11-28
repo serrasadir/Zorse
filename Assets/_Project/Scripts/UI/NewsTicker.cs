@@ -44,7 +44,13 @@ namespace BlobSurvivor.UI
         private readonly ShuffleBag _worldBag = new ShuffleBag();
         private readonly ShuffleBag _blobBag = new ShuffleBag();
 
-        private void Awake() => SetBarAlpha(0f);
+        private void Awake()
+        {
+            SetBarAlpha(0f);
+            // Etiket haritaya göre (HABER / TELLAL); metin asset'te.
+            TextMeshProUGUI tagLabel = transform.Find("Tag/Label")?.GetComponent<TextMeshProUGUI>();
+            if (tagLabel != null && _headlines != null && !string.IsNullOrEmpty(_headlines.Tag)) tagLabel.text = _headlines.Tag;
+        }
 
         private void OnEnable()
         {

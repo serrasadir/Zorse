@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
   _displayName: Ejderha
   _hudName: EJDERHA
-  _prefab: {fileID: 2072016075202350378, guid: af8a44705cd44489e9b572e682307477, type: 3}
+  _prefab: {fileID: 2072016075202350378, guid: c8f9487cb01514a88aa927d91d7744ea, type: 3}
   _maxHealth: 9000
   _damage: 6
   _moveSpeed: 3.5
@@ -25,8 +25,8 @@ MonoBehaviour:
   _attackHitCount: 6
   _attackHitInterval: 0.12
   _attackType: 1
-  _projectilePrefab: {fileID: 2790406873442634920, guid: 7bcaf9fd3a3494983a5fc1eebe1bba91, type: 3}
-  _aimLineMaterial: {fileID: 2100000, guid: 5db4a71ce5b8412fb29916ee1504ee4f, type: 2}
+  _projectilePrefab: {fileID: 1638100466673974486, guid: 05157d11a46664cf19e1ec5220283ce2, type: 3}
+  _aimLineMaterial: {fileID: 0}
   _projectileSpeed: 14
   _projectileMaxDistance: 20
   _aimDuration: 1

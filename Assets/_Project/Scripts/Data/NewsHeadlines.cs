@@ -5,7 +5,7 @@ namespace BlobSurvivor.Data
 {
     // 2026-11-03 (Serra, Plague Inc.'teki haber bandı gibi): üstte geçen haber başlıkları.
     // Blob küçükken dünya umursamaz, saçma sapan dünya haberleri döner; büyüdükçe blob'la ilgili haber oranı artar.
-    // Metinler sadece burada — yeni haber eklemek kod gerektirmez.
+    // Metinler sadece burada — yeni haber eklemek kod gerektirmez. Harita başına bir asset (Crownreach: Med_NewsHeadlines).
     [CreateAssetMenu(fileName = "NewsHeadlines", menuName = "BlobSurvivor/News Headlines")]
     public class NewsHeadlines : ScriptableObject
     {
@@ -16,6 +16,9 @@ namespace BlobSurvivor.Data
             [TextArea(1, 2)] public string[] Headlines;
         }
 
+        [Tooltip("Bandın solundaki etiket (şehir HABER, Crownreach TELLAL).")]
+        [SerializeField] private string _tag = "HABER";
+
         [Tooltip("Blob'la ilgisi olmayan komik dünya haberleri.")]
         [SerializeField, TextArea(1, 2)] private string[] _worldNews;
 
@@ -25,6 +28,7 @@ namespace BlobSurvivor.Data
         [Tooltip("Sıradaki haberin blob'la ilgili olma ihtimali — sıra: Tiny, Small, Medium, Large, Giant.")]
         [SerializeField] private float[] _blobNewsChanceByTier = { 0f, 0.1f, 0.2f, 0.45f, 0.7f, 0.9f, 0.95f };
 
+        public string Tag => _tag;
         public string[] WorldNews => _worldNews;
 
         public float BlobNewsChance(BlobTier tier)

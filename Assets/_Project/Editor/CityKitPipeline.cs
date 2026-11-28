@@ -110,6 +110,7 @@ namespace BlobSurvivor.EditorTools
         internal const float EliteModelScale = 1.1f;
         // 2026-11-04 (Serra): miniboss "çok küçük", en az 2 kat. Değiştirince collider/agent de ölçeklenir.
         internal const float MinibossScale = 2.5f; // tank ~4.5 geniş; sokak 7 (bina-bina ~8+) rahat
+        private const float MinibossModelGrow = 1.2f; // sadece görsel (collider/ajan/yeme eşiği MinibossScale'de)
 
         [Serializable]
         internal class CityItem
@@ -296,7 +297,7 @@ namespace BlobSurvivor.EditorTools
             GameObject contents = PrefabUtility.LoadPrefabContents(prefabPath);
             contents.transform.localScale = Vector3.one;
             Transform model = contents.transform.Find("Model");
-            if (model != null) model.localScale *= MinibossScale; // taban -1'de (zemin), ölçek tabandan büyür
+            if (model != null) model.localScale *= MinibossScale * MinibossModelGrow; // taban -1'de (zemin), ölçek tabandan büyür
             CapsuleCollider capsule = contents.GetComponent<CapsuleCollider>();
             if (capsule != null)
             {

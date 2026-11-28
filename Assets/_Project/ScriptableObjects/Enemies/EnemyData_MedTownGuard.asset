@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
   _displayName: TownGuard
   _hudName: 
-  _prefab: {fileID: 5896680904072327028, guid: f56bbbf3a15134a22b552284999b9748, type: 3}
+  _prefab: {fileID: 5896680904072327028, guid: d4842cc898e2848248b606469d0f9d05, type: 3}
   _maxHealth: 30
   _damage: 10
   _moveSpeed: 2.3

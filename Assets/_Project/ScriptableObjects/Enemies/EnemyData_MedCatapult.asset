@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
   _displayName: Catapult
   _hudName: MANCINIK
-  _prefab: {fileID: 2072016075202350378, guid: c2477dfa0afd54d8391287cb5605b604, type: 3}
+  _prefab: {fileID: 2072016075202350378, guid: ef78cebba7c1248b9ae5802b84f141cb, type: 3}
   _maxHealth: 600
   _damage: 25
   _moveSpeed: 2.9

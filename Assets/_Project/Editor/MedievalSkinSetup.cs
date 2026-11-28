@@ -23,6 +23,9 @@ namespace BlobSurvivor.EditorTools
         private const string PedPrefabFolder = "Assets/_Project/Prefabs/City";
         private const string LitterPrefabFolder = "Assets/_Project/Prefabs/Consumables/LitterMedieval";
         private const string LitterDataFolder = "Assets/_Project/ScriptableObjects/Consumables/LitterMedieval";
+        private const int ProjectileLayer = 18;
+        private const string NewsPath = "Assets/_Project/ScriptableObjects/UI/NewsHeadlines.asset";
+        private const string MedNewsPath = "Assets/_Project/ScriptableObjects/UI/Med_NewsHeadlines.asset";
 
         private struct EnemySkin
         {
@@ -109,6 +112,12 @@ namespace BlobSurvivor.EditorTools
                 CopyAndMap(path, map);
             }
             foreach (Object copy in new List<Object>(map.Values)) Remap(copy, map); // _replacedBy, dalga içerikleri, boss aşamaları
+
+            // Haber bandı: ortaçağ manşetleri (metinler asset'te, elle yazılır).
+            Object cityNews = AssetDatabase.LoadAssetAtPath<Object>(NewsPath);
+            Object medNews = AssetDatabase.LoadAssetAtPath<Object>(MedNewsPath);
+            if (cityNews != null && medNews != null) map[cityNews] = medNews;
+            else log.AppendLine("UYARI: " + MedNewsPath + " yok, haber bandı şehir manşetlerinde kalır.");
 
             foreach (var p in Pedestrians) SkinPedestrian(p.city, p.med, p.meshes, med, map, log);
             List<ConsumableData> litter = BuildLitter(med, log);
@@ -245,9 +254,11 @@ namespace BlobSurvivor.EditorTools
                 CityKitPipeline.ApplyModelTransform(body, dragon, DragonMesh);
                 mf.sharedMesh = dragon.sharedMesh;
                 mr.sharedMaterial = med;
-                Vector3 newExt = Vector3.Scale(dragon.sharedMesh.bounds.size, body.lossyScale);
+                Bounds span = BuildWings(contents.transform, body, mr, med, log); // gövde + kanatlar (gövde uzayı)
+                Vector3 newExt = Vector3.Scale(span.size, body.lossyScale);
                 float newSize = Mathf.Max(newExt.x, newExt.z, newExt.y);
-                if (newSize > 0.01f) body.localScale *= oldSize * 1.15f / newSize; // kanat açıklığı helikopterden biraz büyük
+                if (newSize > 0.01f) body.localScale *= oldSize * DragonSpan / newSize;
+                BuildFireAttack(contents, body, med, medData, log);
                 var eb = contents.GetComponent<EnemyBase>();
                 if (eb != null)
                 {
@@ -268,6 +279,209 @@ namespace BlobSurvivor.EditorTools
             map[cityData] = medData;
             map[AssetDatabase.LoadAssetAtPath<GameObject>(cityPrefabPath)] = medPrefab;
             log.AppendLine(dragonOk ? "OK Ejderha ← helikopter" : "UYARI ejderha: helikopter gövdesi (Heli altında) bulunamadı");
+        }
+
+        // ---------- ejderha: kanat çırpma + ateş topu (#91) ----------
+        private const float DragonSpan = 1.265f; // kanat açıklığı / helikopter boyu (sadece görsel; kapsül helikopterinki)
+        // Blender (tools/medieval/kit_bosses.py): gövde, iki kanat ve ateş topu ayrı FBX; hepsi gövdeyle aynı uzayda.
+        private const string WingMeshL = "X_MedDragonWingL";
+        private const string WingMeshR = "X_MedDragonWingR";
+        private const string FireballMesh = "X_MedFireball";
+        private const string DragonRigFolder = "Assets/_Project/Art/City/Medieval/Rigs";
+        private const string FireballBulletPath = EnemyFolder + "/MedFireballBullet.prefab";
+        private const string TrailMaterialPath = "Assets/_Project/Materials/Mat_BulletTrail.mat";
+        private const float FireballBulletSize = 0.8f;  // helikopter roket mermisi ~0.6
+        private const float FireballStrikeSize = 1.4f;  // alan saldırısı
+        private static readonly Color FireTrailHead = new Color(1f, 0.85f, 0.3f);
+        private static readonly Color FireTrailTail = new Color(0.9f, 0.25f, 0.08f);
+
+        // Kanatları gövdenin child'ı yapar (pivot omuzda) + WingFlap. Dönüş: gövde + kanatların gövde uzayı sınırı.
+        private static Bounds BuildWings(Transform root, Transform body, MeshRenderer bodyRenderer, Material med, System.Text.StringBuilder log)
+        {
+            Mesh bodyMesh = body.GetComponent<MeshFilter>().sharedMesh;
+            Bounds span = bodyMesh.bounds;
+            MeshFilter l = CityKitPipeline.LoadSourceMesh(WingMeshL), r = CityKitPipeline.LoadSourceMesh(WingMeshR);
+            if (l == null || r == null) { log.AppendLine("UYARI ejderha: kanat FBX'leri yok, kanatsız"); return span; }
+            span.Encapsulate(l.sharedMesh.bounds);
+            span.Encapsulate(r.sharedMesh.bounds);
+
+            Vector3 up = body.InverseTransformDirection(Vector3.up).normalized;
+            Vector3 lateral = DominantAxis(r.sharedMesh.bounds.center - bodyMesh.bounds.center);
+            Transform wl = BuildWing(body, l.sharedMesh, -lateral, med, "WingL", $"{DragonRigFolder}/{WingMeshL}_Pivot.asset");
+            Transform wr = BuildWing(body, r.sharedMesh, lateral, med, "WingR", $"{DragonRigFolder}/{WingMeshR}_Pivot.asset");
+
+            var flap = body.gameObject.AddComponent<WingFlap>();
+            var so = new SerializedObject(flap);
+            so.FindProperty("_left").objectReferenceValue = wl;
+            so.FindProperty("_right").objectReferenceValue = wr;
+            // +açı kanadı kaldırsın: yan eksen × yukarı (sol kanat için yan eksen ters).
+            so.FindProperty("_leftAxis").vector3Value = Vector3.Cross(-lateral, up).normalized;
+            so.FindProperty("_rightAxis").vector3Value = Vector3.Cross(lateral, up).normalized;
+            so.FindProperty("_body").objectReferenceValue = bodyRenderer;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return span;
+        }
+
+        // Kanat mesh'ini omuza (gövdeye en yakın köşelerin sınır kutusu ortası) göre yeniden merkezler; child'ı omuza koyar.
+        private static Transform BuildWing(Transform body, Mesh src, Vector3 lateral, Material med, string name, string path)
+        {
+            Vector3[] v = src.vertices;
+            float lo = float.MaxValue, hi = float.MinValue;
+            foreach (Vector3 p in v) { float d = Vector3.Dot(p, lateral); lo = Mathf.Min(lo, d); hi = Mathf.Max(hi, d); }
+            float cut = lo + (hi - lo) * 0.06f;
+            Bounds root = default;
+            bool any = false;
+            foreach (Vector3 p in v)
+            {
+                if (Vector3.Dot(p, lateral) > cut) continue;
+                if (!any) { root = new Bounds(p, Vector3.zero); any = true; }
+                else root.Encapsulate(p);
+            }
+            Vector3 pivot = root.center; // iki kanatta simetrik kalsın (köşe ortalaması yoğunluğa göre kayar)
+            for (int i = 0; i < v.Length; i++) v[i] -= pivot;
+            EnsureFolder(DragonRigFolder);
+            SaveMesh(src, v, src.normals, path);
+
+            var go = new GameObject(name) { layer = body.gameObject.layer };
+            go.transform.SetParent(body, false);
+            go.transform.localPosition = pivot;
+            go.AddComponent<MeshFilter>().sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+            var mr = go.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = med;
+            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; // helikopter gibi: sahte yer gölgesi var
+            return go.transform;
+        }
+
+        private static Vector3 DominantAxis(Vector3 d)
+        {
+            Vector3 a = new Vector3(Mathf.Abs(d.x), Mathf.Abs(d.y), Mathf.Abs(d.z));
+            if (a.x >= a.y && a.x >= a.z) return new Vector3(Mathf.Sign(d.x), 0f, 0f);
+            if (a.y >= a.z) return new Vector3(0f, Mathf.Sign(d.y), 0f);
+            return new Vector3(0f, 0f, Mathf.Sign(d.z));
+        }
+
+        // Lazer + roket yerine: ağızda biriken ateş topu (MouthFire), ateş topu mermisi, alan saldırısında ateş topu.
+        // Helikopterden kalan pervane gölgesi ve projektör lekesi kapanır.
+        private static void BuildFireAttack(GameObject root, Transform body, Material med, EnemyData medData, System.Text.StringBuilder log)
+        {
+            MeshFilter fb = CityKitPipeline.LoadSourceMesh(FireballMesh);
+            if (fb == null) { log.AppendLine("UYARI ejderha: X_MedFireball yok, helikopter saldırısı kaldı"); return; }
+            var trailMat = AssetDatabase.LoadAssetAtPath<Material>(TrailMaterialPath);
+
+            // Ağız: burnun ucu (gövdenin ileri yöndeki en uç köşesi), top yarı yarıya önünde.
+            Mesh bodyMesh = body.GetComponent<MeshFilter>().sharedMesh;
+            Vector3 fwd = body.InverseTransformDirection(root.transform.forward).normalized;
+            Vector3 nose = Vector3.zero;
+            float best = float.MinValue;
+            foreach (Vector3 p in bodyMesh.vertices) { float d = Vector3.Dot(p, fwd); if (d > best) { best = d; nose = p; } }
+            Vector3 side = DominantAxis(Vector3.Cross(fwd, body.InverseTransformDirection(Vector3.up)));
+            nose -= side * Vector3.Dot(nose, side); // burun deliği değil, ağzın ortası
+            float ballRadius = fb.sharedMesh.bounds.extents.magnitude * 0.5f;
+            var mouth = new GameObject("MouthFire") { layer = root.layer };
+            mouth.transform.SetParent(body, false);
+            mouth.transform.localPosition = nose + fwd * ballRadius * 0.6f;
+            var ball = new GameObject("Ball") { layer = root.layer };
+            ball.transform.SetParent(mouth.transform, false); // gövdeyle aynı uzay: topun önü ejderhanın önü
+            ball.AddComponent<MeshFilter>().sharedMesh = fb.sharedMesh;
+            var bmr = ball.AddComponent<MeshRenderer>();
+            bmr.sharedMaterial = med;
+            bmr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            ball.SetActive(false);
+            var mf = mouth.AddComponent<MouthFire>();
+            var mso = new SerializedObject(mf);
+            mso.FindProperty("_ball").objectReferenceValue = ball.transform;
+            mso.ApplyModifiedPropertiesWithoutUndo();
+
+            // Makineli seri → ateş topu mermisi (değince patlar, roket mermisiyle aynı alan hasarı).
+            var bullet = new GameObject("MedFireballBullet") { layer = ProjectileLayer };
+            try
+            {
+                var proj = bullet.AddComponent<EnemyProjectile>();
+                var pso = new SerializedObject(proj);
+                pso.FindProperty("_hitRadius").floatValue = 0.3f;
+                pso.FindProperty("_splashRadius").floatValue = 1.2f;
+                pso.ApplyModifiedPropertiesWithoutUndo();
+                FireballModel(bullet.transform, fb, med, FireballBulletSize);
+                AddFireTrail(bullet, trailMat, 0.5f, 0.22f);
+                GameObject saved = PrefabUtility.SaveAsPrefabAsset(bullet, FireballBulletPath);
+                var d = new SerializedObject(medData);
+                d.FindProperty("_projectilePrefab").objectReferenceValue = saved.GetComponent<EnemyProjectile>();
+                d.FindProperty("_aimLineMaterial").objectReferenceValue = null; // lazer yok, ağız ateşi var
+                d.ApplyModifiedPropertiesWithoutUndo();
+            }
+            finally { Object.DestroyImmediate(bullet); }
+
+            // Alan saldırısı: roket şablonu ateş topu olur, ağızdan çıkar (yerdeki kırmızı daire aynı).
+            Transform rocket = root.transform.Find("RocketFX/Rocket");
+            if (rocket != null)
+            {
+                foreach (string child in new[] { "Body", "Flame" })
+                {
+                    Transform t = rocket.Find(child);
+                    if (t != null) Object.DestroyImmediate(t.gameObject);
+                }
+                FireballModel(rocket, fb, med, FireballStrikeSize);
+                AddFireTrail(rocket.gameObject, trailMat, 0.9f, 0.3f);
+            }
+            var strike = root.GetComponent<HeliRocketStrike>();
+            if (strike != null)
+            {
+                var sso = new SerializedObject(strike);
+                sso.FindProperty("_launchPoint").objectReferenceValue = mouth.transform;
+                sso.ApplyModifiedPropertiesWithoutUndo();
+            }
+
+            foreach (string path in new[] { "Shadow/Rotor", "Shadow/SpotPivot/Spot" })
+            {
+                Transform t = root.transform.Find(path);
+                if (t != null && t.TryGetComponent(out Renderer rr)) rr.enabled = false;
+            }
+            log.AppendLine("OK ejderha: kanat çırpma, ağız ateşi, ateş topu mermisi + alan saldırısı");
+        }
+
+        // Ateş topu modeli: alevli kuyruk (merkezden en uzak köşe) −Z'ye, en uzun kenar `size` birim.
+        private static void FireballModel(Transform parent, MeshFilter fb, Material med, float size)
+        {
+            var go = new GameObject("Model") { layer = parent.gameObject.layer };
+            Transform t = go.transform;
+            t.SetParent(parent, false);
+            go.AddComponent<MeshFilter>().sharedMesh = fb.sharedMesh;
+            var mr = go.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = med;
+            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            mr.receiveShadows = false;
+            Quaternion rot = fb.transform.rotation;
+            Vector3 scale = fb.transform.lossyScale;
+            Vector3 far = Vector3.back;
+            float farSqr = 0f;
+            foreach (Vector3 v in fb.sharedMesh.vertices)
+            {
+                Vector3 p = rot * Vector3.Scale(v, scale);
+                if (p.sqrMagnitude > farSqr) { farSqr = p.sqrMagnitude; far = p; }
+            }
+            t.localRotation = Quaternion.FromToRotation(far.normalized, Vector3.back) * rot;
+            Vector3 ext = Vector3.Scale(fb.sharedMesh.bounds.size, scale);
+            t.localScale = scale * (size / Mathf.Max(0.001f, Mathf.Max(ext.x, ext.y, ext.z)));
+        }
+
+        private static void AddFireTrail(GameObject go, Material mat, float width, float time)
+        {
+            var trail = go.GetComponent<TrailRenderer>();
+            if (trail == null) trail = go.AddComponent<TrailRenderer>();
+            trail.sharedMaterial = mat;
+            trail.time = time;
+            trail.minVertexDistance = 0.15f;
+            trail.widthMultiplier = 1f;
+            trail.widthCurve = new AnimationCurve(new Keyframe(0f, width), new Keyframe(1f, 0f));
+            var grad = new Gradient();
+            grad.SetKeys(new[] { new GradientColorKey(FireTrailHead, 0f), new GradientColorKey(FireTrailTail, 1f) },
+                new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(1f, 1f) });
+            trail.colorGradient = grad;
+            trail.alignment = LineAlignment.View;
+            trail.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            trail.receiveShadows = false;
+            trail.autodestruct = false;
+            trail.emitting = true;
         }
 
         // ---------- yayalar ----------
@@ -405,6 +619,9 @@ namespace BlobSurvivor.EditorTools
         // arbalet atarın kutusuna ortalanıp ölçeklenir. Resources'a mesh + materyal (WeaponVisual, MapTheme "Med").
         private const string WeaponFolder = "Assets/_Project/Resources/FX/Weapons";
 
+        // Kılıcın kabzası blob merkezinden bu kadar ileride (görünüm mesh'i uzayı, gövde yarıçapı ~0,5).
+        private const float SwordGripOffset = 0.42f;
+
         private static void BakeWeapons(Material med, System.Text.StringBuilder log)
         {
             string matPath = WeaponFolder + "/Mat_MedWeapon.mat";
@@ -413,7 +630,7 @@ namespace BlobSurvivor.EditorTools
             else { weaponMat.shader = med.shader; weaponMat.CopyPropertiesFromMaterial(med); EditorUtility.SetDirty(weaponMat); }
             int n = 0;
             for (int f = 1; f <= 5; f++)
-                if (BakeAlongAxis($"{WeaponFolder}/G_Stick_{f}.fbx", $"G_MedSword_{f}", $"{WeaponFolder}/G_MedStick_{f}.asset")) n++;
+                if (BakeAlongAxis($"{WeaponFolder}/G_Stick_{f}.fbx", $"G_MedSword_{f}", $"{WeaponFolder}/G_MedStick_{f}.asset", SwordGripOffset)) n++;
             for (int f = 1; f <= 4; f++)
                 if (BakeIntoBox($"{WeaponFolder}/G_Firework_{f}.fbx", $"G_MedCrossbow_{f}", $"{WeaponFolder}/G_MedFirework_{f}.asset")) n++;
             log.AppendLine($"OK görünür silah: {n}/9 pişirildi");
@@ -436,7 +653,7 @@ namespace BlobSurvivor.EditorTools
             return v;
         }
 
-        private static bool BakeAlongAxis(string targetPath, string sourceMesh, string outPath)
+        private static bool BakeAlongAxis(string targetPath, string sourceMesh, string outPath, float gripOffset)
         {
             Mesh target = LoadFbxMesh(targetPath);
             MeshFilter src = CityKitPipeline.LoadSourceMesh(sourceMesh);
@@ -458,6 +675,7 @@ namespace BlobSurvivor.EditorTools
 
             float scale = (hi - lo) / Mathf.Max(0.001f, sb.size[sAxis]);
             Quaternion rot = Quaternion.FromToRotation(dirS, dirT);
+            grip += dirT * gripOffset; // kabza gövde yüzeyinde: kılıç blob'un içinden geçmesin
             for (int i = 0; i < v.Length; i++) v[i] = grip + rot * ((v[i] - sGrip) * scale);
             for (int i = 0; i < nr.Length; i++) nr[i] = rot * nr[i];
             SaveMesh(src.sharedMesh, v, nr, outPath);

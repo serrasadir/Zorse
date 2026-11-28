@@ -27,11 +27,13 @@ namespace BlobSurvivor.Entities.Enemies
         private float _speed;
         private float _damage;
         private float _remainingDistance;
+        private TrailRenderer _trail; // ateş topu izi: havuzdan çıkınca eski konumdan çizgi çekmesin
 
         private void Awake()
         {
             if (s_environmentMask < 0)
                 s_environmentMask = LayerMask.GetMask("Environment");
+            _trail = GetComponentInChildren<TrailRenderer>(true);
         }
 
         // Restart sahneyi yeniden yüklemediği için havadaki mermiler yeni run'a taşınmamalı.
@@ -54,6 +56,7 @@ namespace BlobSurvivor.Entities.Enemies
             _speed = speed;
             _damage = damage;
             _remainingDistance = maxDistance;
+            if (_trail != null) _trail.Clear();
         }
 
         private void Update()

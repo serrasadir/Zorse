@@ -73,7 +73,7 @@ namespace BlobSurvivor.Entities.Enemies
             _aimDirection = enemy.AttackDirectionToBlob();
             enemy.FaceTowards(enemy.DirectionToBlob());
             if (aiTick) _aimLength = enemy.ComputeAimLength(_aimDirection);
-            enemy.ShowAimLine(_aimDirection, _aimLength, TrackingLineWidth);
+            enemy.ShowAimLine(_aimDirection, _aimLength, TrackingLineWidth, false);
 
             _timer += Time.deltaTime;
             if (_timer < enemy.Data.AimDuration - enemy.Data.AimLockDuration) return;
@@ -88,7 +88,7 @@ namespace BlobSurvivor.Entities.Enemies
             // Kilitli yöne bakar (havadaki düşmanın aşağı eğik yönü yataya indirilir, kök eğilmesin).
             Vector3 face = new Vector3(_aimDirection.x, 0f, _aimDirection.z);
             if (face.sqrMagnitude > 0.0001f) enemy.FaceTowards(face);
-            enemy.ShowAimLine(_aimDirection, _aimLength, LockedLineWidth);
+            enemy.ShowAimLine(_aimDirection, _aimLength, LockedLineWidth, true);
 
             _timer += Time.deltaTime;
             if (_timer < enemy.Data.AimLockDuration) return;

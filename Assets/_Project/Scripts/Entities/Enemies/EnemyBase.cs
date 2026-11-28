@@ -118,6 +118,7 @@ namespace BlobSurvivor.Entities.Enemies
         private float _avoidClearSince;
         private int _clearPathTicks;
         private EnemyAimLine _aimLine;
+        private MouthFire _mouthFire; // ejderha: lazer yerine ağızda ateş topu
         private ObjectPool<EnemyProjectile> _projectilePool;
 
         private const float MuzzleOffset = 0.7f;
@@ -179,6 +180,7 @@ namespace BlobSurvivor.Entities.Enemies
             _agent = GetComponent<NavMeshAgent>();
             _healthBar = GetComponentInChildren<EnemyHealthBar>(true);
             _alertMark = GetComponent<AlertMark>();
+            _mouthFire = GetComponentInChildren<MouthFire>(true);
             CapsuleCollider body = GetComponent<CapsuleCollider>();
             _bodyCollider = GetComponent<Collider>();
             _bodyRadius = body != null
@@ -837,7 +839,7 @@ namespace BlobSurvivor.Entities.Enemies
             _knockbackVelocity = Vector3.zero;
             _steeringVelocity = Vector3.zero;
             StopMoving();
-            _aimLine?.Hide();
+            HideAimLine();
             _lungeTime = -1f;
             bool heavy = _data != null && _data.IsElite;
             if (heavy)
@@ -965,8 +967,13 @@ namespace BlobSurvivor.Entities.Enemies
                 : maxDistance;
         }
 
-        public void ShowAimLine(Vector3 direction, float length, float width)
+        public void ShowAimLine(Vector3 direction, float length, float width, bool locked)
         {
+            if (_mouthFire != null)
+            {
+                _mouthFire.Show(locked);
+                return;
+            }
             if (_aimLine == null)
             {
                 if (_data.AimLineMaterial == null) return;
@@ -977,7 +984,11 @@ namespace BlobSurvivor.Entities.Enemies
             _aimLine.Show(origin + direction * MuzzleOffset, origin + direction * length, width);
         }
 
-        public void HideAimLine() => _aimLine?.Hide();
+        public void HideAimLine()
+        {
+            _aimLine?.Hide();
+            if (_mouthFire != null) _mouthFire.Hide();
+        }
 
         public void FireProjectile(Vector3 direction)
         {
@@ -991,6 +1002,14 @@ namespace BlobSurvivor.Entities.Enemies
             Vector3 position = AirborneHeight > 0f
                 ? AimPoint + direction * MuzzleOffset
                 : transform.position + direction * Mathf.Max(MuzzleOffset, _bodyRadius);
+            if (_mouthFire != null && BlobTransform != null)
+            {
+                // Ağızdan çıkar, kilitli çizginin blob mesafesindeki noktasına gider (kaçış payı aynı kalır).
+                Vector3 aimed = AimPoint + direction * Vector3.Distance(AimPoint, BlobTransform.position);
+                position = _mouthFire.Position;
+                Vector3 toAim = aimed - position;
+                if (toAim.sqrMagnitude > 0.01f) direction = toAim.normalized;
+            }
             EnemyProjectile projectile = _projectilePool.Get(position, Quaternion.LookRotation(direction));
             projectile.Launch(_projectilePool, _blobHealth, _blobSolidRadius, direction,
                 _data.ProjectileSpeed, _data.ProjectileMaxDistance, _data.Damage * _damageMultiplier);

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.EnemyData
   _displayName: Militia
   _hudName: 
-  _prefab: {fileID: 5896680904072327028, guid: 9440cf86199d14ec5844133a4b02e837, type: 3}
+  _prefab: {fileID: 5896680904072327028, guid: 54484a47899e5468a87866ec88524602, type: 3}
   _maxHealth: 10
   _damage: 3
   _moveSpeed: 2

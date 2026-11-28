@@ -376,7 +376,30 @@ def dragon_flying():
         ball(p, (sx * 0.45, -1.0, -0.72), (0.16, 0.16, 0.13), "red")
         for dx in (-0.07, 0.07):
             spike(p, (sx * 0.45 + dx, -1.08, -0.78), (sx * 0.45 + dx, -1.22, -0.86), 0.045, "cream", seg=4)
-        move(wing(p, sx), Matrix.Translation((sx * 0.6, -0.4, 0.45)) @ Matrix.Scale(0.98, 4))
+    return p.finish()
+
+
+# Kanatlar gövdeden ayrı (Unity'de omuzdan çırpar, WingFlap); gövdeyle aynı uzayda, kök = omuz.
+WING_ROOT = (0.6, -0.4, 0.45)
+
+
+def dragon_wing(sx):
+    p = Part("M_DragonWing" + ("R" if sx > 0 else "L"))
+    move(wing(p, sx), Matrix.Translation((sx * WING_ROOT[0], WING_ROOT[1], WING_ROOT[2])) @ Matrix.Scale(0.98, 4))
+    return p.finish()
+
+
+def fireball():
+    """Ejderha ateş topu: önde (−Y) sarı çekirdek, alev dilleri arkaya (+Y) savrulur."""
+    p = Part("M_Fireball")
+    ball(p, (0, -0.1, 0), (0.4, 0.4, 0.4), "window", hi=True)
+    ball(p, (0, 0.18, 0), (0.43, 0.5, 0.43), "fire", hi=True)
+    for k in range(7):
+        a = k * 2 * math.pi / 7
+        c, sn = math.cos(a), math.sin(a)
+        spike(p, (c * 0.28, 0.15, sn * 0.28), (c * 0.2, 0.9 + 0.15 * (k % 3), sn * 0.2), 0.17,
+              "roof" if k % 2 else "fire", seg=4)
+    spike(p, (0, 0.3, 0), (0, 1.3, 0), 0.2, "roof", seg=5)
     return p.finish()
 
 
@@ -429,5 +452,8 @@ BUILDERS = {
     "catapult_stone": catapult_stone,
     "siege_tower": siege_tower,
     "dragon_flying": dragon_flying,
+    "dragon_wing_l": lambda: dragon_wing(-1),
+    "dragon_wing_r": lambda: dragon_wing(1),
+    "fireball": fireball,
     "dragon_perched": dragon_perched,
 }

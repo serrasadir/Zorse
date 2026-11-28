@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84c376c596b32456e922ef994d59dbdc, type: 3}
+  m_Name: Med_NewsHeadlines
+  m_EditorClassIdentifier: Assembly-CSharp::BlobSurvivor.Data.NewsHeadlines
+  _tag: TELLAL
+  _worldNews:
+  - "Kral\u0131n taz\u0131s\u0131 kayboldu, saray \"endi\u015feye gerek yok\" diyor"
+  - "Bug\u00fcn ya\u011fmur ya\u011fmad\u0131, m\u00fcneccimler \u015fa\u015fk\u0131n"
+  - "De\u011firmenci yine un fiyat\u0131na zam yapt\u0131, k\u00f6yl\u00fc homurdan\u0131yor"
+  - "K\u00f6y\u00fcn ke\u00e7isi muhtar se\u00e7ildi, ilk icraat\u0131 ot zamm\u0131"
+  - "Ozanlar uyard\u0131: K\u0131\u015f yine geliyor"
+  - "Simyac\u0131lar kur\u015funu alt\u0131na \u00e7eviremedi, ama \u00e7ok g\u00fczel koktu"
+  - "F\u0131r\u0131nc\u0131 rekor k\u0131rd\u0131: Bir g\u00fcnde 400 somun"
+  - "G\u00fcvercinler \u00e7an kulesinde greve ba\u015flad\u0131, talepleri belirsiz"
+  - "Ana caddede tek araba yok, \u00f6k\u00fczler ne yapaca\u011f\u0131n\u0131 bilemedi"
+  - "Gezgin ozan suyu ke\u015ffetti: \"\u00c7ok ferahlat\u0131c\u0131\""
+  - "Yeni fetva: Bira i\u00e7enlerin bira i\u00e7ti\u011fi kan\u0131tland\u0131"
+  - "Kay\u0131p \u00e7izme vakas\u0131 34. g\u00fcn\u00fcnde, h\u00e2l\u00e2 ipucu yok"
+  - "Mart\u0131 bal\u0131k\u00e7\u0131n\u0131n ringas\u0131n\u0131 \u00e7ald\u0131, iskeleden u\u00e7arak ka\u00e7t\u0131"
+  - "Kraliyet ah\u0131r\u0131ndaki at bug\u00fcn de hi\u00e7bir \u015fey yapmad\u0131"
+  - "Kuyuya kova d\u00fc\u015ft\u00fc, k\u00f6y \u00fc\u00e7 g\u00fcnd\u00fcr toplant\u0131da"
+  - "Kom\u015fu \u00e7ocuk lavta dersine ba\u015flad\u0131, mahalle tedirgin"
+  - "Turtaya elma m\u0131 armut mu tart\u0131\u015fmas\u0131 lonca meclisini kar\u0131\u015ft\u0131rd\u0131"
+  - "Posta g\u00fcvercini tam zaman\u0131nda geldi, al\u0131c\u0131lar \u015f\u00fcpheli"
+  - "D\u00fcnyan\u0131n en b\u00fcy\u00fck peynir tekerle\u011fi yap\u0131ld\u0131, yoku\u015ftan ka\u00e7t\u0131"
+  - "Bir kaz k\u00f6pr\u00fcde durdu, at arabalar\u0131 alk\u0131\u015flad\u0131"
+  - "Cad\u0131 kul\u00fcbesinin bacas\u0131 ye\u015fil duman \u00e7\u0131kar\u0131yor, cad\u0131 \"\u00e7orba\" diyor"
+  - "Emekli \u015f\u00f6valye sur in\u015faat\u0131n\u0131 6 saat izledi: \"Ta\u015f yamuk\""
+  - "Hekimler: Uyumak yorgunlu\u011fa iyi geliyor"
+  - "Meyhaneci \"son kadeh\" dedi, \u00fc\u00e7 kadeh daha verdi"
+  - "Kalenin en ya\u015fl\u0131 kaplumba\u011fas\u0131 do\u011fum g\u00fcn\u00fc ziyafetine h\u00e2l\u00e2 y\u00fcr\u00fcyor"
+  - "\u00c7ama\u015f\u0131rc\u0131 kad\u0131nlar derede topland\u0131, krall\u0131\u011f\u0131n t\u00fcm s\u0131rlar\u0131 \u00e7\u00f6z\u00fcld\u00fc"
+  _blobNews:
+  - Tier: 3
+    Headlines:
+    - "Pazarda \"sinirli bir top\" g\u00f6r\u00fcld\u00fc\u011f\u00fc iddia edildi"
+    - "K\u00f6yl\u00fc: \"Ekme\u011fimi bir top yedi.\" Bek\u00e7i: \"Tabii, tabii.\""
+    - "Sokaklardaki \u00e7er\u00e7\u00f6p gizemli \u015fekilde azal\u0131yor, k\u00e2hya \u00f6vg\u00fcleri toplad\u0131"
+    - "\u00c7oban \"top kuzumu kovalad\u0131\" dedi, kimse inanmad\u0131"
+    - "Tellal duyurdu: \"Turtam\u0131 g\u00f6ren var m\u0131?\""
+    - "Ah\u0131rc\u0131: \"Yuvarlak bir \u015fey ka\u00e7m\u0131\u015f olabilir\""
+    - "Bek\u00e7iler sinirli bir topu ar\u0131yor, ellerindeki tek ipucu bir top resmi"
+    - "Muhaf\u0131zlar \"sinirli top\" ihbarlar\u0131n\u0131 ilk kez ciddiye ald\u0131"
+  - Tier: 4
+    Headlines:
+    - "Muhaf\u0131zlar yuvarlak \u015f\u00fcpheliyi ar\u0131yor: \"K\u0131rm\u0131z\u0131, sinirli, a\u00e7\""
+    - "K\u00f6yl\u00fcler uyar\u0131ld\u0131: Yuvarlak \u015feylere yakla\u015fmay\u0131n"
+    - "Bilginler tart\u0131\u015f\u0131yor: Top mu, bal\u00e7\u0131k m\u0131, yoksa \u00e7ok b\u00fcy\u00fck bir kiraz m\u0131?"
+    - "Pazar tezg\u00e2h\u0131 kayboldu, sat\u0131c\u0131 h\u00e2l\u00e2 m\u00fc\u015fteri bekliyor"
+    - "K\u00e2hya: \"Durum kontrol alt\u0131nda.\" Durum: Kontrol alt\u0131nda de\u011fil"
+    - "Meyhanelerde tek konu: #TopGeliyor"
+    - "Ok\u00e7ular g\u00f6reve \u00e7a\u011fr\u0131ld\u0131: Hedef yuvarlak, k\u0131rm\u0131z\u0131 ve \u00e7ok a\u00e7"
+    - "Kalkanl\u0131 \u015f\u00f6valye: \"Kariyerimde ilk kez bir topu koval\u0131yorum\""
+    - "TELLAL: Top at arabalar\u0131n\u0131 yemeye ba\u015flad\u0131"
+  - Tier: 5
+    Headlines:
+    - "TELLAL: Dev top evleri yemeye ba\u015flad\u0131"
+    - "Loncalar \"top hasar\u0131\"n\u0131 s\u00f6zle\u015fmelerden \u00e7\u0131kard\u0131"
+    - "Kasaba a\u011fas\u0131: \"Topla m\u00fczakere masas\u0131na oturmaya haz\u0131r\u0131z\""
+    - "Atl\u0131 \u015f\u00f6valyeler sahada, top h\u00e2l\u00e2 a\u00e7"
+    - "M\u00fcneccimler: \"Top b\u00fcy\u00fcmeye devam ederse... b\u00fcy\u00fcmeye devam edecek\""
+    - "Halk evlerine kapand\u0131, f\u0131r\u0131nlarda ekmek kalmad\u0131"
+  - Tier: 6
+    Headlines:
+    - "TELLAL: Top surlar\u0131 yiyor"
+    - "Saray a\u00e7\u0131klama yapt\u0131: Taz\u0131y\u0131 da o yemi\u015f"
+    - "Kral divan\u0131 ola\u011fan\u00fcst\u00fc toplad\u0131, tek g\u00fcndem maddesi: \"O top\""
+    - "Haritac\u0131lar krall\u0131\u011f\u0131 yeniden \u00e7iziyor: Art\u0131k daha az krall\u0131k var"
+    - "Ozanlar topa destan yaz\u0131yor, kafiye bulam\u0131yorlar"
+    - "Kom\u015fu krall\u0131klardan ortak ferman: \"L\u00fctfen bizi yeme\""
+    - "Bilginler tek bir tavsiyede birle\u015fti: Ko\u015fun"
+    - "Krall\u0131kta yiyecek bir \u015fey kalmad\u0131, top h\u00e2l\u00e2 a\u00e7"
+    - "Saray a\u015f\u00e7\u0131lar\u0131 seferber oldu: \"Ne pi\u015firsek yetmiyor, kazan\u0131 da yiyor\""
+  - Tier: 7
+    Headlines:
+    - "TELLAL: Top art\u0131k ev de\u011fil, mahalle yiyor"
+    - "De\u011firmen yendi. De\u011firmenci de \u015fik\u00e2yet\u00e7i"
+    - "Kral taht\u0131ndan indi: \"Oturacak saray kalmad\u0131\""
+    - "Cad\u0131 kehaneti tuttu: \"K\u0131z\u0131l bir ay gelecek, her \u015feyi yiyecek\""
+    - "M\u00fcneccimler: Top kale kulesinden \u00e7\u0131plak g\u00f6zle g\u00f6r\u00fcl\u00fcyor"
+    - "Kirac\u0131lar sevin\u00e7li: \"Vergi yok, \u00e7\u00fcnk\u00fc ev yok\""
+  _blobNewsChanceByTier:
+  - 0
+  - 0.1
+  - 0.2
+  - 0.45
+  - 0.7
+  - 0.9
+  - 0.95
